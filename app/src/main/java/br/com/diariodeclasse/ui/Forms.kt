@@ -38,11 +38,11 @@ import java.time.LocalDate
             Field("A partir desta nota: verde", high, { high = it })
             Row { Checkbox(countFj, { countFj = it }); Text("Falta justificada entra como ausência na frequência", Modifier.padding(top = 12.dp)) }
             Row { Checkbox(present, { present = it }); Text("Iniciar novas chamadas com todos presentes", Modifier.padding(top = 12.dp)) }
-            TextButton(onClick = { weekly = !weekly }) { Text("Horários semanais opcionais") }
+            TextButton(onClick = { weekly = !weekly }) { Text("Horários semanais legados (informação)") }
             if (weekly) {
-                Info("Configuração anterior preservada. Altere somente se quiser gerar aulas previstas. Chamadas realizadas não serão apagadas.")
+                Info("Configuração anterior preservada. Os valores são somente informação legada. Aulas são registradas por data na página Fazer Chamada; esta configuração não gera nem apaga aulas.")
                 listOf("Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo").forEachIndexed { i, day -> Field(day, schedule[i], { schedule[i] = it }) }
-                if (original != null) Field("Novo horário a partir de (dd/mm/aaaa)", effective, { effective = it })
+                if (original != null) Field("Referência do horário legado (dd/mm/aaaa)", effective, { effective = it })
             }
         }
         Button(enabled = !saving, onClick = {
@@ -63,6 +63,7 @@ import java.time.LocalDate
 @Composable fun TermForm(vm: DiaryViewModel, c: SchoolClass, terms: List<Term>, dismiss: () -> Unit) {
     val starts = remember { mutableStateListOf(*terms.sortedBy { it.number }.map { shortDate(it.start) }.toTypedArray()) }
     val ends = remember { mutableStateListOf(*terms.sortedBy { it.number }.map { shortDate(it.end) }.toTypedArray()) }
+    var preview by remember { mutableStateOf<List<Term>?>(null) }
     Form("Configurar bimestres", dismiss) {
         Info("Datas iniciais são sugestões. Ajuste ao calendário da sua rede. Períodos não podem se sobrepor.")
         if (starts.size == 4) for (i in 0..3) {
@@ -70,7 +71,22 @@ import java.time.LocalDate
             Field("Início (dd/mm/aaaa)", starts[i], { starts[i] = it })
             Field("Término (dd/mm/aaaa)", ends[i], { ends[i] = it })
         }
-        Button(onClick = { vm.act(done = dismiss) { vm.repository.saveTerms(c.id, (0..3).map { Term(c.id, it + 1, iso(starts[it]), iso(ends[it])) }) } }) { Text("Salvar calendário") }
+        Button(onClick = {
+            val a = starts.toList(); val b = ends.toList()
+            vm.act {
+                val proposed = (0..3).map { Term(c.id, it + 1, iso(a[it]), iso(b[it])) }
+                vm.repository.validateTerms(c, proposed)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { preview = proposed }
+            }
+        }) { Text("Salvar calendário") }
+        SaveError(vm)
+    }
+    preview?.let { proposed ->
+        val moved = vm.data.value.lessons.count { lesson -> lesson.classId == c.id && lesson.state == "REALIZADA" &&
+            terms.firstOrNull { lesson.date in it.start..it.end }?.number != proposed.firstOrNull { lesson.date in it.start..it.end }?.number }
+        Confirm("Recalcular períodos da frequência?", "$moved aulas realizadas mudarão de classificação bimestral. Nenhuma aula ou chamada será apagada; os totais serão recalculados pelas novas datas. Atividades e notas mantêm seus bimestres originais.", { preview = null }) {
+            vm.act(done = dismiss) { vm.repository.saveTerms(c.id, proposed) }
+        }
     }
 }
 

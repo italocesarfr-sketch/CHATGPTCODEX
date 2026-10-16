@@ -56,28 +56,21 @@ class DiaryRepository(val db: DiaryDatabase) {
                 dao.save(Term(value.id, n, start.toString(), start.plusMonths(3).minusDays(1).toString()))
             }
         }
-        // Edições de nome/disciplina/preferências não regeneram o calendário.
-        if (previous == null || previous.schedule != value.schedule) regenerate(value, effective)
-    }
-    private suspend fun regenerate(c: SchoolClass, from: String) {
-        dao.removeUnrecordedPlans(c.id, from)
-        val counts = c.schedule.split(',').map { it.toInt() }.toIntArray()
-        val plans = dao.periods(c.id).flatMap { term ->
-            if (term.end < from) emptyList() else SchoolRules.plan(maxOf(from, term.start), term.end, counts)
-                .map { Lesson("${c.id}:${it.date}:${it.ordinal}", c.id, it.date, it.ordinal) }
-        }
-        dao.insertLessons(plans)
+        // Horário semanal é somente legado. Nunca gerar/remover aulas automaticamente.
     }
     suspend fun saveTerms(classId: String, periods: List<Term>) = db.withTransaction {
         val c = requireNotNull(dao.schoolClass(classId))
+        validateTerms(c, periods)
+        val sorted = periods.sortedBy { it.number }
+        sorted.forEach { dao.save(it) }
+    }
+    fun validateTerms(c: SchoolClass, periods: List<Term>) {
         require(periods.size == 4 && periods.map { it.number }.toSet() == setOf(1, 2, 3, 4)) { "Informe os quatro bimestres." }
         val sorted = periods.sortedBy { it.number }
         sorted.forEach {
-            require(it.classId == classId && date(it.start).year == c.year && date(it.end).year == c.year && it.start <= it.end) { "Datas inválidas para o ano letivo." }
+            require(it.classId == c.id && date(it.start).year == c.year && date(it.end).year == c.year && it.start <= it.end) { "Datas inválidas para o ano letivo." }
         }
         sorted.zipWithNext().forEach { (a, b) -> require(a.end < b.start) { "Bimestres não podem se sobrepor." } }
-        sorted.forEach { dao.save(it) }
-        regenerate(c, "${c.year}-01-01")
     }
     suspend fun saveStudent(value: Student) = db.withTransaction {
         require(value.name.trim().length >= 2 && value.number > 0) { "Informe nome e número válido." }
@@ -123,6 +116,31 @@ class DiaryRepository(val db: DiaryDatabase) {
         val c = requireNotNull(dao.schoolClass(classId)); require(date(day).year == c.year)
         val n = (dao.day(classId, day).maxOfOrNull { it.ordinal } ?: 0) + 1
         dao.save(Lesson("$classId:$day:$n", classId, day, n, note = note.ifBlank { "Aula extraordinária" }))
+    }
+    /** Única ação de quantidade: reutiliza IDs por ordinal; nunca exclui aulas ou marcas. */
+    suspend fun setDayHours(classId: String, day: String, count: Int, confirmCancellation: Boolean = false) = db.withTransaction {
+        val c = requireNotNull(dao.schoolClass(classId)) { "Turma não encontrada." }
+        require(date(day).year == c.year) { "Escolha uma data do ano letivo da turma." }
+        require(count in 0..12) { "Informe de 0 a 12 horários." }
+        val old = dao.day(classId, day)
+        val excess = old.filter { it.ordinal > count && it.state != "CANCELADA" }
+        require(excess.isEmpty() || confirmCancellation) { "Confirme o cancelamento dos horários excedentes. Nenhum registro será apagado." }
+        excess.forEach { dao.save(it.copy(state = "CANCELADA")) }
+        for (n in 1..count) {
+            val previous = old.firstOrNull { it.ordinal == n }
+            // Canceladas só voltam a contar mediante reativação explícita por horário.
+            if (previous?.state == "CANCELADA") continue
+            val lesson = previous ?: Lesson("$classId:$day:$n", classId, day, n)
+            dao.save(lesson.copy(state = "REALIZADA"))
+            if (c.startPresent && dao.attendance(lesson.id).isEmpty()) {
+                dao.roster(classId).filter { it.enrolled(day) }.forEach { dao.save(Attendance(lesson.id, it.id, "P")) }
+            }
+        }
+    }
+    suspend fun allPresentDay(classId: String, day: String) = db.withTransaction {
+        val lessons = dao.day(classId, day).filter { it.state == "REALIZADA" }
+        require(lessons.isNotEmpty()) { "Registre os horários ministrados antes de marcar presença." }
+        lessons.forEach { allPresent(it.id) }
     }
     suspend fun mark(lessonId: String, studentId: String, mark: String) = db.withTransaction {
         require(mark in listOf("P", "F", "FJ", "NR"))

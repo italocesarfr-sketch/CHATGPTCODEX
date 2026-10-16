@@ -43,6 +43,7 @@ class StageTwoDataInstrumentedTest {
     @Test fun metadataEditPreservesScheduleAndEveryLesson() = runBlocking {
         val old=c.copy(schedule="0,0,2,1,0,0,0",duration=45)
         repo.saveClass(old,"2026-01-01")
+        db.dao().save(Lesson("legacy-s2",c.id,"2026-03-04",1))
         val first=db.dao().day(c.id,"2026-03-04").first()
         repo.startLesson(first.id)
         val before=manager.snapshot()

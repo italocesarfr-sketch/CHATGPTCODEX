@@ -56,9 +56,11 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("Editar Turma Existente").assertIsDisplayed();shot("01-turmas")
         compose.onNodeWithTag("nav-1").performClick()
         compose.waitUntil(10000) { compose.onAllNodesWithText("Bimestres").fetchSemanticsNodes().isNotEmpty() }
+        waitText("Mês do ano letivo 2026")
+        shot("02-chamada")
+        compose.onNodeWithTag("frequency-mode-Bimestre").performClick()
         compose.onNodeWithText("4º bim.").performClick()
-        waitText("Exibir apenas o 4º bimestre")
-        compose.onNodeWithText("Exibir apenas o 4º bimestre").assertExists();shot("02-chamada")
+        compose.onNodeWithTag("term-frequency").assertExists()
         compose.onNodeWithTag("nav-2").performClick()
         waitText("+ Criar atividade")
         compose.onNodeWithText("+ Criar atividade").assertIsDisplayed();shot("03-atividades")

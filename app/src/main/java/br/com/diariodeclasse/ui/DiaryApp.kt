@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
@@ -46,7 +47,7 @@ private val pages = listOf(
     var detail by rememberSaveable { mutableStateOf("") }
     var returnDetail by rememberSaveable { mutableStateOf("") }
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
-    var lessonId by rememberSaveable { mutableStateOf("") }
+    val frequencyStates = rememberSaveableStateHolder()
     var activityId by rememberSaveable { mutableStateOf("") }
     var studentId by rememberSaveable { mutableStateOf("") }
     var classForm by remember { mutableStateOf(false) }
@@ -67,7 +68,7 @@ private val pages = listOf(
     fun navigate(action: () -> Unit) {
         val safe = {
             navigating = true
-            vm.act(done = { invalidGrade = false; action(); navigating = false }) {}
+            vm.act(done = { invalidGrade = false; action(); navigating = false }, clearError = false) {}
         }
         if (invalidGrade) pendingNavigation = safe else safe()
     }
@@ -100,7 +101,6 @@ private val pages = listOf(
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
-                        detail == "attendance" -> data.lessons.firstOrNull { it.id == lessonId && it.classId == c?.id }?.let { AttendanceScreen(vm, data, it) }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
                             GradeScreen(vm, data, a, edit = { editingActivity = a; activityForm = true },
                                 deleted = { detail = "" }, dirty = { invalidGrade = it })
@@ -113,6 +113,9 @@ private val pages = listOf(
                             create = { editingClass = null; classForm = true },
                             edit = { editingClass = c; classForm = true }, roster = { detail = "roster" })
                         c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
+                        page == 1 && c != null -> frequencyStates.SaveableStateProvider(c.id) {
+                            CalendarScreen(vm, data, c, term, { term = it }, { termForm = true })
+                        }
                         else -> Column {
                             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(pages[page].title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
@@ -120,7 +123,6 @@ private val pages = listOf(
                             }
                             TermSelector(term) { next -> navigate { term = next; detail = "" } }
                             when (page) {
-                                1 -> CalendarScreen(vm, data, c, term) { lessonId = it; detail = "attendance" }
                                 2 -> ActivitiesPage(data, c, term, create = { editingActivity = null; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "profile" }
                             }

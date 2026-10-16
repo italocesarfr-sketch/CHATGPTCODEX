@@ -24,6 +24,8 @@ class RepositoryInstrumentedTest {
         db = Room.databaseBuilder(context, DiaryDatabase::class.java, dbName).build()
         repository = DiaryRepository(db)
         repository.saveClass(c, "2026-01-01")
+        // Fixture legada: a nova versão não deve gerar grade semanal.
+        listOf(Lesson("${c.id}:2026-02-04:1",c.id,"2026-02-04",1),Lesson("${c.id}:2026-02-04:2",c.id,"2026-02-04",2),Lesson("${c.id}:2026-02-05:1",c.id,"2026-02-05",1)).forEach { db.dao().save(it) }
     }
     @After fun cleanup() { db.close(); context.deleteDatabase(dbName) }
     @Test fun draftRequiresReviewAndPersistsAcrossReopen() = runBlocking {
@@ -76,13 +78,13 @@ class RepositoryInstrumentedTest {
         val cancelled = repository.snapshot.first { it.lessons.any { l -> l.id == lessons[1].id && l.state == "CANCELADA" } }
         assertEquals(0, cancelled.frequency(student, null, true).absent)
     }
-    @Test fun scheduleChangesPreserveRecordedLessons() = runBlocking {
+    @Test fun scheduleChangesDoNotRegenerateOrDeleteLegacyLessons() = runBlocking {
         val first = db.dao().day(c.id, "2026-02-04").first()
         repository.startLesson(first.id)
         repository.saveClass(c.copy(schedule = "1,0,0,0,0,0,0"), "2026-02-01")
         assertEquals("REALIZADA", db.dao().lesson(first.id)?.state)
-        assertEquals(1, db.dao().day(c.id, "2026-02-04").size)
-        assertEquals(1, db.dao().day(c.id, "2026-02-09").size)
+        assertEquals(2, db.dao().day(c.id, "2026-02-04").size)
+        assertEquals(0, db.dao().day(c.id, "2026-02-09").size)
     }
     @Test fun duplicateNumbersFailWithoutPartialEnrollment() = runBlocking {
         db.dao().save(ImportDraft(classId = c.id, name = "Estudante Fictício Alfa", number = 1, position = 0, page = 1, reviewed = true))
