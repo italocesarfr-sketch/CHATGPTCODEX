@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+fun counted(n: Int, one: String, many: String): String = "$n ${if (n == 1) one else many}"
 val brLocale: Locale = Locale.forLanguageTag("pt-BR")
 fun number(value: Double?): String = value?.let { String.format(brLocale, "%.2f", it) } ?: "—"
 fun shortDate(value: String): String = runCatching { LocalDate.parse(value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) }.getOrDefault(value)

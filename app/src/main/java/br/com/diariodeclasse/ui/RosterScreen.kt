@@ -43,14 +43,14 @@ import java.text.Collator
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            Section("Alunos da turma", "${c.name} • ${roster.size} matrículas")
+            Section("Alunos da turma", "${c.name} • ${counted(roster.size, "matrícula", "matrículas")}")
             Button(onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("+ Adicionar aluno") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = { names = ""; bulk = true }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Colar lista") }
                 OutlinedButton(onClick = { csvTarget = c.id; csv.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Importar CSV") }
             }
             val drafts = data.drafts.count { it.classId == c.id }
-            if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth()) { Text("Conferir $drafts nomes em rascunho") }
+            if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth()) { Text("Conferir ${counted(drafts, "nome", "nomes")} em rascunho") }
             Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada") { alphabetical = it == "Ordem alfabética" }
             Text("A ordenação alfabética não altera os números. Na ordem da chamada, use Subir/Descer ou edite o aluno.", style = MaterialTheme.typography.bodySmall)
         }

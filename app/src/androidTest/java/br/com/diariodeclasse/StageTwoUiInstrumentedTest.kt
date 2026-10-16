@@ -126,6 +126,16 @@ class StageTwoUiInstrumentedTest {
         assertEquals(first.personId,app.repository.dao.student(first.id)!!.personId)
         assertEquals("2026-02-01",app.repository.dao.student(first.id)!!.joined)
     }
+    @Test fun editingClassNamePreservesExactHiddenSettings() = runBlocking {
+        val precise=a.copy(subject="Disciplina Fictícia Precisa",scale=10.125,low=4.875,high=6.995,duration=45,schedule="0,0,2,1,0,0,0",countJustified=false,startPresent=true)
+        app.repository.saveClass(precise,"2026-01-01")
+        waitText(precise.subject)
+        compose.onNodeWithText("Editar Turma Existente").performClick()
+        compose.onNodeWithText("Nome da turma").performTextReplacement("Turma Fictícia Editada UI")
+        compose.onNodeWithText("Salvar turma").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { app.repository.dao.schoolClass(a.id)?.name=="Turma Fictícia Editada UI" } }
+        assertEquals(precise.copy(name="Turma Fictícia Editada UI"),app.repository.dao.schoolClass(a.id))
+    }
     @Test fun noNetworkCameraOrPhotoAccessIsRequested() {
         val permissions = app.packageManager.getPackageInfo(app.packageName,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions.orEmpty().toSet()
         assertFalse("android.permission.INTERNET" in permissions)
@@ -140,19 +150,23 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("Um nome por linha (número opcional)").performTextInput("18 Estudante Fictício Beta")
         compose.onNodeWithText("Preparar conferência").performScrollTo().performClick()
         compose.waitUntil(5000) { compose.onAllNodesWithText("Conferir importação").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithText("Confirmar cadastro de 1 alunos").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("import-review-list").performScrollToNode(hasText("Confirmar cadastro de 1 aluno"))
+        compose.onNodeWithText("Confirmar cadastro de 1 aluno").assertIsNotEnabled()
         assertEquals(1,app.repository.dao.roster(a.id).size)
-        compose.onNodeWithText("Voltar e manter rascunhos").performScrollTo().performClick()
-        compose.onNodeWithText("Conferir 1 nomes em rascunho").assertExists()
+        compose.onNodeWithTag("import-review-list").performScrollToNode(hasText("Voltar e manter rascunhos"))
+        compose.onNodeWithText("Voltar e manter rascunhos").performClick()
+        compose.onNodeWithText("Conferir 1 nome em rascunho").assertExists()
         assertEquals(18,app.repository.dao.draftRows(a.id).single().number)
         assertEquals(1,app.repository.dao.roster(a.id).size)
-        compose.onNodeWithText("Conferir 1 nomes em rascunho").performClick()
+        compose.onNodeWithText("Conferir 1 nome em rascunho").performClick()
         waitText("Conferir importação")
-        compose.onNode(isToggleable()).performScrollTo().performClick()
+        compose.onNodeWithTag("import-review-list").performScrollToNode(isToggleable())
+        compose.onNode(isToggleable()).performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.draftRows(a.id).single().reviewed } }
-        compose.waitUntil(5000) { compose.onAllNodes(hasText("Confirmar cadastro de 1 alunos") and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
         shot("05-conferencia")
-        compose.onNodeWithText("Confirmar cadastro de 1 alunos").performScrollTo().performClick()
+        compose.onNodeWithTag("import-review-list").performScrollToNode(hasText("Confirmar cadastro de 1 aluno"))
+        compose.waitUntil(5000) { compose.onAllNodes(hasText("Confirmar cadastro de 1 aluno") and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Confirmar cadastro de 1 aluno").performClick()
         compose.onNodeWithText("Confirmar").performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.roster(a.id).size==2 } }
         assertEquals(18,app.repository.dao.roster(a.id).single { it.name=="Estudante Fictício Beta" }.number)

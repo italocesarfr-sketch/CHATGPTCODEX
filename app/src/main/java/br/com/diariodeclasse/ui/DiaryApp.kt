@@ -201,12 +201,12 @@ private val pages = listOf(
                 Text(c.name, style = MaterialTheme.typography.headlineMedium)
                 Text("${c.subject} • ${c.stage}\n${c.shift} • ano letivo ${c.year}")
                 HorizontalDivider()
-                Text("${data.roster(c.id).count { it.status == "Ativo" }} alunos ativos • ${data.roster(c.id).size} matrículas", style = MaterialTheme.typography.titleMedium)
+                Text("${counted(data.roster(c.id).count { it.status == "Ativo" }, "aluno ativo", "alunos ativos")} • ${counted(data.roster(c.id).size, "matrícula", "matrículas")}", style = MaterialTheme.typography.titleMedium)
                 Button(roster, Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Gerenciar alunos") }
                 Text("Cadastro individual, colagem de lista, CSV e organização da chamada.", style = MaterialTheme.typography.bodySmall)
             } } }
             val drafts = data.drafts.count { it.classId == c.id }
-            if (drafts > 0) item { OutlinedCard(onClick = roster, modifier = Modifier.fillMaxWidth()) { Text("$drafts nomes em rascunho aguardam conferência. Toque para continuar.", Modifier.padding(18.dp)) } }
+            if (drafts > 0) item { OutlinedCard(onClick = roster, modifier = Modifier.fillMaxWidth()) { Text("${counted(drafts, "nome em rascunho aguarda", "nomes em rascunho aguardam")} conferência. Toque para continuar.", Modifier.padding(18.dp)) } }
             item { Text("Disponível de janeiro a dezembro de ${c.year}. A data de cadastro não limita o calendário.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
         }
     }
@@ -230,7 +230,7 @@ private val pages = listOf(
                 Text(a.name, style = MaterialTheme.typography.titleMedium)
                 Text("${a.type} • ${shortDate(a.date)} • ${number(a.maximum)} pontos")
                 val pending = data.roster(c.id).filter { it.enrolled(a.date) }.count { s -> data.grades.none { it.activityId == a.id && it.studentId == s.id && it.value != null } }
-                Text("$pending notas pendentes", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                Text("${counted(pending, "nota pendente", "notas pendentes")}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 TextButton(onClick = { grades(a.id) }) { Text("Lançar notas →") }
             }
         } }

@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.RosterParser
@@ -34,9 +35,9 @@ import br.com.diariodeclasse.domain.RosterParser
         ).joinToString(" • ")
     }
     val blocked = rows.isEmpty() || rows.any { issues(it).isNotEmpty() }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("import-review-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            Section("Conferir importação", "${c.name} • ${rows.size} nomes em rascunho")
+            Section("Conferir importação", "${c.name} • ${counted(rows.size, "nome", "nomes")} em rascunho")
             Info("Confira nomes, números e ingresso. Nenhum rascunho gera frequência ou notas antes da confirmação. Rascunhos antigos permanecem disponíveis aqui.")
             Field("Ingresso dos novos alunos (dd/mm/aaaa)", joined, { joined = it })
             Text("Números em branco serão atribuídos após os números utilizados. A data real de ingresso evita faltas anteriores indevidas.", style = MaterialTheme.typography.bodySmall)
@@ -65,7 +66,7 @@ import br.com.diariodeclasse.domain.RosterParser
         }
         item {
             if (blocked) Text("Confira todas as linhas e resolva os avisos para cadastrar.", color = MaterialTheme.colorScheme.error)
-            Button(enabled = !blocked && !saving, onClick = { confirming = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Confirmar cadastro de ${rows.size} alunos") }
+            Button(enabled = !blocked && !saving, onClick = { confirming = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Confirmar cadastro de ${counted(rows.size, "aluno", "alunos")}") }
         }
     }
     editing?.let { row ->
@@ -89,7 +90,7 @@ import br.com.diariodeclasse.domain.RosterParser
     removing?.let { row -> Confirm("Excluir este rascunho?", "Somente a linha em conferência será removida. Alunos já cadastrados não serão alterados.", { removing = null }) {
         vm.act(done = { removing = null }) { vm.repository.dao.deleteDraft(row.id) }
     } }
-    if (confirming) Confirm("Cadastrar os alunos conferidos?", "Os ${rows.size} nomes serão incluídos em ${c.name}. Nenhum aluno existente será substituído. ${error.orEmpty()}", { confirming = false }) {
+    if (confirming) Confirm("Cadastrar os alunos conferidos?", "Cadastro de ${counted(rows.size, "aluno", "alunos")} em ${c.name}. Nenhum aluno existente será substituído. ${error.orEmpty()}", { confirming = false }) {
         val ingress = joined; val classId = c.id
         vm.act(done = { confirming = false; close() }) { vm.repository.confirmImport(classId, iso(ingress)) }
     }

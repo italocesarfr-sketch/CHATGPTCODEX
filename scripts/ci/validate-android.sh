@@ -4,7 +4,7 @@ set -euo pipefail
 [[ "${GITHUB_ACTIONS:-}" == true && "${CI:-}" == true ]] || { echo 'Somente no CI.' >&2; exit 1; }
 [[ "$(adb get-serialno)" == emulator-* ]] || { echo 'Somente em emulador descartável.' >&2; exit 1; }
 status=0
-./gradlew --no-daemon --stacktrace connectedDebugAndroidTest || status=$?
+./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true connectedDebugAndroidTest || status=$?
 mkdir -p build
 if adb shell run-as br.com.diariodeclasse test -d files/etapa2-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa2-screenshots > build/etapa2-telas.tar

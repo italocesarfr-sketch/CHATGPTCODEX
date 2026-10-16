@@ -19,8 +19,8 @@ import java.time.LocalDate
     val schedule = remember { mutableStateListOf(*c.schedule.split(',').toTypedArray()) }
     var weekly by rememberSaveable { mutableStateOf(false) }
     var effective by rememberSaveable { mutableStateOf(shortDate(today().coerceIn("${c.year}-01-01", "${c.year}-12-31"))) }
-    var scale by rememberSaveable { mutableStateOf(number(c.scale)) }; var low by rememberSaveable { mutableStateOf(number(c.low)) }
-    var high by rememberSaveable { mutableStateOf(number(c.high)) }; var countFj by rememberSaveable { mutableStateOf(c.countJustified) }
+    var scale by rememberSaveable { mutableStateOf(c.scale.toString().replace('.', ',')) }; var low by rememberSaveable { mutableStateOf(c.low.toString().replace('.', ',')) }
+    var high by rememberSaveable { mutableStateOf(c.high.toString().replace('.', ',')) }; var countFj by rememberSaveable { mutableStateOf(c.countJustified) }
     var present by rememberSaveable { mutableStateOf(c.startPresent) }
     val saving by vm.saving.collectAsState()
     Form(if (original == null) "Nova Turma" else "Editar Turma Existente", dismiss) {
