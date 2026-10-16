@@ -41,7 +41,7 @@ import br.com.diariodeclasse.data.*
             Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically), style = MaterialTheme.typography.titleSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             TextButton(onClick = termView) { Text("Bimestre") }
         }
-        Text(period?.let { "${it.number}º bimestre • $performed horários • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.labelSmall)
+        Text(period?.let { "${it.number}º bimestre • ${counted(performed, "horário", "horários")} • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.labelSmall)
         AttendanceSaveStatus(vm)
         if (lessons.isEmpty()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

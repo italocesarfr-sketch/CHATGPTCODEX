@@ -47,7 +47,7 @@ import kotlin.math.ceil
         Row(Modifier.fillMaxWidth().background(background), verticalAlignment = Alignment.CenterVertically) {
             Text("Aluno", Modifier.width(124.dp).padding(8.dp), style = MaterialTheme.typography.labelLarge)
             Box(Modifier.weight(1f)) { HorizontalCells(columns.size + 1, width, scroll) { index ->
-                if (index == columns.size) Text("F / FJ\n${if (period == null) "Ano" else "Bimestre"}", Modifier.fillMaxWidth().height(52.dp).padding(6.dp), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                if (index == columns.size) Text("F / FJ\n${if (period == null) "Ano" else "Bim."}", Modifier.fillMaxWidth().height(52.dp).padding(6.dp), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                 else {
                     val l = columns[index]
                     if (daily) TextButton(onClick = { options(l) }, modifier = Modifier.fillMaxWidth().height(52.dp).testTag("hour-options-${l.ordinal}")) {
