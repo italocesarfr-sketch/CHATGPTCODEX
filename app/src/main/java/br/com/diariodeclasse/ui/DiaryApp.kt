@@ -2,11 +2,9 @@ package br.com.diariodeclasse.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -238,7 +236,8 @@ private val pages = listOf(
 }
 
 @Composable fun TermSelector(selected: Int, select: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        (1..4).forEach { n -> FilterChip(selected = selected == n, onClick = { if (selected != n) select(n) }, label = { Text("${n}º bim.") }) }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        (1..4).forEach { n -> FilterChip(modifier = Modifier.weight(1f), selected = selected == n,
+            onClick = { if (selected != n) select(n) }, label = { Text("${n}º bim.", maxLines = 1, style = MaterialTheme.typography.labelSmall) }) }
     }
 }
