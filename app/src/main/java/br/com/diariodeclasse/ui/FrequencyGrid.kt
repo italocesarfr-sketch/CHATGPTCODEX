@@ -59,10 +59,10 @@ import kotlin.math.ceil
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f).testTag("frequency-students")) {
             items(roster, key = { it.id }) { student ->
-                val height = if (daily) 76.dp else 60.dp
+                val height = if (daily) 64.dp else 60.dp
                 Row(Modifier.fillMaxWidth().height(height), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.width(124.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface).clickable { fullName = student }.padding(6.dp), verticalArrangement = Arrangement.Center) {
-                        Text("${student.number}. ${student.name}", maxLines = 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("student-name-${student.id}"))
+                    Column(Modifier.width(124.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface).clickable { fullName = student }.testTag("student-name-${student.id}").padding(6.dp), verticalArrangement = Arrangement.Center) {
+                        Text("${student.number}. ${student.name}", maxLines = if (daily) 2 else 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
                         if (daily && columns.firstOrNull()?.let { !student.enrolled(it.date) } == true) Text("Fora da matrícula", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                     }
                     Box(Modifier.weight(1f)) { HorizontalCells(columns.size + 1, width, scroll) { index ->
@@ -93,7 +93,7 @@ import kotlin.math.ceil
     var menu by remember(lesson.id, student.id) { mutableStateOf(false) }
     val eligible = student.enrolled(lesson.date)
     val enabled = eligible && lesson.state == "REALIZADA"
-    Row(Modifier.fillMaxWidth().height(76.dp).padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+    Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         listOf("P", "F").forEach { value ->
             val selected = current == value
             val color = if (value == "F") MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer

@@ -29,5 +29,9 @@ class CommandQueueInstrumentedTest {
         queue.awaitPendingWrites()
         withContext(Dispatchers.Main){queue.discardAttendanceFailures()}
         assertNull(queue.attendanceError.value);assertEquals(1,count)
+        queue.act {count++;throw IOException("simulada")}
+        queue.awaitPendingWrites();val beforeRestore=count
+        withContext(Dispatchers.Main){queue.clearFailuresAfterRestore();queue.retry()}
+        queue.awaitPendingWrites();assertEquals(beforeRestore,count);assertNull(queue.error.value)
     }
 }

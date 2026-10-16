@@ -30,6 +30,8 @@ class DiaryCommands {
         }
     }
     fun discardAttendanceFailures() { if (failed?.context?.isNotEmpty() == true) failed = null; failedAttendance.clear(); updateAttendanceError(); clearError() }
+    /** Restauração confirmada troca o conjunto escolar; intenções do conjunto anterior não podem ser reenviadas. */
+    fun clearFailuresAfterRestore() { failed = null; failedAttendance.clear(); updateAttendanceError(); _errorContext.value = ""; clearError() }
 
     fun clearError() { _error.value = null }
     init {

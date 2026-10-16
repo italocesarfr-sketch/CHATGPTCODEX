@@ -17,6 +17,10 @@ import br.com.diariodeclasse.data.*
     val period = data.terms.firstOrNull { it.classId == c.id && day in it.start..it.end }
     val active = lessons.filter { it.state != "CANCELADA" }
     val performed = lessons.count { it.state == "REALIZADA" }
+    val performedIds = lessons.filter { it.state == "REALIZADA" }.map { it.id }.toSet()
+    val enrolledIds = data.roster(c.id).filter { it.enrolled(day) }.map { it.id }.toSet()
+    val filled = data.marks.count { it.lessonId in performedIds && it.studentId in enrolledIds && it.mark != "NR" }
+    val expected = performed * enrolledIds.size
     var count by rememberSaveable(c.id, day) { mutableIntStateOf(1) }
     var more by remember { mutableStateOf(false) }
     var hoursForm by rememberSaveable { mutableStateOf(false) }
@@ -34,10 +38,10 @@ import br.com.diariodeclasse.data.*
     Column(Modifier.fillMaxSize().testTag("attendance-day-$day")) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
             TextButton(onClick = calendar) { Text("‹ Calendário") }
-            TextButton(onClick = termView) { Text("Visão bimestral") }
+            Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically), style = MaterialTheme.typography.titleSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            TextButton(onClick = termView) { Text("Bimestre") }
         }
-        Text(shortDate(day), Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.titleLarge)
-        Text(period?.let { "${it.number}º bimestre • $performed horários realizados" } ?: "Fora dos bimestres • entra somente no resumo anual", Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.labelSmall)
+        Text(period?.let { "${it.number}º bimestre • $performed horários • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.labelSmall)
         AttendanceSaveStatus(vm)
         if (lessons.isEmpty()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

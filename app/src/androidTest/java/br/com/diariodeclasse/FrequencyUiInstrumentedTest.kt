@@ -50,7 +50,7 @@ class FrequencyUiInstrumentedTest {
     private fun waitTag(value:String){compose.waitUntil(10000){compose.onAllNodesWithTag(value).fetchSemanticsNodes().isNotEmpty()}}
     private fun openAugust(){
         val now=LocalDate.now()
-        compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,Locale.forLanguageTag("pt-BR"))}").performClick()
+        compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,Locale.forLanguageTag("pt-BR"))} ▾").performClick()
         compose.onAllNodesWithText("8 • agosto").onLast().performClick()
         compose.onNodeWithTag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"))
         compose.onNodeWithTag("date-$day").performClick();waitTag("attendance-day-$day")
