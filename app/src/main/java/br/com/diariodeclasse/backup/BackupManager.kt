@@ -23,9 +23,19 @@ class FileSafetyBackupStore(private val folder: File) : SafetyBackupStore {
         try { output.write(bytes); atomic.finishWrite(output) }
         catch (error: Exception) { atomic.failWrite(output); throw error }
         check(file.isFile && file.length() == bytes.size.toLong())
+        check(file.inputStream().use { BackupCodec.read(it) }.contentEquals(bytes)) { "Cópia de segurança não confere." }
+        // mtime pode ter resolução de segundos. O ponteiro atômico não depende do relógio.
+        val pointer = AtomicFile(File(folder, "latest-copy.txt"))
+        val index = pointer.startWrite()
+        try { index.write(file.name.toByteArray(Charsets.UTF_8)); pointer.finishWrite(index) }
+        catch (error: Exception) { pointer.failWrite(index); throw error }
         return file
     }
-    override fun latest(): File? = folder.listFiles()?.filter { it.isFile && it.extension == "json" }?.maxByOrNull { it.lastModified() }
+    override fun latest(): File? = runCatching {
+        val name = AtomicFile(File(folder, "latest-copy.txt")).readFully().toString(Charsets.UTF_8)
+        require(name.startsWith("antes-restauracao-") && name.endsWith(".json") && !name.contains('/') && !name.contains('\\'))
+        File(folder, name).takeIf { it.isFile }
+    }.getOrNull()
 }
 class PreparedRestore internal constructor(internal val decoded: DecodedBackup, internal val currentFingerprint: String) {
     val summary: String get() = decoded.snapshot.summary()

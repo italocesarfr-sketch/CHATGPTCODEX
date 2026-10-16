@@ -24,6 +24,7 @@ A leitura é limitada a **32 MiB**; arquivos maiores são recusados sem tocar no
 
 - O snapshot é lido com `Room.withTransaction`, incluindo registros já confirmados no WAL. Não se copia um banco aberto com `File.copyTo`.
 - A restauração valida o arquivo antes da prévia, compara um fingerprint da base atual na confirmação e faz a substituição inteira em uma transação, com chaves estrangeiras ativas.
+- A seleção da cópia mais recente usa um índice `AtomicFile`, independente da resolução das datas de arquivo/alterações do relógio. Todas as cópias completas anteriores continuam guardadas.
 - A cópia anterior é gravada com `AtomicFile`, relida e comparada ao estado atual antes de modificar tabelas. Se uma inserção/verificação falhar, o SQLite desfaz as exclusões/inserções da transação. O arquivo ativo do banco não é apagado ou substituído.
 - Nenhum `clearAllTables`, `deleteDatabase` ou migração destrutiva faz parte do serviço de produção. Exclusões de registros durante a restauração só ocorrem após a confirmação literal e dentro da transação protegida. Chamadas/notas continuam sendo salvas pelo fluxo atual.
 - O diálogo aguarda a fila de gravações existente antes de habilitar suas ações. Alterações concorrentes concluídas depois da prévia são detectadas pelo fingerprint.

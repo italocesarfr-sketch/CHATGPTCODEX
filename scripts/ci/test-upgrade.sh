@@ -10,6 +10,7 @@ OLD=.baseline-source/app/build/outputs/apk/debug/app-debug.apk
 NEW=app/build/outputs/apk/debug/app-debug.apk
 python3 scripts/check-apk-update.py "$OLD" "$NEW" --build-tools "$ANDROID_HOME/build-tools/35.0.0" > build/upgrade-identity.json
 adb install -r -d "$OLD"
+adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 # Limpeza SOMENTE do sandbox de teste descartável; não integra o aplicativo/serviço de backup.
 adb shell pm clear br.com.diariodeclasse >/dev/null
 python3 scripts/create-fixture-v1.py --database build/synthetic-v1.db

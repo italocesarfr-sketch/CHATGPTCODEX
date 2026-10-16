@@ -90,6 +90,15 @@ class BackupInstrumentedTest {
         try { manager.writeBackup(object:OutputStream() { override fun write(value:Int) { throw IOException("destino simulado") } });fail() } catch (_:IOException) { }
         assertEquals(before,manager.snapshot())
     }
+    @Test fun newestSafetyCopyIsIndependentOfFilesystemTimestampResolution() = runBlocking {
+        loadFixture();val original=manager.backupBytes()
+        DiaryRepository(db).saveGrade("atividade-1","alfa",6.0)
+        val changed=manager.snapshot()
+        manager.restore(manager.prepare(original.inputStream()),"RESTAURAR")
+        folder.listFiles()?.forEach { if(it.extension=="json") assertTrue(it.setLastModified(0L)) }
+        val selected=FileSafetyBackupStore(folder).latest()!!
+        assertEquals(changed,BackupCodec.decode(selected.readBytes()).snapshot)
+    }
     @Test fun baselineSchemaOpensWithoutMigrationAndRetainsIdentity() = runBlocking {
         loadFixture()
         db.openHelper.writableDatabase.query("PRAGMA user_version").use { assertTrue(it.moveToFirst());assertEquals(1,it.getInt(0)) }
