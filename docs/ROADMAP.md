@@ -1,5 +1,7 @@
 # Roadmap — Diário de Classe
 
+> Correção posterior 0.3.1: novos alunos passam a ter ingresso padrão em 01/01 do ano letivo, sem reescrever datas existentes. Consulte [CORRECAO_ETAPA3.md](CORRECAO_ETAPA3.md). Os resultados 0.3.0 permanecem como histórico.
+
 > Atualização posterior à Etapa 0: a Etapa 1 foi autorizada pelo responsável e implementada/testada. Consulte [ETAPA1.md](ETAPA1.md) para resultados e o gate de assinatura ainda pendente. As descrições de “estado atual” abaixo referem-se à base auditada da Etapa 0. A Etapa 2 foi autorizada posteriormente e concluída com APK de teste validado, inclusive com dados antigos de teste descartáveis; consulte [ETAPA2.md](ETAPA2.md). A assinatura estável deve ser resolvida antes do uso real. A Etapa 3 foi autorizada e sua implementação/validação está registrada em [ETAPA3.md](ETAPA3.md). A Etapa 4 aguarda autorização.
 
 Versão documental: 1.0 · Etapa 0 · 16/10/2026.

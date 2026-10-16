@@ -1,5 +1,7 @@
 # Etapa 3 — Chamada por data e horário
 
+> Correção posterior 0.3.1: novos alunos passam a ter ingresso padrão em 01/01 do ano letivo, sem reescrever datas existentes. Consulte [CORRECAO_ETAPA3.md](CORRECAO_ETAPA3.md). Os resultados 0.3.0 permanecem como histórico.
+
 Entrega validada: **0.3.0 / versionCode 4**. Escopo autorizado: somente Etapa 3 do [ROADMAP](ROADMAP.md), seguindo [ESPECIFICACAO](ESPECIFICACAO.md) e [ETAPA2](ETAPA2.md). A Etapa 4 não foi iniciada. Os resultados de compilação, testes e identidade do APK estão registrados abaixo.
 
 ## Fluxo da chamada

@@ -1,0 +1,58 @@
+{
+  "testedCommit": "5a071d547b5b0b8c8d9afac938395b4115e1d7fd",
+  "workflowRunId": 38978133186,
+  "apkArtifactId": 12079149881,
+  "reportsArtifactId": 12079179558,
+  "versionCode": 5,
+  "versionName": "0.3.1",
+  "databaseVersion": 1,
+  "backupFormatVersion": 2,
+  "apkBytes": 10325025,
+  "apk": {
+    "apkSha256": "15fe709c45bfaa63fb77e99c7c2d8cd9f2d6ef0f8d2e023c78ed46a3400e7714",
+    "certificateSha256": "d6f78d14b655b13e69566cf4b05b70bdea3d3bbe732e7c5b5c62a32396ee02ff"
+  },
+  "legacyCompatibility": {
+    "baselineCertificateSha256": "3d813f8da9670fd464e84de267fbf6ac572dafd744b277d85f2fc100687dc6fb",
+    "candidate": {
+      "apkSha256": "15fe709c45bfaa63fb77e99c7c2d8cd9f2d6ef0f8d2e023c78ed46a3400e7714",
+      "certificateSha256": "d6f78d14b655b13e69566cf4b05b70bdea3d3bbe732e7c5b5c62a32396ee02ff"
+    },
+    "sameCertificate": false,
+    "scope": "Compara o APK de referência versionado, não identifica o APK instalado no celular. Debug é somente para teste; diferenças bloqueiam atualização direta."
+  },
+  "sameCertificateAsStageTwo": false,
+  "tests": {
+    "unit": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "passed": 46,
+      "failed": 0,
+      "skipped": 2
+    }
+  },
+  "controlledUpgradeProbesPassed": 2,
+  "processRestartProbesPassed": 2,
+  "domainScenariosPassed": 28,
+  "sameCertificateAsStageThree": false,
+  "controlledUpgradeIdentity": {
+    "old": {
+      "apkSha256": "4891db39d35af823165649ca09d346266aaae4608c4ae36a3ec784006eee08e7",
+      "certificateSha256": "d6f78d14b655b13e69566cf4b05b70bdea3d3bbe732e7c5b5c62a32396ee02ff",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 1
+    },
+    "new": {
+      "apkSha256": "15fe709c45bfaa63fb77e99c7c2d8cd9f2d6ef0f8d2e023c78ed46a3400e7714",
+      "certificateSha256": "d6f78d14b655b13e69566cf4b05b70bdea3d3bbe732e7c5b5c62a32396ee02ff",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 5
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  }
+}

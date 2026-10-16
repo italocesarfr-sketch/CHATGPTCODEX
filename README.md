@@ -2,11 +2,13 @@
 
 Aplicativo Android nativo em Kotlin, Jetpack Compose/Material 3 e Room/SQLite, com ViewModel e Repository. Android 8.0 (API 26) ou superior. Interface em português brasileiro, armazenamento privado e funcionamento offline, sem cadastro ou permissão de Internet.
 
-## Versão 0.3.0 — Etapa 3
+## Versão 0.3.1 — Correção da Etapa 3
 
 Quatro páginas: **Cadastrar Turma**, **Fazer Chamada**, **Atividades e Notas** e **Relatórios**, com seletor global de turma/ano memorizado. A chamada agora usa qualquer data do ano letivo, 1–12 horários informados pelo professor, P/F independentes, menu FJ/NR e consulta bimestral. Nenhuma grade semanal é necessária e navegar não gera aulas. Nomes ficam fixos durante a rolagem horizontal.
 
-[Baixar APK 0.3.0 de teste (ZIP)](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38964999986/artifacts/12073719360) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38964999986) • [Relatórios/capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38964999986/artifacts/12074790782). Validação: 18 testes JVM, 44 Android, quatro sondas separadas e 28 cenários de domínio aprovados. APK baixado e hash conferido. Detalhes em [ETAPA3](docs/ETAPA3.md). Banco Room v1, registros antigos, backup/restauração e funcionalidades anteriores foram preservados. **A assinatura estável continua pendente antes do uso real**; verifique o certificado antes de instalar por cima de outra versão. Não há garantia de atualização direta de um APK debug anterior.
+[Baixar APK 0.3.1 de teste (ZIP)](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186/artifacts/12079149881) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186) • [Relatórios/capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186/artifacts/12079179558). Testes: 20 JVM, 46 Android, quatro sondas separadas e 28 cenários de domínio aprovados. APK baixado e hash conferido.
+
+**Correção de matrícula:** novos cadastros individuais e por lista/CSV começam em 01/01 do ano letivo. Ingresso e saída continuam editáveis para exceções reais. Datas de matrículas existentes não são reescritas. Layout, Room v1, backup/restauração e regras da chamada permanecem preservados. Resultados e APK da correção em [CORRECAO_ETAPA3](docs/CORRECAO_ETAPA3.md); a entrega 0.3.0 permanece documentada em [ETAPA3](docs/ETAPA3.md). A assinatura estável continua pendente antes do uso real.
 
 Consulte [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.md) e [entrega da Etapa 3](docs/ETAPA3.md). As entregas anteriores permanecem em [ETAPA1](docs/ETAPA1.md) e [ETAPA2](docs/ETAPA2.md).
 
@@ -14,7 +16,7 @@ Consulte [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.md) e 
 
 No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **diario-de-classe-apk**: contém o APK, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-etapa3** contém resultados e capturas de tela sintéticas.
 
-O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [ETAPA3](docs/ETAPA3.md).
+O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [CORRECAO_ETAPA3](docs/CORRECAO_ETAPA3.md).
 
 ### Android Studio / terminal
 
@@ -41,7 +43,7 @@ Para instalação por USB, confira primeiro os certificados em [ASSINATURA](docs
 ## Utilização
 
 1. **Cadastrar Turma → Nova Turma**: nome, disciplina, ano, etapa e turno. Salve sem precisar definir horários semanais. Configurações adicionais opcionais mantêm duração, escala, preferências de frequência e horários anteriores.
-2. **Gerenciar alunos**: adicione, edite ou transfira alunos. Use a data real de ingresso. A ordem alfabética é a visualização padrão; escolha Ordem da chamada para mover posições ou editar números.
+2. **Gerenciar alunos**: adicione, edite ou transfira alunos. O ingresso padrão é 01/01 do ano letivo; altere ingresso/saída apenas para uma matrícula real diferente. A data de cadastro no aplicativo não limita a retroatividade. Matrículas antigas mantêm suas datas. A ordem alfabética é a visualização padrão; escolha Ordem da chamada para mover posições ou editar números.
 3. **Colar lista / Importar CSV**: UTF-8, um nome por linha, com número opcional. Exemplo CSV: `numero;nome`. Nomes/números permanecem em rascunho até a conferência de cada linha e a confirmação final. Resolva duplicidades/números repetidos; homônimos exigem confirmação explícita. Rascunhos das versões com fotografia também aparecem aqui. A importação por fotografia foi retirada.
 4. **Fazer Chamada**: escolha mês/data e toque em Registrar horários depois de informar a quantidade (1–12). Marque P/F diretamente, ou FJ/NR no menu da célula. Marcação coletiva, cópia e cancelamento exigem confirmação. Horários têm registros independentes. Horários → Alterar permite reduzir com cancelamento explícito, mantendo as marcações. Abra Bimestre para a tabela geral cronológica e os totais F/FJ. NR nunca é falta; matrícula delimita a frequência. Bimestres permite editar os períodos com prévia de impacto. Aulas previstas antigas só contam depois de confirmadas como realizadas.
 5. **Atividades e Notas**: escolha bimestre, crie atividade e lance notas. Campo vazio é pendente; zero é válido. Valores válidos são salvos automaticamente. Notas inválidas são sinalizadas; ao trocar de contexto, há aviso de que o valor não foi salvo.
