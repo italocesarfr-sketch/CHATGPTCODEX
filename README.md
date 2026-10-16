@@ -6,13 +6,17 @@ Aplicativo Android nativo em Kotlin, Jetpack Compose/Material 3 e Room/SQLite, c
 
 Quatro páginas: **Cadastrar Turma**, **Fazer Chamada**, **Atividades e Notas** e **Relatórios**. Todas compartilham o seletor de turma/ano, que memoriza os últimos IDs selecionados. Esta atualização reformula a navegação e a gestão de turmas. **A Etapa 3 não foi implementada**: chamadas, cálculos e boletins usam o fluxo anterior.
 
+[Baixar APK 0.2.0 de teste](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38960690139/artifacts/12072308459) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38960690139) • [Resultados e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38960690139/artifacts/12072841819). São 18 testes JVM, 31 testes Android e duas sondas de atualização aprovados. APK baixado e hash verificado: 10,259,485 bytes.
+
+**Assinatura:** o certificado deste debug difere dos artefatos anteriores 0.1.0 e Etapa 1 analisados. Ele não atualiza diretamente esses APKs; a assinatura da instalação física não foi inspecionada. A chave permanente segue pendente antes do uso real, conforme autorização. Banco Room v1 e backup/restauração foram preservados.
+
 Consulte [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.md) e [entrega da Etapa 2](docs/ETAPA2.md). A validação da Etapa 1 está registrada em [ETAPA1](docs/ETAPA1.md).
 
 ## Compilar e baixar o APK
 
 No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **diario-de-classe-apk**: contém o APK, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-etapa2** contém resultados e capturas de tela sintéticas.
 
-O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e o download desta versão serão registrados em [ETAPA2](docs/ETAPA2.md).
+O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [ETAPA2](docs/ETAPA2.md).
 
 ### Android Studio / terminal
 

@@ -82,3 +82,9 @@ Esse cenário valida o caminho de atualização **quando o certificado é o mesm
 Na execução [38947014687](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38947014687), o certificado do candidato debug foi `6bd2549307f169482a58ba18f43fabf084109e67bbcf79fea8838b74bea37fb5`, diferente do original. O relatório confirma `sameCertificate=false`. **Este debug não é uma atualização direta compatível do APK original registrado.**
 
 A atualização controlada com a mesma chave de teste, o resgate local sintético e o bloqueio de release sem configuração passaram. Não houve criação de chave privada estável nesta execução nem execução de release com os secrets do proprietário. O impedimento restante é a continuidade da assinatura real, não a compilação do código. Resultados em [ETAPA1.md](ETAPA1.md).
+
+## Candidato da Etapa 2 — 0.2.0
+
+[APK de teste](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38960690139/artifacts/12072308459) e [validação](ETAPA2.md). Certificado SHA-256 `cca0319751beabc37716ef6c3cdbd29f1b92af3a83ede33c9050372c3898b80a`. Comparação com o APK de referência original e o da Etapa 1: certificados diferentes. O debug 0.2.0 não atualiza diretamente esses dois artefatos; não foi comprovada compatibilidade com o APK instalado fisicamente. No CI, a atualização do banco v1 foi validada usando a mesma chave descartável para os dois APKs do teste. Isso não recupera nem reproduz as chaves privadas anteriores.
+
+A informação de que os dados antigos são descartáveis permite planejar instalação limpa com a chave permanente antes do uso real. O processo de backup/restauração continua preservado para os registros futuros. Nenhuma chave privada faz parte do repositório/artefatos e a release permanece bloqueada sem configuração segura.
