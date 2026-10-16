@@ -8,6 +8,7 @@ Implementação restrita aos incrementos 1.1–1.3 do [ROADMAP](ROADMAP.md). Eta
 - Backup JSON completo, íntegro e offline; prévia, confirmação literal e fingerprint da base para impedir aplicação sobre alterações posteriores não conferidas.
 - Cópia privada anterior obrigatória, validada antes de substituir dados; restauração transacional com FKs, conferência integral e rollback em erro; banco ativo não é apagado/trocado.
 - Botão isolado Backup e diálogo do seletor Android. Cadastro, chamada, OCR, notas e navegação existentes continuam disponíveis. O retorno ao painel após restaurar evita campos de edição antigos.
+- Build e testes de atualização no mesmo runner: o SHA-256 confirma que o APK disponibilizado é o mesmo testado, sem compartilhar chave privada entre jobs.
 - Testes de codec, oito tabelas, erros, rollback, persistência, esquema congelado, atualização de APK e resgate local, sempre com fixture fictícia.
 - Versão 0.1.1/código 2; debug para teste e configuração de assinatura estável separada, bloqueada se secrets/fingerprint não estiverem configurados.
 
