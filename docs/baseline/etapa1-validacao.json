@@ -1,0 +1,34 @@
+{
+  "testedCommit": "ee46413ecb92839bf24a358fc4f2d04794300f1f",
+  "workflowRunId": 38947014687,
+  "apkArtifactId": 12067351863,
+  "reportsArtifactId": 12066198236,
+  "versionCode": 2,
+  "databaseVersion": 1,
+  "apk": {
+    "apkSha256": "6d31f64b2db1454c56c3d974e40ab5d0d19785b1401d486168eed34377f59885",
+    "certificateSha256": "6bd2549307f169482a58ba18f43fabf084109e67bbcf79fea8838b74bea37fb5"
+  },
+  "legacyCompatibility": {
+    "baselineCertificateSha256": "3d813f8da9670fd464e84de267fbf6ac572dafd744b277d85f2fc100687dc6fb",
+    "candidate": {
+      "apkSha256": "6d31f64b2db1454c56c3d974e40ab5d0d19785b1401d486168eed34377f59885",
+      "certificateSha256": "6bd2549307f169482a58ba18f43fabf084109e67bbcf79fea8838b74bea37fb5"
+    },
+    "sameCertificate": false,
+    "scope": "Compara o APK de referência versionado, não identifica o APK instalado no celular. Debug é somente para teste; diferenças bloqueiam atualização direta."
+  },
+  "tests": {
+    "unit": {
+      "passed": 8,
+      "skipped": 0,
+      "failed": 0
+    },
+    "android": {
+      "passed": 19,
+      "skipped": 1,
+      "failed": 0
+    }
+  },
+  "controlledUpgradeProbesPassed": 2
+}

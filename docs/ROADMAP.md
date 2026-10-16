@@ -1,5 +1,7 @@
 # Roadmap — Diário de Classe
 
+> Atualização posterior à Etapa 0: a Etapa 1 foi autorizada pelo responsável e implementada/testada. Consulte [ETAPA1.md](ETAPA1.md) para resultados e o gate de assinatura ainda pendente. As descrições de “estado atual” abaixo referem-se à base auditada da Etapa 0. Nenhuma autorização da Etapa 2 foi dada.
+
 Versão documental: 1.0 · Etapa 0 · 16/10/2026.
 
 Referência funcional: [ESPECIFICACAO.md](ESPECIFICACAO.md). Base auditada: [`a157c79`](https://github.com/italocesarfr-sketch/CHATGPTCODEX/commit/a157c79c0823f898c63133ac6ff35bf5793b5219), repositório `italocesarfr-sketch/CHATGPTCODEX`.

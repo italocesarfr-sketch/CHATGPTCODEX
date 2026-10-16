@@ -74,3 +74,9 @@ python3 scripts/rescue-debug-data.py --serial IDENTIFICADOR_ADB --output /pasta/
 O teste de atualização compila o código legado fixado e o candidato com **a mesma chave descartável de teste**, injeta uma fixture v1 sintética no emulador, abre a versão antiga, verifica cada campo das oito tabelas, instala o candidato por cima sem desinstalar e verifica novamente cada campo. Também ensaia o resgate local sintético e compara as oito tabelas.
 
 Esse cenário valida o caminho de atualização **quando o certificado é o mesmo**. Não recupera a chave privada do APK original e não comprova compatibilidade com o celular do professor. Relatórios e resultados ficam nos artefatos do Actions; nenhum banco real ou chave privada é publicado.
+
+## Resultado desta execução
+
+Na execução [38947014687](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38947014687), o certificado do candidato debug foi `6bd2549307f169482a58ba18f43fabf084109e67bbcf79fea8838b74bea37fb5`, diferente do original. O relatório confirma `sameCertificate=false`. **Este debug não é uma atualização direta compatível do APK original registrado.**
+
+A atualização controlada com a mesma chave de teste, o resgate local sintético e o bloqueio de release sem configuração passaram. Não houve criação de chave privada estável nesta execução nem execução de release com os secrets do proprietário. O impedimento restante é a continuidade da assinatura real, não a compilação do código. Resultados em [ETAPA1.md](ETAPA1.md).

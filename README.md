@@ -6,13 +6,15 @@ Projeto Android nativo em Kotlin + Jetpack Compose/Material 3, Room/SQLite, View
 
 O desenvolvimento atual acrescenta backup/restauração offline e testes de atualização, mantendo as telas atuais. Consulte [BACKUP](docs/BACKUP.md), [ASSINATURA](docs/ASSINATURA.md) e [validação da Etapa 1](docs/ETAPA1.md). O debug do CI é para teste; não há garantia de compatibilidade com a assinatura já instalada. Release estável exige configuração externa segura.
 
-## Registro histórico da entrega inicial
+## Estado atual validado
 
-O código do MVP e da importação por fotografia está implementado neste projeto único. **Ainda não há APK gerado nem validação de execução em Android.** O ambiente de origem tinha Java 21, mas não tinha Gradle, Android SDK ou emulador. A tentativa de `./gradlew assembleDebug` terminou no bootstrap do Gradle, com código 7: `Failed to connect to proxy port 8080`. O proxy configurado não aceitou conexão. Portanto, o compilador Kotlin/Android ainda não foi executado; podem existir ajustes de compilação ou de execução a resolver em um ambiente Android completo.
+A Etapa 1 foi compilada e testada na [execução 38947014687](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38947014687): 8 testes JVM (incluindo a suíte dos 33 cenários legados), 19 instrumentados e duas sondas de atualização aprovados. O esquema Room continua na versão 1 e não foi alterado.
 
-Foram executados e aprovados **33 cenários de teste das regras Java**, usando o módulo compilador do Java disponível. Testes instrumentados Room/OCR foram escritos, mas não puderam ser executados. A instalação Java disponível também não inclui o executável `javac` nem `ct.sym`; para o build Android, use o JDK 17 completo indicado abaixo. Veja [validação](docs/VALIDACAO.md) e o [log da tentativa de compilação](docs/assembleDebug.log).
+[Baixar APK debug de teste](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38947014687/artifacts/12067351863). O ZIP contém `app-debug.apk`, SHA-256 e metadados públicos. **O certificado difere do APK original de referência: este debug não pode atualizar diretamente aquela instalação. Não desinstale para contornar isso.** Consulte [assinatura/resgate seguro](docs/ASSINATURA.md).
 
-Não existia código nem banco anterior no workspace. Foi criado um único projeto em `diario-de-classe`; a importação usa o mesmo banco e os mesmos alunos das chamadas e notas. Não foi criado um aplicativo separado para OCR.
+O botão **Backup** na barra superior cria cópia completa ou abre uma prévia de restauração. A substituição exige digitar RESTAURAR e cria cópia privada dos dados anteriores antes de aplicar a transação. Instruções em [BACKUP](docs/BACKUP.md). Cadastro, chamada, OCR e notas atuais foram preservados; a Etapa 2 não começou.
+
+O ambiente local original não tinha Gradle/SDK e falhou no proxy; essa limitação foi contornada pela compilação e validação remota no GitHub Actions. Os logs locais antigos são registros históricos.
 
 ## Caminho mais simples para gerar o APK
 
@@ -108,8 +110,8 @@ A frequência considera apenas aulas realizadas, dentro da matrícula e com P/F/
 Esta entrega prioriza o código da Fase 1 e a nova importação por fotografia. Ainda faltam a validação Android/APK e os seguintes complementos:
 
 - Recuperação integrada à interface e ao boletim (as quatro regras puras já têm testes).
-- Exportação PDF/CSV/XLSX de relatórios, backup/restauração pelo seletor e fechamento anual explícito.
+- Exportação PDF/CSV/XLSX de relatórios e fechamento anual explícito. Backup/restauração já foram implementados na Etapa 1.
 - Duplicação de atividades entre turmas, eventos de calendário sem aula e marcação de intervalos de feriados/recessos em lote.
 - Testes de câmera/galeria em aparelhos reais, acessibilidade, tablets, desempenho e publicação com assinatura de produção.
 
-O calendário permite cancelamento por aula com motivo e reposições, mas ainda não cadastra feriados oficiais automaticamente. Relatórios nesta fase são consultas na tela. **Não use dados escolares insubstituíveis antes de validar o APK e implementar/testar o backup.**
+O calendário permite cancelamento por aula com motivo e reposições, mas ainda não cadastra feriados oficiais automaticamente. Relatórios nesta fase são consultas na tela. Antes de atualizar uma instalação com dados, confira o certificado e preserve uma cópia validada. Veja as limitações reais de assinatura em [ASSINATURA](docs/ASSINATURA.md).

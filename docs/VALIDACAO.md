@@ -1,4 +1,6 @@
-# Validação — 16/10/2026
+# Validação histórica da entrega inicial — 16/10/2026
+
+> Registro da tentativa local inicial. Compilação/testes Android posteriores passaram no GitHub Actions; os resultados atuais da Etapa 1 e seus limites estão em [ETAPA1.md](ETAPA1.md). Este arquivo não descreve o estado atual do APK.
 
 ## Executado
 
