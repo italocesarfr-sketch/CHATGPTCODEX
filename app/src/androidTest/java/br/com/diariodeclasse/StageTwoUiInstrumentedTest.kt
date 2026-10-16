@@ -83,6 +83,8 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("Nota (0 a 10,00)").performTextReplacement("7,5")
         compose.waitUntil(5000) { runBlocking { app.repository.dao.activityGrades(activity.id).firstOrNull()?.value==7.5 } }
         compose.onNodeWithText("Nota (0 a 10,00)").performTextReplacement("12")
+        compose.activityRule.scenario.recreate()
+        waitText("Valor inválido — não salvo")
         compose.onNodeWithTag("class-selector").performClick()
         compose.onNodeWithText(b.name).performClick()
         compose.onNodeWithText("Sair sem salvar o valor inválido?").assertIsDisplayed()
@@ -132,7 +134,8 @@ class StageTwoUiInstrumentedTest {
         assertFalse("android.permission.READ_EXTERNAL_STORAGE" in permissions)
     }
     @Test fun pasteRequiresReviewPersistsOnCancelAndConfirms() = runBlocking {
-        compose.onNodeWithText("Gerenciar alunos").performClick()
+        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick()
+        waitText("Colar lista")
         compose.onNodeWithText("Colar lista").performClick()
         compose.onNodeWithText("Um nome por linha (número opcional)").performTextInput("18 Estudante Fictício Beta")
         compose.onNodeWithText("Preparar conferência").performScrollTo().performClick()
@@ -147,6 +150,7 @@ class StageTwoUiInstrumentedTest {
         waitText("Conferir importação")
         compose.onNode(isToggleable()).performScrollTo().performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.draftRows(a.id).single().reviewed } }
+        compose.waitUntil(5000) { compose.onAllNodes(hasText("Confirmar cadastro de 1 alunos") and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
         shot("05-conferencia")
         compose.onNodeWithText("Confirmar cadastro de 1 alunos").performScrollTo().performClick()
         compose.onNodeWithText("Confirmar").performClick()

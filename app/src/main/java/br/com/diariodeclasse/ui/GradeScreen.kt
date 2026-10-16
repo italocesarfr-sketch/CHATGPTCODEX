@@ -18,8 +18,8 @@ import br.com.diariodeclasse.data.*
 
 @Composable fun GradeScreen(vm: DiaryViewModel, data: DiarySnapshot, a: Activity, edit: () -> Unit, deleted: () -> Unit, dirty: (Boolean) -> Unit = {}) {
     var confirm by remember { mutableStateOf(false) }
-    val invalid = remember(a.id) { mutableStateMapOf<String, Boolean>() }
-    LaunchedEffect(invalid.values.toList()) { dirty(invalid.values.any { it }) }
+    var invalid by rememberSaveable(a.id) { mutableStateOf(listOf<String>()) }
+    LaunchedEffect(invalid) { dirty(invalid.isNotEmpty()) }
     DisposableEffect(a.id) { onDispose { dirty(false) } }
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -32,13 +32,13 @@ import br.com.diariodeclasse.data.*
             val grade = data.grades.firstOrNull { it.activityId == a.id && it.studentId == student.id }?.value
             var text by rememberSaveable(a.id, student.id) { mutableStateOf(grade?.let { number(it) } ?: "") }
             val valid = text.isBlank() || decimal(text)?.let { it.isFinite() && it in 0.0..a.maximum } == true
-            LaunchedEffect(student.id, text, a.maximum) { invalid[student.id] = !valid }
+            LaunchedEffect(student.id, text, a.maximum) { invalid = if (valid) invalid - student.id else (invalid + student.id).distinct() }
             Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
                 Text("${student.number}. ${student.name}", style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(value = text, onValueChange = { value ->
                     text = value
                     val numeric = decimal(value)
-                    invalid[student.id] = !(value.isBlank() || numeric != null && numeric.isFinite() && numeric in 0.0..a.maximum)
+                    invalid = if (value.isBlank() || numeric != null && numeric.isFinite() && numeric in 0.0..a.maximum) invalid - student.id else (invalid + student.id).distinct()
                     if (value.isBlank() || numeric != null && numeric.isFinite() && numeric in 0.0..a.maximum) {
                         vm.act { vm.repository.saveGrade(a.id, student.id, if (value.isBlank()) null else numeric) }
                     }

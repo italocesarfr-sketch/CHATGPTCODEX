@@ -46,6 +46,7 @@ private val pages = listOf(
     val c = data.classes.firstOrNull { it.id == selected.classId }
     var page by rememberSaveable { mutableIntStateOf(0) }
     var detail by rememberSaveable { mutableStateOf("") }
+    var returnDetail by rememberSaveable { mutableStateOf("") }
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
     var lessonId by rememberSaveable { mutableStateOf("") }
     var activityId by rememberSaveable { mutableStateOf("") }
@@ -75,13 +76,14 @@ private val pages = listOf(
     fun changeSelection(value: AppSelection) = navigate {
         vm.select(value) { detail = "" }
     }
-    BackHandler(detail.isNotEmpty() && !navigating) { navigate { detail = "" } }
+    fun back() = navigate { detail = if (detail == "profile") returnDetail else ""; returnDetail = "" }
+    BackHandler(detail.isNotEmpty() && !navigating) { back() }
     Scaffold(
         topBar = { TopAppBar(title = { Column {
             Text("Diário de Classe", style = MaterialTheme.typography.titleLarge)
             Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } }, navigationIcon = {
-            if (detail.isNotEmpty()) TextButton(onClick = { navigate { detail = "" } }, enabled = !navigating) { Text("‹ Voltar") }
+            if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating) { Text("‹ Voltar") }
         }, actions = { TextButton(onClick = { showBackup = true }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item -> NavigationBarItem(
@@ -94,7 +96,7 @@ private val pages = listOf(
         } }, snackbarHost = { SnackbarHost(snack) }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
-            if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth())
+            Box(Modifier.fillMaxWidth().height(4.dp)) { if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!data.loaded) { CircularProgressIndicator(Modifier.padding(32.dp)); return@Column }
             GlobalClassSelector(data.classes, selected, !navigating && !saving, ::changeSelection)
             Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -108,7 +110,7 @@ private val pages = listOf(
                         detail == "profile" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
                             ProfileScreen(vm, data, c, it, term) { term = it }
                         }
-                        detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; detail = "profile" }
+                        detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; returnDetail = "roster"; detail = "profile" }
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
                             edit = { editingClass = c; classForm = true }, roster = { detail = "roster" })
@@ -122,7 +124,7 @@ private val pages = listOf(
                             when (page) {
                                 1 -> CalendarScreen(vm, data, c, term) { lessonId = it; detail = "attendance" }
                                 2 -> ActivitiesPage(data, c, term, create = { editingActivity = null; activityForm = true }) { activityId = it; detail = "grades" }
-                                3 -> ReportScreen(data, c, term) { studentId = it; detail = "profile" }
+                                3 -> ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "profile" }
                             }
                         }
                     }
@@ -237,6 +239,6 @@ private val pages = listOf(
 
 @Composable fun TermSelector(selected: Int, select: (Int) -> Unit) {
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        (1..4).forEach { n -> FilterChip(selected = selected == n, onClick = { select(n) }, label = { Text("${n}º bim.") }) }
+        (1..4).forEach { n -> FilterChip(selected = selected == n, onClick = { if (selected != n) select(n) }, label = { Text("${n}º bim.") }) }
     }
 }

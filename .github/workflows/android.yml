@@ -62,11 +62,7 @@ jobs:
           api-level: 30
           arch: x86_64
           disable-animations: true
-          script: |
-            ./gradlew --no-daemon --stacktrace connectedDebugAndroidTest
-            mkdir -p build
-            adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa2-screenshots > build/etapa2-telas.tar
-            ./scripts/ci/test-upgrade.sh
+          script: ./scripts/ci/validate-android.sh
       - name: Verificar o APK testado, assinatura e compatibilidade da referência
         run: |
           sha256sum -c build/apk-tested.sha256
