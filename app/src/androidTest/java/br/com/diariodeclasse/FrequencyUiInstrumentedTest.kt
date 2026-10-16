@@ -51,7 +51,7 @@ class FrequencyUiInstrumentedTest {
     private fun openAugust(){
         val now=LocalDate.now()
         compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,Locale.forLanguageTag("pt-BR"))} ▾").performClick()
-        compose.onAllNodesWithText("8 • agosto").onLast().performClick()
+        compose.onAllNodesWithText("8 • agosto").onLast().performScrollTo().performClick()
         compose.onNodeWithTag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"))
         compose.onNodeWithTag("date-$day").performClick();waitTag("attendance-day-$day")
     }
