@@ -2,7 +2,11 @@
 
 Projeto Android nativo em Kotlin + Jetpack Compose/Material 3, Room/SQLite, ViewModel e Repository. Android 8.0 (API 26) ou superior. Interface em português brasileiro. Nenhuma conta, servidor ou permissão de Internet.
 
-## Estado real da entrega
+## Etapa 1 — segurança dos dados
+
+O desenvolvimento atual acrescenta backup/restauração offline e testes de atualização, mantendo as telas atuais. Consulte [BACKUP](docs/BACKUP.md), [ASSINATURA](docs/ASSINATURA.md) e [validação da Etapa 1](docs/ETAPA1.md). O debug do CI é para teste; não há garantia de compatibilidade com a assinatura já instalada. Release estável exige configuração externa segura.
+
+## Registro histórico da entrega inicial
 
 O código do MVP e da importação por fotografia está implementado neste projeto único. **Ainda não há APK gerado nem validação de execução em Android.** O ambiente de origem tinha Java 21, mas não tinha Gradle, Android SDK ou emulador. A tentativa de `./gradlew assembleDebug` terminou no bootstrap do Gradle, com código 7: `Failed to connect to proxy port 8080`. O proxy configurado não aceitou conexão. Portanto, o compilador Kotlin/Android ainda não foi executado; podem existir ajustes de compilação ou de execução a resolver em um ambiente Android completo.
 

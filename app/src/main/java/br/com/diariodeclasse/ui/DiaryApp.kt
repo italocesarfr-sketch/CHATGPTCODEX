@@ -1,6 +1,7 @@
 package br.com.diariodeclasse.ui
 
 import androidx.activity.compose.BackHandler
+import br.com.diariodeclasse.backup.BackupDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -18,8 +19,13 @@ import br.com.diariodeclasse.ocr.PhotoImportScreen
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.time.LocalDate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable fun DiaryApp(vm: DiaryViewModel) {
+    val generation by vm.restoreGeneration.collectAsStateWithLifecycle()
+    LaunchedEffect(generation) { if (generation > 0) vm.message("Backup restaurado. Os dados anteriores foram guardados em uma cópia de segurança.") }
+    key(generation) { DiaryContent(vm) }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun DiaryContent(vm: DiaryViewModel) {
     val data by vm.data.collectAsStateWithLifecycle()
     val saving by vm.saving.collectAsStateWithLifecycle()
     var route by rememberSaveable { mutableStateOf("home") }
@@ -33,6 +39,7 @@ import java.time.LocalDate
     var classForm by remember { mutableStateOf(false) }; var editingClass by remember { mutableStateOf<SchoolClass?>(null) }
     var termForm by remember { mutableStateOf(false) }; var activityForm by remember { mutableStateOf(false) }
     var editingActivity by remember { mutableStateOf<Activity?>(null) }
+    var showBackup by remember { mutableStateOf(false) }
     val snack = remember { SnackbarHostState() }
     LaunchedEffect(vm) { vm.messages.receiveAsFlow().collect { snack.showSnackbar(it) } }
     val c = data.classes.firstOrNull { it.id == classId }
@@ -44,7 +51,7 @@ import java.time.LocalDate
     Scaffold(topBar = { TopAppBar(title = { Column {
         Text(if (route == "home") "Diário de Classe" else c?.name ?: "Diário de Classe")
         Text(if (route == "home") "Seu dia em sala de aula" else "${c?.subject.orEmpty()} • ${c?.year ?: year}", style = MaterialTheme.typography.labelMedium)
-    } }, navigationIcon = { if (route != "home") TextButton(onClick = { back() }) { Text("‹ Voltar") } }) },
+    } }, navigationIcon = { if (route != "home") TextButton(onClick = { back() }) { Text("‹ Voltar") } }, actions = { TextButton(onClick = { showBackup = true }) { Text("Backup") } }) },
         snackbarHost = { SnackbarHost(snack) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -120,6 +127,7 @@ import java.time.LocalDate
             }
         }
     }
+    if (showBackup) BackupDialog(vm) { showBackup = false }
     if (classForm) ClassForm(vm, editingClass, { classForm = false }) { id, photo ->
         classForm = false; classId = id; route = if (photo) "photo" else "class"; tab = "Alunos"
     }

@@ -14,3 +14,10 @@ local.properties
 .env
 .env.*
 *.pem
+*.p12
+*.pfx
+*.key
+.baseline-source/
+resgate-*/
+__pycache__/
+*.pyc

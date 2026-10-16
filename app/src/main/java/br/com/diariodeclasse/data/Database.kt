@@ -4,10 +4,13 @@ import android.content.Context
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
+import kotlinx.serialization.Serializable
+import br.com.diariodeclasse.backup.BackupDao
 
 fun newId(): String = UUID.randomUUID().toString()
 
 @Entity(tableName = "classes")
+@Serializable
 data class SchoolClass(
     @PrimaryKey val id: String = newId(), val name: String, val stage: String = "Médio",
     val subject: String, val year: Int, val shift: String = "Matutino",
@@ -17,6 +20,7 @@ data class SchoolClass(
 )
 @Entity(tableName = "students", foreignKeys = [ForeignKey(entity = SchoolClass::class,
     parentColumns = ["id"], childColumns = ["classId"], onDelete = ForeignKey.RESTRICT)], indices = [Index("classId")])
+@Serializable
 data class Student(
     @PrimaryKey val id: String = newId(), val personId: String = newId(), val classId: String,
     val name: String, val number: Int, val joined: String, val left: String? = null,
@@ -24,19 +28,23 @@ data class Student(
 )
 @Entity(tableName = "terms", primaryKeys = ["classId", "number"], foreignKeys = [ForeignKey(
     entity = SchoolClass::class, parentColumns = ["id"], childColumns = ["classId"], onDelete = ForeignKey.RESTRICT)])
+@Serializable
 data class Term(val classId: String, val number: Int, val start: String, val end: String)
 @Entity(tableName = "lessons", foreignKeys = [ForeignKey(entity = SchoolClass::class,
     parentColumns = ["id"], childColumns = ["classId"], onDelete = ForeignKey.RESTRICT)],
     indices = [Index(value = ["classId", "date", "ordinal"], unique = true)])
+@Serializable
 data class Lesson(@PrimaryKey val id: String, val classId: String, val date: String,
     val ordinal: Int, val state: String = "PREVISTA", val note: String = "")
 @Entity(tableName = "marks", primaryKeys = ["lessonId", "studentId"], foreignKeys = [
     ForeignKey(entity = Lesson::class, parentColumns = ["id"], childColumns = ["lessonId"], onDelete = ForeignKey.RESTRICT),
     ForeignKey(entity = Student::class, parentColumns = ["id"], childColumns = ["studentId"], onDelete = ForeignKey.RESTRICT)
 ], indices = [Index("studentId")])
+@Serializable
 data class Attendance(val lessonId: String, val studentId: String, val mark: String)
 @Entity(tableName = "activities", foreignKeys = [ForeignKey(entity = SchoolClass::class,
     parentColumns = ["id"], childColumns = ["classId"], onDelete = ForeignKey.RESTRICT)], indices = [Index("classId")])
+@Serializable
 data class Activity(@PrimaryKey val id: String = newId(), val classId: String, val name: String,
     val type: String = "Prova", val date: String, val term: Int, val maximum: Double,
     val description: String = "", val notes: String = "")
@@ -44,9 +52,11 @@ data class Activity(@PrimaryKey val id: String = newId(), val classId: String, v
     ForeignKey(entity = Activity::class, parentColumns = ["id"], childColumns = ["activityId"], onDelete = ForeignKey.CASCADE),
     ForeignKey(entity = Student::class, parentColumns = ["id"], childColumns = ["studentId"], onDelete = ForeignKey.RESTRICT)
 ], indices = [Index("studentId")])
+@Serializable
 data class Grade(val activityId: String, val studentId: String, val value: Double?)
 @Entity(tableName = "import_drafts", foreignKeys = [ForeignKey(entity = SchoolClass::class,
     parentColumns = ["id"], childColumns = ["classId"], onDelete = ForeignKey.RESTRICT)], indices = [Index("classId")])
+@Serializable
 data class ImportDraft(@PrimaryKey val id: String = newId(), val classId: String,
     val name: String, val number: Int?, val position: Int, val page: Int,
     val reason: String = "Adicionado manualmente", val reviewed: Boolean = false,
@@ -92,6 +102,7 @@ interface DiaryDao {
     Attendance::class, Activity::class, Grade::class, ImportDraft::class], version = 1, exportSchema = true)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
+    abstract fun backupDao(): BackupDao
     companion object {
         fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").build()
     }

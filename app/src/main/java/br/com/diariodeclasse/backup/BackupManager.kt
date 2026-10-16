@@ -1,0 +1,95 @@
+package br.com.diariodeclasse.backup
+
+import android.util.AtomicFile
+import androidx.room.withTransaction
+import br.com.diariodeclasse.data.DiaryDatabase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.UUID
+
+interface SafetyBackupStore {
+    fun save(bytes: ByteArray): File
+    fun latest(): File?
+}
+class FileSafetyBackupStore(private val folder: File) : SafetyBackupStore {
+    override fun save(bytes: ByteArray): File {
+        check(folder.isDirectory || folder.mkdirs()) { "Cópia de segurança indisponível." }
+        val file = File(folder, "antes-restauracao-${System.currentTimeMillis()}-${UUID.randomUUID()}.json")
+        val atomic = AtomicFile(file)
+        val output = atomic.startWrite()
+        try { output.write(bytes); atomic.finishWrite(output) }
+        catch (error: Exception) { atomic.failWrite(output); throw error }
+        check(file.isFile && file.length() == bytes.size.toLong())
+        return file
+    }
+    override fun latest(): File? = folder.listFiles()?.filter { it.isFile && it.extension == "json" }?.maxByOrNull { it.lastModified() }
+}
+class PreparedRestore internal constructor(internal val decoded: DecodedBackup, internal val currentFingerprint: String) {
+    val summary: String get() = decoded.snapshot.summary()
+    val createdAt: String get() = decoded.envelope.createdAt
+}
+data class RestoreResult(val safetyCopy: File)
+
+/** O banco aberto não é copiado, apagado nem trocado. Somente dados são restaurados numa transação. */
+class BackupManager(
+    private val db: DiaryDatabase, private val safety: SafetyBackupStore,
+    private val appVersionCode: Int, private val certificate: String?
+) {
+    private val dao = db.backupDao()
+    private val _generation = MutableStateFlow(0L)
+    val generation = _generation.asStateFlow()
+    private fun verifySchema() {
+        db.openHelper.writableDatabase.query("PRAGMA user_version").use {
+            check(it.moveToFirst() && it.getInt(0) == 1) { "Versão do banco incompatível." }
+        }
+        db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use {
+            check(it.moveToFirst() && it.getString(0) == BackupCodec.IDENTITY) { "Esquema do banco incompatível." }
+        }
+    }
+    private suspend fun readRows(): BackupSnapshot = BackupSnapshot(dao.classes(), dao.students(), dao.terms(), dao.lessons(),
+        dao.marks(), dao.activities(), dao.grades(), dao.drafts())
+    suspend fun snapshot(): BackupSnapshot = db.withTransaction { verifySchema(); readRows() }
+    suspend fun backupBytes(): ByteArray = BackupCodec.encode(snapshot(), appVersionCode, certificate)
+    suspend fun writeBackup(output: OutputStream) { val bytes = backupBytes(); output.write(bytes); output.flush() }
+    suspend fun prepare(input: InputStream): PreparedRestore {
+        val decoded = BackupCodec.decode(BackupCodec.read(input))
+        return PreparedRestore(decoded, BackupCodec.fingerprint(snapshot()))
+    }
+    fun hasSafetyCopy(): Boolean = safety.latest() != null
+    fun writeLatestSafetyCopy(output: OutputStream) {
+        val file = safety.latest() ?: throw BackupFailure("Ainda não há cópia anterior a uma restauração.")
+        // Verifica a cópia privada antes de oferecê-la ao seletor do professor.
+        val bytes = file.inputStream().use { BackupCodec.read(it) }; BackupCodec.decode(bytes)
+        output.write(bytes); output.flush()
+    }
+    suspend fun restore(prepared: PreparedRestore, confirmation: String): RestoreResult {
+        if (confirmation != "RESTAURAR") throw BackupFailure("Digite RESTAURAR para confirmar a substituição.")
+        val incoming = prepared.decoded.snapshot
+        BackupCodec.validate(incoming)
+        val result = db.withTransaction {
+            verifySchema()
+            val current = readRows()
+            if (BackupCodec.fingerprint(current) != prepared.currentFingerprint) throw BackupFailure("Os dados mudaram após a prévia. Selecione novamente o backup antes de confirmar.")
+            // Se esta escrita falhar, nenhuma tabela é modificada.
+            val copy = safety.save(BackupCodec.encode(current, appVersionCode, certificate))
+            val safeguarded = copy.inputStream().use { BackupCodec.decode(BackupCodec.read(it)).snapshot }
+            check(BackupCodec.fingerprint(safeguarded) == BackupCodec.fingerprint(current)) { "Cópia de segurança não validada." }
+            // Chaves estrangeiras continuam ligadas; qualquer erro causa rollback integral.
+            dao.removeMarks(); dao.removeGrades(); dao.removeDrafts(); dao.removeActivities()
+            dao.removeLessons(); dao.removeTerms(); dao.removeStudents(); dao.removeClasses()
+            dao.insertClasses(incoming.classes); dao.insertStudents(incoming.students); dao.insertTerms(incoming.terms)
+            dao.insertLessons(incoming.lessons); dao.insertActivities(incoming.activities)
+            dao.insertMarks(incoming.marks); dao.insertGrades(incoming.grades); dao.insertDrafts(incoming.drafts)
+            db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use {
+                check(!it.moveToFirst()) { "Vínculos inconsistentes." }
+            }
+            check(readRows() == incoming) { "Verificação de restauração falhou." }
+            RestoreResult(copy)
+        }
+        _generation.value += 1
+        return result
+    }
+}

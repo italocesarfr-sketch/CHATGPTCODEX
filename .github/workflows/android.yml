@@ -28,17 +28,23 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Compilar e executar testes de regras
         run: ./gradlew --no-daemon --stacktrace testDebugUnitTest assembleDebug assembleDebugAndroidTest
+      - name: Conferir que o esquema Room v1 continua idêntico
+        run: git diff --exit-code -- app/schemas
       - name: Verificar APK e assinatura
         run: |
           test -s app/build/outputs/apk/debug/app-debug.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/debug/app-debug.apk
           sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/app-debug.apk.sha256
+          python3 scripts/apk_identity.py app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/identidade-apk.json
+          python3 scripts/report-baseline-compatibility.py app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/compatibilidade-baseline.json
       - uses: actions/upload-artifact@v4
         with:
           name: diario-de-classe-apk
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/app-debug.apk.sha256
+            app/build/outputs/apk/debug/identidade-apk.json
+            app/build/outputs/apk/debug/compatibilidade-baseline.json
           if-no-files-found: error
           retention-days: 30
       - uses: actions/upload-artifact@v4
@@ -66,6 +72,15 @@ jobs:
           packages: platform-tools
       - uses: gradle/actions/setup-gradle@v4
       - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - uses: actions/checkout@v4
+        with:
+          ref: a157c79c0823f898c63133ac6ff35bf5793b5219
+          path: .baseline-source
+      - name: Compilar referência com a mesma chave descartável de teste
+        run: |
+          ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest
+          chmod +x .baseline-source/gradlew
+          .baseline-source/gradlew -p .baseline-source --no-daemon assembleDebug
       - name: Habilitar aceleração do emulador
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -76,7 +91,9 @@ jobs:
           api-level: 30
           arch: x86_64
           disable-animations: true
-          script: ./gradlew --no-daemon --stacktrace connectedDebugAndroidTest
+          script: |
+            ./gradlew --no-daemon --stacktrace connectedDebugAndroidTest
+            ./scripts/ci/test-upgrade.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -84,4 +101,7 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
+            build/upgrade-identity.json
+            build/upgrade-before.txt
+            build/upgrade-after.txt
           if-no-files-found: ignore

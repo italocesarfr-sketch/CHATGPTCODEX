@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     val repository = (application as DiaryApplication).repository
+    val restoreGeneration = (application as DiaryApplication).backupManager.generation
     val data = repository.snapshot.stateIn(viewModelScope, SharingStarted.Eagerly, DiarySnapshot())
     val messages = Channel<String>(Channel.BUFFERED)
     private val commands = Channel<suspend () -> Unit>(Channel.UNLIMITED)
@@ -36,6 +37,11 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
             action()
             if (done != null) withContext(Dispatchers.Main) { done() }
         }
+    }
+    suspend fun awaitPendingWrites() {
+        val drained = CompletableDeferred<Unit>()
+        commands.send { drained.complete(Unit) }
+        drained.await()
     }
     fun message(text: String) { messages.trySend(text) }
 }
