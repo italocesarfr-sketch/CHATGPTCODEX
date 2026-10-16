@@ -1,6 +1,6 @@
 # Etapa 3 — Chamada por data e horário
 
-Versão candidata: **0.3.0 / versionCode 4**. Escopo autorizado: somente Etapa 3 do [ROADMAP](ROADMAP.md), seguindo [ESPECIFICACAO](ESPECIFICACAO.md) e [ETAPA2](ETAPA2.md). A Etapa 4 não foi iniciada. Os resultados finais de compilação e testes serão registrados nesta entrega após a conclusão do Actions.
+Entrega validada: **0.3.0 / versionCode 4**. Escopo autorizado: somente Etapa 3 do [ROADMAP](ROADMAP.md), seguindo [ESPECIFICACAO](ESPECIFICACAO.md) e [ETAPA2](ETAPA2.md). A Etapa 4 não foi iniciada. Os resultados de compilação, testes e identidade do APK estão registrados abaixo.
 
 ## Fluxo da chamada
 
@@ -40,6 +40,36 @@ Novos cenários: retroatividade, 1/2/3/12 horários, limite do ano e ano bissext
 
 ## Limites da entrega
 
-A chave estável segue pendente antes do uso real, conforme autorização da Etapa 2. A configuração de assinatura não foi trocada, mas cada runner pode gerar outro certificado debug: mesmo pacote não prova atualização compatível. A comparação do APK candidato com o APK de teste anterior e os resultados do teste controlado com a mesma chave serão registrados após a execução. Não haverá declaração de compatibilidade com a instalação física sem verificar seu certificado.
+A chave estável segue pendente antes do uso real, conforme autorização da Etapa 2. A configuração de assinatura não foi trocada, mas cada runner pode gerar outro certificado debug: mesmo pacote não prova atualização compatível. A comparação com o APK de teste anterior e o teste controlado com a mesma chave constam abaixo. Não haverá declaração de compatibilidade com a instalação física sem verificar seu certificado.
 
 Capturas/automação em emulador não substituem ensaio em celular físico, TalkBack, fonte ampliada, tablet, API 26 e Android atual. Não foi introduzido serviço remoto, permissão de Internet ou exportação inteligente.
+
+## Resultado final — 16/10/2026
+
+Código testado: [`656c8c4`](https://github.com/italocesarfr-sketch/CHATGPTCODEX/commit/656c8c43961aa9e1d0339258c1397d1d502dcb94). [GitHub Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38964999986) • [Baixar APK de teste](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38964999986/artifacts/12073719360) • [Relatórios e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38964999986/artifacts/12074790782). O download do artefato é um ZIP; extrair `app-debug.apk`. Retenção do APK: 30 dias, conforme workflow.
+
+| Verificação | Resultado |
+| --- | --- |
+| `testDebugUnitTest` | 18 aprovados, zero falhas |
+| `connectedDebugAndroidTest`, emulador API 30 | 44 aprovados, zero falhas; duas sondas reservadas ignoradas nesta invocação |
+| Sondas de gravação/reinício forçado | 2 aprovadas, em processos separados, antes/depois de `am force-stop` |
+| Sondas de atualização controlada | 2 aprovadas; referência v1 → candidato sem desinstalar, oito tabelas iguais |
+| Regras Java executadas localmente | 28 cenários aprovados |
+| `assembleDebug` / `assembleDebugAndroidTest` | Sucesso |
+| Esquema Room v1 | JSON idêntico; identity `99b868cf68cf5dffb82edf267ddc78be` |
+| Assinatura criptográfica | `apksigner verify` aprovado, esquema APK v2 |
+| Release sem chave estável | Bloqueada, como esperado |
+
+As duas sondas marcadas como ignoradas na suíte principal são executadas pelo CI com parâmetros exclusivos nas quatro fases separadas indicadas acima; não representam cenários sem execução. A saída bruta do runner contém contagem de eventos adicional; os totais acima foram conferidos nos XMLs JUnit, com zero falhas/erros.
+
+APK baixado do Actions, ZIP testado e hash conferido com o arquivo publicado pelo CI. Existência verificada em **`/workspace/diario-de-classe/app/build/outputs/apk/debug/app-debug.apk`**, com **10,325,025 bytes**, versão **0.3.0 / código 4**, pacote `br.com.diariodeclasse`.
+
+- SHA-256 do APK: `b75d0b569209af4a9d90a97174dbb05dc955f4a2f9e6ea823bc2f350716ab74f`.
+- Certificado público SHA-256: `b15f0b96fff091d348531952ed5ef92a320b3d820771eeb7c71d915b664624e9`.
+- JSON público de evidências: [etapa3-validacao.json](baseline/etapa3-validacao.json).
+
+**O certificado debug difere do APK 0.2.0 da Etapa 2 e do original analisado; este artefato não atualiza diretamente esses APKs.** A chave permanente continua pendente. O celular físico não foi inspecionado. O teste de atualização usou a mesma chave descartável nos dois APKs exclusivamente no emulador, comprovando preservação quando a assinatura é compatível. Não houve publicação de chaves privadas ou dados reais. Não é necessário recuperar os testes descartáveis da instalação original, conforme autorização; uma instalação limpa com chave permanente ainda deverá ser planejada antes do uso real. Se houver registros novos a conservar, exportar e conferir backup antes de qualquer troca de instalação.
+
+Capturas revistas em tela de 320 px: calendário, chamada dupla com P/F independentes, matrícula tardia bloqueada, cancelamento com FJ preservada, nomes fixos na rolagem e tabela bimestral. O rótulo do total foi abreviado para caber na coluna estreita. A cobertura automática não equivale a homologação de TalkBack/fonte ampliada ou ensaio no aparelho físico; esses limites continuam descritos acima.
+
+O ambiente local não permitiu baixar a distribuição Gradle pela rede do shell; a compilação real e os testes Android foram executados no Actions com JDK 17, SDK 35 e emulador API 30. O APK entregue foi baixado dessa execução e verificado localmente. A documentação final é publicada separadamente, sem alterar o código testado. **A Etapa 4 e a exportação inteligente não foram iniciadas; aguardam autorização.**
