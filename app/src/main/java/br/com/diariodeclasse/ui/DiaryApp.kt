@@ -33,6 +33,7 @@ private val pages = listOf(
 
 @Composable fun DiaryApp(vm: DiaryViewModel) {
     val generation by vm.restoreGeneration.collectAsStateWithLifecycle()
+    LaunchedEffect(generation) { if (generation > 0) vm.message(vm.restoreNotice) }
     key(generation) { DiaryContent(vm) }
 }
 
@@ -61,7 +62,7 @@ private val pages = listOf(
     val snack = remember { SnackbarHostState() }
     LaunchedEffect(vm) { vm.messages.receiveAsFlow().collect { snack.showSnackbar(it) } }
     LaunchedEffect(data.loaded, data.classes, savedSelection) {
-        if (data.loaded && savedSelection == null) vm.select(selected) {}
+        if (data.loaded && savedSelection == null) vm.initializeSelection()
     }
     // A fila já captura os IDs de origem. A navegação só é liberada depois das gravações.
     fun navigate(action: () -> Unit) {

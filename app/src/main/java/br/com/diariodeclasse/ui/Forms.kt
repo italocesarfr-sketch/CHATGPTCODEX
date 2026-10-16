@@ -56,6 +56,7 @@ import java.time.LocalDate
                 vm.repository.saveClass(value, if (original == null || formSchedule == c.schedule) "${value.year}-01-01" else iso(formEffective))
             }
         }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Salvar turma") }
+        SaveError(vm)
     }
 }
 
@@ -96,6 +97,7 @@ import java.time.LocalDate
             val formName = name; val formNumber = num; val formJoined = joined; val formLeft = left; val formStatus = status; val formNotes = notes
             vm.act(done = dismiss) { vm.repository.saveStudent(student.copy(name = formName, number = formNumber.toInt(), joined = iso(formJoined), left = formLeft.takeIf { it.isNotBlank() }?.let { iso(it) }, status = formStatus, notes = formNotes)) }
         }) { Text("Salvar aluno") }
+        SaveError(vm)
     }
 }
 

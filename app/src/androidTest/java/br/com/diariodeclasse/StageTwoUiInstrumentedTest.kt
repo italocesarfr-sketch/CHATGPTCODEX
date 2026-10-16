@@ -17,6 +17,7 @@ class StageTwoUiInstrumentedTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
+    private val createdIds=mutableListOf<String>()
     private val a=SchoolClass(id="ui-s2-a",name="Turma Fictícia A",subject="História",year=2026)
     private val b=a.copy(id="ui-s2-b",name="Turma Fictícia B",subject="Geografia")
     private val old=a.copy(id="ui-s2-old",subject="História de 2025",year=2025)
@@ -34,7 +35,7 @@ class StageTwoUiInstrumentedTest {
         // Remove somente fixtures com IDs exclusivos; nunca limpa o banco inteiro.
         val sql=app.database.openHelper.writableDatabase
         app.database.runInTransaction {
-            for(id in listOf(a.id,b.id,old.id)) {
+            for(id in listOf(a.id,b.id,old.id)+createdIds) {
                 sql.execSQL("DELETE FROM marks WHERE lessonId IN (SELECT id FROM lessons WHERE classId=?)",arrayOf(id))
                 sql.execSQL("DELETE FROM grades WHERE activityId IN (SELECT id FROM activities WHERE classId=?)",arrayOf(id))
                 for(table in listOf("import_drafts","activities","lessons","terms","students")) sql.execSQL("DELETE FROM $table WHERE classId=?",arrayOf(id))
@@ -42,6 +43,9 @@ class StageTwoUiInstrumentedTest {
             }
         }
         app.selectionStore.write(previous)
+    }
+    private fun waitText(text:String) {
+        compose.waitUntil(10000) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
     }
     private fun shot(name:String) {
         val folder=File(app.filesDir,"etapa2-screenshots");folder.mkdirs()
@@ -51,11 +55,15 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("+ Nova Turma").assertIsDisplayed()
         compose.onNodeWithText("Editar Turma Existente").assertIsDisplayed();shot("01-turmas")
         compose.onNodeWithTag("nav-1").performClick()
+        compose.waitUntil(10000) { compose.onAllNodesWithText("Bimestres").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("4º bim.").performClick()
+        waitText("Exibir apenas o 4º bimestre")
         compose.onNodeWithText("Exibir apenas o 4º bimestre").assertExists();shot("02-chamada")
         compose.onNodeWithTag("nav-2").performClick()
+        waitText("+ Criar atividade")
         compose.onNodeWithText("+ Criar atividade").assertIsDisplayed();shot("03-atividades")
         compose.onNodeWithTag("nav-3").performClick()
+        waitText("Boletim do 4º bimestre")
         compose.onNodeWithText("Boletim do 4º bimestre").assertExists();shot("04-relatorios")
         compose.onNodeWithTag("year-selector").performClick()
         compose.onNodeWithText("Ano letivo 2025").performClick()
@@ -68,7 +76,9 @@ class StageTwoUiInstrumentedTest {
     }
     @Test fun gradeStaysWithOriginalClassAndInvalidEditWarnsBeforeLeaving() = runBlocking {
         compose.onNodeWithTag("nav-2").performClick()
+        waitText("+ Criar atividade")
         compose.onNodeWithText("1º bim.").performClick()
+        waitText(activity.name)
         compose.onNodeWithText(activity.name).performClick()
         compose.onNodeWithText("Nota (0 a 10,00)").performTextReplacement("7,5")
         compose.waitUntil(5000) { runBlocking { app.repository.dao.activityGrades(activity.id).firstOrNull()?.value==7.5 } }
@@ -84,9 +94,44 @@ class StageTwoUiInstrumentedTest {
         compose.waitUntil(5000) { app.selectionStore.read()?.classId==b.id }
         assertEquals(7.5,app.repository.dao.activityGrades(activity.id).single().value!!,0.0)
         assertTrue(app.repository.dao.roster(b.id).isEmpty())
+        waitText("+ Criar atividade")
         compose.onNodeWithText("+ Criar atividade").assertIsDisplayed()
+        Unit
     }
-    @Test fun pasteCreatesReviewDraftAndCancelNeverEnrollsIt() = runBlocking {
+    @Test fun createWithoutWeeklyScheduleThenAddAndEditStudent() = runBlocking {
+        compose.onNodeWithText("+ Nova Turma").performClick()
+        compose.onNodeWithText("Nome da turma").performTextInput("Nova Turma Fictícia UI")
+        compose.onNodeWithText("Disciplina").performTextInput("História Fictícia UI")
+        compose.onNodeWithText("Segunda").assertDoesNotExist()
+        compose.onNodeWithText("Salvar turma").performScrollTo().performClick()
+        compose.waitUntil(10000) { runBlocking { app.database.backupDao().classes().any { it.name=="Nova Turma Fictícia UI" } } }
+        val created=app.database.backupDao().classes().single { it.name=="Nova Turma Fictícia UI" }
+        createdIds.add(created.id)
+        assertEquals("0,0,0,0,0,0,0",created.schedule)
+        waitText("+ Adicionar aluno")
+        compose.onNodeWithText("+ Adicionar aluno").performClick()
+        compose.onNodeWithText("Nome completo").performTextInput("Estudante Fictício Novo")
+        compose.onNodeWithText("Ingresso (dd/mm/aaaa)").performTextReplacement("01/02/2026")
+        compose.onNodeWithText("Salvar aluno").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { app.repository.dao.roster(created.id).size==1 } }
+        val first=app.repository.dao.roster(created.id).single()
+        compose.waitUntil(5000) { compose.onAllNodesWithText("Cadastrar aluno").fetchSemanticsNodes().isEmpty() }
+        waitText("Editar")
+        compose.onNodeWithText("Editar").performScrollTo().performClick()
+        compose.onNodeWithText("Nome completo").performTextReplacement("Estudante Fictício Editado")
+        compose.onNodeWithText("Salvar aluno").performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { app.repository.dao.student(first.id)?.name=="Estudante Fictício Editado" } }
+        assertEquals(first.personId,app.repository.dao.student(first.id)!!.personId)
+        assertEquals("2026-02-01",app.repository.dao.student(first.id)!!.joined)
+    }
+    @Test fun noNetworkCameraOrPhotoAccessIsRequested() {
+        val permissions = app.packageManager.getPackageInfo(app.packageName,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions.orEmpty().toSet()
+        assertFalse("android.permission.INTERNET" in permissions)
+        assertFalse("android.permission.CAMERA" in permissions)
+        assertFalse("android.permission.READ_MEDIA_IMAGES" in permissions)
+        assertFalse("android.permission.READ_EXTERNAL_STORAGE" in permissions)
+    }
+    @Test fun pasteRequiresReviewPersistsOnCancelAndConfirms() = runBlocking {
         compose.onNodeWithText("Gerenciar alunos").performClick()
         compose.onNodeWithText("Colar lista").performClick()
         compose.onNodeWithText("Um nome por linha (número opcional)").performTextInput("18 Estudante Fictício Beta")
@@ -98,5 +143,15 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("Conferir 1 nomes em rascunho").assertExists()
         assertEquals(18,app.repository.dao.draftRows(a.id).single().number)
         assertEquals(1,app.repository.dao.roster(a.id).size)
+        compose.onNodeWithText("Conferir 1 nomes em rascunho").performClick()
+        waitText("Conferir importação")
+        compose.onNode(isToggleable()).performScrollTo().performClick()
+        compose.waitUntil(5000) { runBlocking { app.repository.dao.draftRows(a.id).single().reviewed } }
+        shot("05-conferencia")
+        compose.onNodeWithText("Confirmar cadastro de 1 alunos").performScrollTo().performClick()
+        compose.onNodeWithText("Confirmar").performClick()
+        compose.waitUntil(5000) { runBlocking { app.repository.dao.roster(a.id).size==2 } }
+        assertEquals(18,app.repository.dao.roster(a.id).single { it.name=="Estudante Fictício Beta" }.number)
+        assertTrue(app.repository.dao.draftRows(a.id).isEmpty())
     }
 }

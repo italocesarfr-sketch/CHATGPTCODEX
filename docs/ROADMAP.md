@@ -306,4 +306,4 @@ Falha de migração/restauração/assinatura é bloqueadora. Erro deve ser corri
 
 Decisões técnicas a fechar no incremento correspondente: continuidade da chave de assinatura/resgate legado (1.1), formato/validação do backup (1.2), política anual/recuperação (4.3–4.4), armazenamento da disposição (5.1) e viabilidade XLSX (5.4). Não são razões para bloquear a documentação nem autorização para implementar antecipadamente.
 
-**Próxima ação após esta entrega:** aguardar autorização para iniciar a **Etapa 1 — Preservação dos dados e compatibilidade de atualização**, começando pelo incremento 1.1. Nenhum módulo será desenvolvido como parte da Etapa 0.
+**Situação após as autorizações posteriores:** Etapa 1 implementada e Etapa 2 autorizada para execução e testes; consultar ETAPA1.md e ETAPA2.md. Após concluir a Etapa 2, aguardar autorização para iniciar a Etapa 3. O plano original da Etapa 0 permanece como referência dos critérios.

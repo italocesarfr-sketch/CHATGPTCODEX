@@ -21,6 +21,7 @@ import br.com.diariodeclasse.domain.RosterParser
     var removing by remember { mutableStateOf<ImportDraft?>(null) }
     var confirming by remember { mutableStateOf(false) }
     val saving by vm.saving.collectAsState()
+    val error by vm.error.collectAsState()
     BackHandler { close() }
     fun issues(row: ImportDraft): String {
         val others = rows.filter { it.id != row.id }
@@ -82,12 +83,13 @@ import br.com.diariodeclasse.domain.RosterParser
                     vm.repository.dao.save(row.copy(name = formName.trim(), number = n, reviewed = true, allowHomonym = formHomonym))
                 }
             }, modifier = Modifier.fillMaxWidth()) { Text("Salvar nome conferido") }
+            SaveError(vm)
         }
     }
     removing?.let { row -> Confirm("Excluir este rascunho?", "Somente a linha em conferência será removida. Alunos já cadastrados não serão alterados.", { removing = null }) {
         vm.act(done = { removing = null }) { vm.repository.dao.deleteDraft(row.id) }
     } }
-    if (confirming) Confirm("Cadastrar os alunos conferidos?", "Os ${rows.size} nomes serão incluídos em ${c.name}. Nenhum aluno existente será substituído.", { confirming = false }) {
+    if (confirming) Confirm("Cadastrar os alunos conferidos?", "Os ${rows.size} nomes serão incluídos em ${c.name}. Nenhum aluno existente será substituído. ${error.orEmpty()}", { confirming = false }) {
         val ingress = joined; val classId = c.id
         vm.act(done = { confirming = false; close() }) { vm.repository.confirmImport(classId, iso(ingress)) }
     }

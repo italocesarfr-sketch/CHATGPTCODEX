@@ -20,7 +20,7 @@ class BackupCodecTest {
         assertEquals(0, value.drafts.first { it.id == "rascunho-incompleto" }.number)
     }
     @Test fun readsLegacyFormatOneAndPreservesNewSelectionInFormatTwo() {
-        val value = fixture().copy(selection = br.com.diariodeclasse.data.AppSelection(2026, "turma-origem"))
+        val value = fixture()
         // Usar um ID efetivo da fixture, sem assumir posições da lista.
         val withSelection = value.copy(selection = br.com.diariodeclasse.data.AppSelection(value.classes.first().year, value.classes.first().id))
         assertEquals(withSelection.canonical(), BackupCodec.decode(BackupCodec.encode(withSelection,3,null)).snapshot)

@@ -32,6 +32,7 @@ import br.com.diariodeclasse.data.*
             val grade = data.grades.firstOrNull { it.activityId == a.id && it.studentId == student.id }?.value
             var text by rememberSaveable(a.id, student.id) { mutableStateOf(grade?.let { number(it) } ?: "") }
             val valid = text.isBlank() || decimal(text)?.let { it.isFinite() && it in 0.0..a.maximum } == true
+            LaunchedEffect(student.id, text, a.maximum) { invalid[student.id] = !valid }
             Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
                 Text("${student.number}. ${student.name}", style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(value = text, onValueChange = { value ->

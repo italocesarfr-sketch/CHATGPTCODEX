@@ -26,8 +26,11 @@ import java.text.Collator
         if (uri != null) {
             val target = csvTarget
             vm.act(done = { review = true }) {
-                val text = context.contentResolver.openInputStream(uri)?.use { it.readBytesLimited(2_000_000).toString(Charsets.UTF_8) }
+                val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytesLimited(2_000_000) }
                     ?: throw IllegalArgumentException("Não foi possível ler o arquivo.")
+                val text = try { Charsets.UTF_8.newDecoder().onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                    .decode(java.nio.ByteBuffer.wrap(bytes)).toString() }
+                    catch (_: java.nio.charset.CharacterCodingException) { throw IllegalArgumentException("Salve o arquivo CSV em UTF-8 para preservar os acentos.") }
                 vm.repository.appendDrafts(target, CsvRoster.parse(text))
             }
         }
@@ -75,6 +78,7 @@ import java.text.Collator
             val text = names; val target = c.id
             vm.act(done = { bulk = false; review = true }) { vm.repository.appendDrafts(target, CsvRoster.parse(text)) }
         }, modifier = Modifier.fillMaxWidth()) { Text("Preparar conferência") }
+        SaveError(vm)
     }
 }
 

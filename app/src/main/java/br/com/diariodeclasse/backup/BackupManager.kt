@@ -53,6 +53,8 @@ class BackupManager(
     private val dao = db.backupDao()
     private val _generation = MutableStateFlow(0L)
     val generation = _generation.asStateFlow()
+    var restoreNotice: String = ""
+        private set
     private fun verifySchema() {
         db.openHelper.writableDatabase.query("PRAGMA user_version").use {
             check(it.moveToFirst() && it.getInt(0) == 1) { "Versão do banco incompatível." }
@@ -107,6 +109,7 @@ class BackupManager(
         val warning = runCatching { selection?.write(incoming.selection) }.exceptionOrNull()?.let {
             "Não foi possível memorizar a turma restaurada. Selecione novamente a turma e o ano."
         }.orEmpty()
+        restoreNotice = "Backup restaurado. Os dados anteriores estão em uma cópia de segurança. $warning"
         _generation.value += 1
         return result.copy(warning = warning)
     }

@@ -30,7 +30,7 @@ public final class CsvRoster {
                 for (int i = 0; i < cells.size(); i++) {
                     String key = RosterParser.key(cells.get(i));
                     if (Arrays.asList("nome", "nomecompleto", "nomedoaluno", "aluno", "estudante").contains(key)) nameColumn = i;
-                    if (Arrays.asList("numero", "n", "no", "nchamada", "numerodachamada", "numeronachamada").contains(key)) numberColumn = i;
+                    if (Arrays.asList("numero", "n", "no", "nº", "nchamada", "numerodachamada", "numeronachamada").contains(key)) numberColumn = i;
                 }
                 if (nameColumn >= 0) continue;
             }

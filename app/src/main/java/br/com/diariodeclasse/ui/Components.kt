@@ -21,6 +21,11 @@ fun iso(text: String): String = LocalDate.parse(text.trim(), DateTimeFormatter.o
 fun today(): String = LocalDate.now().toString()
 fun defaultEnrollment(year: Int): String = if (LocalDate.now().year == year) today() else "$year-01-01"
 fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Informe um valor numérico válido." }
+@Composable fun SaveError(vm: DiaryViewModel) {
+    val error by vm.error.collectAsState()
+    LaunchedEffect(Unit) { vm.clearError() }
+    if (error != null) Text(error.orEmpty(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+}
 @Composable fun Field(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier, lines: Int = 1) {
     OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label) }, modifier = modifier.fillMaxWidth(), singleLine = lines == 1, minLines = lines)
 }

@@ -1,5 +1,7 @@
 # Assinatura e compatibilidade de atualização — Etapa 1
 
+> Etapa 2 autorizada: o responsável informou que a instalação original contém apenas dados de teste descartáveis e admite futura instalação limpa com chave permanente. Isso libera o desenvolvimento/teste desta etapa, sem comprovar compatibilidade de certificados. Não foram removidas as proteções de backup/migração. A chave estável continua pendente antes do uso real.
+
 ## Referência comprovada e limite de acesso
 
 O APK original de referência é o artefato `12054798579`, execução [38922054797](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38922054797), código `a157c79c0823f898c63133ac6ff35bf5793b5219`, versão 0.1.0 (`versionCode=1`). Sua assinatura foi verificada no CI original. Metadados públicos imutáveis estão em [baseline/versao-0.1.0.json](baseline/versao-0.1.0.json), e o certificado público DER em `baseline/apk-0.1.0-certificado.der`.
