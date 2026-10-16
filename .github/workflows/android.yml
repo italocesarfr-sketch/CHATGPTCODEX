@@ -28,6 +28,18 @@ jobs:
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
       - name: Compilar e executar testes de regras
         run: ./gradlew --no-daemon --stacktrace testDebugUnitTest assembleDebug assembleDebugAndroidTest
+      - name: Comprovar bloqueio de release sem assinatura configurada
+        run: |
+          if ./gradlew --no-daemon preReleaseBuild > build/release-blocked.txt 2>&1; then
+            echo "ERRO: release sem chave deveria ter sido bloqueado" >&2
+            exit 1
+          fi
+          python3 - <<'PYGUARD'
+          from pathlib import Path
+          text=Path('build/release-blocked.txt').read_text()
+          assert 'Release bloqueado: configure a chave estável' in text
+          print('Bloqueio de release sem chave comprovado.')
+          PYGUARD
       - name: Conferir que o esquema Room v1 continua idêntico
         run: git diff --exit-code -- app/schemas
       - name: Verificar APK e assinatura
@@ -55,6 +67,7 @@ jobs:
             app/build/reports/tests/
             app/build/test-results/
             app/schemas/
+            build/release-blocked.txt
           if-no-files-found: ignore
   device:
     name: Validar Room, OCR offline e abertura do aplicativo
