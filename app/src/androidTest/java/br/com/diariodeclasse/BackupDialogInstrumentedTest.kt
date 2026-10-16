@@ -14,6 +14,7 @@ class BackupDialogInstrumentedTest {
     @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     @Test fun openingAndCancellingBackupDoesNotModifyRecords() = runBlocking {
         val manager=(compose.activity.application as DiaryApplication).backupManager
+        compose.waitUntil(5000) { (compose.activity.application as DiaryApplication).selectionStore.read() != null }
         val before=manager.snapshot()
         compose.onNodeWithText("Backup").performClick()
         compose.onNodeWithText("Backup e restauração").assertIsDisplayed()

@@ -4,11 +4,15 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.diariodeclasse.DiaryApplication
 import br.com.diariodeclasse.data.DiarySnapshot
+import br.com.diariodeclasse.data.AppSelection
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     val repository = (application as DiaryApplication).repository
+    private val selectionStore = (application as DiaryApplication).selectionStore
+    val selection = selectionStore.state
+    fun select(value: AppSelection, done: () -> Unit) = act(done) { selectionStore.write(value) }
     val restoreGeneration = (application as DiaryApplication).backupManager.generation
     val data = repository.snapshot.stateIn(viewModelScope, SharingStarted.Eagerly, DiarySnapshot())
     val messages = Channel<String>(Channel.BUFFERED)

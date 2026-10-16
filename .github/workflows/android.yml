@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Etapa 1 — backup, banco, assinatura e atualização
+    name: Etapa 2 — turmas, navegação e preservação de dados
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -64,6 +64,8 @@ jobs:
           disable-animations: true
           script: |
             ./gradlew --no-daemon --stacktrace connectedDebugAndroidTest
+            mkdir -p build
+            adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa2-screenshots > build/etapa2-telas.tar
             ./scripts/ci/test-upgrade.sh
       - name: Verificar o APK testado, assinatura e compatibilidade da referência
         run: |
@@ -86,7 +88,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: resultados-etapa1
+          name: resultados-etapa2
           path: |
             app/build/reports/tests/
             app/build/test-results/
@@ -97,4 +99,5 @@ jobs:
             build/upgrade-before.txt
             build/upgrade-after.txt
             build/release-blocked.txt
+            build/etapa2-telas.tar
           if-no-files-found: ignore

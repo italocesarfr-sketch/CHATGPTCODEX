@@ -16,8 +16,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 
-@Composable fun GradeScreen(vm: DiaryViewModel, data: DiarySnapshot, a: Activity, edit: () -> Unit, deleted: () -> Unit) {
+@Composable fun GradeScreen(vm: DiaryViewModel, data: DiarySnapshot, a: Activity, edit: () -> Unit, deleted: () -> Unit, dirty: (Boolean) -> Unit = {}) {
     var confirm by remember { mutableStateOf(false) }
+    val invalid = remember(a.id) { mutableStateMapOf<String, Boolean>() }
+    LaunchedEffect(invalid.values.toList()) { dirty(invalid.values.any { it }) }
+    DisposableEffect(a.id) { onDispose { dirty(false) } }
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Section(a.name, "${a.term}º bimestre • ${shortDate(a.date)} • máximo ${number(a.maximum)}")
@@ -34,6 +37,7 @@ import br.com.diariodeclasse.data.*
                 OutlinedTextField(value = text, onValueChange = { value ->
                     text = value
                     val numeric = decimal(value)
+                    invalid[student.id] = !(value.isBlank() || numeric != null && numeric.isFinite() && numeric in 0.0..a.maximum)
                     if (value.isBlank() || numeric != null && numeric.isFinite() && numeric in 0.0..a.maximum) {
                         vm.act { vm.repository.saveGrade(a.id, student.id, if (value.isBlank()) null else numeric) }
                     }

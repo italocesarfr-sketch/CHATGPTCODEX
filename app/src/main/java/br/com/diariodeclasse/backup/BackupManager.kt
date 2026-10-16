@@ -3,6 +3,8 @@ package br.com.diariodeclasse.backup
 import android.util.AtomicFile
 import androidx.room.withTransaction
 import br.com.diariodeclasse.data.DiaryDatabase
+import br.com.diariodeclasse.data.SelectionStore
+import br.com.diariodeclasse.data.resolveSelection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
@@ -41,12 +43,12 @@ class PreparedRestore internal constructor(internal val decoded: DecodedBackup, 
     val summary: String get() = decoded.snapshot.summary()
     val createdAt: String get() = decoded.envelope.createdAt
 }
-data class RestoreResult(val safetyCopy: File)
+data class RestoreResult(val safetyCopy: File, val warning: String = "")
 
 /** O banco aberto não é copiado, apagado nem trocado. Somente dados são restaurados numa transação. */
 class BackupManager(
     private val db: DiaryDatabase, private val safety: SafetyBackupStore,
-    private val appVersionCode: Int, private val certificate: String?
+    private val appVersionCode: Int, private val certificate: String?, private val selection: SelectionStore? = null
 ) {
     private val dao = db.backupDao()
     private val _generation = MutableStateFlow(0L)
@@ -61,7 +63,8 @@ class BackupManager(
     }
     private suspend fun readRows(): BackupSnapshot = BackupSnapshot(dao.classes(), dao.students(), dao.terms(), dao.lessons(),
         dao.marks(), dao.activities(), dao.grades(), dao.drafts())
-    suspend fun snapshot(): BackupSnapshot = db.withTransaction { verifySchema(); readRows() }
+    private fun withContext(rows: BackupSnapshot): BackupSnapshot = rows.copy(selection = selection?.read()?.let { resolveSelection(it, rows.classes) })
+    suspend fun snapshot(): BackupSnapshot = db.withTransaction { verifySchema(); withContext(readRows()) }
     suspend fun backupBytes(): ByteArray = BackupCodec.encode(snapshot(), appVersionCode, certificate)
     suspend fun writeBackup(output: OutputStream) { val bytes = backupBytes(); output.write(bytes); output.flush() }
     suspend fun prepare(input: InputStream): PreparedRestore {
@@ -81,7 +84,7 @@ class BackupManager(
         BackupCodec.validate(incoming)
         val result = db.withTransaction {
             verifySchema()
-            val current = readRows()
+            val current = withContext(readRows())
             if (BackupCodec.fingerprint(current) != prepared.currentFingerprint) throw BackupFailure("Os dados mudaram após a prévia. Selecione novamente o backup antes de confirmar.")
             // Se esta escrita falhar, nenhuma tabela é modificada.
             val copy = safety.save(BackupCodec.encode(current, appVersionCode, certificate))
@@ -96,10 +99,15 @@ class BackupManager(
             db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use {
                 check(!it.moveToFirst()) { "Vínculos inconsistentes." }
             }
-            check(readRows() == incoming) { "Verificação de restauração falhou." }
+            check(readRows() == incoming.copy(selection = null)) { "Verificação de restauração falhou." }
             RestoreResult(copy)
         }
+        // O contexto visual é aplicado APÓS o commit escolar. Falhar aqui nunca desfaz
+        // nem oculta a restauração dos registros; a UI resolve IDs ausentes com segurança.
+        val warning = runCatching { selection?.write(incoming.selection) }.exceptionOrNull()?.let {
+            "Não foi possível memorizar a turma restaurada. Selecione novamente a turma e o ano."
+        }.orEmpty()
         _generation.value += 1
-        return result
+        return result.copy(warning = warning)
     }
 }

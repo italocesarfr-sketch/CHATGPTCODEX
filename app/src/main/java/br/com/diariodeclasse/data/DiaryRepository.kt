@@ -2,6 +2,7 @@ package br.com.diariodeclasse.data
 
 import androidx.room.withTransaction
 import br.com.diariodeclasse.domain.RosterParser
+import br.com.diariodeclasse.domain.CsvRoster
 import br.com.diariodeclasse.domain.SchoolRules
 import kotlinx.coroutines.flow.combine
 import java.text.Collator
@@ -55,7 +56,8 @@ class DiaryRepository(val db: DiaryDatabase) {
                 dao.save(Term(value.id, n, start.toString(), start.plusMonths(3).minusDays(1).toString()))
             }
         }
-        regenerate(value, effective)
+        // Edições de nome/disciplina/preferências não regeneram o calendário.
+        if (previous == null || previous.schedule != value.schedule) regenerate(value, effective)
     }
     private suspend fun regenerate(c: SchoolClass, from: String) {
         dao.removeUnrecordedPlans(c.id, from)
@@ -160,12 +162,14 @@ class DiaryRepository(val db: DiaryDatabase) {
         require(value == null || value.isFinite() && value in 0.0..activity.maximum) { "Nota deve estar entre 0 e ${activity.maximum}." }
         dao.save(Grade(activityId, studentId, value))
     }
-    suspend fun appendDrafts(classId: String, candidates: List<RosterParser.Candidate>) = db.withTransaction {
+    suspend fun appendDrafts(classId: String, candidates: List<CsvRoster.Row>) = db.withTransaction {
+        requireNotNull(dao.schoolClass(classId))
+        require(candidates.isNotEmpty()) { "Nenhum nome encontrado. Confira o arquivo ou a lista." }
         val old = dao.draftRows(classId)
         val page = (old.maxOfOrNull { it.page } ?: 0) + 1
         val position = (old.maxOfOrNull { it.position } ?: -1) + 1
         candidates.forEachIndexed { index, candidate -> dao.save(ImportDraft(classId = classId, name = candidate.name,
-            number = candidate.number, position = position + index, page = page, reason = candidate.reason)) }
+            number = candidate.number, position = position + index, page = page, reason = "Importação textual — confira nome e número")) }
     }
     suspend fun confirmImport(classId: String, joined: String): Int = db.withTransaction {
         val klass = requireNotNull(dao.schoolClass(classId))

@@ -12,7 +12,7 @@ import java.time.LocalDate
 data class BackupSnapshot(
     val classes: List<SchoolClass>, val students: List<Student>, val terms: List<Term>,
     val lessons: List<Lesson>, val marks: List<Attendance>, val activities: List<Activity>,
-    val grades: List<Grade>, val drafts: List<ImportDraft>
+    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null
 ) {
     fun canonical(): BackupSnapshot = copy(
         classes = classes.sortedBy { it.id }, students = students.sortedBy { it.id },
@@ -42,7 +42,7 @@ object BackupCodec {
     fun encode(value: BackupSnapshot, version: Int, certificate: String?): ByteArray {
         validate(value)
         val payload = json.encodeToString(value.canonical())
-        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 1, applicationId = "br.com.diariodeclasse", databaseVersion = 1, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
+        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 2, applicationId = "br.com.diariodeclasse", databaseVersion = 1, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
             sourceCertificateSha256 = certificate, payloadSha256 = hash(payload.toByteArray(Charsets.UTF_8)), payload = payload)
         val bytes = json.encodeToString(envelope).toByteArray(Charsets.UTF_8)
         if (bytes.size > MAX_BYTES) throw BackupFailure("O backup excede o limite seguro de 32 MB.")
@@ -63,7 +63,7 @@ object BackupCodec {
         try {
             val envelope = json.decodeFromString<BackupEnvelope>(bytes.toString(Charsets.UTF_8))
             if (envelope.format != "diario-de-classe-backup" || envelope.applicationId != "br.com.diariodeclasse") throw BackupFailure("Este arquivo não é um backup do Diário de Classe.")
-            if (envelope.formatVersion != 1 || envelope.databaseVersion != 1 || envelope.schemaIdentityHash != IDENTITY) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
+            if (envelope.formatVersion !in 1..2 || envelope.databaseVersion != 1 || envelope.schemaIdentityHash != IDENTITY) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
             val snapshot = json.decodeFromString<BackupSnapshot>(envelope.payload).canonical()
@@ -84,6 +84,10 @@ object BackupCodec {
         check(s.grades.map { it.activityId to it.studentId }.toSet().size == s.grades.size)
         val classes = s.classes.associateBy { it.id }; val students = s.students.associateBy { it.id }
         val lessons = s.lessons.associateBy { it.id }; val activities = s.activities.associateBy { it.id }
+        s.selection?.let { selection ->
+            check(selection.year in 2000..2100)
+            check(selection.classId == null || classes[selection.classId]?.year == selection.year)
+        }
         s.classes.forEach {
             check(it.name.isNotBlank() && it.subject.isNotBlank() && it.year in 2000..2100 && it.duration in 1..240)
             check(it.scale.isFinite() && it.scale > 0 && it.low.isFinite() && it.high.isFinite() && it.low >= 0 && it.low < it.high && it.high <= it.scale)

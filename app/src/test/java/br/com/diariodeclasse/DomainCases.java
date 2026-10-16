@@ -48,17 +48,9 @@ public final class DomainCases {
         test("saída encerra contagem", () -> equal(0, SchoolRules.frequency("2026-01-01", "2026-02-03", Arrays.asList(entry("2026-02-04", "REALIZADA", "F")), true).absent));
         test("horário de quarta dupla e quinta simples", () -> { List<PlannedLesson> p = plan("2026-02-02", "2026-02-08", new int[]{0,0,2,1,0,0,0}); equal(3, p.size()); equal(2, p.get(1).ordinal); equal("2026-02-05", p.get(2).date); });
         test("limites do calendário", () -> fails(() -> plan("2026-03-01", "2026-02-01", new int[7])));
-        test("OCR extrai número e nome e ignora frequência", () -> { RosterParser.Candidate c = RosterParser.parseLine("01 ESTUDANTE FICTÍCIO ALFA P F FJ 8,0"); equal(1, c.number); equal("ESTUDANTE FICTÍCIO ALFA", c.name); });
-        test("OCR preserva nomes sem número", () -> { RosterParser.Candidate c = RosterParser.parseLine("ESTUDANTE FICTÍCIO BETA"); equal(null, c.number); equal("ESTUDANTE FICTÍCIO BETA", c.name); });
-        test("OCR descarta cabeçalhos e datas", () -> { for (String s : Arrays.asList("ESCOLA MUNICIPAL EXEMPLO", "NÚMERO NOME COMPLETO", "Data 20/08/2026", "LISTA DE CHAMADA", "Professor Exemplo", "TOTAL DE ALUNOS", "01/02/2026")) equal(null, RosterParser.parseLine(s)); });
-        test("OCR descarta marcações isoladas", () -> equal(null, RosterParser.parseLine("P F FJ NR 10 8,0")));
         test("duplicidade ignora acentos caixa e espaços", () -> equal(true, RosterParser.possibleDuplicate("ESTUDANTE FICTÍCIO ALFA", " estudante ficticio alfa ")));
         test("duplicidade alerta erro de uma letra", () -> equal(true, RosterParser.possibleDuplicate("ESTUDANTE FICTICIO ALFA", "ESTUDANTE FICTICIO ALPA")));
         test("nomes diferentes não são duplicados", () -> equal(false, RosterParser.possibleDuplicate("ESTUDANTE FICTICIO ALFA", "ESTUDANTE FICTICIO BETA")));
-        test("OCR agrupa colunas pela posição e mantém ordem", () -> {
-            List<RosterParser.Word> words = Arrays.asList(new RosterParser.Word("ESTUDANTE FICTICIO BETA", 60, 100, 350, 120), new RosterParser.Word("02", 0, 100, 30, 120), new RosterParser.Word("P", 400, 50, 420, 70), new RosterParser.Word("01", 0, 50, 30, 70), new RosterParser.Word("ESTUDANTE FICTICIO ALFA", 60, 50, 350, 70));
-            List<RosterParser.Candidate> c = RosterParser.parse(words); equal(2, c.size()); equal(1, c.get(0).number); equal(2, c.get(1).number);
-        });
         test("CSV UTF-8 com cabeçalho aspas e número", () -> equal(Arrays.asList("Estudante Fictício Alfa", "Estudante Fictício Beta"), CsvRoster.names("\uFEFFnumero;nome\n1;\"Estudante Fictício Alfa\"\n2;Estudante Fictício Beta")));
         test("CSV rejeita aspas não fechadas", () -> fails(() -> CsvRoster.names("nome\n\"texto")));
         System.out.println(passed + " cenários aprovados.");

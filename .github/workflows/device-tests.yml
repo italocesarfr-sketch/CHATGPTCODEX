@@ -1,4 +1,4 @@
-name: Testar Room e OCR em Android
+name: Testar Room e interface em Android
 on:
   workflow_dispatch:
 jobs:

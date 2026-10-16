@@ -1,6 +1,6 @@
-# Backup e restauração offline — Etapa 1
+# Backup e restauração offline
 
-O acesso fica no botão **Backup** da barra superior existente. Não foram reformulados cadastro, chamada ou navegação da Etapa 2.
+O acesso fica no botão **Backup** da barra superior existente. A arquitetura da Etapa 1 foi preservada na Etapa 2.
 
 ## Uso
 
@@ -8,15 +8,15 @@ O acesso fica no botão **Backup** da barra superior existente. Não foram refor
 2. **Selecionar backup para restaurar** apenas lê e valida o arquivo e mostra data/contagens. Não altera registros.
 3. Confira turma(s), matrículas, aulas, frequências, atividades, notas e rascunhos. Digite **RESTAURAR** e toque em **Confirmar substituição dos dados** para substituir o conjunto completo. Não há mescla de bancos nesta versão.
 4. Antes da substituição, o app grava e relê uma cópia íntegra dos dados atuais em `files/safety-backups/`, privado do aplicativo. Se não conseguir gravá-la/validá-la, a restauração é recusada.
-5. Após restauração, o app retorna ao painel para descartar campos de edição que poderiam mostrar valores antigos. **Exportar cópia anterior à restauração** permite guardar externamente a cópia de segurança mais recente. Ela também pode ser selecionada para restaurar, com o mesmo procedimento explícito.
+5. Após restauração, o app retorna à página Cadastrar Turma para descartar campos de edição que poderiam mostrar valores antigos. **Exportar cópia anterior à restauração** permite guardar externamente a cópia de segurança mais recente. Ela também pode ser selecionada para restaurar, com o mesmo procedimento explícito.
 
 Cancelar o seletor ou a prévia não restaura nada. Arquivo vazio/corrompido, versão incompatível, vínculo inválido ou mudança dos dados após a prévia bloqueiam a restauração. Nesse último caso, selecione novamente o arquivo para obter uma prévia atualizada.
 
-## Conteúdo e formato 1
+## Conteúdo e formatos 1 e 2
 
-Banco `diario.db`, Room **versão 1**, identidade `99b868cf68cf5dffb82edf267ddc78be`, sem alteração de esquema/migração nesta etapa. Inclui as oito tabelas: `classes`, `students`, `terms`, `lessons`, `marks`, `activities`, `grades` e `import_drafts` (no payload, `drafts`). Configurações atuais por turma estão em `classes`. Ainda não existem preferências persistentes externas ao banco ou ordens de exportação; não foram inventadas nesta etapa.
+Banco `diario.db`, Room **versão 1**, identidade `99b868cf68cf5dffb82edf267ddc78be`, sem alteração de esquema/migração nesta etapa. Inclui as oito tabelas: `classes`, `students`, `terms`, `lessons`, `marks`, `activities`, `grades` e `import_drafts` (no payload, `drafts`). Configurações atuais por turma estão em `classes`. A Etapa 2 acrescenta a última seleção de turma/ano em SharedPreferences privadas. O novo formato 2 inclui `selection` (ano e ID, ou null) no payload. O leitor aceita também formato 1 sem esse campo, restaurando contexto padrão. O app antigo não aceita formato 2. Ordens de exportação ainda não existem.
 
-Arquivo JSON UTF-8 com cabeçalho obrigatório: `format`, `formatVersion`, `applicationId`, `databaseVersion`, `schemaIdentityHash`, `createdAt`, `appVersionCode`, `sourceCertificateSha256`, `payloadSha256` e `payload`. O payload é uma **string JSON** com as oito listas completas. O SHA-256 corresponde exatamente aos bytes UTF-8 dessa string; não depende da indentação externa do arquivo. Arrays são normalizados por IDs/chaves compostas. O formato preserva notas nulas e zero, booleanos, nomes/observações Unicode, identidades e rascunhos incompletos.
+Arquivo JSON UTF-8 com cabeçalho obrigatório: `format`, `formatVersion`, `applicationId`, `databaseVersion`, `schemaIdentityHash`, `createdAt`, `appVersionCode`, `sourceCertificateSha256`, `payloadSha256` e `payload`. O payload é uma **string JSON** com as oito listas completas e, no formato 2, o contexto visual. O SHA-256 corresponde exatamente aos bytes UTF-8 dessa string; não depende da indentação externa do arquivo. Arrays são normalizados por IDs/chaves compostas. O formato preserva notas nulas e zero, booleanos, nomes/observações Unicode, identidades e rascunhos incompletos.
 
 A leitura é limitada a **32 MiB**; arquivos maiores são recusados sem tocar no banco. O checksum detecta corrupção, **não autentica o autor**. O arquivo é texto sem criptografia: contém dados pessoais e deve ser guardado em destino protegido pelo professor. Nenhum conteúdo escolar é escrito em logs.
 
@@ -36,3 +36,7 @@ A leitura é limitada a **32 MiB**; arquivos maiores são recusados sem tocar no
 Consulte [ASSINATURA.md](ASSINATURA.md) antes de instalar qualquer atualização. `scripts/rescue-debug-data.py` exporta localmente o banco de uma instalação depurável por ADB, sem instalar, desinstalar ou limpar o aparelho. Encerra o processo do app, copia banco/WAL/SHM para pasta nova privada, verifica SQLite/FKs/esquema e gera `resgate-diario.json` compatível com o importador desta versão. O procedimento só aceita a versão Room 1 conhecida; o arquivo exige conferência e confirmação no aplicativo de destino.
 
 Não execute scripts de `scripts/ci/` em celulares: eles são exclusivos de emulador descartável e recusam execução fora do GitHub Actions/emulador. Os testes usam somente dados sintéticos e nunca versionam um banco pessoal.
+
+## Contexto visual na Etapa 2
+
+A gravação de `selection` ocorre após o commit dos registros escolares: SQLite e SharedPreferences não são uma transação única. Se a preferência falhar, a restauração escolar permanece confirmada e a tela avisa para selecionar turma/ano novamente. A navegação resolve IDs ausentes sem criar nem apagar turmas. As oito tabelas continuam sendo validadas, restauradas e verificadas atomicamente. A prévia/fingerprint e a cópia anterior também incluem o contexto visual disponível.

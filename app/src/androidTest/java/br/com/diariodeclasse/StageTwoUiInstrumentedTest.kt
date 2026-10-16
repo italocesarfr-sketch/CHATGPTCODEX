@@ -1,0 +1,102 @@
+package br.com.diariodeclasse
+
+import android.graphics.Bitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import br.com.diariodeclasse.data.*
+import kotlinx.coroutines.runBlocking
+import org.junit.*
+import org.junit.Assert.*
+import org.junit.runner.RunWith
+import java.io.File
+
+@RunWith(AndroidJUnit4::class)
+class StageTwoUiInstrumentedTest {
+    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    private lateinit var app:DiaryApplication
+    private var previous:AppSelection?=null
+    private val a=SchoolClass(id="ui-s2-a",name="Turma Fictícia A",subject="História",year=2026)
+    private val b=a.copy(id="ui-s2-b",name="Turma Fictícia B",subject="Geografia")
+    private val old=a.copy(id="ui-s2-old",subject="História de 2025",year=2025)
+    private val student=Student(id="ui-s2-student",classId=a.id,name="Estudante Fictício Alfa",number=1,joined="2026-01-01")
+    private val activity=Activity(id="ui-s2-activity",classId=a.id,name="Atividade Fictícia de Teste",date="2026-03-10",term=1,maximum=10.0)
+    @Before fun setup() = runBlocking {
+        app=compose.activity.application as DiaryApplication
+        previous=app.selectionStore.read()
+        listOf(a,b,old).forEach { app.repository.saveClass(it,"${it.year}-01-01") }
+        app.repository.saveStudent(student);app.repository.saveActivity(activity)
+        app.selectionStore.write(AppSelection(2026,a.id))
+        compose.waitUntil(10000) { compose.onAllNodesWithText(a.name).fetchSemanticsNodes().isNotEmpty() }
+    }
+    @After fun cleanup() = runBlocking {
+        // Remove somente fixtures com IDs exclusivos; nunca limpa o banco inteiro.
+        val sql=app.database.openHelper.writableDatabase
+        app.database.runInTransaction {
+            for(id in listOf(a.id,b.id,old.id)) {
+                sql.execSQL("DELETE FROM marks WHERE lessonId IN (SELECT id FROM lessons WHERE classId=?)",arrayOf(id))
+                sql.execSQL("DELETE FROM grades WHERE activityId IN (SELECT id FROM activities WHERE classId=?)",arrayOf(id))
+                for(table in listOf("import_drafts","activities","lessons","terms","students")) sql.execSQL("DELETE FROM $table WHERE classId=?",arrayOf(id))
+                sql.execSQL("DELETE FROM classes WHERE id=?",arrayOf(id))
+            }
+        }
+        app.selectionStore.write(previous)
+    }
+    private fun shot(name:String) {
+        val folder=File(app.filesDir,"etapa2-screenshots");folder.mkdirs()
+        File(folder,"$name.png").outputStream().use { compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it) }
+    }
+    @Test fun fourPagesShareSelectorPersistYearAndSurviveRecreation() {
+        compose.onNodeWithText("+ Nova Turma").assertIsDisplayed()
+        compose.onNodeWithText("Editar Turma Existente").assertIsDisplayed();shot("01-turmas")
+        compose.onNodeWithTag("nav-1").performClick()
+        compose.onNodeWithText("4º bim.").performClick()
+        compose.onNodeWithText("Exibir apenas o 4º bimestre").assertExists();shot("02-chamada")
+        compose.onNodeWithTag("nav-2").performClick()
+        compose.onNodeWithText("+ Criar atividade").assertIsDisplayed();shot("03-atividades")
+        compose.onNodeWithTag("nav-3").performClick()
+        compose.onNodeWithText("Boletim do 4º bimestre").assertExists();shot("04-relatorios")
+        compose.onNodeWithTag("year-selector").performClick()
+        compose.onNodeWithText("Ano letivo 2025").performClick()
+        compose.waitUntil(5000) { app.selectionStore.read()==AppSelection(2025,old.id) }
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithTag("class-selector").assertIsDisplayed()
+        compose.onNodeWithText("História de 2025").assertIsDisplayed()
+        assertEquals(AppSelection(2025,old.id),LocalSelectionStore(app).read())
+        compose.onAllNodesWithText("Importar alunos por fotografia").assertCountEquals(0)
+    }
+    @Test fun gradeStaysWithOriginalClassAndInvalidEditWarnsBeforeLeaving() = runBlocking {
+        compose.onNodeWithTag("nav-2").performClick()
+        compose.onNodeWithText("1º bim.").performClick()
+        compose.onNodeWithText(activity.name).performClick()
+        compose.onNodeWithText("Nota (0 a 10,00)").performTextReplacement("7,5")
+        compose.waitUntil(5000) { runBlocking { app.repository.dao.activityGrades(activity.id).firstOrNull()?.value==7.5 } }
+        compose.onNodeWithText("Nota (0 a 10,00)").performTextReplacement("12")
+        compose.onNodeWithTag("class-selector").performClick()
+        compose.onNodeWithText(b.name).performClick()
+        compose.onNodeWithText("Sair sem salvar o valor inválido?").assertIsDisplayed()
+        compose.onNodeWithText("Cancelar").performClick()
+        compose.onNodeWithText("Valor inválido — não salvo").assertIsDisplayed()
+        compose.onNodeWithTag("class-selector").performClick()
+        compose.onNodeWithText(b.name).performClick()
+        compose.onNodeWithText("Confirmar").performClick()
+        compose.waitUntil(5000) { app.selectionStore.read()?.classId==b.id }
+        assertEquals(7.5,app.repository.dao.activityGrades(activity.id).single().value!!,0.0)
+        assertTrue(app.repository.dao.roster(b.id).isEmpty())
+        compose.onNodeWithText("+ Criar atividade").assertIsDisplayed()
+    }
+    @Test fun pasteCreatesReviewDraftAndCancelNeverEnrollsIt() = runBlocking {
+        compose.onNodeWithText("Gerenciar alunos").performClick()
+        compose.onNodeWithText("Colar lista").performClick()
+        compose.onNodeWithText("Um nome por linha (número opcional)").performTextInput("18 Estudante Fictício Beta")
+        compose.onNodeWithText("Preparar conferência").performScrollTo().performClick()
+        compose.waitUntil(5000) { compose.onAllNodesWithText("Conferir importação").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Confirmar cadastro de 1 alunos").performScrollTo().assertIsNotEnabled()
+        assertEquals(1,app.repository.dao.roster(a.id).size)
+        compose.onNodeWithText("Voltar e manter rascunhos").performScrollTo().performClick()
+        compose.onNodeWithText("Conferir 1 nomes em rascunho").assertExists()
+        assertEquals(18,app.repository.dao.draftRows(a.id).single().number)
+        assertEquals(1,app.repository.dao.roster(a.id).size)
+    }
+}

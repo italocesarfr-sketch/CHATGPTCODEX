@@ -19,13 +19,24 @@ class BackupCodecTest {
         assertNull(value.grades.first { it.studentId == "beta-origem" }.value)
         assertEquals(0, value.drafts.first { it.id == "rascunho-incompleto" }.number)
     }
+    @Test fun readsLegacyFormatOneAndPreservesNewSelectionInFormatTwo() {
+        val value = fixture().copy(selection = br.com.diariodeclasse.data.AppSelection(2026, "turma-origem"))
+        // Usar um ID efetivo da fixture, sem assumir posições da lista.
+        val withSelection = value.copy(selection = br.com.diariodeclasse.data.AppSelection(value.classes.first().year, value.classes.first().id))
+        assertEquals(withSelection.canonical(), BackupCodec.decode(BackupCodec.encode(withSelection,3,null)).snapshot)
+        val oldPayload = requireNotNull(javaClass.classLoader?.getResourceAsStream("baseline-v1.json")).bufferedReader().use { it.readText() }
+        val envelope = BackupEnvelope("diario-de-classe-backup",1,"br.com.diariodeclasse",1,BackupCodec.IDENTITY,"2026-01-01T00:00:00Z",2,null,BackupCodec.hash(oldPayload.toByteArray(Charsets.UTF_8)),oldPayload)
+        val decoded = BackupCodec.decode(BackupCodec.json.encodeToString(envelope).toByteArray(Charsets.UTF_8))
+        assertNull(decoded.snapshot.selection)
+        assertEquals(fixture().canonical(),decoded.snapshot)
+    }
     @Test fun emptyDatabaseIsAValidExplicitBackup() {
         val empty = BackupSnapshot(emptyList(),emptyList(),emptyList(),emptyList(),emptyList(),emptyList(),emptyList(),emptyList())
         assertEquals(empty, BackupCodec.decode(BackupCodec.encode(empty,2,null)).snapshot)
     }
     @Test fun rejectsCorruptionWrongVersionsAndWrongApplication() {
         val original = BackupCodec.json.decodeFromString<BackupEnvelope>(BackupCodec.encode(fixture(),2,null).toString(Charsets.UTF_8))
-        listOf(original.copy(payloadSha256="0".repeat(64)), original.copy(formatVersion=2), original.copy(databaseVersion=2),
+        listOf(original.copy(payloadSha256="0".repeat(64)), original.copy(formatVersion=3), original.copy(databaseVersion=2),
             original.copy(applicationId="outro.app"), original.copy(schemaIdentityHash="outro-esquema")).forEach { changed ->
             expectFailure { BackupCodec.decode(BackupCodec.json.encodeToString(changed).toByteArray()) }
         }

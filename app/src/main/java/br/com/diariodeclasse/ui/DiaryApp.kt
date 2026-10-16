@@ -1,7 +1,6 @@
 package br.com.diariodeclasse.ui
 
 import androidx.activity.compose.BackHandler
-import br.com.diariodeclasse.backup.BackupDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -12,133 +11,231 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import br.com.diariodeclasse.R
+import br.com.diariodeclasse.backup.BackupDialog
 import br.com.diariodeclasse.data.*
-import br.com.diariodeclasse.ocr.PhotoImportScreen
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.time.LocalDate
 
+private data class MainPage(val title: String, val label: String, val icon: Int)
+private val pages = listOf(
+    MainPage("Cadastrar Turma", "Cadastrar\nTurma", R.drawable.ic_classes),
+    MainPage("Fazer Chamada", "Fazer\nChamada", R.drawable.ic_attendance),
+    MainPage("Atividades e Notas", "Atividades\ne Notas", R.drawable.ic_grades),
+    MainPage("Relatórios", "Relatórios", R.drawable.ic_reports))
+
 @Composable fun DiaryApp(vm: DiaryViewModel) {
     val generation by vm.restoreGeneration.collectAsStateWithLifecycle()
-    LaunchedEffect(generation) { if (generation > 0) vm.message("Backup restaurado. Os dados anteriores foram guardados em uma cópia de segurança.") }
     key(generation) { DiaryContent(vm) }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun DiaryContent(vm: DiaryViewModel) {
     val data by vm.data.collectAsStateWithLifecycle()
     val saving by vm.saving.collectAsStateWithLifecycle()
-    var route by rememberSaveable { mutableStateOf("home") }
-    var classId by rememberSaveable { mutableStateOf("") }
-    var tab by rememberSaveable { mutableStateOf("Calendário") }
+    val savedSelection by vm.selection.collectAsStateWithLifecycle()
+    val selected = resolveSelection(savedSelection, data.classes)
+    val c = data.classes.firstOrNull { it.id == selected.classId }
+    var page by rememberSaveable { mutableIntStateOf(0) }
+    var detail by rememberSaveable { mutableStateOf("") }
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
-    var year by rememberSaveable { mutableIntStateOf(LocalDate.now().year) }
     var lessonId by rememberSaveable { mutableStateOf("") }
     var activityId by rememberSaveable { mutableStateOf("") }
     var studentId by rememberSaveable { mutableStateOf("") }
-    var classForm by remember { mutableStateOf(false) }; var editingClass by remember { mutableStateOf<SchoolClass?>(null) }
-    var termForm by remember { mutableStateOf(false) }; var activityForm by remember { mutableStateOf(false) }
+    var classForm by remember { mutableStateOf(false) }
+    var editingClass by remember { mutableStateOf<SchoolClass?>(null) }
+    var termForm by remember { mutableStateOf(false) }
+    var activityForm by remember { mutableStateOf(false) }
     var editingActivity by remember { mutableStateOf<Activity?>(null) }
     var showBackup by remember { mutableStateOf(false) }
+    var invalidGrade by remember { mutableStateOf(false) }
+    var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var navigating by remember { mutableStateOf(false) }
     val snack = remember { SnackbarHostState() }
     LaunchedEffect(vm) { vm.messages.receiveAsFlow().collect { snack.showSnackbar(it) } }
-    val c = data.classes.firstOrNull { it.id == classId }
-    fun back() { route = if (route == "class") "home" else "class" }
-    BackHandler(route != "home") { back() }
-    val openClass: (SchoolClass, String) -> Unit = { value, target ->
-        classId = value.id; year = value.year; tab = target; route = "class"
+    LaunchedEffect(data.loaded, data.classes, savedSelection) {
+        if (data.loaded && savedSelection == null) vm.select(selected) {}
     }
-    Scaffold(topBar = { TopAppBar(title = { Column {
-        Text(if (route == "home") "Diário de Classe" else c?.name ?: "Diário de Classe")
-        Text(if (route == "home") "Seu dia em sala de aula" else "${c?.subject.orEmpty()} • ${c?.year ?: year}", style = MaterialTheme.typography.labelMedium)
-    } }, navigationIcon = { if (route != "home") TextButton(onClick = { back() }) { Text("‹ Voltar") } }, actions = { TextButton(onClick = { showBackup = true }) { Text("Backup") } }) },
-        snackbarHost = { SnackbarHost(snack) }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
+    // A fila já captura os IDs de origem. A navegação só é liberada depois das gravações.
+    fun navigate(action: () -> Unit) {
+        val safe = {
+            navigating = true
+            vm.act(done = { invalidGrade = false; action(); navigating = false }) {}
+        }
+        if (invalidGrade) pendingNavigation = safe else safe()
+    }
+    fun changeSelection(value: AppSelection) = navigate {
+        vm.select(value) { detail = "" }
+    }
+    BackHandler(detail.isNotEmpty() && !navigating) { navigate { detail = "" } }
+    Scaffold(
+        topBar = { TopAppBar(title = { Column {
+            Text("Diário de Classe", style = MaterialTheme.typography.titleLarge)
+            Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } }, navigationIcon = {
+            if (detail.isNotEmpty()) TextButton(onClick = { navigate { detail = "" } }, enabled = !navigating) { Text("‹ Voltar") }
+        }, actions = { TextButton(onClick = { showBackup = true }) { Text("Backup") } }) },
+        bottomBar = { NavigationBar {
+            pages.forEachIndexed { index, item -> NavigationBarItem(
+                selected = page == index,
+                onClick = { if (page != index || detail.isNotEmpty()) navigate { page = index; detail = "" } },
+                enabled = !navigating,
+                modifier = Modifier.testTag("nav-$index"),
+                icon = { Icon(painterResource(item.icon), null, Modifier.size(23.dp)) },
+                label = { Text(item.label, textAlign = TextAlign.Center, maxLines = 2, style = MaterialTheme.typography.labelSmall) }) }
+        } }, snackbarHost = { SnackbarHost(snack) }
+    ) { padding ->
+        Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
+            if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (!data.loaded) { CircularProgressIndicator(Modifier.padding(32.dp)); return@Column }
-            when (route) {
-                "home" -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    item {
-                        Section("Painel do professor", shortDate(today()))
-                        Choice("Ano letivo", (data.classes.map { it.year } + LocalDate.now().year).distinct().sortedDescending().map { it.toString() }, year.toString()) { year = it.toInt() }
-                        TermSelector(term) { term = it }
-                        Button(onClick = { editingClass = null; classForm = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Criar turma") }
-                    }
-                    item { Section("Aulas de hoje") }
-                    val todays = data.lessons.filter { it.date == today() && it.state != "CANCELADA" && data.classes.any { c -> c.id == it.classId && c.year == year } }
-                    if (todays.isEmpty()) item { Info("Nenhuma aula prevista para hoje. Selecione uma turma para consultar outras datas.") }
-                    items(todays, key = { it.id }) { lesson ->
-                        val klass = data.classes.first { it.id == lesson.classId }
-                        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) {
-                            Text("${klass.name} • ${klass.subject} • ${lesson.ordinal}ª aula", style = MaterialTheme.typography.titleMedium)
-                            Button(onClick = { classId = klass.id; lessonId = lesson.id; route = "attendance" }) { Text("Fazer chamada") }
-                        } }
-                    }
-                    item { Section("Suas turmas") }
-                    if (data.classes.none { it.year == year }) item { Info("Crie sua primeira turma, configure os bimestres e cadastre os alunos.") }
-                    items(data.classes.filter { it.year == year }, key = { it.id }) { klass ->
-                        Card(Modifier.fillMaxWidth().clickable { openClass(klass, "Calendário") }) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(klass.name, style = MaterialTheme.typography.titleLarge)
-                            Text("${klass.subject} • ${klass.shift} • ${data.roster(klass.id).count { it.status == "Ativo" }} alunos")
-                            Text("${klass.schedule.split(',').sumOf { it.toInt() }} aulas semanais", style = MaterialTheme.typography.bodySmall)
-                            TextButton(onClick = { openClass(klass, "Calendário") }) { Text("Calendário escolar / Fazer chamada") }
-                            TextButton(onClick = { openClass(klass, "Atividades") }) { Text("Avaliações e notas") }
-                            TextButton(onClick = { openClass(klass, "Boletim") }) { Text("Relatórios e boletim") }
-                        } }
-                    }
-                }
-                "class" -> if (c != null) {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        TextButton(onClick = { editingClass = c; classForm = true }) { Text("Editar turma") }
-                        TextButton(onClick = { termForm = true }) { Text("Bimestres") }
-                    }
-                    TermSelector(term) { term = it }
-                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("Calendário", "Alunos", "Atividades", "Boletim").forEach { label ->
-                            FilterChip(selected = tab == label, onClick = { tab = label }, label = { Text(label) })
+            GlobalClassSelector(data.classes, selected, !navigating && !saving, ::changeSelection)
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                key(c?.id, page) {
+                    when {
+                        detail == "attendance" -> data.lessons.firstOrNull { it.id == lessonId && it.classId == c?.id }?.let { AttendanceScreen(vm, data, it) }
+                        detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
+                            GradeScreen(vm, data, a, edit = { editingActivity = a; activityForm = true },
+                                deleted = { detail = "" }, dirty = { invalidGrade = it })
                         }
-                    }
-                    when (tab) {
-                        "Calendário" -> CalendarScreen(vm, data, c, term) { lessonId = it; route = "attendance" }
-                        "Alunos" -> RosterScreen(vm, data, c, photo = { route = "photo" }, profile = { studentId = it; route = "profile" })
-                        "Atividades" -> LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            item { Button(onClick = { editingActivity = null; activityForm = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Criar atividade") } }
-                            val activities = data.activities.filter { it.classId == c.id && it.term == term }
-                            if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
-                            items(activities, key = { it.id }) { activity ->
-                                Card(Modifier.fillMaxWidth().clickable { activityId = activity.id; route = "grades" }) { Column(Modifier.padding(16.dp)) {
-                                    Text(activity.name, style = MaterialTheme.typography.titleMedium)
-                                    Text("${activity.type} • ${shortDate(activity.date)} • ${number(activity.maximum)} pontos")
-                                    TextButton(onClick = { activityId = activity.id; route = "grades" }) { Text("Lançar notas") }
-                                } }
+                        detail == "profile" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
+                            ProfileScreen(vm, data, c, it, term) { term = it }
+                        }
+                        detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; detail = "profile" }
+                        page == 0 -> ClassManagementScreen(data, c, selected.year,
+                            create = { editingClass = null; classForm = true },
+                            edit = { editingClass = c; classForm = true }, roster = { detail = "roster" })
+                        c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
+                        else -> Column {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(pages[page].title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                                TextButton(onClick = { termForm = true }) { Text("Bimestres") }
+                            }
+                            TermSelector(term) { next -> navigate { term = next; detail = "" } }
+                            when (page) {
+                                1 -> CalendarScreen(vm, data, c, term) { lessonId = it; detail = "attendance" }
+                                2 -> ActivitiesPage(data, c, term, create = { editingActivity = null; activityForm = true }) { activityId = it; detail = "grades" }
+                                3 -> ReportScreen(data, c, term) { studentId = it; detail = "profile" }
                             }
                         }
-                        "Boletim" -> ReportScreen(data, c, term) { studentId = it; route = "profile" }
                     }
                 }
-                "attendance" -> data.lessons.firstOrNull { it.id == lessonId }?.let { AttendanceScreen(vm, data, it) }
-                "grades" -> data.activities.firstOrNull { it.id == activityId }?.let { a ->
-                    GradeScreen(vm, data, a, edit = { editingActivity = a; activityForm = true }, deleted = { route = "class" })
-                }
-                "profile" -> data.students.firstOrNull { it.id == studentId }?.let { s ->
-                    if (c != null) ProfileScreen(vm, data, c, s, term, { term = it })
-                }
-                "photo" -> if (c != null) PhotoImportScreen(vm, data, c) { route = "class"; tab = "Alunos" }
             }
         }
     }
+    pendingNavigation?.let { action -> Confirm("Sair sem salvar o valor inválido?",
+        "Há uma nota inválida que não foi salva. As notas válidas já digitadas serão preservadas.",
+        { pendingNavigation = null }, { pendingNavigation = null; action() }) }
     if (showBackup) BackupDialog(vm) { showBackup = false }
-    if (classForm) ClassForm(vm, editingClass, { classForm = false }) { id, photo ->
-        classForm = false; classId = id; route = if (photo) "photo" else "class"; tab = "Alunos"
+    if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false }) { id ->
+        classForm = false
+        // O formulário retorna o ano persistido, não a posição da turma no seletor.
+        vm.act(done = { page = 0; detail = "roster" }) {
+            val klass = requireNotNull(vm.repository.dao.schoolClass(id))
+            (vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).selectionStore.write(AppSelection(klass.year, id))
+        }
     }
     if (termForm && c != null) TermForm(vm, c, data.terms.filter { it.classId == c.id }) { termForm = false }
     if (activityForm && c != null) ActivityForm(vm, c, term, editingActivity, { activityForm = false }) {
-        activityForm = false; activityId = it; route = "grades"
+        activityForm = false; activityId = it; detail = "grades"
+    }
+}
+
+@Composable private fun GlobalClassSelector(classes: List<SchoolClass>, selected: AppSelection, enabled: Boolean, change: (AppSelection) -> Unit) {
+    var yearsOpen by remember { mutableStateOf(false) }
+    var classesOpen by remember { mutableStateOf(false) }
+    val klass = classes.firstOrNull { it.id == selected.classId }
+    Surface(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
+        Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box {
+                OutlinedButton(onClick = { yearsOpen = true }, enabled = enabled, modifier = Modifier.testTag("year-selector")) { Text("${selected.year} ▾") }
+                DropdownMenu(yearsOpen, { yearsOpen = false }) {
+                    (classes.map { it.year } + selected.year + LocalDate.now().year).distinct().sortedDescending().forEach { year ->
+                        DropdownMenuItem(text = { Text("Ano letivo $year") }, onClick = {
+                            yearsOpen = false; change(AppSelection(year, classes.firstOrNull { it.year == year }?.id))
+                        })
+                    }
+                }
+            }
+            Box(Modifier.weight(1f)) {
+                FilledTonalButton(onClick = { classesOpen = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().testTag("class-selector")) {
+                    Column(Modifier.weight(1f)) {
+                        Text(klass?.name ?: "Selecionar turma", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (klass != null) Text(klass.subject, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    Text("▾")
+                }
+                DropdownMenu(classesOpen, { classesOpen = false }) {
+                    val options = classes.filter { it.year == selected.year }
+                    if (options.isEmpty()) DropdownMenuItem(text = { Text("Nenhuma turma neste ano") }, enabled = false, onClick = {})
+                    options.forEach { item -> DropdownMenuItem(text = { Column {
+                        Text(item.name); Text("${item.subject} • ${item.shift} • ${item.year}", style = MaterialTheme.typography.bodySmall)
+                    } }, onClick = { classesOpen = false; change(AppSelection(item.year, item.id)) }) }
+                }
+            }
+        }
+    }
+}
+
+@Composable private fun ClassManagementScreen(data: DiarySnapshot, c: SchoolClass?, year: Int, create: () -> Unit, edit: () -> Unit, roster: () -> Unit) {
+    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item {
+            Section("Cadastrar Turma", "Organize suas turmas e seus estudantes")
+            Button(create, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Nova Turma") }
+            Spacer(Modifier.height(10.dp))
+            OutlinedButton(edit, enabled = c != null, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Editar Turma Existente") }
+        }
+        if (c == null) item { Info("Nenhuma turma selecionada em $year. Comece em Nova Turma ou escolha outro ano no seletor acima.") }
+        else {
+            item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("TURMA SELECIONADA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                Text(c.name, style = MaterialTheme.typography.headlineMedium)
+                Text("${c.subject} • ${c.stage}\n${c.shift} • ano letivo ${c.year}")
+                HorizontalDivider()
+                Text("${data.roster(c.id).count { it.status == "Ativo" }} alunos ativos • ${data.roster(c.id).size} matrículas", style = MaterialTheme.typography.titleMedium)
+                Button(roster, Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Gerenciar alunos") }
+                Text("Cadastro individual, colagem de lista, CSV e organização da chamada.", style = MaterialTheme.typography.bodySmall)
+            } } }
+            val drafts = data.drafts.count { it.classId == c.id }
+            if (drafts > 0) item { OutlinedCard(onClick = roster, modifier = Modifier.fillMaxWidth()) { Text("$drafts nomes em rascunho aguardam conferência. Toque para continuar.", Modifier.padding(18.dp)) } }
+            item { Text("Disponível de janeiro a dezembro de ${c.year}. A data de cadastro não limita o calendário.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
+        }
+    }
+}
+
+@Composable private fun EmptyClassPage(title: String, create: () -> Unit) {
+    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Section(title, "Escolha uma turma para continuar")
+        Info("Selecione o ano e a turma acima. Se ainda não houver turmas, faça seu primeiro cadastro.")
+        Button(create, Modifier.fillMaxWidth()) { Text("Nova Turma") }
+    }
+}
+
+@Composable private fun ActivitiesPage(data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, grades: (String) -> Unit) {
+    val activities = data.activities.filter { it.classId == c.id && it.term == term }
+    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        item { Button(create, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Criar atividade") } }
+        if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
+        items(activities, key = { it.id }) { a -> Card(Modifier.fillMaxWidth().clickable { grades(a.id) }) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(a.name, style = MaterialTheme.typography.titleMedium)
+                Text("${a.type} • ${shortDate(a.date)} • ${number(a.maximum)} pontos")
+                val pending = data.roster(c.id).filter { it.enrolled(a.date) }.count { s -> data.grades.none { it.activityId == a.id && it.studentId == s.id && it.value != null } }
+                Text("$pending notas pendentes", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                TextButton(onClick = { grades(a.id) }) { Text("Lançar notas →") }
+            }
+        } }
     }
 }
 
 @Composable fun TermSelector(selected: Int, select: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         (1..4).forEach { n -> FilterChip(selected = selected == n, onClick = { select(n) }, label = { Text("${n}º bim.") }) }
     }
 }

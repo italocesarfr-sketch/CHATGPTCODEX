@@ -42,8 +42,8 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
     fun restore(confirmation: String) {
         val prepared = _state.value.prepared ?: return
         operation {
-            manager.restore(prepared, confirmation)
-            BackupUiState(message = "Restauração concluída. Uma cópia dos dados anteriores está disponível para exportar.", hasSafetyCopy = manager.hasSafetyCopy())
+            val result = manager.restore(prepared, confirmation)
+            BackupUiState(message = "Restauração concluída. Uma cópia dos dados anteriores está disponível para exportar. ${result.warning}", hasSafetyCopy = manager.hasSafetyCopy())
         }
     }
 }
