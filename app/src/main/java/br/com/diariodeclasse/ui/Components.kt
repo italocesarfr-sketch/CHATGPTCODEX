@@ -16,6 +16,8 @@ import java.util.Locale
 fun counted(n: Int, one: String, many: String): String = "$n ${if (n == 1) one else many}"
 val brLocale: Locale = Locale.forLanguageTag("pt-BR")
 fun number(value: Double?): String = value?.let { String.format(brLocale, "%.2f", it) } ?: "—"
+/** Campos de edição não usam o arredondamento visual do boletim. */
+fun editableNumber(value: Double): String = value.toString().replace('.', ',')
 fun shortDate(value: String): String = runCatching { LocalDate.parse(value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) }.getOrDefault(value)
 fun decimal(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()
 fun iso(text: String): String = LocalDate.parse(text.trim(), DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(java.time.format.ResolverStyle.STRICT)).toString()

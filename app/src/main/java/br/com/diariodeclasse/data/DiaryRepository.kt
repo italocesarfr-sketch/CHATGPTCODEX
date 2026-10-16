@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import br.com.diariodeclasse.domain.RosterParser
 import br.com.diariodeclasse.domain.CsvRoster
 import br.com.diariodeclasse.domain.SchoolRules
+import br.com.diariodeclasse.domain.GradeScaling
 import kotlinx.coroutines.flow.combine
 import java.text.Collator
 import java.time.LocalDate
@@ -167,11 +168,45 @@ class DiaryRepository(val db: DiaryDatabase) {
         val source = dao.attendance(first.id).associateBy { it.studentId }
         eligible.forEach { studentId -> dao.save(Attendance(target.id, studentId, source[studentId]?.mark ?: "NR")) }
     }
-    suspend fun saveActivity(value: Activity) = db.withTransaction {
+    private suspend fun validateActivity(value: Activity) {
         require(value.name.isNotBlank() && value.maximum.isFinite() && value.maximum > 0 && value.term in 1..4) { "Informe nome, bimestre e valor válidos." }
         val period = dao.periods(value.classId).first { it.number == value.term }
         date(value.date); require(value.date in period.start..period.end) { "A data deve estar dentro do bimestre selecionado." }
-        require(dao.activityGrades(value.id).all { it.value == null || it.value <= value.maximum }) { "Há notas acima do novo máximo. Corrija-as primeiro." }
+    }
+    suspend fun activitySnapshot(id: String): ActivitySnapshot = db.withTransaction {
+        ActivitySnapshot(requireNotNull(dao.activity(id)) { "Atividade não encontrada." }, dao.activityGrades(id).sortedBy { it.studentId })
+    }
+    private suspend fun checkActivitySnapshot(expected: ActivitySnapshot) {
+        require(activitySnapshot(expected.activity.id) == expected) { "A atividade ou suas notas mudaram. Reabra ou atualize a prévia antes de confirmar." }
+    }
+    suspend fun previewActivityEdit(proposed: Activity, original: Activity? = null): ActivityEditPreview = db.withTransaction {
+        val before = activitySnapshot(proposed.id)
+        require(original == null || before.activity == original) { "A atividade mudou. Feche e reabra o formulário." }
+        require(proposed.classId == before.activity.classId) { "A atividade deve permanecer na mesma turma." }
+        validateActivity(proposed)
+        ActivityEditPreview(before, proposed)
+    }
+    suspend fun applyActivityEdit(preview: ActivityEditPreview, mode: GradeChangeMode) = db.withTransaction {
+        checkActivitySnapshot(preview.before)
+        require(preview.proposed.id == preview.before.activity.id && preview.proposed.classId == preview.before.activity.classId)
+        validateActivity(preview.proposed)
+        require(mode != GradeChangeMode.KEEP || preview.canKeep) { "Há notas acima do novo máximo. Recalcule proporcionalmente ou cancele." }
+        val converted = if (mode == GradeChangeMode.PROPORTIONAL && preview.maximumChanged) preview.before.grades.map {
+            it.copy(value = GradeScaling.proportional(it.value, preview.before.activity.maximum, preview.proposed.maximum))
+        } else emptyList()
+        dao.save(preview.proposed)
+        converted.forEach { dao.save(it) }
+    }
+    suspend fun deleteActivity(expected: ActivitySnapshot) = db.withTransaction {
+        checkActivitySnapshot(expected)
+        // A FK existente remove as notas na mesma transação, mantendo as outras atividades.
+        dao.deleteActivity(expected.activity.id)
+    }
+    suspend fun saveActivity(value: Activity) = db.withTransaction {
+        validateActivity(value)
+        val previous = dao.activity(value.id)
+        require(previous == null || previous.classId == value.classId)
+        require(previous == null || previous.maximum == value.maximum || dao.activityGrades(value.id).none { it.value != null }) { "Confirme a alteração do máximo pela prévia de recálculo." }
         dao.save(value)
     }
     suspend fun saveGrade(activityId: String, studentId: String, value: Double?) = db.withTransaction {

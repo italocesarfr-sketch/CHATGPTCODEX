@@ -102,7 +102,7 @@ private val pages = listOf(
                 key(c?.id, page) {
                     when {
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
-                            GradeScreen(vm, data, a, edit = { editingActivity = a; activityForm = true },
+                            GradeScreen(vm, data, a, edit = { navigate { editingActivity = a; activityForm = true } },
                                 deleted = { detail = "" }, dirty = { invalidGrade = it })
                         }
                         detail == "profile" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
@@ -123,7 +123,8 @@ private val pages = listOf(
                             }
                             TermSelector(term) { next -> navigate { term = next; detail = "" } }
                             when (page) {
-                                2 -> ActivitiesPage(data, c, term, create = { editingActivity = null; activityForm = true }) { activityId = it; detail = "grades" }
+                                2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true },
+                                    edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "profile" }
                             }
                         }
@@ -146,7 +147,8 @@ private val pages = listOf(
     }
     if (termForm && c != null) TermForm(vm, c, data.terms.filter { it.classId == c.id }) { termForm = false }
     if (activityForm && c != null) ActivityForm(vm, c, term, editingActivity, { activityForm = false }) {
-        activityForm = false; activityId = it; detail = "grades"
+        activityForm = false; activityId = it.id; term = it.term
+        detail = if (editingActivity == null) "grades" else ""
     }
 }
 
@@ -220,21 +222,27 @@ private val pages = listOf(
     }
 }
 
-@Composable private fun ActivitiesPage(data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, grades: (String) -> Unit) {
+@Composable private fun ActivitiesPage(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, edit: (Activity) -> Unit, grades: (String) -> Unit) {
     val activities = data.activities.filter { it.classId == c.id && it.term == term }
+    var removing by remember { mutableStateOf<Activity?>(null) }
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Button(create, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Criar atividade") } }
         if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
-        items(activities, key = { it.id }) { a -> Card(Modifier.fillMaxWidth().clickable { grades(a.id) }) {
+        items(activities, key = { it.id }) { a -> Card(Modifier.fillMaxWidth().testTag("activity-${a.id}")) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(a.name, style = MaterialTheme.typography.titleMedium)
+                Text(a.name, Modifier.clickable { grades(a.id) }, style = MaterialTheme.typography.titleMedium)
                 Text("${a.type} • ${shortDate(a.date)} • ${number(a.maximum)} pontos")
                 val pending = data.roster(c.id).filter { it.enrolled(a.date) }.count { s -> data.grades.none { it.activityId == a.id && it.studentId == s.id && it.value != null } }
                 Text("${counted(pending, "nota pendente", "notas pendentes")}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                TextButton(onClick = { grades(a.id) }) { Text("Lançar notas →") }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    TextButton(onClick = { grades(a.id) }, modifier = Modifier.testTag("activity-grades-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Lançar notas") }
+                    TextButton(onClick = { edit(a) }, modifier = Modifier.testTag("activity-edit-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Editar") }
+                    TextButton(onClick = { removing = a }, modifier = Modifier.testTag("activity-delete-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Excluir", color = MaterialTheme.colorScheme.error) }
+                }
             }
         } }
     }
+    removing?.let { a -> DeleteActivityDialog(vm, a.id, { removing = null }) { removing = null } }
 }
 
 @Composable fun TermSelector(selected: Int, select: (Int) -> Unit) {

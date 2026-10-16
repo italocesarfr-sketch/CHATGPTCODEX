@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Etapa 3 — chamada por data, frequência e preservação
+    name: Etapa 4A — atividades, recálculo e preservação
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: resultados-etapa3
+          name: resultados-etapa4a
           path: |
             app/build/reports/tests/
             app/build/test-results/
@@ -97,6 +97,7 @@ jobs:
             build/release-blocked.txt
             build/etapa2-telas.tar
             build/etapa3-telas.tar
+            build/etapa4a-telas.tar
             build/frequency-process-write.txt
             build/frequency-process-read.txt
           if-no-files-found: ignore

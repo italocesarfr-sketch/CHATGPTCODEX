@@ -12,12 +12,18 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa3-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa3-screenshots > build/etapa3-telas.tar
 fi
+if adb shell run-as br.com.diariodeclasse test -d files/etapa4a-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa4a-screenshots > build/etapa4a-telas.tar
+fi
 if (( status != 0 )); then exit "$status"; fi
 python3 - <<'PY'
 import tarfile
 with tarfile.open('build/etapa2-telas.tar') as images:
     assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 4
 print('Capturas sintéticas das quatro páginas coletadas.')
+with tarfile.open('build/etapa4a-telas.tar') as images:
+    assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 3
+print('Capturas da lista, exclusão e recálculo coletadas.')
 PY
 for phase in write read; do
     if [[ "$phase" == read ]]; then adb shell am force-stop br.com.diariodeclasse; fi

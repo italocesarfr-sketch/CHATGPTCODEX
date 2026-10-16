@@ -18,7 +18,7 @@ import br.com.diariodeclasse.data.*
 
 @Composable fun GradeScreen(vm: DiaryViewModel, data: DiarySnapshot, a: Activity, edit: () -> Unit, deleted: () -> Unit, dirty: (Boolean) -> Unit = {}) {
     var confirm by remember { mutableStateOf(false) }
-    var invalid by rememberSaveable(a.id) { mutableStateOf(listOf<String>()) }
+    var invalid by rememberSaveable(a.id, a.maximum) { mutableStateOf(listOf<String>()) }
     LaunchedEffect(invalid) { dirty(invalid.isNotEmpty()) }
     DisposableEffect(a.id) { onDispose { dirty(false) } }
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -30,7 +30,7 @@ import br.com.diariodeclasse.data.*
         }
         items(data.roster(a.classId).filter { it.enrolled(a.date) }, key = { it.id }) { student ->
             val grade = data.grades.firstOrNull { it.activityId == a.id && it.studentId == student.id }?.value
-            var text by rememberSaveable(a.id, student.id) { mutableStateOf(grade?.let { number(it) } ?: "") }
+            var text by rememberSaveable(a.id, student.id, a.maximum) { mutableStateOf(grade?.let { editableNumber(it) } ?: "") }
             val valid = text.isBlank() || decimal(text)?.let { it.isFinite() && it in 0.0..a.maximum } == true
             LaunchedEffect(student.id, text, a.maximum) { invalid = if (valid) invalid - student.id else (invalid + student.id).distinct() }
             Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
@@ -48,9 +48,7 @@ import br.com.diariodeclasse.data.*
             } }
         }
     }
-    if (confirm) Confirm("Excluir atividade?", "A atividade e suas notas serão excluídas permanentemente.", { confirm = false }) {
-        vm.act(done = { confirm = false; deleted() }) { vm.repository.dao.deleteActivity(a.id) }
-    }
+    if (confirm) DeleteActivityDialog(vm, a.id, { confirm = false }) { confirm = false; deleted() }
 }
 
 @Composable fun ReportScreen(data: DiarySnapshot, c: SchoolClass, term: Int, profile: (String) -> Unit) {

@@ -117,20 +117,42 @@ import java.time.LocalDate
     }
 }
 
-@Composable fun ActivityForm(vm: DiaryViewModel, c: SchoolClass, term: Int, original: Activity?, dismiss: () -> Unit, saved: (String) -> Unit) {
+@Composable fun ActivityForm(vm: DiaryViewModel, c: SchoolClass, term: Int, original: Activity?, dismiss: () -> Unit, saved: (Activity) -> Unit) {
     val data by vm.data.collectAsState()
     val period = data.terms.firstOrNull { it.classId == c.id && it.number == term }
     val a = remember { original ?: Activity(classId = c.id, name = "", date = today().coerceIn(period?.start ?: today(), period?.end ?: today()), term = term, maximum = 10.0) }
     var name by rememberSaveable { mutableStateOf(a.name) }; var type by rememberSaveable { mutableStateOf(a.type) }
-    var day by rememberSaveable { mutableStateOf(shortDate(a.date)) }; var max by rememberSaveable { mutableStateOf(number(a.maximum)) }
+    var day by rememberSaveable { mutableStateOf(shortDate(a.date)) }; var max by rememberSaveable { mutableStateOf(editableNumber(a.maximum)) }
     var description by rememberSaveable { mutableStateOf(a.description) }; var notes by rememberSaveable { mutableStateOf(a.notes) }
     var selectedTerm by rememberSaveable { mutableStateOf(a.term.toString()) }
-    Form(if (original == null) "Criar atividade" else "Editar atividade", dismiss) {
+    var preview by remember { mutableStateOf<ActivityEditPreview?>(null) }
+    val saving by vm.saving.collectAsState()
+    if (preview == null) Form(if (original == null) "Criar atividade" else "Editar atividade", { if (!saving) dismiss() }) {
         Field("Nome da atividade", name, { name = it })
         Choice("Tipo", listOf("Prova", "Trabalho", "Redação", "Atividade prática", "Seminário", "Estudo dirigido", "Outro"), type) { type = it }
         Field("Data (dd/mm/aaaa)", day, { day = it }); Choice("Bimestre", listOf("1", "2", "3", "4"), selectedTerm) { selectedTerm = it }
         Field("Pontuação máxima", max, { max = it }); Field("Descrição", description, { description = it }, lines = 2)
         Field("Observações", notes, { notes = it }, lines = 2)
-        Button(onClick = { vm.act(done = { saved(a.id) }) { vm.repository.saveActivity(a.copy(name = name, type = type, date = iso(day), term = selectedTerm.toInt(), maximum = requiredDecimal(max), description = description, notes = notes)) } }) { Text("Salvar e lançar notas") }
+        Button(enabled = !saving, onClick = {
+            val formName=name;val formType=type;val formDay=day;val formTerm=selectedTerm;val formMax=max;val formDescription=description;val formNotes=notes
+            vm.act {
+                val value=a.copy(name=formName.trim(),type=formType,date=iso(formDay),term=formTerm.toInt(),maximum=requiredDecimal(formMax),description=formDescription,notes=formNotes)
+                if (original == null) {
+                    vm.repository.saveActivity(value)
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { saved(value) }
+                } else {
+                    val proposed=vm.repository.previewActivityEdit(value,a)
+                    if (proposed.needsChoice) kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { preview=proposed }
+                    else {
+                        vm.repository.applyActivityEdit(proposed,GradeChangeMode.KEEP)
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { saved(value) }
+                    }
+                }
+            }
+        }, modifier = Modifier.fillMaxWidth()) { Text(if (original == null) "Salvar e lançar notas" else "Salvar alterações") }
+        SaveError(vm)
     }
+    preview?.let { proposed -> GradeChangeDialog(vm,proposed,{ preview=null }) { mode ->
+        vm.act(done={ saved(proposed.proposed) }) { vm.repository.applyActivityEdit(proposed,mode) }
+    } }
 }
