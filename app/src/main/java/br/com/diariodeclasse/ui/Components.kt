@@ -20,7 +20,8 @@ fun shortDate(value: String): String = runCatching { LocalDate.parse(value).form
 fun decimal(text: String): Double? = text.trim().replace(',', '.').toDoubleOrNull()
 fun iso(text: String): String = LocalDate.parse(text.trim(), DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(java.time.format.ResolverStyle.STRICT)).toString()
 fun today(): String = LocalDate.now().toString()
-fun defaultEnrollment(year: Int): String = if (LocalDate.now().year == year) today() else "$year-01-01"
+/** A matrícula padrão acompanha o ano letivo, não o dia em que o cadastro é digitado. */
+fun defaultEnrollment(year: Int): String = LocalDate.of(year, 1, 1).toString()
 fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Informe um valor numérico válido." }
 @Composable fun SaveError(vm: DiaryViewModel) {
     val error by vm.error.collectAsState()

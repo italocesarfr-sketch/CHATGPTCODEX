@@ -40,7 +40,7 @@ import br.com.diariodeclasse.domain.RosterParser
             Section("Conferir importação", "${c.name} • ${counted(rows.size, "nome", "nomes")} em rascunho")
             Info("Confira nomes, números e ingresso. Nenhum rascunho gera frequência ou notas antes da confirmação. Rascunhos antigos permanecem disponíveis aqui.")
             Field("Ingresso dos novos alunos (dd/mm/aaaa)", joined, { joined = it })
-            Text("Números em branco serão atribuídos após os números utilizados. A data real de ingresso evita faltas anteriores indevidas.", style = MaterialTheme.typography.bodySmall)
+            Text("Números em branco serão atribuídos após os utilizados. O ingresso padrão é 01/01 do ano letivo, independentemente da data de cadastro no app. Altere somente para uma matrícula real posterior; nesse caso, chamadas anteriores ficam fora do período.", style = MaterialTheme.typography.bodySmall)
             OutlinedButton(onClick = {
                 editing = ImportDraft(classId = c.id, name = "", number = null, position = (rows.maxOfOrNull { it.position } ?: -1) + 1, page = 0)
             }, modifier = Modifier.fillMaxWidth()) { Text("+ Adicionar nome ao rascunho") }

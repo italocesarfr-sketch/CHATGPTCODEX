@@ -28,7 +28,7 @@ class FrequencyUiInstrumentedTest {
     @Before fun setup()=runBlocking {
         app=compose.activity.application as DiaryApplication;previous=app.selectionStore.read()
         app.commands.awaitPendingWrites()
-        app.repository.saveClass(c,"2026-01-01");app.repository.saveClass(other,"2026-01-01")
+        app.repository.saveClass(c,"2026-10-16");app.repository.saveClass(other,"2026-01-01")
         app.repository.saveStudent(a);app.repository.saveStudent(late);app.selectionStore.write(AppSelection(2026,c.id))
         compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("nav-1").performClick();waitText("Mês do ano letivo 2026")
@@ -101,5 +101,49 @@ class FrequencyUiInstrumentedTest {
         assertEquals(left,compose.onNodeWithTag("student-name-${a.id}").fetchSemanticsNode().boundsInRoot.left,0.1f)
         shot("03-frequencia-bimestral")
         assertEquals(before,app.backupManager.snapshot().copy(selection=null))
+    }
+    @Test fun defaultRegistrationAllowsRetroactiveButtonsCollectivePresenceAndLiveReports()=runBlocking {
+        val name="Estudante Fictício Regular"
+        compose.onNodeWithTag("nav-0").performClick()
+        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitText("+ Adicionar aluno")
+        compose.onNodeWithText("+ Adicionar aluno").performClick()
+        compose.onNodeWithText("Nome completo").performTextInput(name)
+        compose.onNodeWithText("Ingresso (dd/mm/aaaa)").assertTextContains("01/01/2026")
+        compose.onNodeWithText("Salvar aluno").performScrollTo().performClick()
+        compose.waitUntil(5000){runBlocking{app.repository.dao.roster(c.id).any {it.name==name}}}
+        val regular=app.repository.dao.roster(c.id).single {it.name==name}
+        assertEquals("2026-01-01",regular.joined)
+        assertTrue(app.database.backupDao().lessons().isEmpty());assertTrue(app.database.backupDao().marks().isEmpty())
+        compose.onNodeWithTag("nav-1").performClick();waitText("Mês do ano letivo 2026");openAugust()
+        compose.onNodeWithTag("hours-choice-2").performClick();compose.onNodeWithText("Registrar horários").performClick();waitTag("daily-frequency")
+        val lessons=app.repository.dao.day(c.id,day)
+        compose.onNodeWithText("Marcar todos como presentes").performClick();compose.onNodeWithText("Confirmar").performClick()
+        compose.waitUntil(5000){runBlocking{app.database.backupDao().marks().count {it.studentId==regular.id}==2}}
+        compose.onNodeWithTag("frequency-students").performScrollToNode(hasTestTag("student-name-${late.id}"))
+        compose.onNodeWithTag("cell-${lessons[0].id}-${late.id}-F").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("frequency-students").performScrollToNode(hasTestTag("student-name-${regular.id}"))
+        compose.onNodeWithTag("cell-${lessons[0].id}-${regular.id}-P").performScrollTo().performClick()
+        compose.onNodeWithTag("cell-${lessons[1].id}-${regular.id}-F").performScrollTo().performClick()
+        compose.waitUntil(5000){runBlocking{app.repository.dao.attendance(lessons[1].id).any {it.studentId==regular.id&&it.mark=="F"}}}
+        assertTrue(app.database.backupDao().marks().none {it.studentId==late.id})
+        assertEquals(late,app.repository.dao.student(late.id));waitText("Salvo no aparelho")
+        shot("04-matricula-retroativa")
+        fun openProfileReport(){
+            compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 3º bimestre")
+            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("${regular.number}. $name"))
+            compose.onNodeWithText("${regular.number}. $name").performClick()
+        }
+        openProfileReport();compose.waitUntil(5000){compose.onAllNodesWithText("Faltas: 1 • justificadas: 0",substring=true).fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithText("Presenças: 1 • frequência: 50,00%",substring=true).assertExists()
+        compose.onNodeWithTag("nav-1").performClick();waitTag("daily-frequency")
+        compose.onNodeWithTag("frequency-students").performScrollToNode(hasTestTag("student-name-${regular.id}"))
+        compose.onNodeWithTag("cell-${lessons[1].id}-${regular.id}-P").performScrollTo().performClick()
+        compose.waitUntil(5000){runBlocking{app.repository.dao.attendance(lessons[1].id).any {it.studentId==regular.id&&it.mark=="P"}}}
+        waitText("Salvo no aparelho");compose.activityRule.scenario.recreate();waitTag("daily-frequency")
+        assertEquals(lessons,app.repository.dao.day(c.id,day))
+        assertEquals("P",app.repository.dao.attendance(lessons[1].id).single {it.studentId==regular.id}.mark)
+        openProfileReport();compose.waitUntil(5000){compose.onAllNodesWithText("Faltas: 0 • justificadas: 0",substring=true).fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithText("Presenças: 2 • frequência: 100,00%",substring=true).assertExists()
+        Unit
     }
 }

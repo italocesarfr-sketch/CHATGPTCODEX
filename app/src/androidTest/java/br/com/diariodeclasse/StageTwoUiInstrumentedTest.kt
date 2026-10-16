@@ -115,6 +115,7 @@ class StageTwoUiInstrumentedTest {
         waitText("+ Adicionar aluno")
         compose.onNodeWithText("+ Adicionar aluno").performClick()
         compose.onNodeWithText("Nome completo").performTextInput("Estudante Fictício Novo")
+        compose.onNodeWithText("Ingresso (dd/mm/aaaa)").assertTextContains("01/01/2026")
         compose.onNodeWithText("Ingresso (dd/mm/aaaa)").performTextReplacement("01/02/2026")
         compose.onNodeWithText("Salvar aluno").performScrollTo().performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.roster(created.id).size==1 } }
@@ -162,6 +163,7 @@ class StageTwoUiInstrumentedTest {
         assertEquals(1,app.repository.dao.roster(a.id).size)
         compose.onNodeWithText("Conferir 1 nome em rascunho").performClick()
         waitText("Conferir importação")
+        compose.onNodeWithText("Ingresso dos novos alunos (dd/mm/aaaa)").assertTextContains("01/01/2026")
         compose.onNodeWithTag("import-review-list").performScrollToNode(isToggleable())
         compose.onNode(isToggleable()).performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.draftRows(a.id).single().reviewed } }
@@ -172,6 +174,7 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("Confirmar").performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.roster(a.id).size==2 } }
         assertEquals(18,app.repository.dao.roster(a.id).single { it.name=="Estudante Fictício Beta" }.number)
+        assertEquals("2026-01-01",app.repository.dao.roster(a.id).single { it.name=="Estudante Fictício Beta" }.joined)
         assertTrue(app.repository.dao.draftRows(a.id).isEmpty())
     }
 }

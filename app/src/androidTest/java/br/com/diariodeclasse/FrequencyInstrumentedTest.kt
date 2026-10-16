@@ -6,6 +6,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.*
+import br.com.diariodeclasse.ui.defaultEnrollment
+import br.com.diariodeclasse.domain.CsvRoster
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
 import org.junit.*
@@ -114,5 +116,36 @@ class FrequencyInstrumentedTest {
         repo.mark(id,s.id,"F");db.close()
         db=Room.databaseBuilder(context,DiaryDatabase::class.java,"frequency-test.db").build();repo=DiaryRepository(db)
         assertEquals("F",repo.dao.attendance(id).single().mark)
+    }
+    @Test fun octoberRegistrationAllowsAugustWhileExplicitEnrollmentDatesStayIntact()=runBlocking {
+        repo.saveClass(c,"2026-10-16")
+        val regular=s.copy(id="october-regular",number=2,name="Estudante Fictício Regular",joined=defaultEnrollment(c.year))
+        val late=s.copy(id="october-late",number=3,name="Estudante Fictício Ingressante",joined="2026-09-01",left="2026-10-01")
+        val departed=s.copy(id="october-departed",number=4,name="Estudante Fictício Transferido",joined="2026-01-01",left="2026-07-31",status="Transferido")
+        listOf(regular,late,departed).forEach {repo.saveStudent(it)}
+        repo.appendDrafts(c.id,CsvRoster.parse("numero;nome\n5;Estudante Fictício Importado"))
+        repo.dao.draftRows(c.id).forEach {repo.dao.save(it.copy(reviewed=true))}
+        repo.confirmImport(c.id,defaultEnrollment(c.year))
+        val imported=repo.dao.roster(c.id).single {it.number==5}
+        assertEquals("2026-01-01",regular.joined);assertEquals(regular.joined,imported.joined)
+        assertTrue(snapshot().lessons.isEmpty());assertTrue(snapshot().marks.isEmpty())
+        repo.setDayHours(c.id,"2026-08-06",2);repo.allPresentDay(c.id,"2026-08-06")
+        val lessons=repo.dao.day(c.id,"2026-08-06")
+        assertEquals(6,snapshot().marks.size) // três matrículas elegíveis, dois horários
+        assertTrue(snapshot().marks.none {it.studentId in listOf(late.id,departed.id)})
+        for(student in listOf(late,departed)) {
+            try {repo.mark(lessons[0].id,student.id,"F");fail()}catch(_:IllegalArgumentException){}
+        }
+        repo.mark(lessons[1].id,regular.id,"F")
+        val data=repo.snapshot.first {it.marks.any {m->m.studentId==regular.id&&m.mark=="F"}}
+        val term=data.terms.single {it.classId==c.id&&it.number==3}
+        assertEquals(1,data.frequency(regular,term,true).absent)
+        assertEquals(1,data.frequency(regular,term,true).present)
+        assertEquals(0,data.frequency(late,term,true).absent)
+        assertTrue(repo.dao.day(c.id,"2026-08-07").isEmpty())
+        repo.saveClass(c.copy(name="Turma Fictícia Editada"),"2026-10-16")
+        db.close();db=Room.databaseBuilder(context,DiaryDatabase::class.java,"frequency-test.db").build();repo=DiaryRepository(db)
+        assertEquals(s,repo.dao.student(s.id));assertEquals(late,repo.dao.student(late.id));assertEquals(departed,repo.dao.student(departed.id))
+        assertEquals(regular,repo.dao.student(regular.id));assertEquals("F",repo.dao.attendance(lessons[1].id).single {it.studentId==regular.id}.mark)
     }
 }

@@ -104,7 +104,7 @@ import java.time.LocalDate
         Field("Ingresso (dd/mm/aaaa)", joined, { joined = it }); Field("Saída (opcional, dd/mm/aaaa)", left, { left = it })
         Choice("Situação", listOf("Ativo", "Transferido", "Remanejado"), status) { status = it }
         Field("Observações pedagógicas", notes, { notes = it }, lines = 3)
-        Info("Use a data real de ingresso. Chamadas anteriores não serão contabilizadas para este aluno.")
+        Info("Por padrão, a matrícula começa em 01/01 do ano letivo, mesmo se o cadastro for feito depois. Altere ingresso/saída somente para informar uma matrícula real diferente; essas datas limitam a frequência. A data de cadastro no app não é a data de matrícula.")
         if (duplicate) {
             Info("Há um nome semelhante nesta turma. Confira se já está cadastrado.")
             Row { Checkbox(homonym, { homonym = it }); Text("Confirmo que é outra pessoa (homônimo)", Modifier.padding(top = 12.dp)) }
