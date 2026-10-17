@@ -118,7 +118,9 @@ class RelocationUiInstrumentedTest {
     @Test fun confirmedMoveHidesSourceAndRefreshesDestinationReportsAcrossRecreation() {
         begin();preview();confirm();compose.waitUntil(10000){compose.onAllNodesWithTag("relocation-confirm").fetchSemanticsNodes().isEmpty()}
         compose.onAllNodesWithText("1. ${a.name}").assertCountEquals(0)
-        compose.onNodeWithTag("show-relocated").performScrollTo().performClick();waitText("Remanejado para ${h.name}");shot("02-origem-historico")
+        compose.onNodeWithTag("show-relocated").performScrollTo().performClick()
+        compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("roster-student-${a.id}"))
+        waitText("Remanejado para ${h.name}");shot("02-origem-historico")
         compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 4º bimestre")
         compose.onNodeWithText("3º bim.").performClick();waitText("Boletim do 3º bimestre")
         compose.onAllNodesWithTag("report-row-${a.id}").assertCountEquals(0)

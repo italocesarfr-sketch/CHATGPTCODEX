@@ -84,10 +84,10 @@ class ExportLayoutUiInstrumentedTest {
     @Test fun cancelAndNavigationGuardPreserveIntentUntilExplicitDiscard() {
         val before=runBlocking{app.backupManager.snapshot()};roster();hideMode();toggle(a.id)
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick();waitText("Descartar alterações de exportação?")
-        compose.onNodeWithText("Cancelar").performClick();checkbox(a.id).assertIsOn()
+        compose.onNode(hasText("Cancelar") and hasAnyAncestor(isDialog())).performClick();checkbox(a.id).assertIsOn()
         compose.activityRule.scenario.onActivity{it.onBackPressedDispatcher.onBackPressed()};waitText("Descartar alterações de exportação?")
-        compose.onNodeWithText("Cancelar").performClick()
-        compose.onNodeWithText("Backup").performClick();waitText("Descartar alterações de exportação?");compose.onNodeWithText("Cancelar").performClick()
+        compose.onNode(hasText("Cancelar") and hasAnyAncestor(isDialog())).performClick()
+        compose.onNodeWithText("Backup").performClick();waitText("Descartar alterações de exportação?");compose.onNode(hasText("Cancelar") and hasAnyAncestor(isDialog())).performClick()
         compose.onNodeWithTag("nav-3").performClick();waitText("Descartar alterações de exportação?");compose.onNodeWithText("Confirmar").performClick();waitTag("reports-list")
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         compose.onNodeWithTag("nav-0").performClick();roster();hideMode();checkbox(a.id).assertIsOff()
@@ -119,7 +119,7 @@ class ExportLayoutUiInstrumentedTest {
         compose.waitUntil(10000){vm.data.value.relocations.any{it.sourceStudentId==a.id}}
         roster();compose.onNodeWithTag("show-relocated").performScrollTo().performClick();hideMode()
         compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOff()
-        compose.onNodeWithTag("export-auto-${a.id}").assertTextContains("Exclusão automática",substring=true);shot("03-remanejado")
+        compose.onNodeWithTag("export-auto-${a.id}",useUnmergedTree=true).assertTextContains("Exclusão automática",substring=true);shot("03-remanejado")
         top();compose.onNodeWithTag("export-cancel").performClick()
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()
         compose.waitUntil(10000){vm.selection.value?.classId==h.id && compose.onAllNodesWithText("Gerenciar alunos").fetchSemanticsNodes().isNotEmpty()}

@@ -34,6 +34,8 @@ Cobertura nova: seleção múltipla, desmarcação/cancelamento, guard de navega
 
 O CI preserva a configuração release existente e usa o APK real 0.7.1 do [run 39067364492](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39067364492), hash/certificado públicos fixados em `docs/baseline/noctua-release-0.7.1.json`. As sondas verificam atualização sem desinstalação, mesmas IDs/registros/preferências, migração, backup antigo/novo e reinício real do processo. A sonda de frequência mantém a regressão Transferida → Ativa → reinício → Remanejada e preferências confirmadas.
 
+Primeiro ensaio Android: [run 39072465323](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39072465323), com 116 aprovados e quatro falhas de interface. Corrigidos os seletores (árvore semântica não mesclada e botão Cancelar restrito ao diálogo), a rolagem explícita para consultar o cartão remanejado após os novos controles e a espera de ociosidade antes de rolar o relatório individual. Nenhum teste foi retirado e as regras escolares permaneceram iguais. A suíte completa é repetida antes da entrega.
+
 ## Limites
 
 Sem XLSX, CSV de saída, cópia tabulada, PDF, registros de aula ou identidade visual nova. PDF retirado da versão 1.0 pelo proprietário; poderá ser produzido no Excel a partir do futuro XLSX. Importação CSV existente permanece. Sem mudança de política de matrícula, remanejamento, notas ou frequência. Testes em API 30 não substituem validação física da 0.8.0 nem cobrem todos os fabricantes/API 26+. O APK debug não é compatível por presunção com a instalação release; somente distribuir a release após prova de certificado e atualização no CI. Fazer backup antes de atualizar.

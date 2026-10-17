@@ -75,6 +75,7 @@ class ReportsUiInstrumentedTest {
         compose.onAllNodesWithText("Editar cadastro e observações").assertCountEquals(0);shot("04-individual")
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("3º bim.").performClick();waitText("Nota 1,50 / 10,00")
+        compose.waitForIdle()
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
         compose.onNodeWithTag("individual-term-4").assertTextContains("Sem dados",substring=true)
         compose.onNodeWithText("‹ Voltar").performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
