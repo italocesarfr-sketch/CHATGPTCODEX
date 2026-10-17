@@ -55,22 +55,24 @@ import java.text.Collator
             if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section("Alunos da turma", "${c.name} • ${counted(roster.size, "matrícula", "matrículas")}")
             if(hiding != null) {
-                Info("Marque para ocultar manualmente das futuras exportações e cópias. A chamada, notas e relatórios não mudam. Concluir salva tudo de uma vez; Cancelar descarta esta sessão.")
+                Text("Marque para ocultar de exportações e cópias. Chamada, notas e relatórios não mudam. Concluir salva; Cancelar descarta.", style = MaterialTheme.typography.bodySmall)
                 ExportSaveControls(saving, concludeExport, { changeExport(null) })
                 SaveError(vm)
             } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(enabled = !saving, onClick = { changeExport(ExportEditSession.start(data,c.id,"HIDE")) }, modifier = Modifier.testTag("export-hide")) { Text("Ocultar") }
                 TextButton(enabled = !saving, onClick = organizeExport, modifier = Modifier.testTag("export-organize")) { Text("Organizar exportação") }
             }
-            Button(enabled = hiding == null, onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("+ Adicionar aluno") }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(enabled = hiding == null, onClick = { names = ""; bulk = true }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Colar lista") }
-                OutlinedButton(enabled = hiding == null, onClick = { csvTarget = c.id; csv.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Importar CSV") }
+            if(hiding == null) {
+                Button(onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("+ Adicionar aluno") }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { names = ""; bulk = true }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Colar lista") }
+                    OutlinedButton(onClick = { csvTarget = c.id; csv.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Importar CSV") }
+                }
+                val drafts = data.drafts.count { it.classId == c.id }
+                if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth()) { Text("Conferir ${counted(drafts, "nome", "nomes")} em rascunho") }
+                Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada") { alphabetical = it == "Ordem alfabética" }
+                Text("A ordenação alfabética não altera os números. Na ordem da chamada, use Subir/Descer ou edite o aluno.", style = MaterialTheme.typography.bodySmall)
             }
-            val drafts = data.drafts.count { it.classId == c.id }
-            if (drafts > 0) FilledTonalButton(enabled = hiding == null, onClick = { review = true }, modifier = Modifier.fillMaxWidth()) { Text("Conferir ${counted(drafts, "nome", "nomes")} em rascunho") }
-            Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada") { alphabetical = it == "Ordem alfabética" }
-            Text("A ordenação alfabética não altera os números. Na ordem da chamada, use Subir/Descer ou edite o aluno.", style = MaterialTheme.typography.bodySmall)
         }
         if (roster.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Sua turma ainda não tem alunos. Adicione individualmente ou importe uma lista para conferir." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico preservado.") }
         items(roster, key = { it.id }) { student ->
