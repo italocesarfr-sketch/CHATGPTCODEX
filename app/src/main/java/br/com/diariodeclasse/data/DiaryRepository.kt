@@ -1,11 +1,13 @@
 package br.com.diariodeclasse.data
 
 import androidx.room.withTransaction
+import androidx.room.invalidationTrackerFlow
 import br.com.diariodeclasse.domain.RosterParser
 import br.com.diariodeclasse.domain.CsvRoster
 import br.com.diariodeclasse.domain.SchoolRules
 import br.com.diariodeclasse.domain.GradeScaling
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.text.Collator
 import java.time.LocalDate
 import java.util.Locale
@@ -35,12 +37,23 @@ data class DiarySnapshot(
 
 class DiaryRepository(val db: DiaryDatabase) {
     val dao = db.dao()
-    private val base = combine(dao.classes(), dao.students(), dao.terms(), dao.lessons(), dao.marks()) { c, s, t, l, m ->
-        DiarySnapshot(c, s, t, l, m)
-    }
-    val snapshot = combine(base, dao.activities(), dao.grades(), dao.drafts(), dao.recompositions()) { b, a, g, d, r ->
-        b.copy(activities = a, grades = g, drafts = d, recompositions = r, loaded = true)
-    }
+    // Cada emissão lê as nove tabelas no mesmo snapshot SQLite confirmado.
+    // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
+    val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
+        "activities", "grades", "import_drafts", "recompositions").map {
+        db.withTransaction {
+            val read = db.backupDao()
+            DiarySnapshot(
+                classes = read.classes().sortedWith(compareByDescending<SchoolClass> { it.year }.thenBy { it.name }.thenBy { it.id }),
+                students = read.students().sortedWith(compareBy<Student> { it.number }.thenBy { it.name }.thenBy { it.id }),
+                terms = read.terms().sortedWith(compareBy<Term> { it.number }.thenBy { it.classId }),
+                lessons = read.lessons().sortedWith(compareBy<Lesson> { it.date }.thenBy { it.ordinal }.thenBy { it.id }),
+                marks = read.marks(),
+                activities = read.activities().sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id }),
+                grades = read.grades(), drafts = read.drafts().sortedWith(compareBy<ImportDraft> { it.position }.thenBy { it.id }),
+                recompositions = read.recompositions(), loaded = true)
+        }
+    }.distinctUntilChanged()
     suspend fun saveClass(value: SchoolClass, effective: String) = db.withTransaction {
         require(value.name.isNotBlank() && value.subject.isNotBlank()) { "Informe turma e disciplina." }
         require(value.year in 2000..2100 && value.duration in 1..240) { "Ano ou duração inválidos." }

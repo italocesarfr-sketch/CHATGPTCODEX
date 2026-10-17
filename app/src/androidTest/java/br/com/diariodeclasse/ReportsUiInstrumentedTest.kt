@@ -40,7 +40,8 @@ class ReportsUiInstrumentedTest {
     @After fun cleanup() { runBlocking {
         app.database.runInTransaction {
             val sql=app.database.openHelper.writableDatabase
-            for(id in listOf(c.id,other.id)) {
+            for(id in listOf(c.id,other.id,"ui-reports-previous")) {
+                sql.execSQL("DELETE FROM recompositions WHERE studentId IN (SELECT id FROM students WHERE classId=?)",arrayOf(id))
                 sql.execSQL("DELETE FROM marks WHERE lessonId IN (SELECT id FROM lessons WHERE classId=?)",arrayOf(id))
                 sql.execSQL("DELETE FROM grades WHERE activityId IN (SELECT id FROM activities WHERE classId=?)",arrayOf(id))
                 for(table in listOf("import_drafts","activities","lessons","terms","students")) sql.execSQL("DELETE FROM $table WHERE classId=?",arrayOf(id))
@@ -62,7 +63,7 @@ class ReportsUiInstrumentedTest {
     }
     private fun cell(student:Student,index:Int)=compose.onNodeWithTag("report-row-${student.id}-cell-$index",useUnmergedTree=true)
     private fun shot(name:String) {
-        val folder=File(app.filesDir,"etapa4b1-screenshots");folder.mkdirs()
+        val folder=File(app.filesDir,"etapa4b3-screenshots");folder.mkdirs()
         File(folder,"$name.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun bimestralDistinguishesZeroPendingOutsideEnrollmentAndIndividualIsReadOnly() {
@@ -75,7 +76,7 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("3º bim.").performClick();waitText("Nota 1,50 / 10,00")
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
-        compose.onNodeWithTag("individual-term-4").assertTextContains("Sem atividades",substring=true)
+        compose.onNodeWithTag("individual-term-4").assertTextContains("Sem dados",substring=true)
         compose.onNodeWithText("‹ Voltar").performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Boletim do 3º bimestre")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
@@ -113,4 +114,83 @@ class ReportsUiInstrumentedTest {
         compose.activityRule.scenario.recreate();waitText("Resumo anual de 2026")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
+    private fun field(student:Student,key:String)=compose.onNodeWithTag("report-row-${student.id}-$key",useUnmergedTree=true).onChild()
+    @Test fun consolidatedBimesterExposesOriginalRecompositionPresenceAndTransferStatus() {
+        runBlocking {app.repository.saveRecomposition(Recomposition(a.id,1,5.0,"2026-11-20"))}
+        row(a)
+        compose.waitUntil(10000) {field(a,"current").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].any {it.text=="5,00"}}
+        field(a,"original").assertTextEquals("0,00");field(a,"recomposition").assertTextEquals("5,00")
+        field(a,"present").assertTextEquals("1");field(a,"absent").assertTextEquals("1");field(a,"justified").assertTextEquals("0")
+        field(a,"effective-absences").assertTextEquals("1");field(a,"percent").assertTextEquals("50,00%")
+        row(transferred);compose.onNodeWithTag("report-row-${transferred.id}-name",useUnmergedTree=true).onChildren().filter(hasText("Transferido")).assertCountEquals(1)
+        field(transferred,"original").assertTextEquals("8,00");field(transferred,"justified").assertTextEquals("1")
+        row(late);field(late,"activity-${q1.id}").assertTextEquals("Fora da matrícula")
+        row(pending);field(pending,"current").assertTextEquals("Não lançado");field(pending,"activity-${q1.id}").assertTextEquals("Pendente")
+    }
+    @Test fun annualAndIndividualDistinguishAllResultsAndEffectiveAbsences() {
+        val q2=q1.copy(id="ui-reports-q2-final",date="2026-05-10",term=2)
+        val q4=q1.copy(id="ui-reports-q4-final",date="2026-11-10",term=4)
+        runBlocking {
+            app.repository.saveActivity(q2);app.repository.saveGrade(q2.id,a.id,3.0)
+            app.repository.saveActivity(q4);app.repository.saveRecomposition(Recomposition(a.id,1,0.0,"2026-11-20"))
+            app.repository.saveRecomposition(Recomposition(a.id,2,2.0,"2026-11-20"))
+            app.repository.saveRecomposition(Recomposition(a.id,3,6.0,"2026-11-20"))
+        }
+        mode("Resumo anual");row(a)
+        field(a,"term-1").assertTextContains("Resultado vigente: 0,00",substring=true)
+        field(a,"term-2").assertTextContains("Resultado vigente: 3,00",substring=true)
+        field(a,"term-3").assertTextContains("Resultado vigente: 6,00",substring=true)
+        field(a,"term-3").assertTextContains("Parcial",substring=true)
+        field(a,"term-4").assertTextContains("Não lançado",substring=true)
+        field(a,"annual-frequency").assertTextContains("1 faltas efetivas",substring=true)
+        compose.onNodeWithText("1. ${a.name}").performClick();waitText("Original das atividades: 0,00")
+        compose.onNodeWithTag("individual-report").performScrollToIndex(0)
+        compose.onNodeWithText("3º bim.").performClick();waitText("Resultado vigente: 6,00")
+        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
+        compose.onNodeWithTag("individual-term-4").assertTextContains("Recomposição: Não registrada",substring=true)
+    }
+    @Test fun longNamesRemainFixedAndConfirmedUpdatesPreserveReadingPosition() {
+        val people=(5..24).map {n -> a.copy(id="ui-reports-long-$n",number=n,name="Estudante Fictício de Nome Extenso para Conferência da Leitura Número $n")}
+        runBlocking {people.forEach {app.repository.saveStudent(it)}}
+        val selected=people[10]
+        row(selected)
+        val fixed=compose.onNodeWithTag("report-row-${selected.id}-name",useUnmergedTree=true)
+        val left=fixed.fetchSemanticsNode().boundsInRoot.left
+        val values=compose.onNodeWithTag("report-row-${selected.id}-values",useUnmergedTree=true)
+        values.performTouchInput {swipeLeft()}
+        assertEquals(left,fixed.fetchSemanticsNode().boundsInRoot.left,0.1f)
+        val horizontal=values.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.HorizontalScrollAxisRange].value()
+        assertTrue(horizontal>0)
+        val list=compose.onNodeWithTag("reports-list")
+        val vertical=list.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange].value()
+        runBlocking {app.repository.saveGrade(q1.id,selected.id,6.0)}
+        compose.waitUntil(10000) {field(selected,"current").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].any {it.text=="6,00"}}
+        assertEquals(vertical,list.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange].value(),0.1f)
+        assertEquals(horizontal,values.fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.HorizontalScrollAxisRange].value(),0.1f)
+        assertEquals(left,fixed.fetchSemanticsNode().boundsInRoot.left,0.1f)
+        val before=runBlocking {app.backupManager.snapshot()};shot("05-nomes-extensos")
+        assertEquals(before,runBlocking {app.backupManager.snapshot()})
+    }
+    @Test fun rapidYearClassAndTermChangesNeverShowPreviousClassRows() {
+        val previousYear=c.copy(id="ui-reports-previous",name="Turma Fictícia 2025",year=2025)
+        val otherStudent=a.copy(id="ui-reports-previous-student",classId=previousYear.id,name="Estudante Fictício Ano Anterior",joined="2025-01-01")
+        val activity=q1.copy(id="ui-reports-previous-q",classId=previousYear.id,date="2025-02-10")
+        runBlocking {
+            app.repository.saveClass(previousYear,"2025-01-01");app.repository.saveStudent(otherStudent)
+            app.repository.saveActivity(activity);app.repository.saveGrade(activity.id,otherStudent.id,9.0)
+            repeat(15) {n -> app.selectionStore.write(if(n%2==0) AppSelection(2025,previousYear.id) else AppSelection(2026,c.id))}
+        }
+        compose.waitUntil(10000) {compose.onAllNodesWithText("2025 ▾").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithTag("reports-list").performScrollToIndex(0)
+        row(otherStudent);field(otherStudent,"current").assertTextEquals("9,00")
+        compose.onAllNodesWithTag("report-row-${a.id}").assertCountEquals(0)
+        for(n in listOf(3,2,1)) {compose.onNodeWithText("${n}º bim.").performClick();waitText("Boletim do ${n}º bimestre")}
+        row(otherStudent);field(otherStudent,"current").assertTextEquals("9,00")
+        compose.onNodeWithTag("year-selector").performClick();compose.onNodeWithText("Ano letivo 2026",useUnmergedTree=true).performClick()
+        compose.waitUntil(10000) {compose.onAllNodesWithText("2026 ▾").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(c.name,useUnmergedTree=true).performClick()
+        compose.waitUntil(10000) {compose.onAllNodesWithTag("report-row-${otherStudent.id}").fetchSemanticsNodes().isEmpty()}
+        row(a);field(a,"current").assertTextEquals("0,00")
+    }
+
 }
