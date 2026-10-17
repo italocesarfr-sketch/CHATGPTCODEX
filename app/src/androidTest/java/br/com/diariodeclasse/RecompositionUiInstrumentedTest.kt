@@ -71,7 +71,9 @@ class RecompositionUiInstrumentedTest {
         compose.onNodeWithTag("recomposition-values-${a.id}").assertTextContains("Original: 3,00",substring=true)
         row(pending);compose.onNodeWithTag("recomposition-values-${pending.id}").assertTextContains("Vigente: Pendente",substring=true)
         row(a);shot("03-todos")
-        compose.activityRule.scenario.recreate();waitText("Bimestre de origem: 3º")
+        compose.activityRule.scenario.recreate()
+        compose.waitUntil(10000) {compose.onAllNodesWithTag("recomposition-list").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithTag("recomposition-list").performScrollToIndex(0);waitText("Bimestre de origem: 3º")
         row(a);compose.onNodeWithTag("recomposition-values-${a.id}").assertTextContains("Recomposição: 5,00",substring=true)
         val rows=runBlocking {app.backupManager.snapshot()};assertEquals(1,rows.recompositions.size);assertEquals(3.0,rows.grades.first {it.activityId==q.id&&it.studentId==a.id}.value!!,0.0)
     }
