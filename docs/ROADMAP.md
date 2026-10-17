@@ -1,6 +1,6 @@
 # Roadmap — Noctua (Diário de Classe)
 
-> Correção autorizada 0.7.1 / código 12: reativação consistente e remanejamento após transferência administrativa, sem alteração de esquema ou regras pedagógicas. Consulte [CORRECAO_REATIVACAO.md](CORRECAO_REATIVACAO.md). Não autoriza a Etapa 5.
+> Correção autorizada 0.7.1 / código 12: reativação consistente e remanejamento após transferência administrativa, sem alteração de esquema ou regras pedagógicas. Consulte [CORRECAO_REATIVACAO.md](CORRECAO_REATIVACAO.md). 62 JVM, 109 Android e atualização assinada 0.7.0 → 0.7.1 aprovados; resultados no documento. Não autoriza a Etapa 5.
 
 > Etapa 4C autorizada: remanejamento seguro sobre a 0.6.1, com vínculos entre matrículas e pontos do mesmo bimestre acompanhando o aluno. Incremento 0.7.0 / código 11 concluído: migração aditiva v2→v3 e backup compatível com os formatos anteriores. Compatibilidades e bloqueios explícitos em [ETAPA4C.md](ETAPA4C.md). 55 testes JVM, 101 Android e atualização assinada 0.6.1 → 0.7.0 aprovados; resultados em ETAPA4C.md. Não autoriza a Etapa 5.
 

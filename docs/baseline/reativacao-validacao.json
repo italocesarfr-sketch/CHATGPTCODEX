@@ -1,0 +1,99 @@
+{
+  "testedCommit": "03631ca9b8eaf80f99612a927ac1975881b2ef84",
+  "workflowRunId": 39067364492,
+  "debugArtifactId": 12113373259,
+  "reportsArtifactId": 12113841690,
+  "releaseArtifactId": 12113923175,
+  "upgradeReportsArtifactId": 12114151999,
+  "versionName": "0.7.1",
+  "versionCode": 12,
+  "databaseName": "diario.db",
+  "databaseVersion": 3,
+  "backupFormatVersion": 4,
+  "legacySchemaSha256": "43fe5f77af75d462dff34128582fdeb6cf759b9504fa2bb6ee468a6951ec3ed7",
+  "priorSchemaSha256": "ba4e422868ecb8d532609a3f6488a0f2b4262551d265588e964305468232b7bc",
+  "schemaSha256": "3e087b839b8c286589b1d7cabc0e7d2e8e83645728d1df757c05e32a95b5c7ce",
+  "schemaIdentity": "9e864249a18922cfb9caa6e54ee6c3af",
+  "tests": {
+    "unit": {
+      "passed": 62,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "passed": 109,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "apk": {
+    "debug": {
+      "apkSha256": "bba5750ca06dc7b451b491bd018416340d858cb12dab95c7d76db72253c74f66",
+      "certificateSha256": "6715a685c4d41284b42ea9087cbdfa58f6f13e2952ad59713bbaf054eb3d266f",
+      "bytes": 10490020,
+      "manifest": {
+        "versionCode": 12,
+        "versionName": "0.7.1",
+        "compileSdkVersion": 35,
+        "compileSdkVersionCodename": "15",
+        "package": "br.com.diariodeclasse",
+        "platformBuildVersionCode": 35,
+        "platformBuildVersionName": 15
+      }
+    },
+    "release": {
+      "apkSha256": "6aee7f25856cb98f5c42170b3a858aa853374d8f5c28fb7cff7f550f632ab2f0",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "bytes": 7163342,
+      "manifest": {
+        "versionCode": 12,
+        "versionName": "0.7.1",
+        "compileSdkVersion": 35,
+        "compileSdkVersionCodename": "15",
+        "package": "br.com.diariodeclasse",
+        "platformBuildVersionCode": 35,
+        "platformBuildVersionName": 15
+      }
+    }
+  },
+  "controlledLegacyUpgradeProbesPassed": 2,
+  "processRestartProbesPassed": 2,
+  "stableUpgradeProbesPassed": 4,
+  "stableReleaseCompatibility": {
+    "old": {
+      "apkSha256": "0021fc4027b22c85d63b5a0f6a57397844903aac06f6035fd3025c915dfe1b86",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 11
+    },
+    "new": {
+      "apkSha256": "6aee7f25856cb98f5c42170b3a858aa853374d8f5c28fb7cff7f550f632ab2f0",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 12
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "ownerKeyReused": true,
+  "manualReleaseWorkflowUnchanged": true,
+  "domainScenariosPassed": 28,
+  "reproduction": {
+    "runId": 39065254583,
+    "artifactId": 12113021825,
+    "passed": 101,
+    "skipped": 4,
+    "failures": [
+      {
+        "class": "br.com.diariodeclasse.RelocationInstrumentedTest",
+        "test": "transferredThenReactivatedEnrollmentCanRelocateAfterReopenWithoutLosingHistory",
+        "message": "java.lang.IllegalArgumentException: Esta matrícula já foi encerrada/remanejada. Consulte o histórico."
+      }
+    ]
+  },
+  "reactivationProcessRestartBeforeRelocationVerified": true,
+  "databaseMigrationRequired": false,
+  "apkCryptographicVerificationPassed": true,
+  "compiledReactivationFixPresent": true
+}
