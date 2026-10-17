@@ -68,6 +68,15 @@ data class ImportDraft(@PrimaryKey val id: String = newId(), val classId: String
 @Serializable
 data class Recomposition(val studentId: String, val term: Int, val value: Double?, val date: String)
 
+/** Vínculo dirigido entre matrículas. Registros escolares continuam com seus IDs de origem. */
+@Entity(tableName = "relocations", foreignKeys = [
+    ForeignKey(entity = Student::class, parentColumns = ["id"], childColumns = ["sourceStudentId"], onDelete = ForeignKey.RESTRICT),
+    ForeignKey(entity = Student::class, parentColumns = ["id"], childColumns = ["targetStudentId"], onDelete = ForeignKey.RESTRICT)
+], indices = [Index(value = ["targetStudentId"], unique = true)])
+@Serializable
+data class Relocation(@PrimaryKey val sourceStudentId: String, val targetStudentId: String?,
+    val effectiveDate: String, val externalTarget: String? = null)
+
 @Dao
 interface DiaryDao {
     @Query("SELECT * FROM classes ORDER BY year DESC, name") fun classes(): Flow<List<SchoolClass>>
@@ -90,6 +99,7 @@ interface DiaryDao {
     @Query("SELECT * FROM import_drafts WHERE classId = :classId ORDER BY position") suspend fun draftRows(classId: String): List<ImportDraft>
     @Query("SELECT * FROM recompositions ORDER BY studentId, term") fun recompositions(): Flow<List<Recomposition>>
     @Query("SELECT * FROM recompositions WHERE studentId = :studentId AND term = :term") suspend fun recomposition(studentId: String, term: Int): Recomposition?
+    @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertRelocation(value: Relocation)
     @Upsert suspend fun save(value: Recomposition)
     @Query("DELETE FROM recompositions WHERE studentId = :studentId AND term = :term") suspend fun deleteRecomposition(studentId: String, term: Int)
     @Upsert suspend fun save(value: SchoolClass)
@@ -109,11 +119,11 @@ interface DiaryDao {
 }
 
 @Database(entities = [SchoolClass::class, Student::class, Term::class, Lesson::class,
-    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class], version = 2, exportSchema = true)
+    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class], version = 3, exportSchema = true)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
     abstract fun backupDao(): BackupDao
     companion object {
-        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2).build()
+        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
     }
 }

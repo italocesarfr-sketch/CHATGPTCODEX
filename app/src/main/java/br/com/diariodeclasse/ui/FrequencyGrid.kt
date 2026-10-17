@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
@@ -38,12 +39,15 @@ import kotlin.math.ceil
     mark: (Lesson, Student, String) -> Unit, options: (Lesson) -> Unit, openDay: (String) -> Unit) {
     val scroll = rememberScrollState()
     val width = if (daily) 152.dp else 56.dp
-    val roster = data.roster(c.id)
+    var showRelocated by rememberSaveable(c.id) {mutableStateOf(false)}
+    val roster = data.currentRoster(c.id,showRelocated)
     val byMark = remember(data.marks) { data.marks.associate { (it.lessonId to it.studentId) to it.mark } }
-    val totals = remember(data, c, period) { roster.associate { it.id to data.frequency(it, period, c.countJustified) } }
+    val totals = remember(data, c, period, showRelocated) { roster.associate { it.id to data.frequency(it, period, c.countJustified) } }
     var fullName by remember { mutableStateOf<Student?>(null) }
     val background = MaterialTheme.colorScheme.surfaceContainer
     Column(Modifier.fillMaxSize().testTag(if (daily) "daily-frequency" else "term-frequency")) {
+        RelocatedFilter(showRelocated) {showRelocated=it}
+        if(data.relocations.any {link->roster.any {it.id==link.targetStudentId}}) Text("Totais incluem histórico vinculado; as colunas são desta turma.",Modifier.padding(horizontal=8.dp),style=MaterialTheme.typography.labelSmall)
         Row(Modifier.fillMaxWidth().background(background), verticalAlignment = Alignment.CenterVertically) {
             Text("Aluno", Modifier.width(124.dp).padding(8.dp), style = MaterialTheme.typography.labelLarge)
             Box(Modifier.weight(1f)) { HorizontalCells(columns.size + 1, width, scroll) { index ->
@@ -82,7 +86,7 @@ import kotlin.math.ceil
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
-            if (roster.isEmpty()) item { Text("Cadastre os alunos em Cadastrar Turma → Gerenciar alunos.", Modifier.padding(16.dp)) }
+            if (roster.isEmpty()) item { Text(if(data.roster(c.id).isEmpty()) "Cadastre os alunos em Cadastrar Turma → Gerenciar alunos." else "Use Mostrar remanejados para consultar as chamadas anteriores, somente leitura.", Modifier.padding(16.dp)) }
         }
     }
     fullName?.let { student -> AlertDialog(onDismissRequest = { fullName = null }, title = { Text(student.name) },
@@ -92,7 +96,7 @@ import kotlin.math.ceil
 @Composable private fun AttendanceCell(lesson: Lesson, student: Student, current: String, change: (Lesson, Student, String) -> Unit) {
     var menu by remember(lesson.id, student.id) { mutableStateOf(false) }
     val eligible = student.enrolled(lesson.date)
-    val enabled = eligible && lesson.state == "REALIZADA"
+    val enabled = eligible && student.status!="Remanejado" && lesson.state == "REALIZADA"
     Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         listOf("P", "F").forEach { value ->
             val selected = current == value

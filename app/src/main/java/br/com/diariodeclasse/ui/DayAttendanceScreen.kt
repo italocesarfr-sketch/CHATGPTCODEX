@@ -18,7 +18,7 @@ import br.com.diariodeclasse.data.*
     val active = lessons.filter { it.state != "CANCELADA" }
     val performed = lessons.count { it.state == "REALIZADA" }
     val performedIds = lessons.filter { it.state == "REALIZADA" }.map { it.id }.toSet()
-    val enrolledIds = data.roster(c.id).filter { it.enrolled(day) }.map { it.id }.toSet()
+    val enrolledIds = data.currentRoster(c.id).filter { it.enrolled(day) }.map { it.id }.toSet()
     val filled = data.marks.count { it.lessonId in performedIds && it.studentId in enrolledIds && it.mark != "NR" }
     val expected = performed * enrolledIds.size
     var count by rememberSaveable(c.id, day) { mutableIntStateOf(1) }

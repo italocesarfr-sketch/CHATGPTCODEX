@@ -17,12 +17,14 @@ import br.com.diariodeclasse.reports.*
     var all by rememberSaveable(c.id) { mutableStateOf(false) }
     var feedback by rememberSaveable(c.id, term) { mutableStateOf("") }
     var editing by rememberSaveable(c.id, term) { mutableStateOf<String?>(null) }
-    val reports = remember(data, c, term) { SchoolReports(data, c).term(term) }
+    var showRelocated by rememberSaveable(c.id) {mutableStateOf(false)}
+    val reports = remember(data, c, term, showRelocated) { SchoolReports(data, c, showRelocated).term(term) }
     val rows = reports.students.filter { all || RecompositionRules.belowFive(it.total) }
     Column(Modifier.fillMaxSize()) {
         if (feedback.isNotBlank()) Text(feedback, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).testTag("recomposition-feedback"), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f).testTag("recomposition-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
+                RelocatedFilter(showRelocated) {showRelocated=it}
                 Section("Recomposição de Notas", "${c.name} • ${c.subject} • ${c.year}")
                 Text("Bimestre de origem: ${term}º. A data da avaliação pode pertencer a outro bimestre.")
                 TermSelector(term, changeTerm)
@@ -38,8 +40,8 @@ import br.com.diariodeclasse.reports.*
                         Text("${row.student.number}. ${row.student.name}", style = MaterialTheme.typography.titleSmall)
                         Text("Original: ${row.original?.let(::number) ?: "Pendente"}\nRecomposição: ${row.recomposition?.value?.let(::number) ?: "Não realizada"}\nVigente: ${row.total?.let(::number) ?: "Pendente"}", Modifier.testTag("recomposition-values-${row.student.id}"))
                         Text(gradeStatus(row), style = MaterialTheme.typography.bodySmall)
-                        row.recomposition?.let { Text("Avaliação: ${shortDate(it.date)} • origem ${it.term}º bimestre", style = MaterialTheme.typography.bodySmall) }
-                        TextButton(onClick = { editing = row.student.id }, modifier = Modifier.testTag("recomposition-edit-${row.student.id}")) {
+                        row.recomposition?.let { Text("Avaliação: ${shortDate(it.date)} • origem ${it.term}º bimestre • ${row.recompositionSchool?.name ?: c.name}", style = MaterialTheme.typography.bodySmall) }
+                        if(row.student.status!="Remanejado") TextButton(onClick = { editing = row.student.id }, modifier = Modifier.testTag("recomposition-edit-${row.student.id}")) {
                             Text(if (row.recomposition == null) "Lançar recomposição" else "Editar recomposição")
                         }
                     }
@@ -68,6 +70,7 @@ import br.com.diariodeclasse.reports.*
     fun leave() { if (!saving) { if (dirty) discard = true else close() } }
     Form("Recomposição • ${row.number}º bimestre", ::leave) {
         Text("${row.student.number}. ${row.student.name}")
+        if(expected!=null && expected.studentId!=row.student.id) Info("Recomposição preservada na matrícula de origem. A confirmação corrige esse mesmo registro, sem criar outra recomposição no destino.")
         Text("Resultado original: ${row.original?.let(::number) ?: "Pendente"}")
         Field("Nota da recomposição (0 a 10)", value, { if (!saving) value = it }, Modifier.testTag("recomposition-score"), enabled = !saving)
         Text("Vazio = não realizada. Zero é uma nota lançada.", style = MaterialTheme.typography.bodySmall)
@@ -75,8 +78,8 @@ import br.com.diariodeclasse.reports.*
         if (valid) Info("Prévia do resultado vigente: ${RecompositionRules.effective(row.original, score)?.let(::number) ?: "Pendente: faltam lançamentos originais"}")
         else Text("Informe nota de 0 a 10 e uma data válida.", color = MaterialTheme.colorScheme.error)
         Button(enabled = valid && !saving, onClick = {
-            val record = Recomposition(row.student.id, row.number, score, iso(date))
-            vm.act(done = { saved("Recomposição salva no ${row.number}º bimestre.") }) { vm.repository.saveRecomposition(record, expected) }
+            val record = Recomposition(expected?.studentId ?: row.student.id, row.number, score, iso(date))
+            vm.act(done = { saved("Recomposição salva no ${row.number}º bimestre.") }) { vm.repository.saveRecomposition(record, expected, row.student.id) }
         }, modifier = Modifier.fillMaxWidth().testTag("recomposition-save")) { Text(if (saving) "Salvando…" else "Salvar recomposição") }
         if (expected != null) OutlinedButton(enabled = !saving, onClick = { deleting = true }, modifier = Modifier.fillMaxWidth().testTag("recomposition-delete")) { Text("Excluir recomposição") }
         SaveError(vm)
@@ -84,6 +87,6 @@ import br.com.diariodeclasse.reports.*
     if (discard) Confirm("Descartar alterações não salvas?", "A nota e a data digitadas ainda não foram confirmadas. Os registros já salvos serão preservados.", { discard = false }) { discard = false; close() }
     if (deleting && expected != null) Confirm("Excluir recomposição?", "O resultado será recalculado a partir das atividades originais. As notas das atividades serão preservadas.", { deleting = false }) {
         deleting = false
-        vm.act(done = { saved("Recomposição excluída. Resultado original preservado.") }) { vm.repository.deleteRecomposition(expected) }
+        vm.act(done = { saved("Recomposição excluída. Resultado original preservado.") }) { vm.repository.deleteRecomposition(expected, row.student.id) }
     }
 }

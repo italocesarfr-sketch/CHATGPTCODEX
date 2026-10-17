@@ -69,7 +69,7 @@ import java.time.format.TextStyle
                                 val daily = lessonsByDate[day].orEmpty()
                                 val performed = daily.filter { it.state == "REALIZADA" }
                                 val valid = performed.sumOf { l -> validMarks[l.id].orEmpty().count { students[it.studentId]?.enrolled(day) == true } }
-                                val expected = data.roster(c.id).count { it.enrolled(day) } * performed.size
+                                val expected = data.currentRoster(c.id).count { it.enrolled(day) } * performed.size
                                 val marker = when { valid > 0 -> if (valid == expected) "✓" else "•"; daily.isNotEmpty() && daily.all { it.state == "CANCELADA" } -> "×"; performed.isNotEmpty() -> "NR"; daily.isNotEmpty() -> "◇"; else -> "" }
                                 Surface(onClick = { open(day) }, modifier = Modifier.weight(1f).height(48.dp).testTag("date-$day").semantics { contentDescription = "${shortDate(day)}, ${when(marker) { "✓" -> "chamada preenchida"; "•" -> "chamada parcial"; "×" -> "horários cancelados"; "NR" -> "sem frequência registrada"; "◇" -> "aulas previstas legadas"; else -> "sem aulas" }}" },
                                     shape = MaterialTheme.shapes.small, color = if (day == selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer) {

@@ -32,7 +32,7 @@ private fun periodStatus(row: StudentPeriodReport): String = when {
 }
 private fun recompositionScore(row: StudentPeriodReport): String = row.recomposition?.let { it.value?.let(::number) ?: "Não realizada" } ?: "Não registrada"
 private fun gradeBreakdown(row: StudentPeriodReport): String =
-    "Original das atividades: ${row.original?.let(::number) ?: "Pendente"} • Recomposição: ${recompositionScore(row)}${row.recomposition?.let { " (${shortDate(it.date)})" }.orEmpty()}\nResultado vigente: ${row.total?.let(::number) ?: "Pendente"}"
+    "Original das atividades: ${row.original?.let(::number) ?: "Pendente"} • Recomposição: ${recompositionScore(row)}${row.recomposition?.let { " (${shortDate(it.date)})" }.orEmpty()}${row.recompositionSchool?.let { " • ${it.name}" }.orEmpty()}\nResultado vigente: ${row.total?.let(::number) ?: "Pendente"}"
 // O perfil editável anterior continua usando o mesmo complemento quando há recomposição.
 internal fun recompositionText(row: StudentPeriodReport): String = if (row.recomposition == null) "" else "\n${gradeBreakdown(row)}"
 private fun enrollmentText(row: StudentPeriodReport): String = when (row.enrollment) {
@@ -58,7 +58,8 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
 @Composable fun ReportScreen(data: DiarySnapshot, c: SchoolClass, term: Int, profile: (String) -> Unit) {
     var mode by rememberSaveable { mutableStateOf("Bimestral") }
     var order by rememberSaveable { mutableStateOf("Chamada") }
-    val reports = remember(data, c) { SchoolReports(data, c) }
+    var showRelocated by rememberSaveable(c.id) { mutableStateOf(false) }
+    val reports = remember(data, c, showRelocated) { SchoolReports(data, c, showRelocated) }
     val report = remember(reports, term) { reports.term(term) }
     val annual = remember(reports) { reports.year() }
     val selectedOrder = when (order) {
@@ -95,6 +96,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     }
     LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
+            RelocatedFilter(showRelocated) {showRelocated=it}
             Section(when (mode) {
                 "Frequência" -> "Frequência do ${term}º bimestre"
                 "Mais faltosos" -> "Mais faltosos do ${term}º bimestre"
@@ -109,19 +111,19 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
             Text(justificationPolicy(c), style = MaterialTheme.typography.bodySmall)
             if (mode == "Resumo anual") Text("Quatro resultados separados; não há média anual ou decisão de aprovação.", style = MaterialTheme.typography.bodySmall)
         }
-        if (report.students.isEmpty()) item { Info("Nenhum aluno cadastrado nesta turma.") }
+        if (report.students.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado nesta turma." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico.") }
         when (mode) {
             "Bimestral" -> {
                 if (report.activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Não há notas originais a totalizar; recomposições já registradas continuam identificadas.") }
                 val fields = listOf("current", "original", "recomposition", "pending", "performed", "present", "absent", "justified", "effective-absences", "percent")
-                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
+                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + (data.classes.firstOrNull {school->school.id==it.classId}?.name?:it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
                 items(sorted, key = { it.student.id }) { row ->
                     val f = row.attendance
                     TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.activities.map(::activityText) + listOf(
-                        row.total?.let(::number) ?: "Não lançado", row.original?.let(::number) ?: "Não lançado", recompositionScore(row),
+                        row.total?.let(::number) ?: "Não lançado", row.original?.let(::number) ?: "Não lançado", recompositionScore(row) + if(row.recomposition?.studentId?.let {it!=row.student.id}==true) "\n${row.recompositionSchool?.name ?: "Matrícula de origem"}" else "",
                         "${periodStatus(row)}\n${enrollmentText(row)}", f?.performed?.toString() ?: "—", f?.present?.toString() ?: "—",
                         f?.absent?.toString() ?: "—", f?.justified?.toString() ?: "—", f?.effectiveAbsences?.toString() ?: "—", percent(f?.percent)),
-                        report.activities.size, row.total, row.student.status, report.activities.map { "activity-${it.id}" } + fields) { profile(row.student.id) }
+                        report.activities.size, row.total, relocationLabel(data,row.student), report.activities.map { "activity-${it.id}" } + fields) { profile(row.student.id) }
                 }
             }
             "Frequência", "Mais faltosos" -> {
@@ -137,7 +139,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
                 item { TableRow("Aluno", "report-header", listOf("Aulas elegíveis", "Presenças", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência", "Chamadas válidas", "Não registradas")) }
                 items(rows, key = { it.student.id }) { row ->
                     val f = row.attendance
-                    TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", listOf(f?.performed, f?.present, f?.absent, f?.justified, f?.effectiveAbsences).map { it?.toString() ?: "—" } + listOf(percent(f?.percent), f?.valid?.toString() ?: "—", f?.unregistered?.toString() ?: "—"), status = row.student.status,
+                    TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", listOf(f?.performed, f?.present, f?.absent, f?.justified, f?.effectiveAbsences).map { it?.toString() ?: "—" } + listOf(percent(f?.percent), f?.valid?.toString() ?: "—", f?.unregistered?.toString() ?: "—"), status = relocationLabel(data,row.student),
                         keys = listOf("performed", "present", "absent", "justified", "effective-absences", "percent", "valid", "unregistered")) { profile(row.student.id) }
                 }
             }
@@ -152,7 +154,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
                             !termRow.hasData -> "Sem dados"
                             else -> "Resultado vigente: ${termRow.total?.let(::number) ?: "Não lançado"}\n${periodStatus(termRow)}\n${if (termRow.enrollment == EnrollmentCoverage.FULL) "" else enrollmentText(termRow) + "\n"}${termRow.attendance?.let { "Faltas efetivas: ${it.effectiveAbsences}\nF: ${it.absent} • FJ: ${it.justified}\n${percent(it.percent)}" } ?: "Bimestre não configurado"}"
                         }
-                    } + summaryText(row.attendance), status = row.student.status, keys = (1..4).map { "term-$it" } + "annual-frequency") { profile(row.student.id) }
+                    } + summaryText(row.attendance), status = relocationLabel(data,row.student), keys = (1..4).map { "term-$it" } + "annual-frequency") { profile(row.student.id) }
                 }
                 item { Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula. Não é a média dos percentuais bimestrais.", style = MaterialTheme.typography.bodySmall) }
             }
@@ -169,6 +171,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     LazyColumn(Modifier.fillMaxSize().testTag("individual-report"), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Section(student.name, "${c.name} • ${c.subject} • ${c.year} • nº ${student.number} • ${student.status}")
+            RelocationNotice(data,student)
             Text("Matrícula: ${shortDate(student.joined)} a ${student.left?.let(::shortDate) ?: "sem saída informada"}")
             TermSelector(term, changeTerm)
             Text(row.period?.let { "${term}º bimestre • ${shortDate(it.start)} a ${shortDate(it.end)}" } ?: "Bimestre não configurado")
@@ -178,12 +181,13 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
         }
         if (row.activities.isEmpty()) item { Text("Nenhuma atividade neste bimestre.") }
         items(row.activities, key = { it.activity.id }) { entry ->
-            Text("${entry.activity.name}: ${activityText(entry)} / ${number(entry.activity.maximum)}\n${entry.activity.type} • ${shortDate(entry.activity.date)}", Modifier.testTag("individual-activity-${entry.activity.id}"))
+            Text("${entry.activity.name}: ${activityText(entry)} / ${number(entry.activity.maximum)}\n${entry.activity.type} • ${shortDate(entry.activity.date)} • ${data.classes.firstOrNull {it.id==entry.activity.classId}?.name ?: entry.activity.classId}", Modifier.testTag("individual-activity-${entry.activity.id}"))
         }
         item { Section("Histórico anual", "Quatro bimestres, sem média anual presumida") }
         items(year.terms, key = { it.number }) { entry ->
             Text("${entry.number}º bim. • ${entry.total?.let(::number) ?: "Não lançado"} • ${periodStatus(entry)}\n${enrollmentText(entry)}\n${gradeBreakdown(entry)}\n${frequencyText(entry.frequency)}\nFaltas efetivas: ${entry.attendance?.effectiveAbsences?.toString() ?: "—"}", Modifier.testTag("individual-term-${entry.number}"))
         }
+        relocationHistory(data,student)
         item { Info("Resumo anual da matrícula\n${frequencyText(year.frequency)}\nFaltas efetivas: ${year.attendance.effectiveAbsences}\n${justificationPolicy(c)}") }
     }
 }

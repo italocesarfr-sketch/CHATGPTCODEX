@@ -245,7 +245,7 @@ private val pages = listOf(
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(a.name, Modifier.clickable { grades(a.id) }, style = MaterialTheme.typography.titleMedium)
                 Text("${a.type} • ${shortDate(a.date)} • ${number(a.maximum)} pontos")
-                val pending = data.roster(c.id).filter { it.enrolled(a.date) }.count { s -> data.grades.none { it.activityId == a.id && it.studentId == s.id && it.value != null } }
+                val pending = data.currentRoster(c.id).filter { it.enrolled(a.date) }.count { s -> data.grades.none { it.activityId == a.id && it.studentId == s.id && it.value != null } }
                 Text("${counted(pending, "nota pendente", "notas pendentes")}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     TextButton(onClick = { grades(a.id) }, modifier = Modifier.testTag("activity-grades-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Lançar notas") }

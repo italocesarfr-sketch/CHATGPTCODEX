@@ -36,13 +36,15 @@ import java.text.Collator
         }
     }
     val collator = remember { Collator.getInstance(brLocale) }
-    val roster = data.roster(c.id).let { if (alphabetical) it.sortedWith { a, b -> collator.compare(a.name, b.name) } else it.sortedBy { s -> s.number } }
+    var showRelocated by rememberSaveable(c.id) { mutableStateOf(false) }
+    val roster = data.currentRoster(c.id, showRelocated).let { if (alphabetical) it.sortedWith { a, b -> collator.compare(a.name, b.name) } else it.sortedBy { s -> s.number } }
     if (review) {
         ImportReviewScreen(vm, data, c) { review = false }
         return
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
+            RelocatedFilter(showRelocated) {showRelocated=it}
             Section("Alunos da turma", "${c.name} • ${counted(roster.size, "matrícula", "matrículas")}")
             Button(onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("+ Adicionar aluno") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -54,10 +56,11 @@ import java.text.Collator
             Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada") { alphabetical = it == "Ordem alfabética" }
             Text("A ordenação alfabética não altera os números. Na ordem da chamada, use Subir/Descer ou edite o aluno.", style = MaterialTheme.typography.bodySmall)
         }
-        if (roster.isEmpty()) item { Info("Sua turma ainda não tem alunos. Adicione individualmente ou importe uma lista para conferir.") }
+        if (roster.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Sua turma ainda não tem alunos. Adicione individualmente ou importe uma lista para conferir." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico preservado.") }
         items(roster, key = { it.id }) { student ->
             Card(Modifier.fillMaxWidth().clickable { profile(student.id) }) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("${student.number}. ${student.name}", style = MaterialTheme.typography.titleMedium)
+                RelocationNotice(data,student)
                 Text("${student.status} • ingresso ${shortDate(student.joined)}", style = MaterialTheme.typography.bodySmall)
                 Row {
                     TextButton(onClick = { editing = student; form = true }) { Text("Editar") }
@@ -83,45 +86,16 @@ import java.text.Collator
 }
 
 @Composable fun ProfileScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, student: Student, term: Int, changeTerm: (Int) -> Unit) {
-    var edit by remember { mutableStateOf(false) }; var transfer by remember { mutableStateOf(false) }
-    var target by remember { mutableStateOf("") }; var day by rememberSaveable { mutableStateOf(shortDate(today())) }
-    val period = data.terms.firstOrNull { it.classId == c.id && it.number == term }
-    val frequency = data.frequency(student, period, c.countJustified)
-    val report = br.com.diariodeclasse.reports.SchoolReports(data, c).student(student, term)
-    val result = report.grades
-    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item {
-            Section(student.name, "${c.name} • nº ${student.number} • ${student.status}")
-            TextButton(onClick = { edit = true }) { Text("Editar cadastro e observações") }
-            if (student.status == "Ativo") TextButton(onClick = { transfer = true }) { Text("Transferir para outra turma") }
-            TermSelector(term, changeTerm)
-            Info("Nota ${report.total?.let(::number) ?: "Pendente"} / ${number(c.scale)}${if (result.partial) " • parcial" else ""}\n${result.pending} notas pendentes${recompositionText(report)}\nFaltas: ${frequency.absent} • justificadas: ${frequency.justified}\nPresenças: ${frequency.present} • frequência: ${number(frequency.percent)}%\n${frequency.valid} chamadas válidas de ${frequency.performed} aulas realizadas")
-            if (student.notes.isNotBlank()) Text("Observações: ${student.notes}")
+    var edit by remember { mutableStateOf(false) }; var relocate by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize()) {
+        Row {
+            TextButton(onClick={edit=true}) {Text("Editar cadastro e observações")}
+            if(student.status=="Ativo") TextButton(onClick={relocate=true}) {Text("Remanejar")}
         }
-        items(data.activities.filter { it.classId == c.id && it.term == term }, key = { it.id }) { activity ->
-            val grade = data.grades.firstOrNull { it.activityId == activity.id && it.studentId == student.id }?.value
-            Text("${activity.name}: ${if (!student.enrolled(activity.date)) "Fora da matrícula" else grade?.let { number(it) } ?: "Pendente"} / ${number(activity.maximum)}")
-        }
-        item { Section("Histórico anual") }
-        items((1..4).toList()) { n ->
-            val reportRow = br.com.diariodeclasse.reports.SchoolReports(data, c).student(student, n)
-            val r = reportRow.grades
-            val f = data.frequency(student, data.terms.firstOrNull { it.classId == c.id && it.number == n }, c.countJustified)
-            Text("${n}º bim. • ${reportRow.total?.let(::number) ?: "Pendente"}${if (r.partial) " (parcial)" else ""} • ${f.absent} F • ${f.justified} FJ${recompositionText(reportRow)}")
-        }
-        item {
-            val annual = data.frequency(student, null, c.countJustified)
-            Info("Ano: ${annual.absent} faltas e ${annual.justified} faltas justificadas. Frequência ${number(annual.percent)}%.")
-        }
+        Box(Modifier.weight(1f)) {IndividualReportScreen(data,c,student,term,changeTerm)}
     }
-    if (edit) StudentForm(vm, c, student) { edit = false }
-    if (transfer) Form("Transferir aluno", { transfer = false }) {
-        val targets = data.classes.filter { it.id != c.id }
-        targets.forEach { klass -> Row { RadioButton(target == klass.id, { target = klass.id }); Text("${klass.name} • ${klass.year}", Modifier.padding(top = 12.dp)) } }
-        Field("Data da transferência (dd/mm/aaaa)", day, { day = it })
-        Info("O histórico permanecerá nesta turma. A matrícula de destino começará na data informada.")
-        Button(enabled = target.isNotBlank(), onClick = { vm.act(done = { transfer = false }) { vm.repository.transfer(student.id, target, iso(day)) } }) { Text("Confirmar transferência") }
-    }
+    if(edit) StudentForm(vm,c,student) {edit=false}
+    if(relocate) StudentForm(vm,c,student,initialStatus="Remanejado") {relocate=false}
 }
 
 private fun java.io.InputStream.readBytesLimited(limit: Int): ByteArray {

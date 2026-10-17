@@ -19,29 +19,55 @@ data class DiarySnapshot(
     val classes: List<SchoolClass> = emptyList(), val students: List<Student> = emptyList(),
     val terms: List<Term> = emptyList(), val lessons: List<Lesson> = emptyList(),
     val marks: List<Attendance> = emptyList(), val activities: List<Activity> = emptyList(),
-    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList()
+    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList()
 ) {
     fun roster(classId: String) = students.filter { it.classId == classId }
+    fun currentRoster(classId: String, showRelocated: Boolean = false) = roster(classId).filter { showRelocated || it.status != "Remanejado" }
+    /** Somente antecessores explicitamente vinculados; personId sozinho nunca infere um vínculo. */
+    fun lineage(student: Student): List<Student> {
+        val result = mutableListOf<Student>(); val seen = mutableSetOf<String>(); var current: Student? = student
+        while (current != null) {
+            require(seen.add(current.id)) { "Ciclo no histórico de remanejamento." }
+            result.add(current)
+            val source = relocations.firstOrNull { it.targetStudentId == current!!.id }?.sourceStudentId
+            current = source?.let { id -> students.firstOrNull { it.id == id } }
+        }
+        return result.reversed()
+    }
+    fun activityOwner(student: Student, activity: Activity): Student? = lineage(student).firstOrNull { it.classId == activity.classId && it.enrolled(activity.date) }
+    fun periodRecomposition(student: Student, term: Int): Recomposition? {
+        val ids = lineage(student).map { it.id }.toSet()
+        val rows = recompositions.filter { it.studentId in ids && it.term == term }
+        require(rows.size <= 1) { "Há duas recomposições para o mesmo período. Não é possível consolidar." }
+        return rows.singleOrNull()
+    }
     fun frequency(student: Student, term: Term?, countJustified: Boolean): SchoolRules.Frequency {
-        val byLesson = marks.filter { it.studentId == student.id }.associateBy { it.lessonId }
-        return SchoolRules.frequency(student.joined, student.left,
-            lessons.filter { it.classId == student.classId && (term == null || it.date in term.start..term.end) }
-                .map { SchoolRules.AttendanceEntry(it.date, it.state, byLesson[it.id]?.mark) }, countJustified)
+        val parts = lineage(student).map { enrollment ->
+            val byLesson = marks.filter { it.studentId == enrollment.id }.associateBy { it.lessonId }
+            val period = term?.let { t -> terms.firstOrNull { it.classId == enrollment.classId && it.number == t.number } ?: t }
+            SchoolRules.frequency(enrollment.joined, enrollment.left,
+                lessons.filter { it.classId == enrollment.classId && (period == null || it.date in period.start..period.end) }
+                    .map { SchoolRules.AttendanceEntry(it.date, it.state, byLesson[it.id]?.mark) }, countJustified)
+        }
+        return SchoolRules.aggregateFrequency(parts, countJustified)
     }
     fun result(student: Student, term: Int, scale: Double): SchoolRules.GradeSummary {
-        val list = activities.filter { it.classId == student.classId && it.term == term && student.enrolled(it.date) }
-        val byActivity = grades.filter { it.studentId == student.id }.associateBy { it.activityId }
-        return SchoolRules.grades(list.map { byActivity[it.id]?.value }, list.map { it.maximum }, scale)
+        val list = activities.filter { it.term == term && activityOwner(student, it) != null }
+        val byActivity = grades.associateBy { it.activityId to it.studentId }
+        return SchoolRules.grades(list.map { byActivity[it.id to activityOwner(student, it)!!.id]?.value }, list.map { it.maximum }, scale)
     }
+
 }
 
 class DiaryRepository(val db: DiaryDatabase) {
     val dao = db.dao()
-    // Cada emissão lê as nove tabelas no mesmo snapshot SQLite confirmado.
+    // Cada emissão lê as dez tabelas no mesmo snapshot SQLite confirmado.
     // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
     val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
-        "activities", "grades", "import_drafts", "recompositions").map {
-        db.withTransaction {
+        "activities", "grades", "import_drafts", "recompositions", "relocations").map {
+        readSnapshot()
+    }.distinctUntilChanged()
+    internal suspend fun readSnapshot(): DiarySnapshot = db.withTransaction {
             val read = db.backupDao()
             DiarySnapshot(
                 classes = read.classes().sortedWith(compareByDescending<SchoolClass> { it.year }.thenBy { it.name }.thenBy { it.id }),
@@ -51,9 +77,9 @@ class DiaryRepository(val db: DiaryDatabase) {
                 marks = read.marks(),
                 activities = read.activities().sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id }),
                 grades = read.grades(), drafts = read.drafts().sortedWith(compareBy<ImportDraft> { it.position }.thenBy { it.id }),
-                recompositions = read.recompositions(), loaded = true)
-        }
-    }.distinctUntilChanged()
+                recompositions = read.recompositions(), relocations = read.relocations(), loaded = true)
+    }
+
     suspend fun saveClass(value: SchoolClass, effective: String) = db.withTransaction {
         require(value.name.isNotBlank() && value.subject.isNotBlank()) { "Informe turma e disciplina." }
         require(value.year in 2000..2100 && value.duration in 1..240) { "Ano ou duração inválidos." }
@@ -63,6 +89,8 @@ class DiaryRepository(val db: DiaryDatabase) {
         val previous = dao.schoolClass(value.id)
         require(previous == null || previous.year == value.year) { "Crie outra turma para mudar o ano e preservar o histórico." }
         require(date(effective).year == value.year) { "A vigência deve estar no ano letivo." }
+        val linked=readSnapshot()
+        RelocationRules.validateLinks(linked.copy(classes=linked.classes.map {if(it.id==value.id) value else it}))
         dao.save(value)
         if (previous == null) {
             for (n in 1..4) {
@@ -76,6 +104,8 @@ class DiaryRepository(val db: DiaryDatabase) {
         val c = requireNotNull(dao.schoolClass(classId))
         validateTerms(c, periods)
         val sorted = periods.sortedBy { it.number }
+        val linked=readSnapshot()
+        RelocationRules.validateLinks(linked.copy(terms=linked.terms.filter {it.classId!=classId}+sorted))
         sorted.forEach { dao.save(it) }
     }
     fun validateTerms(c: SchoolClass, periods: List<Term>) {
@@ -87,10 +117,12 @@ class DiaryRepository(val db: DiaryDatabase) {
         sorted.zipWithNext().forEach { (a, b) -> require(a.end < b.start) { "Bimestres não podem se sobrepor." } }
     }
     suspend fun saveStudent(value: Student) = db.withTransaction {
-        require(value.name.trim().length >= 2 && value.number > 0) { "Informe nome e número válido." }
-        date(value.joined); value.left?.let { require(date(it) >= date(value.joined)) { "Saída anterior ao ingresso." } }
-        require(value.status == "Ativo" || value.left != null) { "Informe a data de saída." }
-        require(dao.roster(value.classId).none { it.id != value.id && it.number == value.number }) { "Número já utilizado nesta turma." }
+        validateStudent(value)
+        val old=dao.student(value.id);val data=readSnapshot()
+        require(old==null || old.classId==value.classId && old.personId==value.personId) {"A identidade e a turma da matrícula não podem ser substituídas."}
+        val linked=data.relocations.any {it.sourceStudentId==value.id||it.targetStudentId==value.id}
+        if(linked) require(old!=null && old.joined==value.joined && old.left==value.left && old.status==value.status) {"Matrícula vinculada: datas e situação são preservadas pelo remanejamento. Nome, número e observações podem ser corrigidos."}
+        require(value.status!="Remanejado" || old?.status=="Remanejado") {"Use a prévia e a confirmação de remanejamento."}
         dao.save(value.copy(name = value.name.trim()))
     }
     suspend fun addNames(classId: String, names: List<String>, joined: String) = db.withTransaction {
@@ -113,6 +145,7 @@ class DiaryRepository(val db: DiaryDatabase) {
     }
     suspend fun transfer(studentId: String, targetId: String, day: String) = db.withTransaction {
         val student = requireNotNull(dao.student(studentId)); val target = requireNotNull(dao.schoolClass(targetId))
+        require(readSnapshot().relocations.none {it.sourceStudentId==studentId||it.targetStudentId==studentId}) {"Use Remanejado na edição para preservar o histórico vinculado."}
         require(student.classId != target.id && student.status == "Ativo" && day > student.joined) { "Transferência inválida." }
         require(date(day).year == target.year) { "A data deve estar no ano da turma de destino." }
         val roster = dao.roster(targetId)
@@ -120,6 +153,74 @@ class DiaryRepository(val db: DiaryDatabase) {
         dao.save(student.copy(status = "Transferido", left = date(day).minusDays(1).toString()))
         dao.save(student.copy(id = newId(), classId = targetId, number = (roster.maxOfOrNull { it.number } ?: 0) + 1,
             joined = day, left = null, status = "Ativo"))
+    }
+    suspend fun previewRelocation(sourceId: String, targetClassId: String?, external: String?, day: String,
+        proposed: Student? = null): RelocationPreview = db.withTransaction {
+        val before=readSnapshot();val source=requireNotNull(before.students.firstOrNull {it.id==sourceId}) {"Matrícula de origem não encontrada."}
+        val edited=proposed ?: source
+        require(edited.id==source.id && edited.personId==source.personId && edited.classId==source.classId && edited.joined==source.joined && edited.left==source.left && edited.status==source.status) {"Confirme o remanejamento sem alterar os limites da matrícula de origem."}
+        validateStudent(edited)
+        require(source.status=="Ativo" && source.left==null && before.relocations.none {it.sourceStudentId==sourceId}) {"Esta matrícula já foi encerrada/remanejada. Consulte o histórico."}
+        val origin=before.classes.first {it.id==source.classId}
+        require(date(day).year==origin.year && day>source.joined) {"A data efetiva deve ser posterior ao ingresso e estar no ano letivo."}
+        require(before.marks.none {m->m.studentId==sourceId && m.mark!="NR" && before.lessons.any {it.id==m.lessonId&&it.date>=day}} &&
+            before.grades.none {g->g.studentId==sourceId&&g.value!=null&&before.activities.any {it.id==g.activityId&&it.date>=day}} &&
+            before.recompositions.none {it.studentId==sourceId&&it.date>=day}) {"Há lançamentos na origem na data efetiva ou depois dela. Confira a data e os registros antes de remanejar; nada será apagado."}
+        val target:Student?;val targetName:String
+        if(targetClassId==null) {
+            require(!external.isNullOrBlank() && external.trim().length in 2..160) {"Informe o nome da outra turma (2 a 160 caracteres)."}
+            require(RosterParser.key(external)!=RosterParser.key(origin.name)) {"O destino externo não pode ser a turma de origem. Identifique a outra turma/escola."}
+            target=null;targetName=external.trim()
+        } else {
+            require(external==null) {"Selecione apenas um destino."}
+            val school=requireNotNull(before.classes.firstOrNull {it.id==targetClassId}) {"Turma de destino não encontrada."}
+            require(RelocationRules.compatible(origin,school,before.terms)) {"Destino incompatível: use mesmo ano, disciplina, etapa, escala, bimestres e política de FJ. Não há conversão automática."}
+            require(before.lineage(source).none {it.classId==targetClassId}) {"O destino já faz parte deste histórico. Retorno/ciclo não permitido."}
+            val roster=before.roster(targetClassId);val existing=roster.filter {it.personId==source.personId}
+            require(existing.size<=1) {"Há identidades repetidas no destino. Confira as matrículas."}
+            target=existing.singleOrNull()?.also {
+                require(it.status=="Ativo"&&it.left==null&&it.joined==day && before.relocations.none {l->l.targetStudentId==it.id||l.sourceStudentId==it.id}) {"A matrícula existente no destino deve estar ativa, sem outro vínculo e com ingresso exatamente na data efetiva. Seus dados não serão ajustados silenciosamente."}
+                require(before.marks.none {m->m.studentId==it.id&&m.mark!="NR"&&before.lessons.any {l->l.id==m.lessonId&&l.date<day}} && before.grades.none {g->g.studentId==it.id&&g.value!=null&&before.activities.any {a->a.id==g.activityId&&a.date<day}}) {"A matrícula de destino tem lançamentos anteriores ao ingresso. Confira-os antes de vincular."}
+            } ?: run {
+                require(roster.none {RosterParser.possibleDuplicate(it.name,edited.name)}) {"Há nome semelhante no destino com outra identidade. Não será feita fusão automática; confira a matrícula."}
+                edited.copy(id=newId(),classId=targetClassId,number=(roster.maxOfOrNull {it.number}?:0)+1,joined=day,left=null,status="Ativo")
+            }
+            targetName=school.name
+        }
+        val link=Relocation(source.id,target?.id,day,if(target==null) targetName else null)
+        val ended=edited.copy(status="Remanejado",left=date(day).minusDays(1).toString())
+        val after=before.copy(students=before.students.map {if(it.id==source.id) ended else it}+listOfNotNull(target?.takeIf {t->before.students.none {it.id==t.id}}),relocations=before.relocations+link)
+        RelocationRules.validateLinks(after)
+        RelocationPreview(source,target,link,targetName,before,edited)
+    }
+    suspend fun confirmRelocation(preview: RelocationPreview) = db.withTransaction {
+        require(readSnapshot()==preview.prior) {"Os dados mudaram após a prévia. Gere uma nova prévia antes de confirmar."}
+        val checked=previewRelocation(preview.source.id,preview.target?.classId,preview.link.externalTarget,preview.link.effectiveDate,preview.proposedSource)
+        // O UUID da matrícula nova pertence à prévia confirmada; a revalidação não altera IDs.
+        require(checked.target?.let {it.copy(id=preview.target!!.id)}==preview.target && checked.link.copy(targetStudentId=preview.target?.id)==preview.link && checked.targetName==preview.targetName) {"Prévia inconsistente. Refaça a conferência."}
+        dao.save(preview.proposedSource.copy(status="Remanejado",left=preview.end))
+        preview.target?.takeIf { t->preview.prior.students.none {it.id==t.id} }?.let {dao.save(it)}
+        dao.insertRelocation(preview.link)
+        RelocationRules.validateLinks(readSnapshot())
+    }
+    private suspend fun validateStudent(value: Student) {
+        require(value.name.trim().length >= 2 && value.number > 0) { "Informe nome e número válido." }
+        date(value.joined); value.left?.let { require(date(it) >= date(value.joined)) { "Saída anterior ao ingresso." } }
+        require(value.status in listOf("Ativo","Transferido","Remanejado")) {"Situação da matrícula inválida."}
+        require(value.status == "Ativo" || value.left != null) { "Informe a data de saída." }
+        require(dao.roster(value.classId).none { it.id != value.id && it.number == value.number }) { "Número já utilizado nesta turma." }
+    }
+    private suspend fun ensureWritable(student: Student) {
+        require(student.status!="Remanejado") {"Matrícula remanejada: consulte o histórico; lançamentos na origem estão bloqueados."}
+    }
+    private suspend fun recompositionContext(owner: Student, contextStudentId: String?, term: Int, existing: Recomposition?) {
+        val context=if(contextStudentId==null) owner else requireNotNull(dao.student(contextStudentId))
+        ensureWritable(context)
+        val data=readSnapshot();val chain=data.lineage(context)
+        require(chain.any {it.id==owner.id}) {"Matrícula fora do histórico selecionado."}
+        if(owner.id!=context.id) require(existing!=null) {"Não crie um lançamento novo em matrícula histórica."}
+        val other=data.periodRecomposition(context,term)
+        require(other==null || other.studentId==owner.id) {"Há recomposição neste bimestre em outra matrícula do histórico. Edite o registro existente; não crie outro."}
     }
     suspend fun lessonState(id: String, state: String, note: String? = null) = db.withTransaction {
         require(state in listOf("PREVISTA", "REALIZADA", "CANCELADA"))
@@ -147,7 +248,7 @@ class DiaryRepository(val db: DiaryDatabase) {
             val lesson = previous ?: Lesson("$classId:$day:$n", classId, day, n)
             dao.save(lesson.copy(state = "REALIZADA"))
             if (c.startPresent && dao.attendance(lesson.id).isEmpty()) {
-                dao.roster(classId).filter { it.enrolled(day) }.forEach { dao.save(Attendance(lesson.id, it.id, "P")) }
+                dao.roster(classId).filter { it.status!="Remanejado" && it.enrolled(day) }.forEach { dao.save(Attendance(lesson.id, it.id, "P")) }
             }
         }
     }
@@ -159,6 +260,7 @@ class DiaryRepository(val db: DiaryDatabase) {
     suspend fun mark(lessonId: String, studentId: String, mark: String) = db.withTransaction {
         require(mark in listOf("P", "F", "FJ", "NR"))
         val lesson = requireNotNull(dao.lesson(lessonId)); val student = requireNotNull(dao.student(studentId))
+        ensureWritable(student)
         require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
         dao.save(Attendance(lessonId, studentId, mark))
     }
@@ -166,23 +268,27 @@ class DiaryRepository(val db: DiaryDatabase) {
         val lesson = requireNotNull(dao.lesson(id)); require(lesson.state != "CANCELADA") { "Reative a aula antes de registrar." }
         val c = requireNotNull(dao.schoolClass(lesson.classId)); dao.save(lesson.copy(state = "REALIZADA"))
         if (c.startPresent && dao.attendance(id).isEmpty()) {
-            dao.roster(c.id).filter { it.enrolled(lesson.date) }.forEach { dao.save(Attendance(id, it.id, "P")) }
+            dao.roster(c.id).filter { it.status!="Remanejado" && it.enrolled(lesson.date) }.forEach { dao.save(Attendance(id, it.id, "P")) }
         }
     }
     suspend fun allPresent(id: String) = db.withTransaction {
         val lesson = requireNotNull(dao.lesson(id)); require(lesson.state == "REALIZADA")
-        dao.roster(lesson.classId).filter { it.enrolled(lesson.date) }.forEach { dao.save(Attendance(id, it.id, "P")) }
+        dao.roster(lesson.classId).filter { it.status!="Remanejado" && it.enrolled(lesson.date) }.forEach { dao.save(Attendance(id, it.id, "P")) }
     }
     suspend fun copyFirst(id: String) = db.withTransaction {
         val target = requireNotNull(dao.lesson(id)); require(target.state == "REALIZADA")
         val first = dao.day(target.classId, target.date).firstOrNull { it.ordinal < target.ordinal && it.state == "REALIZADA" }
         requireNotNull(first) { "Nenhuma chamada anterior realizada neste dia." }
-        val eligible = dao.roster(target.classId).filter { it.enrolled(target.date) }.map { it.id }.toSet()
+        val eligible = dao.roster(target.classId).filter { it.status!="Remanejado" && it.enrolled(target.date) }.map { it.id }.toSet()
         val source = dao.attendance(first.id).associateBy { it.studentId }
         eligible.forEach { studentId -> dao.save(Attendance(target.id, studentId, source[studentId]?.mark ?: "NR")) }
     }
     private suspend fun validateActivity(value: Activity) {
         require(value.name.isNotBlank() && value.maximum.isFinite() && value.maximum > 0 && value.term in 1..4) { "Informe nome, bimestre e valor válidos." }
+        val linked=readSnapshot()
+        linked.students.filter {it.classId==value.classId && linked.relocations.any {r->r.sourceStudentId==it.id||r.targetStudentId==it.id}}.forEach {student ->
+            require(dao.activityGrades(value.id).none {it.studentId==student.id&&it.value!=null} || student.enrolled(value.date)) {"A nova data excluiria uma nota do histórico vinculado. Confira a matrícula e a atividade."}
+        }
         val period = dao.periods(value.classId).first { it.number == value.term }
         date(value.date); require(value.date in period.start..period.end) { "A data deve estar dentro do bimestre selecionado." }
     }
@@ -224,20 +330,23 @@ class DiaryRepository(val db: DiaryDatabase) {
     }
     suspend fun saveGrade(activityId: String, studentId: String, value: Double?) = db.withTransaction {
         val activity = requireNotNull(dao.activity(activityId)); val student = requireNotNull(dao.student(studentId))
+        ensureWritable(student)
         require(student.classId == activity.classId && student.enrolled(activity.date)) { "Aluno fora do período de matrícula." }
         require(value == null || value.isFinite() && value in 0.0..activity.maximum) { "Nota deve estar entre 0 e ${activity.maximum}." }
         dao.save(Grade(activityId, studentId, value))
     }
-    suspend fun saveRecomposition(value: Recomposition, expected: Recomposition? = null) = db.withTransaction {
+    suspend fun saveRecomposition(value: Recomposition, expected: Recomposition? = null, contextStudentId: String? = null) = db.withTransaction {
         val student = requireNotNull(dao.student(value.studentId)) { "Matrícula não encontrada." }
+        recompositionContext(student,contextStudentId,value.term,expected)
         require(value.term in 1..4 && dao.periods(student.classId).any { it.number == value.term }) { "Selecione o bimestre de origem." }
         require(date(value.date).toString() == value.date) { "Data inválida." }
         require(value.value == null || value.value.isFinite() && value.value in 0.0..10.0) { "Recomposição deve estar entre 0 e 10." }
         require(dao.recomposition(value.studentId, value.term) == expected) { "A recomposição mudou. Reabra o lançamento antes de confirmar." }
         dao.save(value)
     }
-    suspend fun deleteRecomposition(expected: Recomposition) = db.withTransaction {
+    suspend fun deleteRecomposition(expected: Recomposition, contextStudentId: String? = null) = db.withTransaction {
         require(dao.recomposition(expected.studentId, expected.term) == expected) { "A recomposição mudou. Reabra o lançamento." }
+        recompositionContext(requireNotNull(dao.student(expected.studentId)),contextStudentId,expected.term,expected)
         dao.deleteRecomposition(expected.studentId, expected.term)
     }
     suspend fun appendDrafts(classId: String, candidates: List<CsvRoster.Row>) = db.withTransaction {

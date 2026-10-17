@@ -10,7 +10,7 @@ enum class ActivityScoreState { NOT_APPLICABLE, PENDING, RECORDED }
 enum class EnrollmentCoverage { FULL, PARTIAL, OUTSIDE, UNCONFIGURED }
 enum class StudentOrder { CALL, ABSENCES, LOWEST_GRADE, HIGHEST_GRADE }
 
-data class ActivityResult(val activity: Activity, val eligible: Boolean, val score: Double?) {
+data class ActivityResult(val activity: Activity, val eligible: Boolean, val score: Double?, val enrollmentId: String? = null) {
     val state: ActivityScoreState get() = when {
         !eligible -> ActivityScoreState.NOT_APPLICABLE
         score == null -> ActivityScoreState.PENDING
@@ -29,17 +29,18 @@ data class FrequencySummary(val performed: Int, val valid: Int, val present: Int
 }
 data class StudentPeriodReport(
     val student: Student, val number: Int, val period: Term?, val activities: List<ActivityResult>,
-    val grades: SchoolRules.GradeSummary, val frequency: SchoolRules.Frequency?, val state: GradeState, val recomposition: Recomposition? = null, val countJustified: Boolean = true
+    val grades: SchoolRules.GradeSummary, val frequency: SchoolRules.Frequency?, val state: GradeState, val recomposition: Recomposition? = null, val countJustified: Boolean = true, val enrollments: List<Student> = listOf(student), val recompositionSchool: SchoolClass? = null
 ) {
     val launched: Int get() = activities.count { it.eligible && it.score != null }
     val original: Double? get() = if (launched == 0) null else grades.total
     val total: Double? get() = RecompositionRules.effective(original, recomposition?.value)
     val attendance: FrequencySummary? get() = frequency?.let { FrequencySummary.from(it, countJustified) }
     val hasData: Boolean get() = activities.any { it.eligible } || (frequency?.performed ?: 0) > 0 || recomposition != null
-    val enrollment: EnrollmentCoverage get() = period?.let {
+    val enrollment: EnrollmentCoverage get() = period?.let { period ->
+        val overlapping=enrollments.filter {it.joined<=period.end && (it.left==null||it.left>=period.start)}
         when {
-            student.joined > it.end || student.left?.let { end -> end < it.start } == true -> EnrollmentCoverage.OUTSIDE
-            student.joined > it.start || student.left?.let { end -> end < it.end } == true -> EnrollmentCoverage.PARTIAL
+            overlapping.isEmpty() -> EnrollmentCoverage.OUTSIDE
+            overlapping.minOf {it.joined} > period.start || overlapping.all {it.left!=null&&it.left<period.end} -> EnrollmentCoverage.PARTIAL
             else -> EnrollmentCoverage.FULL
         }
     } ?: EnrollmentCoverage.UNCONFIGURED
@@ -57,23 +58,26 @@ data class StudentYearReport(val student: Student, val terms: List<StudentPeriod
 data class ClassYearReport(val school: SchoolClass, val students: List<StudentYearReport>,
     val frequency: FrequencySummary, val performedLessons: Int)
 
+data class AttendanceHistory(val enrollment: Student, val school: SchoolClass, val lesson: Lesson, val mark: String?, val eligible: Boolean)
+
 /** Projeções somente leitura. Notas/frequência continuam delegadas ao DiarySnapshot/SchoolRules. */
-class SchoolReports(private val data: DiarySnapshot, val school: SchoolClass) {
+class SchoolReports(private val data: DiarySnapshot, val school: SchoolClass, showRelocated: Boolean = false) {
     private val yearStart = "${school.year}-01-01"
     private val yearEnd = "${school.year}-12-31"
     private val scoped = data.copy(lessons = data.lessons.filter { it.date in yearStart..yearEnd })
-    private val roster = data.roster(school.id).sortedWith(compareBy<Student> { it.number }.thenBy { it.name.lowercase(Locale.ROOT) }.thenBy { it.id })
-    private val recompositionIndex = data.recompositions.associateBy { it.studentId to it.term }
+    private val roster = data.currentRoster(school.id, showRelocated).sortedWith(compareBy<Student> { it.number }.thenBy { it.name.lowercase(Locale.ROOT) }.thenBy { it.id })
     private val gradeIndex = data.grades.associateBy { it.activityId to it.studentId }
-    private fun activities(number: Int) = data.activities.filter { it.classId == school.id && it.term == number }
+    private fun activities(number: Int) = data.activities.filter { a -> a.term == number && (a.classId == school.id || roster.any {data.activityOwner(it,a)!=null}) }
         .sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id })
     fun student(student: Student, number: Int): StudentPeriodReport {
         require(student.classId == school.id && number in 1..4)
         val period = data.terms.firstOrNull { it.classId == school.id && it.number == number }
-        val rows = activities(number).map { ActivityResult(it, student.enrolled(it.date), gradeIndex[it.id to student.id]?.value) }
+        val chain=data.lineage(student)
+        val columns=(activities(number)+data.activities.filter {it.term==number&&data.activityOwner(student,it)!=null}).distinctBy {it.id}.sortedWith(compareBy<Activity> {it.date}.thenBy {it.name}.thenBy {it.id})
+        val rows = columns.map { a -> val owner=data.activityOwner(student,a); ActivityResult(a, owner!=null, gradeIndex[a.id to (owner?.id ?: student.id)]?.value,owner?.id) }
         val eligible = rows.filter { it.eligible }
         val grades = data.result(student, number, school.scale)
-        val overlap = period == null || student.joined <= period.end && (student.left == null || student.left >= period.start)
+        val overlap = period == null || chain.any {it.joined <= period.end && (it.left == null || it.left >= period.start)}
         val state = when {
             !overlap || rows.isNotEmpty() && eligible.isEmpty() -> GradeState.OUTSIDE_ENROLLMENT
             eligible.isEmpty() -> GradeState.NO_ACTIVITIES
@@ -83,7 +87,7 @@ class SchoolReports(private val data: DiarySnapshot, val school: SchoolClass) {
         }
         // null é usado pelo cálculo legado para o ano inteiro; nunca como substituto de bimestre ausente.
         val frequency = period?.let { scoped.frequency(student, it, school.countJustified) }
-        return StudentPeriodReport(student, number, period, rows, grades, frequency, state, recompositionIndex[student.id to number], school.countJustified)
+        return StudentPeriodReport(student, number, period, rows, grades, frequency, state, data.periodRecomposition(student,number), school.countJustified, chain, data.periodRecomposition(student,number)?.let {r->data.students.firstOrNull {it.id==r.studentId}?.let {owner->data.classes.firstOrNull {it.id==owner.classId}}})
     }
     fun term(number: Int): ClassPeriodReport {
         require(number in 1..4)
@@ -108,6 +112,13 @@ class SchoolReports(private val data: DiarySnapshot, val school: SchoolClass) {
             .map { SchoolRules.AttendanceEntry(it.date, it.state, null) }, school.countJustified).performed
         return ClassYearReport(school, rows, FrequencySummary.from(aggregate, school.countJustified), performed)
     }
+    fun attendanceHistory(student: Student): List<AttendanceHistory> = data.lineage(student).flatMap { enrollment ->
+        val school=data.classes.first {it.id==enrollment.classId}
+        val marks=data.marks.filter {it.studentId==enrollment.id}.associateBy {it.lessonId}
+        scoped.lessons.filter {it.classId==enrollment.classId && (enrollment.enrolled(it.date)||it.id in marks)}.map {lesson ->
+            AttendanceHistory(enrollment,school,lesson,marks[lesson.id]?.mark,enrollment.enrolled(lesson.date))
+        }
+    }.sortedWith(compareBy<AttendanceHistory> {it.lesson.date}.thenBy {it.lesson.ordinal}.thenBy {it.school.id}.thenBy {it.lesson.id})
     fun mostAbsent(number: Int): List<StudentPeriodReport> = rank(term(number).students, school.countJustified)
 
     companion object {

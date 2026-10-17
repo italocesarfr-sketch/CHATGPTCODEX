@@ -69,7 +69,7 @@ class ReportsConsolidationTest {
         }
     }
     @Test fun rankingAndGradeOrderingRemainStableAndNullIsNotZero() {
-        val report=SchoolReports(data,c).term(1)
+        val report=SchoolReports(data,c,showRelocated=true).term(1)
         assertEquals(listOf(moved.id,s.id),SchoolReports.rank(report.students,true).map {it.student.id})
         assertEquals(listOf(moved.id),SchoolReports.rank(report.students,false).map {it.student.id})
         assertEquals(listOf(s.id,moved.id,late.id),SchoolReports.ordered(report.students,StudentOrder.LOWEST_GRADE,true).map {it.student.id})
@@ -85,7 +85,7 @@ class ReportsConsolidationTest {
             activities=data.activities+activities[0].copy(id="other-a",classId=other.id,date="2025-02-10"),
             grades=data.grades+Grade("other-a",otherStudent.id,10.0),recompositions=listOf(Recomposition(otherStudent.id,1,10.0,"2025-11-20")))
         val report=SchoolReports(changed,c)
-        assertEquals(0.0,report.student(s,1).total!!,0.0);assertEquals(3,report.year().students.size)
+        assertEquals(0.0,report.student(s,1).total!!,0.0);assertEquals(2,report.year().students.size)
         assertEquals(c,report.year().school)
         assertNull(SchoolReports(changed.copy(terms=emptyList()),c).student(s,1).attendance)
     }

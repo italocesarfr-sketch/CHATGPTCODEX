@@ -22,7 +22,7 @@ class ReportsConsolidationInstrumentedTest {
     private lateinit var manager:BackupManager
     private lateinit var folder:File
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),10,null)
     }
     @Before fun setup() {runBlocking {
