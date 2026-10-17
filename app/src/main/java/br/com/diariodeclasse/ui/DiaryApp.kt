@@ -11,6 +11,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
@@ -81,7 +82,7 @@ private val pages = listOf(
     Scaffold(
         topBar = { TopAppBar(title = { Column {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(painterResource(R.drawable.ic_owl), null, Modifier.size(24.dp))
+                Icon(painterResource(R.drawable.ic_owl), null, Modifier.size(24.dp), tint = Color.Unspecified)
                 Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
             }
             Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
