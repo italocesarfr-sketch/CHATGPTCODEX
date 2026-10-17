@@ -50,7 +50,7 @@ class RecompositionUiInstrumentedTest {
     }
     private fun all() {
         compose.onNodeWithTag("recomposition-list").performScrollToIndex(0)
-        compose.onNodeWithText("Abaixo de 5,00 ▾").performClick();compose.onNodeWithText("Todos os alunos",useUnmergedTree=true).performClick()
+        compose.onNodeWithText("Abaixo de 5,00 ▾").performScrollTo().performClick();compose.onNodeWithText("Todos os alunos",useUnmergedTree=true).performClick()
     }
     private fun setScore(value:String) {compose.onNodeWithTag("recomposition-score").performTextReplacement(value)}
     private fun save() {compose.onNodeWithTag("recomposition-save").performScrollTo().performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("recomposition-save").fetchSemanticsNodes().isEmpty()}}
@@ -65,6 +65,7 @@ class RecompositionUiInstrumentedTest {
         edit(a);setScore("5,00")
         compose.onNodeWithTag("recomposition-date").performTextReplacement("20/11/2026")
         shot("02-previa");save()
+        compose.onNodeWithTag("recomposition-feedback").assertTextContains("Recomposição salva",substring=true)
         compose.waitUntil(10000) {compose.onAllNodesWithTag("recomposition-row-${a.id}").fetchSemanticsNodes().isEmpty()}
         all();row(a);compose.onNodeWithTag("recomposition-values-${a.id}").assertTextContains("Vigente: 5,00",substring=true)
         compose.onNodeWithTag("recomposition-values-${a.id}").assertTextContains("Original: 3,00",substring=true)
