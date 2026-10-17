@@ -5,6 +5,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,6 +46,9 @@ else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a config
     }
     val ranking = remember(report, c.countJustified) { SchoolReports.rank(report.students, c.countJustified) }
     val horizontal = rememberScrollState()
+    val listState = rememberLazyListState()
+    // Reabrir a página mostra sua identificação; atualizações dos dados não reposicionam a leitura.
+    LaunchedEffect(c.id, term, mode) { listState.scrollToItem(0) }
     // Uma única lista vertical; a rolagem horizontal das células mantém o nome visível.
     @Composable fun TableRow(name: String, tag: String, cells: List<String>, totalIndex: Int? = null, totalValue: Double? = null, click: (() -> Unit)? = null) {
         Row(Modifier.fillMaxWidth().testTag(tag).then(if (click == null) Modifier else Modifier.clickable(onClick = click)).padding(vertical = 12.dp)) {
@@ -60,7 +64,7 @@ else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a config
         }
         HorizontalDivider()
     }
-    LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Section(when (mode) {
                 "Frequência" -> "Frequência do ${term}º bimestre"
