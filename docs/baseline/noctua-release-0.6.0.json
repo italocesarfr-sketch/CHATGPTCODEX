@@ -1,0 +1,17 @@
+{
+  "apkSha256": "8ca266790cb32a1e9572bc9cdefec0a737533291c0f973e5dcf15c71e5282369",
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "bytes": 7114194,
+  "manifest": {
+    "versionCode": 9,
+    "versionName": "0.6.0",
+    "compileSdkVersion": 35,
+    "compileSdkVersionCodename": "15",
+    "package": "br.com.diariodeclasse",
+    "platformBuildVersionCode": 35,
+    "platformBuildVersionName": 15
+  },
+  "runId": 39045605081,
+  "artifactId": 12105803073,
+  "artifactName": "noctua-etapa4b2-release"
+}
