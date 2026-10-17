@@ -67,6 +67,77 @@ class RelocationInstrumentedTest {
         assertEquals(before.students.size+1,after.students.size)
         assertEquals(student.personId,p.target!!.personId)
     }}
+    @Test fun reactivationClearsOnlyTheExitAndImmediateRelocationKeepsIdentity() {runBlocking {
+        val closed=student.copy(status="Transferido",left="2026-10-16",notes="Observação fictícia preservada")
+        repo.saveStudent(closed)
+        repo.saveStudent(closed.copy(status="Ativo"))
+        assertEquals(closed.copy(status="Ativo",left=null),repo.dao.student(student.id))
+        val before=manager.snapshot();val p=repo.previewRelocation(student.id,h.id,null,"2026-10-17")
+        repo.confirmRelocation(p)
+        assertEquals(student.id,repo.dao.student(student.id)!!.id)
+        assertEquals(student.personId,p.target!!.personId)
+        assertEquals(before.grades,manager.snapshot().grades);assertEquals(before.marks,manager.snapshot().marks)
+        assertEquals(1,manager.snapshot().students.count {it.classId==h.id&&it.personId==student.personId})
+    }}
+    @Test fun legacyActiveExitRequiresExplicitRepairAndBackupNeverRepairsAutomatically() {runBlocking {
+        repo.saveRecomposition(Recomposition(student.id,3,5.0,"2026-08-20"))
+        val stale=student.copy(left="2026-10-16",notes="Caso fictício da versão 0.7.0")
+        repo.dao.save(stale) // Simula exatamente o estado persistido pela versão distribuída.
+        val before=manager.snapshot();val oldBackup=manager.backupBytes()
+        db.close();open();assertEquals(before,manager.snapshot())
+        expectMessage("Estado inconsistente") {repo.previewRelocation(student.id,h.id,null,"2026-10-17")}
+        repo.saveStudent(stale.copy(notes="Correção fictícia de observação"))
+        assertEquals(stale.left,repo.dao.student(student.id)!!.left) // Salvar nome/observações não reabre a matrícula.
+        manager.restore(manager.prepare(oldBackup.inputStream()),"RESTAURAR")
+        assertEquals(before,manager.snapshot())
+        repo.repairReactivatedStudent(stale)
+        assertEquals(stale.copy(left=null),repo.dao.student(student.id))
+        assertEquals(before.grades,manager.snapshot().grades);assertEquals(before.marks,manager.snapshot().marks)
+        assertEquals(before.recompositions,manager.snapshot().recompositions)
+        val p=repo.previewRelocation(student.id,h.id,null,"2026-10-17");repo.confirmRelocation(p)
+        val moved=manager.snapshot();val newBackup=manager.backupBytes()
+        db.close();open();assertEquals(moved,manager.snapshot())
+        manager.restore(manager.prepare(oldBackup.inputStream()),"RESTAURAR");assertEquals(before,manager.snapshot())
+        manager.restore(manager.prepare(newBackup.inputStream()),"RESTAURAR");assertEquals(moved,manager.snapshot())
+        assertEquals(1,moved.relocations.size);assertEquals(before.students.size+1,moved.students.size)
+        assertEquals(5.0,SchoolReports(current(),h).student(p.target!!,3).total!!,0.0)
+    }}
+    private suspend fun expectMessage(fragment:String,action:suspend ()->Unit) {
+        try {action();fail("Deveria bloquear: $fragment")}catch(error:IllegalArgumentException) {
+            assertTrue("Mensagem recebida: ${error.message}",error.message?.contains(fragment)==true)
+        }
+    }
+    @Test fun closedRelocatedSameDestinationAndInvalidDatesHaveDistinctMessages() {runBlocking {
+        val closed=student.copy(status="Transferido",left="2026-10-16");repo.saveStudent(closed)
+        val before=manager.snapshot()
+        expectMessage("Matrícula encerrada") {preview()};assertEquals(before,manager.snapshot())
+        repo.saveStudent(closed.copy(status="Ativo"))
+        expectMessage("diferente da turma de origem") {repo.previewRelocation(student.id,g.id,null,"2026-10-17")}
+        for(day in listOf("2026-02-30","2025-10-17","2026-01-01"))
+            expectMessage("Data de remanejamento inválida") {repo.previewRelocation(student.id,h.id,null,day)}
+        val p=preview();repo.confirmRelocation(p);val moved=manager.snapshot()
+        expectMessage("Matrícula já remanejada") {preview()}
+        expectMessage("Matrícula já remanejada") {repo.saveStudent(repo.dao.student(student.id)!!.copy(status="Ativo",left=null))}
+        assertEquals(moved,manager.snapshot())
+    }}
+    @Test fun administrativeTransferWithExistingSuccessorCannotBeReopenedOrDuplicated() {runBlocking {
+        repo.transfer(student.id,h.id,"2026-09-01")
+        val before=manager.snapshot();val closed=repo.dao.student(student.id)!!
+        expectMessage("outra matrícula") {repo.saveStudent(closed.copy(status="Ativo"))}
+        assertEquals(before,manager.snapshot());assertTrue(before.relocations.isEmpty())
+        assertEquals(2,before.students.count {it.personId==student.personId})
+    }}
+    @Test fun failedOrStaleExplicitRepairDoesNotChangeAnyTable() {runBlocking {
+        val stale=student.copy(left="2026-10-16");repo.dao.save(stale)
+        val before=manager.snapshot()
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER reject_reactivation BEFORE UPDATE ON students WHEN OLD.id='rel-a' AND NEW.`left` IS NULL BEGIN SELECT RAISE(ABORT,'test-only'); END")
+        try {repo.repairReactivatedStudent(stale);fail()}catch(_:android.database.sqlite.SQLiteException){}
+        assertEquals(before,manager.snapshot())
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER reject_reactivation")
+        repo.saveStudent(stale.copy(notes="Observação alterada após abrir formulário"));val changed=manager.snapshot()
+        expectMessage("dados mudaram") {repo.repairReactivatedStudent(stale)}
+        assertEquals(changed,manager.snapshot())
+    }}
     @Test fun internalMoveCombinesPointsAndDifferentGridsWithoutCopyingAnyHistory() {runBlocking {
         val before=manager.snapshot();val p=preview();assertEquals(before,manager.snapshot())
         repo.confirmRelocation(p);val target=p.target!!

@@ -117,13 +117,30 @@ class DiaryRepository(val db: DiaryDatabase) {
         sorted.zipWithNext().forEach { (a, b) -> require(a.end < b.start) { "Bimestres não podem se sobrepor." } }
     }
     suspend fun saveStudent(value: Student) = db.withTransaction {
-        validateStudent(value)
         val old=dao.student(value.id);val data=readSnapshot()
         require(old==null || old.classId==value.classId && old.personId==value.personId) {"A identidade e a turma da matrícula não podem ser substituídas."}
+        require(old?.status!="Remanejado" || value.status=="Remanejado") {"Matrícula já remanejada. Consulte o histórico; a origem não pode ser reativada."}
         val linked=data.relocations.any {it.sourceStudentId==value.id||it.targetStudentId==value.id}
         if(linked) require(old!=null && old.joined==value.joined && old.left==value.left && old.status==value.status) {"Matrícula vinculada: datas e situação são preservadas pelo remanejamento. Nome, número e observações podem ser corrigidos."}
         require(value.status!="Remanejado" || old?.status=="Remanejado") {"Use a prévia e a confirmação de remanejamento."}
-        dao.save(value.copy(name = value.name.trim()))
+        val reactivating=old!=null && value.status=="Ativo" &&
+            (old.status=="Transferido" || old.status=="Ativo" && old.left!=null && value.left==null)
+        val saved=if(reactivating) {
+            require(value.joined==old!!.joined && (value.left==null || value.left==old.left)) {
+                "Reative sem alterar o ingresso ou informar outra saída. Confirme essas alterações separadamente."
+            }
+            EnrollmentReactivation.reopen(old,data)
+            value.copy(left=null)
+        } else value
+        validateStudent(saved)
+        dao.save(saved.copy(name = saved.name.trim()))
+    }
+    /** Reparo direcionado do estado legado Ativo + saída. A confirmação só vale para o registro conferido. */
+    suspend fun repairReactivatedStudent(expected: Student) = db.withTransaction {
+        val current=requireNotNull(dao.student(expected.id)) {"Matrícula não encontrada."}
+        require(current==expected) {"Os dados mudaram após abrir o formulário. Reabra o cadastro e confira a matrícula."}
+        require(current.status=="Ativo" && current.left!=null) {"Estado inconsistente: este reparo exige matrícula ativa com saída preenchida."}
+        saveStudent(current.copy(left=null))
     }
     suspend fun addNames(classId: String, names: List<String>, joined: String) = db.withTransaction {
         date(joined)
@@ -160,9 +177,15 @@ class DiaryRepository(val db: DiaryDatabase) {
         val edited=proposed ?: source
         require(edited.id==source.id && edited.personId==source.personId && edited.classId==source.classId && edited.joined==source.joined && edited.left==source.left && edited.status==source.status) {"Confirme o remanejamento sem alterar os limites da matrícula de origem."}
         validateStudent(edited)
-        require(source.status=="Ativo" && source.left==null && before.relocations.none {it.sourceStudentId==sourceId}) {"Esta matrícula já foi encerrada/remanejada. Consulte o histórico."}
+        require(source.status!="Remanejado" && before.relocations.none {it.sourceStudentId==sourceId}) {"Matrícula já remanejada. Consulte o histórico do destino."}
+        require(source.status=="Ativo") {"Matrícula encerrada. Confirme uma reativação legítima no cadastro antes de remanejar."}
+        require(source.left==null) {"Estado inconsistente: matrícula ativa com data de saída. Se ela foi reativada, confirme a reativação no cadastro antes de remanejar. Nenhum registro foi alterado."}
+        require(targetClassId!=source.classId) {"A turma de destino deve ser diferente da turma de origem."}
         val origin=before.classes.first {it.id==source.classId}
-        require(date(day).year==origin.year && day>source.joined) {"A data efetiva deve ser posterior ao ingresso e estar no ano letivo."}
+        val effective=try { date(day) } catch(_:java.time.format.DateTimeParseException) {
+            throw IllegalArgumentException("Data de remanejamento inválida. Confira o calendário.")
+        }
+        require(effective.toString()==day && effective.year==origin.year && day>source.joined) {"Data de remanejamento inválida: deve ser posterior ao ingresso e estar no ano letivo."}
         require(before.marks.none {m->m.studentId==sourceId && m.mark!="NR" && before.lessons.any {it.id==m.lessonId&&it.date>=day}} &&
             before.grades.none {g->g.studentId==sourceId&&g.value!=null&&before.activities.any {it.id==g.activityId&&it.date>=day}} &&
             before.recompositions.none {it.studentId==sourceId&&it.date>=day}) {"Há lançamentos na origem na data efetiva ou depois dela. Confira a data e os registros antes de remanejar; nada será apagado."}

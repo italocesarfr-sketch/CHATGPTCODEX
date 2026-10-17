@@ -103,18 +103,26 @@ import java.time.LocalDate
     var effective by rememberSaveable { mutableStateOf(shortDate(today())) }
     var preview by remember { mutableStateOf<RelocationPreview?>(null) }
     var discard by remember { mutableStateOf(false) }
+    var confirmReactivation by remember { mutableStateOf(false) }
     val linked=data.relocations.any {it.sourceStudentId==student.id||it.targetStudentId==student.id}
     val relocating=status=="Remanejado" && student.status=="Ativo" && original!=null
+    val reactivating=student.status=="Transferido" && status=="Ativo"
     val duplicate = data.roster(c.id).any { it.id != student.id && RosterParser.possibleDuplicate(it.name, name) }
     val dirty=name!=student.name||num!=student.number.toString()||joined!=shortDate(student.joined)||left!=(student.left?.let(::shortDate)?:"")||status!=student.status||notes!=student.notes||target.isNotBlank()||external.isNotBlank()
     fun leave() {if(!saving) {if(dirty) discard=true else dismiss()}}
     if(preview==null) Form(if (original == null) "Cadastrar aluno" else "Editar aluno", ::leave) {
+        if(student.status=="Ativo" && student.left!=null && !linked) {
+            Info("Esta matrícula está Ativa, mas possui saída em ${shortDate(student.left)}. Se foi reativada, confirme abaixo para retirar essa saída antes de remanejar. Se a saída é legítima, mantenha-a.")
+            OutlinedButton(enabled=!saving&&!dirty,onClick={confirmReactivation=true},modifier=Modifier.testTag("repair-reactivation")) {Text("Confirmar reativação")}
+            if(dirty) Text("Para confirmar a reativação, reabra o cadastro sem outras alterações pendentes.",style=MaterialTheme.typography.bodySmall)
+        }
         Field("Nome completo", name, { if(!saving) name = it }); Field("Número na chamada", num, { if(!saving) num = it })
-        Field("Ingresso (dd/mm/aaaa)", joined, { joined = it }, enabled=!linked&&!saving&&!relocating)
-        if(!relocating) Field("Saída (opcional, dd/mm/aaaa)", left, { left = it }, enabled=!linked&&!saving)
+        Field("Ingresso (dd/mm/aaaa)", joined, { joined = it }, enabled=!linked&&!saving&&!relocating&&!reactivating)
+        if(!relocating) Field("Saída (opcional, dd/mm/aaaa)", left, { left = it }, enabled=!linked&&!saving&&!reactivating)
         if(student.status=="Remanejado" && linked) Info("Matrícula remanejada: situação e datas preservadas. Consulte o destino e o histórico; este formulário não reativa a matrícula.")
         else Choice("Situação", if(linked&&student.status=="Ativo") listOf("Ativo", "Remanejado") else if(original!=null&&student.status=="Ativo") listOf("Ativo", "Transferido", "Remanejado") else listOf("Ativo", "Transferido",student.status).distinct(), status) { if(!saving) status = it }
         Field("Observações pedagógicas", notes, { if(!saving) notes = it }, lines = 3)
+        if(reactivating) Info("Ao salvar como Ativo, a saída anterior será retirada. A mesma matrícula e todos os registros escolares serão preservados. Não reative se a transferência continua válida.")
         if(relocating) {
             Field("Data efetiva do remanejamento (dd/mm/aaaa)", effective, {if(!saving) effective=it},Modifier.testTag("relocation-date"))
             Text("Turma de destino",style=MaterialTheme.typography.titleSmall)
@@ -158,6 +166,9 @@ import java.time.LocalDate
         SaveError(vm)
     }}
     if(discard) Confirm("Descartar alterações não salvas?","Nenhum remanejamento ou alteração de cadastro será realizado.",{discard=false}) {discard=false;dismiss()}
+    if(confirmReactivation) Confirm("Reativar esta matrícula?","A saída em ${student.left?.let(::shortDate)} será retirada da matrícula de ${student.name}. Confirme apenas se ela voltou legitimamente à turma. IDs, observações, notas, chamadas e recomposições serão preservados. Nenhuma presença ou falta será criada.",{if(!saving)confirmReactivation=false}) {
+        if(!saving) {confirmReactivation=false;vm.act(done=dismiss) {vm.repository.repairReactivatedStudent(student)}}
+    }
 }
 
 @Composable fun ActivityForm(vm: DiaryViewModel, c: SchoolClass, term: Int, original: Activity?, dismiss: () -> Unit, saved: (Activity) -> Unit) {

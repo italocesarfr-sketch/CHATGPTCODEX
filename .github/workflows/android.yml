@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Etapa 4C — remanejamento seguro e regressão
+    name: Correção 0.7.1 — reativação, remanejamento e regressão
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: resultados-etapa4c
+          name: resultados-reativacao
           path: |
             app/build/reports/tests/
             app/build/test-results/
@@ -107,7 +107,7 @@ jobs:
             build/frequency-process-read.txt
           if-no-files-found: ignore
   stable-update:
-    name: Release — atualização da Noctua 0.6.1 com a assinatura existente
+    name: Release — atualização da Noctua 0.7.0 com a assinatura existente
     needs: validation
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: release
@@ -163,8 +163,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 39049512375
-          name: noctua-etapa4b3-release
+          run-id: 39055280256
+          name: noctua-etapa4c-release
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
         env:
@@ -176,7 +176,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.6.1.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.7.0.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk
@@ -201,7 +201,7 @@ jobs:
           cp build/stable-upgrade/compatibilidade.txt app/build/outputs/apk/release/compatibilidade.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: noctua-etapa4c-release
+          name: noctua-correcao-reativacao-release
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/release/app-release.apk.sha256

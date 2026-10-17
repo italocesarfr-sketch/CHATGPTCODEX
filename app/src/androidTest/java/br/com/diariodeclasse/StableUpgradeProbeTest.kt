@@ -5,18 +5,17 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.*
-import org.json.JSONObject
-import org.json.JSONArray
 import br.com.diariodeclasse.reports.SchoolReports
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
+import org.json.JSONObject
+import org.json.JSONArray
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
-/** Semente compatível com Noctua 0.6.1. Só executa no emulador descartável com argumento explícito. */
+/** Semente executada na release REAL 0.7.0. Só emulador descartável com argumento explícito. */
 class StableUpgradeProbeTest {
     @Test fun sameOwnerSignaturePreservesEveryRowPreferencesAndBackup() {
         val phase=InstrumentationRegistry.getArguments().getString("stableUpgradePhase")
@@ -24,10 +23,9 @@ class StableUpgradeProbeTest {
         check(Build.HARDWARE in setOf("ranchu","goldfish")) {"Somente emulador descartável."}
         runBlocking {
             val app=ApplicationProvider.getApplicationContext<DiaryApplication>()
-            val manager=app.backupManager
+            val repo=app.repository;val manager=app.backupManager
             val file=File(app.filesDir,"stable-upgrade-synthetic.json")
             if(phase=="seed") {
-                // JSON do formato distribuído; não invoca construtores/copy ampliados na versão nova.
                 val raw=InstrumentationRegistry.getInstrumentation().context.assets.open("baseline-v1.json").bufferedReader().use {it.readText()}
                 val payload=JSONObject(raw).put("recompositions",JSONArray().apply {
                     put(JSONObject().put("studentId","alfa").put("term",1).put("value",0.0).put("date","2026-11-20"))
@@ -40,58 +38,78 @@ class StableUpgradeProbeTest {
                     .put("appVersionCode",10).put("sourceCertificateSha256",JSONObject.NULL)
                     .put("payloadSha256",BackupCodec.hash(payload.toByteArray())).put("payload",payload).toString().toByteArray()
                 manager.restore(manager.prepare(envelope.inputStream()),"RESTAURAR")
-                app.selectionStore.write(AppSelection(2026,"classe-alfa"))
-                file.writeBytes(manager.backupBytes())
+                val initial=manager.snapshot();val origin=initial.classes.first {it.id=="classe-alfa"}
+                val target=origin.copy(id="stable-history-target",name="Destino Fictício Atualização")
+                repo.saveClass(target,"2026-01-01")
+                repo.saveTerms(target.id,initial.terms.filter {it.classId==origin.id}.map {it.copy(classId=target.id)})
+                // Movimento consolidado na versão antiga: todas as dez tabelas participam da prova.
+                val archived=Student("stable-archived","stable-archived-person",origin.id,"Estudante Fictício Histórico",4,"2026-01-01",notes="Histórico fictício preservado")
+                repo.saveStudent(archived);repo.saveGrade("atividade-1",archived.id,3.0);repo.saveGrade("atividade-2",archived.id,1.0)
+                repo.setDayHours(origin.id,"2026-08-10",2)
+                repo.mark("${origin.id}:2026-08-10:1",archived.id,"P");repo.mark("${origin.id}:2026-08-10:2",archived.id,"FJ")
+                repo.saveRecomposition(Recomposition(archived.id,3,6.0,"2026-08-20"))
+                repo.confirmRelocation(repo.previewRelocation(archived.id,target.id,null,"2026-09-01"))
+                val stale=Student("stable-stale","stable-stale-person",origin.id,"Estudante Fictícia Reativada",5,"2026-01-01",notes="Mesmo ID após corrigir")
+                repo.saveStudent(stale);repo.saveGrade("atividade-1",stale.id,0.0);repo.saveGrade("atividade-2",stale.id,0.0)
+                repo.mark("${origin.id}:2026-08-10:1",stale.id,"P");repo.mark("${origin.id}:2026-08-10:2",stale.id,"F")
+                repo.saveRecomposition(Recomposition(stale.id,3,0.0,"2026-08-20"))
+                repo.saveStudent(stale.copy(status="Transferido",left="2026-10-16"))
+                repo.saveStudent(repo.dao.student(stale.id)!!.copy(status="Ativo"))
+                assertEquals("2026-10-16",repo.dao.student(stale.id)!!.left) // Reproduzido na 0.7.0, antes da atualização.
+                repo.saveStudent(stale.copy(id="stable-closed",personId="stable-closed-person",name="Estudante Fictício Encerrado",number=6,status="Transferido",left="2026-09-30"))
+                app.selectionStore.write(AppSelection(2026,origin.id));file.writeBytes(manager.backupBytes())
             }
             val bytes=file.readBytes();val expected=BackupCodec.decode(bytes).snapshot
-            assertEquals(expected,manager.snapshot())
+            assertEquals(expected,manager.snapshot()) // Atualização/leitura nunca reativam automaticamente.
             assertEquals(expected.selection,app.selectionStore.read())
             assertEquals("Noctua",app.packageManager.getApplicationLabel(app.applicationInfo).toString())
+            assertEquals("Transferido",repo.dao.student("stable-closed")!!.status)
+            assertEquals("2026-09-30",repo.dao.student("stable-closed")!!.left)
+            assertEquals("Remanejado",repo.dao.student("stable-archived")!!.status)
             if(phase!="seed") {
-                val data=app.repository.snapshot.first {it.loaded}
-                val school=data.classes.first {it.id=="classe-alfa"};val student=data.students.first {it.id=="alfa"}
-                val reports=SchoolReports(data,school)
+                val data=repo.snapshot.first {it.loaded};val school=data.classes.first {it.id=="classe-alfa"}
+                val student=data.students.first {it.id=="alfa"};val reports=SchoolReports(data,school)
                 assertEquals(1.5,reports.student(student,3).original!!,0.0)
-                assertEquals(expected.recompositions.first {it.studentId=="alfa"&&it.term==3}.value!!,reports.student(student,3).total!!,0.0)
+                assertEquals(5.5,reports.student(student,3).total!!,0.0)
                 assertEquals(4,reports.year(student).terms.size)
                 assertEquals(1,reports.student(student,1).attendance!!.effectiveAbsences)
-                if(expected.relocations.isNotEmpty()) {
-                    val target=data.students.first {it.id==expected.relocations.single().targetStudentId}
-                    val destination=data.classes.first {it.id==target.classId}
-                    assertEquals(5.0,SchoolReports(data,destination).student(target,3).total!!,0.0)
-                    assertEquals(2,data.lineage(target).size)
+                val oldLink=expected.relocations.first {it.sourceStudentId=="stable-archived"}
+                val archivedTarget=data.students.first {it.id==oldLink.targetStudentId}
+                val destination=data.classes.first {it.id==archivedTarget.classId}
+                assertEquals(6.0,SchoolReports(data,destination).student(archivedTarget,3).total!!,0.0)
+                assertEquals(2,data.lineage(archivedTarget).size)
+                if(expected.relocations.size==1) {
+                    assertEquals("Ativo",repo.dao.student("stable-stale")!!.status)
+                    assertEquals("2026-10-16",repo.dao.student("stable-stale")!!.left)
+                } else {
+                    val moved=expected.relocations.first {it.sourceStudentId=="stable-stale"}
+                    val targetStudent=data.students.first {it.id==moved.targetStudentId}
+                    assertEquals(0.0,SchoolReports(data,destination).student(targetStudent,1).original!!,0.0)
+                    assertEquals(0.0,data.periodRecomposition(targetStudent,3)!!.value!!,0.0)
+                    assertEquals(1,SchoolReports(data,destination).year(targetStudent).frequency.absent)
                 }
             }
             if(phase=="restore") {
-                app.repository.saveGrade("atividade-1","alfa",7.0)
-                app.repository.deleteRecomposition(expected.recompositions.first())
+                repo.saveGrade("atividade-1","alfa",7.0)
+                repo.deleteRecomposition(expected.recompositions.first {it.studentId=="alfa"&&it.term==1})
                 assertNotEquals(expected,manager.snapshot())
                 manager.restore(manager.prepare(bytes.inputStream()),"RESTAURAR")
-                assertEquals(expected,manager.snapshot())
-                assertTrue(manager.hasSafetyCopy())
-                // Correção explícita posterior à prova de preservação integral da versão 0.6.1.
-                val previous=expected.recompositions.first {it.studentId=="alfa"&&it.term==3}
-                app.repository.saveRecomposition(previous.copy(value=5.0),previous)
-                val beforeMove=manager.snapshot()
-                val school=beforeMove.classes.first {it.id=="classe-alfa"}
-                val targetClass=school.copy(id="stable-relocation-target",name="Destino Fictício Atualização")
-                app.repository.saveClass(targetClass,"2026-01-01")
-                app.repository.saveTerms(targetClass.id,beforeMove.terms.filter {it.classId==school.id}.map {it.copy(classId=targetClass.id)})
-                val preview=app.repository.previewRelocation("alfa",targetClass.id,null,"2026-12-01")
-                app.repository.confirmRelocation(preview)
-                val destination=preview.target!!
-                val data=app.repository.snapshot.first {it.loaded && it.relocations.isNotEmpty()}
-                assertEquals(5.0,SchoolReports(data,targetClass).student(destination,3).total!!,0.0)
-                assertEquals(1,SchoolReports(data,targetClass).year(destination).frequency.absent)
+                assertEquals(expected,manager.snapshot());assertTrue(manager.hasSafetyCopy())
+                val stale=repo.dao.student("stable-stale")!!
+                repo.repairReactivatedStudent(stale)
+                assertEquals(stale.copy(left=null),repo.dao.student(stale.id))
+                val preview=repo.previewRelocation(stale.id,"stable-history-target",null,"2026-10-17")
+                repo.confirmRelocation(preview)
                 val complete=manager.snapshot();val upgradedBackup=manager.backupBytes()
-                app.repository.deleteRecomposition(complete.recompositions.first(),destination.id)
+                assertEquals(expected.copy(students=complete.students,relocations=complete.relocations),complete)
+                assertEquals(2,complete.relocations.size)
+                assertEquals(expected.students.size+1,complete.students.size)
+                assertEquals(expected.students.first {it.id=="stable-archived"},complete.students.first {it.id=="stable-archived"})
+                assertEquals(expected.students.first {it.id=="stable-closed"},complete.students.first {it.id=="stable-closed"})
+                val rec=complete.recompositions.first {it.studentId==stale.id}
+                repo.deleteRecomposition(rec,preview.target!!.id)
                 manager.restore(manager.prepare(upgradedBackup.inputStream()),"RESTAURAR")
-                assertEquals(complete,manager.snapshot())
-                assertEquals(expected.grades,complete.grades);assertEquals(expected.marks,complete.marks)
-                assertEquals(expected.activities,complete.activities)
-                assertEquals(expected.students.filter {it.id!="alfa"},complete.students.filter {it.id!="alfa"&&it.id!=destination.id})
-                assertEquals(1,complete.relocations.size)
-                file.writeBytes(upgradedBackup)
+                assertEquals(complete,manager.snapshot());file.writeBytes(upgradedBackup)
             }
         }
     }

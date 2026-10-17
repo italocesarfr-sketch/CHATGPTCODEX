@@ -47,9 +47,14 @@ class RelocationUiInstrumentedTest {
     private fun waitText(text:String) {compose.waitUntil(10000){compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()}}
     private fun begin(external:Boolean=false) {
         compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitText("+ Adicionar aluno")
+        editStudent();configureMove(external)
+    }
+    private fun editStudent() {
         compose.onNodeWithText("Editar").performScrollTo().performClick();waitText("Editar aluno")
+    }
+    private fun configureMove(external:Boolean=false,day:String="01/09/2026") {
         compose.onNodeWithText("Ativo ▾").performScrollTo().performClick();compose.onNodeWithText("Remanejado",useUnmergedTree=true).performClick()
-        compose.onNodeWithTag("relocation-date").performScrollTo().performTextReplacement("01/09/2026")
+        compose.onNodeWithTag("relocation-date").performScrollTo().performTextReplacement(day)
         if(external) {
             compose.onNodeWithTag("relocation-external").performScrollTo().performClick()
             compose.onNodeWithTag("relocation-external-name").performScrollTo().performTextInput("Destino Externo Fictício")
@@ -57,6 +62,10 @@ class RelocationUiInstrumentedTest {
     }
     private fun preview() {compose.onNodeWithTag("student-save").performScrollTo().performClick();compose.waitUntil(10000){compose.onAllNodesWithTag("relocation-confirm").fetchSemanticsNodes().isNotEmpty()}}
     private fun confirm() {compose.onNodeWithTag("relocation-confirm").performScrollTo().performClick();compose.waitUntil(10000){runBlocking{app.database.backupDao().relocations().any {it.sourceStudentId==a.id}}}}
+    private fun saveStudent() {
+        compose.onNodeWithTag("student-save").performScrollTo().performClick()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("student-save").fetchSemanticsNodes().isEmpty()}
+    }
     private fun shot(name:String) {
         val folder=File(app.filesDir,"etapa4c-screenshots");folder.mkdirs()
         val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty()) compose.onNode(isDialog()) else compose.onRoot()
@@ -70,6 +79,41 @@ class RelocationUiInstrumentedTest {
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         compose.onNodeWithText("Voltar").performScrollTo().performClick();waitText("Descartar alterações não salvas?")
         compose.onNodeWithText("Cancelar").performClick();compose.onNodeWithTag("student-save").assertExists()
+    }
+    @Test fun transferredThenActiveThenRecreatedActivityCanConfirmRelocation() {
+        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitText("+ Adicionar aluno");editStudent()
+        compose.onNodeWithText("Ativo ▾").performScrollTo().performClick();compose.onNodeWithText("Transferido",useUnmergedTree=true).performClick()
+        compose.onNodeWithText("Saída (opcional, dd/mm/aaaa)").performScrollTo().performTextReplacement("16/10/2026")
+        saveStudent()
+        assertEquals("Transferido",runBlocking{app.repository.dao.student(a.id)!!.status})
+        editStudent();compose.onNodeWithText("Transferido ▾").performScrollTo().performClick();compose.onNodeWithText("Ativo",useUnmergedTree=true).performClick()
+        waitText("Ao salvar como Ativo, a saída anterior será retirada")
+        assertEquals("2026-10-16",runBlocking{app.repository.dao.student(a.id)!!.left})
+        saveStudent();assertEquals(a,runBlocking{app.repository.dao.student(a.id)})
+        compose.activityRule.scenario.recreate();waitText("+ Adicionar aluno")
+        editStudent();configureMove(day="17/10/2026");preview();confirm()
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(1,after.relocations.count {it.sourceStudentId==a.id})
+        assertEquals(2,after.students.count {it.personId==a.personId})
+        assertEquals(1,after.grades.count {it.studentId==a.id});assertEquals(2,after.marks.count {it.studentId==a.id})
+    }
+    @Test fun legacyActiveExitCanBeRepairedOnlyAfterExplicitConfirmation() {
+        val stale=a.copy(left="2026-10-16")
+        runBlocking {app.repository.dao.save(stale)}
+        val vm=androidx.lifecycle.ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        compose.waitUntil(10000){vm.data.value.students.any {it.id==a.id&&it.left==stale.left}}
+        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitText("+ Adicionar aluno");editStudent()
+        waitText("Esta matrícula está Ativa, mas possui saída")
+        val before=runBlocking{app.backupManager.snapshot()}
+        compose.onNodeWithTag("repair-reactivation").performScrollTo().performClick();waitText("Reativar esta matrícula?")
+        compose.onNodeWithText("Cancelar").performClick();assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        compose.onNodeWithTag("repair-reactivation").performScrollTo().performClick();compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("student-save").fetchSemanticsNodes().isEmpty()}
+        assertEquals(a,runBlocking{app.repository.dao.student(a.id)})
+        editStudent();configureMove(day="17/10/2026");preview();confirm()
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(before.grades,after.grades);assertEquals(before.marks,after.marks)
+        assertEquals(1,after.relocations.count {it.sourceStudentId==a.id})
     }
     @Test fun confirmedMoveHidesSourceAndRefreshesDestinationReportsAcrossRecreation() {
         begin();preview();confirm();compose.waitUntil(10000){compose.onAllNodesWithTag("relocation-confirm").fetchSemanticsNodes().isEmpty()}
