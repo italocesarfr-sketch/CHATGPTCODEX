@@ -43,7 +43,11 @@ class RecompositionUiInstrumentedTest {
     }}
     private fun waitText(text:String) {compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()}}
     private fun row(s:Student) {compose.onNodeWithTag("recomposition-list").performScrollToNode(hasTestTag("recomposition-row-${s.id}"))}
-    private fun edit(s:Student) {row(s);compose.onNodeWithTag("recomposition-edit-${s.id}").performClick()}
+    private fun edit(s:Student) {
+        compose.onNodeWithTag("recomposition-list").performScrollToNode(hasTestTag("recomposition-edit-${s.id}"))
+        compose.onNodeWithTag("recomposition-edit-${s.id}").assertIsDisplayed().performClick()
+        compose.waitUntil(10000) {compose.onAllNodesWithTag("recomposition-score").fetchSemanticsNodes().isNotEmpty()}
+    }
     private fun all() {
         compose.onNodeWithTag("recomposition-list").performScrollToIndex(0)
         compose.onNodeWithText("Abaixo de 5,00 ▾").performClick();compose.onNodeWithText("Todos os alunos",useUnmergedTree=true).performClick()
@@ -52,7 +56,7 @@ class RecompositionUiInstrumentedTest {
     private fun save() {compose.onNodeWithTag("recomposition-save").performScrollTo().performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("recomposition-save").fetchSemanticsNodes().isEmpty()}}
     private fun shot(name:String) {
         val folder=File(app.filesDir,"etapa4b2-screenshots");folder.mkdirs()
-        File(folder,"$name.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+        File(folder,"$name.png").outputStream().use {compose.onAllNodes(isRoot()).onLast().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun defaultExcludesPendingAndAutomaticallyRemovesStudentReachingFive() {
         row(a);compose.onNodeWithTag("recomposition-values-${a.id}").assertTextContains("Vigente: 3,00",substring=true)
@@ -81,6 +85,7 @@ class RecompositionUiInstrumentedTest {
         compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
         all();compose.onNodeWithText("‹ Voltar").performClick()
+        compose.waitUntil(10000) {compose.onAllNodesWithTag("activities-list").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 3º bimestre")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }

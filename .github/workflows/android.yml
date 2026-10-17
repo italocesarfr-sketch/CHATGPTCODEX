@@ -62,6 +62,7 @@ jobs:
           api-level: 30
           arch: x86_64
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
           script: ./scripts/ci/validate-android.sh
       - name: Verificar o APK testado, assinatura e compatibilidade da referência
         run: |
@@ -188,6 +189,7 @@ jobs:
           api-level: 30
           arch: x86_64
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
           script: ./scripts/ci/test-stable-upgrade.sh
       - name: Conferir e disponibilizar exatamente o release testado
         run: |
