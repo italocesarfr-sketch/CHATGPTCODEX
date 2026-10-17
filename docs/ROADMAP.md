@@ -1,5 +1,8 @@
 # Roadmap — Noctua (Diário de Classe)
 
+> **Autorização vigente: Etapa 5.1**, sobre a 0.7.1 aprovada em aparelho físico. Noctua 0.8.0 / código 13: ocultação manual em lote e disposição independente para futuras exportações, com linhas vazias, Room v4 aditivo e backup formato 5. Contrato e evidências em [ETAPA51.md](ETAPA51.md). As restrições históricas “Etapa 5 não autorizada” abaixo descrevem entregas anteriores. Somente 5.1 está autorizada: 5.2 e geração de arquivos/cópia continuam pendentes. **PDF retirado da versão 1.0 pelo proprietário**; poderá ser produzido fora do aplicativo a partir do XLSX no Excel.
+
+
 > Correção autorizada 0.7.1 / código 12: reativação consistente e remanejamento após transferência administrativa, sem alteração de esquema ou regras pedagógicas. Consulte [CORRECAO_REATIVACAO.md](CORRECAO_REATIVACAO.md). 62 JVM, 109 Android e atualização assinada 0.7.0 → 0.7.1 aprovados; resultados no documento. Não autoriza a Etapa 5.
 
 > Etapa 4C autorizada: remanejamento seguro sobre a 0.6.1, com vínculos entre matrículas e pontos do mesmo bimestre acompanhando o aluno. Incremento 0.7.0 / código 11 concluído: migração aditiva v2→v3 e backup compatível com os formatos anteriores. Compatibilidades e bloqueios explícitos em [ETAPA4C.md](ETAPA4C.md). 55 testes JVM, 101 Android e atualização assinada 0.6.1 → 0.7.0 aprovados; resultados em ETAPA4C.md. Não autoriza a Etapa 5.
@@ -42,7 +45,7 @@ A reorganização deve acontecer em incrementos pequenos, cada um revisável, te
 | 3 | Reformulação da chamada | P1 — núcleo | Etapas 1 e 2 | Quantidade por data, tabela P/F, retroatividade e histórico preservado sem grade obrigatória |
 | 4A | Notas e consultas básicas | P1 — núcleo | Etapas 1 e 2; integração com 3 para frequência | Primeiro marco utilizável reorganizado |
 | 4B | Recuperação e relatórios completos | P2 — complemento | Marco 4A | Recuperação explícita e relatórios bimestrais/anuais consistentes |
-| 5 | Exportação inteligente | P2 — atualização posterior | Relatórios e regras estáveis; gate de segurança | Disposição independente, cópia, CSV, PDF e análise de XLSX |
+| 5 | Exportação inteligente | P2 — atualização posterior | Relatórios e regras estáveis; gate de segurança | Disposição independente (5.1); cópia, CSV e análise de XLSX futuras. PDF fora da versão 1.0 |
 | 6 | Refinamento e distribuição | P1 para regressão; P2 para polimento | Marco utilizável; funcionalidades que forem distribuídas | Usabilidade, desempenho, acessibilidade e atualização verificadas |
 
 Caminho principal: `0 → 1 → 2 → 3 → 4A → marco utilizável → 4B → 5 → 6`. O trabalho de organização de notas em 4A pode ser feito em incremento próprio após 2, mas o marco utilizável exige que 3 e 4A estejam integrados e testados. Refinamentos/testes acompanham todos os incrementos; 6 é a validação final, não o início dos testes.
@@ -236,6 +239,8 @@ Exportação avançada é atualização posterior a U1. Não bloquear cadastro, 
 
 ### 5.1. Disposição de exportação independente — P2
 
+**Incremento autorizado e implementado em 0.8.0:** tabela aditiva `export_rows`, IDs de matrícula, novas matrículas ao final, ocultação manual independente da exclusão automática de remanejados e prévia sem geração de arquivo. Testes e limites em [ETAPA51.md](ETAPA51.md).
+
 **Dependência:** 4.2/4.4 e contrato de dados do módulo 5.
 
 Trabalho planejado: salvar por turma a sequência de matrículas e espaços vazios, visibilidade e modelo, separada de `Student.number`. Migração aditiva própria se necessário; prévia antes de usar.
@@ -254,23 +259,17 @@ Trabalho planejado: cópia tabulada com opção somente notas; CSV UTF-8 adequad
 
 **Testes:** golden files/saídas esperadas, acentos, aspas, delimitadores, decimais pt-BR, campos vazios e linhas vazias; teste manual de colagem no Excel ou LibreOffice. Seletor cancelado/erro de escrita não altera registros.
 
-### 5.3. PDF para impressão — P2
+### 5.3. PDF — retirado do escopo da versão 1.0
 
-**Dependência:** relatórios estáveis e 5.1 para os modos que usam disposição personalizada.
-
-Trabalho planejado: gerar localmente PDF paginado com identificação de turma/disciplina/ano/período, cabeçalhos repetidos e prévia. Diferenciar relatório padrão de disposição para conselho na interface.
-
-**Aceitação:** listas maiores que uma página são legíveis, com totais e períodos corretos; não cortar nomes/colunas sem aviso; salvar via seletor Android.
-
-**Testes:** páginas vazias, turma extensa, nomes longos, quatro bimestres, conferência dos valores com a tela e impressão/abertura em visualizador independente.
+Decisão do proprietário na autorização 5.1: não implementar PDF no aplicativo. O professor poderá gerar PDF posteriormente no Excel a partir do XLSX. A numeração histórica é mantida para rastreabilidade, sem dependência nem trabalho autorizado.
 
 ### 5.4. Prova de viabilidade XLSX — P2, condicional
 
-**Dependência:** 5.2; não bloqueia 5.3.
+**Dependência:** 5.2; requer autorização posterior.
 
 Trabalho planejado: avaliar geração local e dependências compatíveis com API 26, memória, tamanho e manutenção. Testar leitura real de planilha com números, textos e células/linhas vazias.
 
-**Aceitação:** habilitar somente se o resultado for estável e preservar a disposição. Se não viável, registrar a decisão e manter CSV/cópia/PDF como entrega suportada, sem anunciar XLSX implementado.
+**Aceitação:** habilitar somente se o resultado for estável e preservar a disposição. Se não viável, registrar a decisão e manter CSV/cópia como entrega suportada, sem anunciar XLSX implementado.
 
 **Testes:** abrir no Excel/LibreOffice; confirmar zero versus vazio, caracteres, quantidade/posição de linhas e consumo em aparelho de referência.
 

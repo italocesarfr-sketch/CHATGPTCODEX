@@ -6,6 +6,9 @@ import br.com.diariodeclasse.data.*
 /** Usado somente pelo serviço de backup; nenhuma tela acessa as operações de substituição. */
 @Dao
 interface BackupDao {
+    @Query("SELECT * FROM export_rows ORDER BY classId, position") suspend fun exportRows(): List<ExportRow>
+    @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertExportRows(rows: List<ExportRow>)
+    @Query("DELETE FROM export_rows") suspend fun removeExportRows()
     @Query("SELECT * FROM relocations ORDER BY sourceStudentId") suspend fun relocations(): List<Relocation>
     @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertRelocations(rows: List<Relocation>)
     @Query("DELETE FROM relocations") suspend fun removeRelocations()

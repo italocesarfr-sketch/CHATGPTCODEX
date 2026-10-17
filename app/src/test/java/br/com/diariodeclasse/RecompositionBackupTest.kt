@@ -17,7 +17,7 @@ class RecompositionBackupTest {
         val r=Recomposition("alfa",3,5.25,"2026-11-20")
         val before=fixture().copy(recompositions=listOf(r,Recomposition("gama",3,null,"2026-11-21"),Recomposition("alfa",1,0.0,"2026-11-20"))).canonical()
         val decoded=BackupCodec.decode(BackupCodec.encode(before,9,null))
-        assertEquals(4,decoded.envelope.formatVersion);assertEquals(3,decoded.envelope.databaseVersion)
+        assertEquals(5,decoded.envelope.formatVersion);assertEquals(4,decoded.envelope.databaseVersion)
         assertEquals(before,decoded.snapshot)
         assertEquals(BackupCodec.fingerprint(before),BackupCodec.fingerprint(before.copy(recompositions=before.recompositions.reversed())))
     }

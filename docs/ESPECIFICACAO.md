@@ -1,3 +1,5 @@
+> **Atualização autorizada — Etapa 5.1 / Noctua 0.8.0 (13):** organização para exportação por matrícula, ocultação manual em lote, ordem independente e linhas vazias. Room v4 aditivo; backup 5 com leitura dos formatos anteriores. [ETAPA51.md](ETAPA51.md) define o contrato atual. Somente a organização está implementada; arquivos e cópia dependem da Etapa 5.2. **PDF não integra a versão 1.0**, por decisão do proprietário; descrições históricas da base não são funcionalidades atuais.
+
 # Especificação-mestre — Noctua (Diário de Classe)
 
 > Correção autorizada 0.7.1 / código 12: reativação consistente e remanejamento após transferência administrativa, sem alteração de esquema ou regras pedagógicas. Consulte [CORRECAO_REATIVACAO.md](CORRECAO_REATIVACAO.md). 62 JVM, 109 Android e atualização assinada 0.7.0 → 0.7.1 aprovados; resultados no documento. Não autoriza a Etapa 5.
@@ -281,11 +283,11 @@ Não implementado. A importação CSV de alunos não fornece a exportação de n
 
 - **M5.01:** prévia de exportação com disposição salva por turma (e nome de modelo, se necessário), independente da ordem/número da chamada.
 - **M5.02:** permitir ocultar alunos **somente dessa saída**, mover suas posições e inserir/remover linhas vazias explícitas. A linha de exportação referencia o ID da matrícula ou é um espaço vazio; não usa nome/número como identidade.
-- **M5.03:** conservar posições ao reabrir e oferecer encaixe explícito para alunos novos. Transferidos podem permanecer na disposição histórica. Renomear/reordenar a chamada não rearranja automaticamente a exportação.
+- **M5.03:** conservar posições ao reabrir e acrescentar alunos novos ao final, sem deslocar posições personalizadas. Transferidos podem permanecer na disposição histórica. Renomear/reordenar a chamada não rearranja automaticamente a exportação.
 - **M5.04:** copiar notas para o conselho como texto tabulado, incluindo modo “somente notas” sem cabeçalho. Preservar tabulações, linhas vazias, nota zero e células pendentes vazias; informar quais colunas e em que ordem serão copiadas. Copiar apenas após ação do professor.
 - **M5.05:** CSV UTF-8 compatível com Excel, com delimitador/decimal definidos para pt-BR, escape correto de aspas e campos e opção de BOM. Excel pode abrir CSV; XLSX é um formato adicional, não pré-requisito para essa compatibilidade.
-- **M5.06:** PDF local para impressão, com paginação, títulos, cabeçalhos repetidos e colunas legíveis. Avaliar `PdfDocument` nativo antes de acrescentar bibliotecas.
-- **M5.07:** XLSX somente após uma prova técnica de compatibilidade Android, memória, tamanho, licença e leitura no Excel/LibreOffice. Se não viável, entregar CSV, cópia tabulada e PDF e registrar a limitação.
+- **M5.06:** PDF retirado da versão 1.0. Pode ser produzido externamente no Excel a partir do futuro XLSX; não implementar gerador PDF no aplicativo.
+- **M5.07:** XLSX somente após uma prova técnica de compatibilidade Android, memória, tamanho, licença e leitura no Excel/LibreOffice. Se não viável, entregar CSV e cópia tabulada e registrar a limitação.
 - **M5.08:** seletor de arquivos Android para salvar, sem permissão ampla de armazenamento nem envio a servidor. Arquivos são derivados dos registros; exportar não modifica o banco escolar.
 
 Exemplo de disposição: linha 1 = matrícula C; linha 2 = vazia; linha 3 = matrícula A; matrícula B oculta. Tanto a cópia de notas quanto os formatos que usam essa disposição devem conservar o espaço da linha 2. A chamada continua em sua própria ordem A/B/C. Metadados impressos e cabeçalhos devem ser mostrados na prévia, sem deslocar silenciosamente as linhas destinadas ao conselho.

@@ -36,7 +36,7 @@ class RecompositionInstrumentedTest {
         manager.restore(manager.prepare(BackupCodec.encode(f,9,null).inputStream()),"RESTAURAR")
     } }
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),9,null)
     }
     @After fun cleanup() {db.close();context.deleteDatabase(name);folder.deleteRecursively()}

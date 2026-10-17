@@ -79,6 +79,9 @@ data class Relocation(@PrimaryKey val sourceStudentId: String, val targetStudent
 
 @Dao
 interface DiaryDao {
+    @Query("SELECT * FROM export_rows WHERE classId = :classId ORDER BY position") suspend fun exportRows(classId: String): List<ExportRow>
+    @Query("DELETE FROM export_rows WHERE classId = :classId") suspend fun removeExportRows(classId: String)
+    @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertExportRows(rows: List<ExportRow>)
     @Query("SELECT * FROM classes ORDER BY year DESC, name") fun classes(): Flow<List<SchoolClass>>
     @Query("SELECT * FROM students ORDER BY number, name") fun students(): Flow<List<Student>>
     @Query("SELECT * FROM terms ORDER BY number") fun terms(): Flow<List<Term>>
@@ -119,11 +122,11 @@ interface DiaryDao {
 }
 
 @Database(entities = [SchoolClass::class, Student::class, Term::class, Lesson::class,
-    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class], version = 3, exportSchema = true)
+    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class], version = 4, exportSchema = true)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
     abstract fun backupDao(): BackupDao
     companion object {
-        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
     }
 }

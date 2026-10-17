@@ -62,6 +62,10 @@ private val pages = listOf(
     var invalidGrade by remember { mutableStateOf(false) }
     var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
     var navigating by remember { mutableStateOf(false) }
+    var exportDraftJson by rememberSaveable { mutableStateOf<String?>(null) }
+    val exportDraft = remember(exportDraftJson) { exportDraftJson?.let(ExportEditSession::decode) }
+    fun changeExport(value: ExportEditSession?) { exportDraftJson = value?.encode() }
+    var pendingExportNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
     val snack = remember { SnackbarHostState() }
     LaunchedEffect(vm) { vm.messages.receiveAsFlow().collect { snack.showSnackbar(it) } }
     LaunchedEffect(data.loaded, data.classes, savedSelection) {
@@ -69,11 +73,23 @@ private val pages = listOf(
     }
     // A fila já captura os IDs de origem. A navegação só é liberada depois das gravações.
     fun navigate(action: () -> Unit) {
+        if(exportDraft != null && saving) return
         val safe = {
             navigating = true
-            vm.act(done = { invalidGrade = false; action(); navigating = false }, clearError = false) {}
+            vm.act(done = { invalidGrade = false; changeExport(null); action(); navigating = false }, clearError = false) {}
         }
-        if (invalidGrade) pendingNavigation = safe else safe()
+        if(exportDraft?.dirty == true) pendingExportNavigation = safe
+        else if (invalidGrade) pendingNavigation = safe else safe()
+    }
+    fun concludeExport() {
+        val draft = exportDraft ?: return
+        vm.act {
+            vm.repository.saveExportLayout(draft.classId,draft.expected,draft.rows)
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                changeExport(null)
+                if(detail == "export-layout") detail = "roster"
+            }
+        }
     }
     fun changeSelection(value: AppSelection) = navigate {
         vm.select(value) { detail = "" }
@@ -89,7 +105,7 @@ private val pages = listOf(
             Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } }, navigationIcon = {
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating) { Text("‹ Voltar") }
-        }, actions = { TextButton(onClick = { showBackup = true }) { Text("Backup") } }) },
+        }, actions = { TextButton(onClick = { if(exportDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item -> NavigationBarItem(
                 selected = page == index,
@@ -107,6 +123,7 @@ private val pages = listOf(
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
+                        detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,::concludeExport) { changeExport(null);detail="roster" }
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
                             GradeScreen(vm, data, a, edit = { navigate { editingActivity = a; activityForm = true } },
@@ -118,7 +135,8 @@ private val pages = listOf(
                         detail == "student-report" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
                             IndividualReportScreen(data, c, it, term) { term = it }
                         }
-                        detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; returnDetail = "roster"; detail = "profile" }
+                        detail == "roster" && c != null -> RosterScreen(vm, data, c, exportDraft, ::changeExport, ::concludeExport,
+                            organizeExport = { navigate { changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout" } }) { studentId = it; returnDetail = "roster"; detail = "profile" }
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
                             edit = { editingClass = c; classForm = true }, roster = { detail = "roster" })
@@ -148,6 +166,9 @@ private val pages = listOf(
     pendingNavigation?.let { action -> Confirm("Sair sem salvar o valor inválido?",
         "Há uma nota inválida que não foi salva. As notas válidas já digitadas serão preservadas.",
         { pendingNavigation = null }, { pendingNavigation = null; action() }) }
+    pendingExportNavigation?.let { action -> Confirm("Descartar alterações de exportação?",
+        "Há alterações não confirmadas na disposição de exportação. Cancelar mantém a edição. Confirmar descarta somente esta sessão e continua a navegação; os registros escolares não mudam.",
+        {pendingExportNavigation=null}, {pendingExportNavigation=null;action()}) }
     if (showBackup) BackupDialog(vm) { showBackup = false }
     if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false }) { id ->
         classForm = false

@@ -33,6 +33,7 @@ class FrequencyProcessProbeTest {
                 repo.saveClass(target,"2026-01-01")
                 repo.saveStudent(s.copy(status="Transferido",left="2026-10-16"))
                 repo.saveStudent(repo.dao.student(s.id)!!.copy(status="Ativo"))
+                repo.saveExportLayout(c.id,emptyList(),listOf(ExportRow("blank:process-fixture",c.id,null,0),ExportLayout.studentRow(s,1).copy(manualHidden=true)))
             }
             vm.awaitPendingWrites()
             assertNull(vm.attendanceError.value)
@@ -44,17 +45,20 @@ class FrequencyProcessProbeTest {
             assertEquals(0.8,repo.dao.activityGrades(activity.id).single().value!!,0.0)
             val active=repo.dao.student(s.id)!!
             assertEquals("Ativo",active.status);assertNull(active.left)
+            val persisted=repo.dao.exportRows(c.id)
+            assertEquals(2,persisted.size);assertNull(persisted.first().studentId);assertTrue(persisted.last().manualHidden)
             val before=app.backupManager.snapshot()
             val preview=repo.previewRelocation(active.id,target.id,null,"2026-10-17")
             repo.confirmRelocation(preview)
             val after=app.backupManager.snapshot()
             assertEquals(active.personId,preview.target!!.personId)
             assertEquals(before.grades,after.grades);assertEquals(before.marks,after.marks)
-            assertEquals(before.recompositions,after.recompositions)
+            assertEquals(before.recompositions,after.recompositions);assertEquals(before.exportRows,after.exportRows)
             assertEquals(2,after.students.count {it.personId==active.personId})
             assertEquals(1,after.relocations.count {it.sourceStudentId==s.id})
             val sql=app.database.openHelper.writableDatabase
             app.database.runInTransaction {
+                for(id in listOf(c.id,target.id)) sql.execSQL("DELETE FROM export_rows WHERE classId=?",arrayOf(id))
                 sql.execSQL("DELETE FROM relocations WHERE sourceStudentId=?",arrayOf(s.id))
                 sql.execSQL("DELETE FROM recompositions WHERE studentId=?",arrayOf(s.id))
                 sql.execSQL("DELETE FROM marks WHERE studentId=?",arrayOf(s.id))

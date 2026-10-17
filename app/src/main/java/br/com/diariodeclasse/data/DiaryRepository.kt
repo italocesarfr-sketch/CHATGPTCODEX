@@ -19,7 +19,7 @@ data class DiarySnapshot(
     val classes: List<SchoolClass> = emptyList(), val students: List<Student> = emptyList(),
     val terms: List<Term> = emptyList(), val lessons: List<Lesson> = emptyList(),
     val marks: List<Attendance> = emptyList(), val activities: List<Activity> = emptyList(),
-    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList()
+    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList()
 ) {
     fun roster(classId: String) = students.filter { it.classId == classId }
     fun currentRoster(classId: String, showRelocated: Boolean = false) = roster(classId).filter { showRelocated || it.status != "Remanejado" }
@@ -61,10 +61,10 @@ data class DiarySnapshot(
 
 class DiaryRepository(val db: DiaryDatabase) {
     val dao = db.dao()
-    // Cada emissão lê as dez tabelas no mesmo snapshot SQLite confirmado.
+    // Cada emissão lê as onze tabelas no mesmo snapshot SQLite confirmado.
     // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
     val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
-        "activities", "grades", "import_drafts", "recompositions", "relocations").map {
+        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows").map {
         readSnapshot()
     }.distinctUntilChanged()
     internal suspend fun readSnapshot(): DiarySnapshot = db.withTransaction {
@@ -77,7 +77,23 @@ class DiaryRepository(val db: DiaryDatabase) {
                 marks = read.marks(),
                 activities = read.activities().sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id }),
                 grades = read.grades(), drafts = read.drafts().sortedWith(compareBy<ImportDraft> { it.position }.thenBy { it.id }),
-                recompositions = read.recompositions(), relocations = read.relocations(), loaded = true)
+                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), loaded = true)
+    }
+
+    /** Substitui apenas a disposição desta turma; dados escolares e IDs das linhas são preservados. */
+    suspend fun saveExportLayout(classId: String, expected: List<ExportRow>, requested: List<ExportRow>) = db.withTransaction {
+        val data = readSnapshot()
+        require(data.classes.any { it.id == classId }) { "Turma não encontrada." }
+        require(dao.exportRows(classId) == expected.sortedBy { it.position }) { "A disposição mudou após abrir a edição. Cancele e reabra para conferir; nada foi sobrescrito." }
+        require(requested.all { it.classId == classId }) { "Há linhas de outra turma na disposição." }
+        ExportLayout.validate(data.classes, data.students, requested)
+        // Matrículas cadastradas durante a edição entram somente no final.
+        val known = requested.mapNotNull { it.studentId }.toSet()
+        val appended = ExportLayout.rows(data, classId).filter { it.studentId != null && it.studentId !in known }
+        val rows = ExportLayout.normalize(requested + appended)
+        ExportLayout.validate(data.classes, data.students, rows)
+        dao.removeExportRows(classId)
+        dao.insertExportRows(rows)
     }
 
     suspend fun saveClass(value: SchoolClass, effective: String) = db.withTransaction {

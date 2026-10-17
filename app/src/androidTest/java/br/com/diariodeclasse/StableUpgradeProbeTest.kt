@@ -15,7 +15,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
-/** Semente executada na release REAL 0.7.0. Só emulador descartável com argumento explícito. */
+/** Semente executada na release REAL 0.7.1. Só emulador descartável com argumento explícito. */
 class StableUpgradeProbeTest {
     @Test fun sameOwnerSignaturePreservesEveryRowPreferencesAndBackup() {
         val phase=InstrumentationRegistry.getArguments().getString("stableUpgradePhase")
@@ -55,7 +55,9 @@ class StableUpgradeProbeTest {
                 repo.saveRecomposition(Recomposition(stale.id,3,0.0,"2026-08-20"))
                 repo.saveStudent(stale.copy(status="Transferido",left="2026-10-16"))
                 repo.saveStudent(repo.dao.student(stale.id)!!.copy(status="Ativo"))
-                assertEquals("2026-10-16",repo.dao.student(stale.id)!!.left) // Reproduzido na 0.7.0, antes da atualização.
+                assertNull(repo.dao.student(stale.id)!!.left) // A correção 0.7.1 já está na referência real.
+                // Estado legado que pode ter sido preservado da 0.7.0, ainda sem confirmação de reparo.
+                repo.dao.save(repo.dao.student(stale.id)!!.copy(left="2026-10-16"))
                 repo.saveStudent(stale.copy(id="stable-closed",personId="stable-closed-person",name="Estudante Fictício Encerrado",number=6,status="Transferido",left="2026-09-30"))
                 app.selectionStore.write(AppSelection(2026,origin.id));file.writeBytes(manager.backupBytes())
             }
@@ -67,6 +69,7 @@ class StableUpgradeProbeTest {
             assertEquals("2026-09-30",repo.dao.student("stable-closed")!!.left)
             assertEquals("Remanejado",repo.dao.student("stable-archived")!!.status)
             if(phase!="seed") {
+                verifyExportState(app,expected)
                 val data=repo.snapshot.first {it.loaded};val school=data.classes.first {it.id=="classe-alfa"}
                 val student=data.students.first {it.id=="alfa"};val reports=SchoolReports(data,school)
                 assertEquals(1.5,reports.student(student,3).original!!,0.0)
@@ -109,8 +112,36 @@ class StableUpgradeProbeTest {
                 val rec=complete.recompositions.first {it.studentId==stale.id}
                 repo.deleteRecomposition(rec,preview.target!!.id)
                 manager.restore(manager.prepare(upgradedBackup.inputStream()),"RESTAURAR")
-                assertEquals(complete,manager.snapshot());file.writeBytes(upgradedBackup)
+                assertEquals(complete,manager.snapshot());file.writeBytes(roundTripExportPreferences(app,expected,bytes))
             }
         }
     }
+    private suspend fun verifyExportState(app:DiaryApplication, expected:BackupSnapshot) {
+        val data=app.repository.snapshot.first{it.loaded}
+        assertEquals(expected.exportRows,data.exportRows)
+        val slots=ExportLayout.project(data,ExportLayout.rows(data,"classe-alfa"))
+        val alfa=slots.first{it.student?.id=="alfa"}
+        if(expected.exportRows.isEmpty()) assertTrue(alfa.included)
+        else {
+            assertTrue(slots.first().blank);assertTrue(alfa.row.manualHidden);assertFalse(alfa.included)
+        }
+        val origin=slots.first{it.student?.id=="stable-archived"}
+        assertTrue(origin.automaticallyExcluded);assertFalse(origin.row.manualHidden)
+        assertTrue(ExportLayout.project(data,ExportLayout.rows(data,"stable-history-target")).all{it.included})
+    }
+    private suspend fun roundTripExportPreferences(app:DiaryApplication, original:BackupSnapshot, oldBytes:ByteArray):ByteArray {
+        val repo=app.repository;val manager=app.backupManager
+        val data=repo.snapshot.first{it.loaded};val before=manager.snapshot()
+        val rows=ExportLayout.normalize(listOf(ExportLayout.blank("classe-alfa"))+ExportLayout.rows(data,"classe-alfa").reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
+        repo.saveExportLayout("classe-alfa",emptyList(),rows)
+        val configured=manager.snapshot();assertEquals(before,configured.copy(exportRows=emptyList()))
+        val bytes=manager.backupBytes();assertEquals(5,BackupCodec.decode(bytes).envelope.formatVersion)
+        repo.saveExportLayout("classe-alfa",rows,rows.map{it.copy(manualHidden=false)})
+        manager.restore(manager.prepare(oldBytes.inputStream()),"RESTAURAR")
+        assertEquals(original,manager.snapshot());assertTrue(manager.snapshot().exportRows.isEmpty())
+        manager.restore(manager.prepare(bytes.inputStream()),"RESTAURAR");assertEquals(configured,manager.snapshot())
+        verifyExportState(app,configured)
+        return bytes
+    }
+
 }

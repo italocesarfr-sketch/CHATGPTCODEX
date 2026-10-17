@@ -1,0 +1,116 @@
+package br.com.diariodeclasse.ui
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import br.com.diariodeclasse.data.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
+/** Rascunho de UI salvo pelo SavedInstanceState; Concluir é o único commit da preferência. */
+@Serializable
+data class ExportEditSession(val classId: String, val mode: String, val expected: List<ExportRow>,
+    val initial: List<ExportRow>, val rows: List<ExportRow>) {
+    val dirty: Boolean get() = rows != initial
+    fun hide(studentId: String, hidden: Boolean) = copy(rows = rows.map { if (it.studentId == studentId) it.copy(manualHidden = hidden) else it })
+    fun move(id: String, direction: Int): ExportEditSession {
+        val list = rows.toMutableList(); val index = list.indexOfFirst { it.id == id }; val next = index + direction
+        if (index < 0 || next !in list.indices) return this
+        val row = list.removeAt(index); list.add(next, row)
+        return copy(rows = ExportLayout.normalize(list))
+    }
+    fun addBlank(after: String? = null): ExportEditSession {
+        val list = rows.toMutableList()
+        val index = after?.let { id -> list.indexOfFirst { it.id == id }.also { require(it >= 0) } + 1 } ?: list.size
+        list.add(index, ExportLayout.blank(classId)); return copy(rows = ExportLayout.normalize(list))
+    }
+    fun removeBlank(id: String): ExportEditSession {
+        require(rows.first { it.id == id }.studentId == null)
+        return copy(rows = ExportLayout.normalize(rows.filterNot { it.id == id }))
+    }
+    fun encode(): String = Json.encodeToString(this)
+    companion object {
+        fun decode(value: String) = Json.decodeFromString<ExportEditSession>(value)
+        fun start(data: DiarySnapshot, classId: String, mode: String): ExportEditSession {
+            val rows = ExportLayout.rows(data, classId)
+            return ExportEditSession(classId, mode, data.exportRows.filter { it.classId == classId }.sortedBy { it.position }, rows, rows)
+        }
+    }
+}
+
+@Composable fun ExportSaveControls(saving: Boolean, conclude: () -> Unit, cancel: () -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(enabled = !saving, onClick = conclude, modifier = Modifier.testTag("export-conclude")) { Text(if (saving) "Salvando…" else "Concluir") }
+        OutlinedButton(enabled = !saving, onClick = cancel, modifier = Modifier.testTag("export-cancel")) { Text("Cancelar") }
+    }
+}
+
+@Composable fun ExportExclusion(data: DiarySnapshot, student: Student, row: ExportRow?) {
+    if (row?.manualHidden == true) Text("Oculto manualmente nas exportações", style = MaterialTheme.typography.labelSmall,
+        modifier = Modifier.testTag("export-hidden-${student.id}"))
+    val link = data.relocations.firstOrNull { it.sourceStudentId == student.id }
+    if (student.status == "Remanejado" || link != null) Text(
+        "Exclusão automática: ${relocationLabel(data, student)}. Independente da ocultação manual.",
+        style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("export-auto-${student.id}"))
+}
+
+@Composable fun ExportLayoutScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass,
+    session: ExportEditSession, change: (ExportEditSession) -> Unit, conclude: () -> Unit, cancel: () -> Unit) {
+    val saving by vm.saving.collectAsState()
+    var preview by rememberSaveable(c.id) { mutableStateOf(false) }
+    val slots = ExportLayout.project(data, session.rows)
+    val included = slots.filter { it.included }; val excluded = slots.filterNot { it.included }
+    LazyColumn(Modifier.fillMaxSize().testTag("export-layout-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            Section("Organizar exportação", "${c.name} • ${c.year}")
+            Info("Esta ordem é independente da chamada. Novas matrículas entram no final. Ocultar retira somente das futuras exportações e cópias; linhas vazias explícitas são mantidas. Concluir salva; Cancelar descarta esta sessão.")
+            ExportSaveControls(saving, conclude, cancel)
+            SaveError(vm)
+            FilterChip(selected = preview, onClick = { preview = !preview }, label = { Text(if (preview) "Voltar à organização" else "Ver prévia") }, modifier = Modifier.testTag("export-preview"))
+            if (!preview) OutlinedButton(enabled = !saving, onClick = { change(session.addBlank()) }, modifier = Modifier.testTag("export-add-blank")) { Text("Adicionar linha vazia ao final") }
+            Text(if (preview) "Prévia da sequência • ${included.size} linhas" else "Sequência de organização • ${slots.size} posições", style = MaterialTheme.typography.titleSmall)
+            if (preview) Text("Ocultos não ocupam linha na saída. Somente linhas vazias adicionadas explicitamente preservam espaços.", style = MaterialTheme.typography.bodySmall)
+        }
+        if (slots.isEmpty()) item { Info("Nenhum aluno cadastrado. Você pode preparar linhas vazias e acrescentar alunos depois.") }
+        itemsIndexed(if (preview) included else slots, key = { _, slot -> slot.row.id }) { index, slot ->
+            Card(Modifier.fillMaxWidth().testTag("export-row-${slot.row.id}")) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row {
+                        if (!preview && slot.student != null) Checkbox(slot.row.manualHidden, { change(session.hide(slot.student.id, it)) }, enabled = !saving,
+                            modifier = Modifier.testTag("export-order-hide-${slot.student.id}").semantics { contentDescription = "Ocultar manualmente ${slot.student.number}. ${slot.student.name}" })
+                        Column(Modifier.weight(1f)) {
+                            Text("${index + 1}. ${slot.student?.name ?: "Linha vazia"}", style = MaterialTheme.typography.titleSmall)
+                            slot.student?.let { Text("Chamada nº ${it.number}", style = MaterialTheme.typography.bodySmall); ExportExclusion(data, it, slot.row) }
+                        }
+                    }
+                    if (!preview) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            TextButton(enabled = !saving && index > 0, onClick = { change(session.move(slot.row.id, -1)) }, modifier = Modifier.testTag("export-up-${slot.row.id}")) { Text("↑ Subir") }
+                            TextButton(enabled = !saving && index < slots.lastIndex, onClick = { change(session.move(slot.row.id, 1)) }, modifier = Modifier.testTag("export-down-${slot.row.id}")) { Text("↓ Descer") }
+                            TextButton(enabled = !saving, onClick = { change(session.addBlank(slot.row.id)) }, modifier = Modifier.testTag("export-blank-after-${slot.row.id}")) { Text("Linha abaixo") }
+                        }
+                        if (slot.blank) TextButton(enabled = !saving, onClick = { change(session.removeBlank(slot.row.id)) }, modifier = Modifier.testTag("export-remove-${slot.row.id}")) { Text("Remover linha vazia") }
+                    }
+                }
+            }
+        }
+        if (preview && excluded.isNotEmpty()) {
+            item { Section("Fora da sequência", "Motivos de exclusão; estas entradas não são linhas da futura planilha") }
+            itemsIndexed(excluded, key = { _, slot -> "excluded:${slot.row.id}" }) { _, slot ->
+                Column(Modifier.testTag("export-excluded-${slot.student!!.id}")) {
+                    Text("${slot.student.number}. ${slot.student.name}")
+                    ExportExclusion(data, slot.student, slot.row)
+                }
+            }
+        }
+    }
+}
