@@ -48,6 +48,25 @@ class RelocationInstrumentedTest {
     private suspend fun current()=withTimeout(10000){repo.snapshot.first {it.loaded}}
     private suspend fun preview(day:String="2026-09-01")=repo.previewRelocation(student.id,h.id,null,day)
     private suspend fun rejected(block:suspend ()->Unit) {try {block();fail("Deveria bloquear")}catch(_:IllegalArgumentException){}}
+    @Test fun transferredThenReactivatedEnrollmentCanRelocateAfterReopenWithoutLosingHistory() {runBlocking {
+        repo.saveRecomposition(Recomposition(student.id,3,5.0,"2026-08-20"))
+        val before=manager.snapshot()
+        repo.saveStudent(student.copy(status="Transferido",left="2026-10-16"))
+        val transferred=repo.dao.student(student.id)!!
+        assertEquals("Transferido",transferred.status)
+        repo.saveStudent(transferred.copy(status="Ativo")) // Mesma edição do formulário 0.7.0: a saída antiga é reenviada.
+        db.close();open()
+        val active=repo.dao.student(student.id)!!
+        assertEquals("Ativo",active.status);assertEquals(student.id,active.id);assertEquals(student.personId,active.personId)
+        val p=repo.previewRelocation(active.id,h.id,null,"2026-10-17")
+        repo.confirmRelocation(p)
+        val after=manager.snapshot()
+        assertEquals(before.grades,after.grades);assertEquals(before.marks,after.marks)
+        assertEquals(before.recompositions,after.recompositions)
+        assertEquals(1,after.relocations.size)
+        assertEquals(before.students.size+1,after.students.size)
+        assertEquals(student.personId,p.target!!.personId)
+    }}
     @Test fun internalMoveCombinesPointsAndDifferentGridsWithoutCopyingAnyHistory() {runBlocking {
         val before=manager.snapshot();val p=preview();assertEquals(before,manager.snapshot())
         repo.confirmRelocation(p);val target=p.target!!
