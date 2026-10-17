@@ -10,8 +10,6 @@ No `StudentForm`, o seletor alterava somente `status`. A data `left` continuava 
 
 Uma transferência administrativa simples é uma edição de situação/saída. Um remanejamento consolidado possui vínculo em `relocations`, que não pode ser apagado ou reaberto pelo formulário. Transferências administrativas legadas também podem possuir outra matrícula da mesma pessoa sem vínculo explícito; essa condição exige proteção contra sobreposição.
 
-A publicação inicial do teste ficou com uma árvore incompleta; foi imediatamente recomposta a partir da árvore integral da 0.7.0. A reprodução só foi acionada após conferir os 147 arquivos remotos e confirmar que somente o teste diferia da versão de referência. Nenhum arquivo local ou dado escolar foi apagado.
-
 ## Comportamento corrigido
 
 - Ao salvar uma alteração explícita de **Transferido para Ativo**, a saída anterior é retirada na mesma transação. O formulário informa esse efeito antes de salvar. Ingresso, saída alternativa e reativação devem ser confirmados separadamente.
