@@ -63,6 +63,7 @@ class ActivityChangesUiInstrumentedTest {
         assertEquals(a.copy(name="Avaliação Fictícia Editada",type="Seminário",date="2026-10-20",term=4,description="Descrição fictícia",notes="Observação fictícia"),updated)
         assertEquals(before.grades,app.repository.activitySnapshot(a.id).grades)
         compose.onAllNodesWithText("Nota (0 a 10,00)").assertCountEquals(0)
+        Unit
     }
     @Test fun deletingEmptyAndGradedActivitiesRequiresExplicitConfirmation()=runBlocking {
         val before=app.backupManager.snapshot()
