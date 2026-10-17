@@ -1,6 +1,6 @@
 # Roadmap — Noctua (Diário de Classe)
 
-> Autorização posterior: primeiro incremento da Etapa 4B.1, somente relatórios de leitura, conforme [ETAPA4B1.md](ETAPA4B1.md). Não autoriza recuperação ou exportação. Base atual Noctua 0.4.1; candidato 0.5.0, código 8.
+> Autorização posterior: primeiro incremento da Etapa 4B.1, somente relatórios de leitura, conforme [ETAPA4B1.md](ETAPA4B1.md). Não autoriza recuperação ou exportação. Incremento 0.5.0, código 8, concluído e validado, inclusive atualização sobre a release 0.4.1 com a mesma assinatura existente. Consultar os resultados em ETAPA4B1.md; próximas etapas aguardam autorização.
 
 
 > Consolidação autorizada após a aprovação física da 0.4.0: [Noctua — identidade e assinatura](NOCTUA.md). Não amplia o escopo de notas, relatórios, recuperação ou exportação. A release permanente depende da configuração da chave pelo proprietário; [guia](ASSINATURA_PASSO_A_PASSO.md). As etapas originais abaixo permanecem como referência, com os estados históricos indicados.

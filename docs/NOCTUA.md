@@ -62,3 +62,7 @@ O artefato foi baixado, o ZIP/manifesto interno e o SHA-256 foram conferidos, e 
 A compilação real ocorreu no Actions com JDK 17, SDK 35 e emulador API 30. Localmente os cenários Java e as proteções dos scripts passaram; o shell bloqueou o download do Gradle com `SocketException: Operation not permitted`, mesmo usando diretório gravável. Isso não impediu a compilação e verificação pelo CI. Nenhum script destrutivo foi executado em aparelho físico.
 
 Sem alterações em relatórios, recuperação ou exportação inteligente. Aguardar autorização para os próximos incrementos.
+
+## Atualização posterior — assinatura configurada pelo proprietário
+
+O proprietário gerou uma release 0.4.1 na execução [38992921225](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38992921225), depois da entrega histórica acima. Na [Etapa 4B.1](ETAPA4B1.md), a 0.5.0 reutilizou essa assinatura e foi instalada por cima daquela release com preservação integral comprovada em emulador. Nenhuma nova chave foi criada por este incremento. [Actions validado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39032589083).
