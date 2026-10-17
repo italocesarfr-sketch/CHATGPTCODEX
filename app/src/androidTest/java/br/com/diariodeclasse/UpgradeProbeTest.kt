@@ -19,9 +19,23 @@ class UpgradeProbeTest {
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             scenario.onActivity { activity -> assertFalse(activity.isFinishing) }
             val path=instrumentation.targetContext.getDatabasePath("diario.db")
+            @Suppress("DEPRECATION")
+            val migrated=instrumentation.targetContext.packageManager.getPackageInfo("br.com.diariodeclasse",0).versionCode >= 9
+            // Activity RESUMED não significa que a primeira consulta Room já terminou.
+            // Aguarda a abertura/migração pelo app, sem abrir Room nem alterar o banco aqui.
+            val expectedVersion=if(migrated) 2 else 1
+            val deadline=android.os.SystemClock.uptimeMillis()+10000
+            var observedVersion=0
+            do {
+                SQLiteDatabase.openDatabase(path.path,null,SQLiteDatabase.OPEN_READONLY).use { check ->
+                    check.rawQuery("PRAGMA user_version",null).use { cursor ->
+                        assertTrue(cursor.moveToFirst());observedVersion=cursor.getInt(0)
+                    }
+                }
+                if(observedVersion!=expectedVersion) Thread.sleep(25)
+            } while(observedVersion!=expectedVersion && android.os.SystemClock.uptimeMillis()<deadline)
+            assertEquals("A abertura/migração do app deve concluir antes da conferência",expectedVersion,observedVersion)
             SQLiteDatabase.openDatabase(path.path,null,SQLiteDatabase.OPEN_READONLY).use { sql ->
-                @Suppress("DEPRECATION")
-                val migrated=instrumentation.targetContext.packageManager.getPackageInfo("br.com.diariodeclasse",0).versionCode >= 9
                 sql.rawQuery("PRAGMA user_version",null).use { assertTrue(it.moveToFirst());assertEquals(if(migrated) 2 else 1,it.getInt(0)) }
                 sql.rawQuery("SELECT identity_hash FROM room_master_table WHERE id=42",null).use { assertTrue(it.moveToFirst());assertEquals(if(migrated) br.com.diariodeclasse.backup.BackupCodec.IDENTITY else "99b868cf68cf5dffb82edf267ddc78be",it.getString(0)) }
                 expected.keys().forEach { field ->
