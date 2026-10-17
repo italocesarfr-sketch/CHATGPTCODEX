@@ -35,7 +35,7 @@ Sem alteração de entidades, DAO, consultas, esquema Room **v3**, migrações o
 
 O workflow manual `release.yml` e a configuração de assinatura permanecem intactos. A referência do teste de atualização é a release real **0.7.0**, execução **39055280256**, artefato **12109269070**, fixada por checksum e certificado em [baseline/noctua-release-0.7.0.json](baseline/noctua-release-0.7.0.json). O CI reutiliza exclusivamente a chave já configurada pelo proprietário, sem criar/substituir chaves ou modificar Secrets. O ensaio é restrito a emulador descartável e dados fictícios; nunca executá-lo em aparelho físico.
 
-A semente é criada pelo próprio APK 0.7.0: todas as dez tabelas, remanejamento consolidado anterior, matrícula legitimamente encerrada e a sequência que produziu Ativo com saída residual, incluindo notas zero, recomposição e P/F/FJ. A atualização deve preservar tudo antes de qualquer reparo. Depois, testa-se reparo confirmado, novo remanejamento, ausência de duplicação, backup/restauração e reabertura.
+A semente é criada pelo próprio APK 0.7.0: todas as dez tabelas, remanejamento consolidado anterior, matrícula legitimamente encerrada e a sequência que produziu Ativo com saída residual, incluindo notas zero, recomposição e P/F/FJ. A atualização deve preservar tudo antes de qualquer reparo. Depois, testa-se reparo confirmado, novo remanejamento, ausência de duplicação, backup/restauração e reabertura. A sonda `FrequencyProcessProbeTest` também executa Transferido → Ativo, aguarda o commit, sofre `force-stop`, reabre e só então remaneja, conferindo notas, frequência, recomposição, IDs e contagem de matrículas.
 
 ## Validação
 

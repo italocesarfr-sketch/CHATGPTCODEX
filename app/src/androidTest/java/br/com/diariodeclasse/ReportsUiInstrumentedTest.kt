@@ -145,7 +145,10 @@ class ReportsUiInstrumentedTest {
         field(a,"annual-frequency").assertTextContains("1 faltas efetivas",substring=true)
         compose.onNodeWithText("1. ${a.name}").performClick();waitText("Original das atividades: 0,00")
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
-        compose.onNodeWithText("3º bim.").performClick();waitText("Resultado vigente: 6,00")
+        compose.onNodeWithText("3º bim.").performClick()
+        // O resumo anual também contém 6,00 antes de terminar a troca de período.
+        // Aguardar o cabeçalho corrente evita consultar a lista enquanto ela é recomposta.
+        waitText("Nota 6,00 / 10,00");compose.waitForIdle()
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
         compose.onNodeWithTag("individual-term-4").assertTextContains("Recomposição: Não registrada",substring=true)
     }
