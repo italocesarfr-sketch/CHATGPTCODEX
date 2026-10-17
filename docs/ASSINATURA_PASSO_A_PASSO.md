@@ -14,6 +14,8 @@ Execute o comando abaixo em uma só linha:
 keytool -genkeypair -storetype PKCS12 -keystore noctua-release.p12 -alias noctua -keyalg RSA -keysize 3072 -validity 10000
 ```
 
+No Windows, se `keytool` não for encontrado e o Android Studio estiver no local padrão, substitua `keytool` no início do comando por `& "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe"`. Ajuste o caminho se a instalação for diferente.
+
 O comando pede a senha no próprio computador: escolha uma senha forte e guarde-a em um gerenciador de senhas. A digitação pode não aparecer na tela, o que é normal. Responda às perguntas do certificado com a identificação do proprietário/organização, sem dados de alunos, e confirme. Se o JDK usar a mesma senha para arquivo e chave PKCS12, use essa mesma senha nos dois secrets de senha abaixo. Não acrescente senhas à linha de comando.
 
 O arquivo `noctua-release.p12` contém a chave privada. **Não execute o comando novamente para cada versão.** Validade de 10.000 dias é aproximadamente 27 anos; planeje a continuidade antes do vencimento. Perder a chave/senha pode impedir futuras atualizações com a mesma assinatura.
@@ -24,7 +26,7 @@ O arquivo `noctua-release.p12` contém a chave privada. **Não execute o comando
 keytool -list -v -storetype PKCS12 -keystore noctua-release.p12 -alias noctua
 ```
 
-Digite a senha quando solicitado. Anote o alias `noctua`, a validade e a linha **SHA256** da seção do certificado. Essa impressão digital é pública e tem 64 dígitos hexadecimais, eventualmente separados por `:`. Ela não é o SHA-256 do arquivo APK, que muda a cada versão.
+Digite a senha quando solicitado. Anote o alias `noctua`, a validade e a linha **SHA256** da seção do certificado. Essa impressão digital é pública e tem 64 dígitos hexadecimais, eventualmente separados por `:`. Copie somente os dígitos/separadores, sem o rótulo `SHA256:` ou espaços. Ela não é o SHA-256 do arquivo APK, que muda a cada versão.
 
 Guarde pelo menos duas cópias da chave em locais independentes e protegidos, por exemplo dois dispositivos criptografados, sendo um offline. Guarde a senha em gerenciador protegido, separadamente do arquivo quando possível. Em cada cópia, execute `keytool -list` para confirmar que a senha abre o arquivo e que o SHA256 é idêntico. Conserve também um registro do alias, da impressão digital e dos APKs releases publicados.
 
@@ -44,7 +46,7 @@ Em **Secrets and variables → Actions**, configure os quatro **Repository secre
 | Secret | `DIARY_KEY_PASSWORD` | Senha da chave; normalmente a mesma do arquivo PKCS12 |
 | Variable | `DIARY_CERT_SHA256` | SHA256 público obtido no passo 2, com ou sem `:` |
 
-Os nomes `DIARY_*` são mantidos por compatibilidade; o aplicativo já se chama Noctua. Para preparar o primeiro secret **localmente**, escolha o seu sistema:
+Use **New repository secret** para cada uma das quatro linhas Secret; na aba **Variables**, use **New repository variable** para a última linha. Os nomes `DIARY_*` são mantidos por compatibilidade; o aplicativo já se chama Noctua. Para preparar o primeiro secret **localmente**, escolha o seu sistema:
 
 **Windows / PowerShell**, dentro da pasta privada:
 
@@ -75,7 +77,7 @@ O artefato dura 30 dias: guarde uma cópia do APK e do checksum. Não é criada 
 
 ## 5. Confira o APK antes de instalar
 
-No Android Studio, instale **Android SDK Build-Tools 35.0.0**, se necessário. O programa `apksigner` fica na pasta `Android/Sdk/build-tools/35.0.0` (no Windows, `apksigner.bat`). Dentro da pasta que contém o APK extraído:
+No Android Studio, abra **SDK Manager** (no menu Tools ou More Actions), confira o campo **Android SDK Location** e instale **Android SDK Build-Tools 35.0.0**, se necessário. O programa `apksigner` fica dentro desse SDK em `build-tools/35.0.0` (no Windows, `apksigner.bat`). Dentro da pasta que contém o APK extraído:
 
 ```sh
 /CAMINHO/Android/Sdk/build-tools/35.0.0/apksigner verify --verbose --print-certs app-release.apk

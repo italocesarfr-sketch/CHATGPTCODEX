@@ -2,6 +2,9 @@
 
 Anteriormente Diário de Classe. Incremento **0.4.1 / código 7**: nome Android/cabeçalho e coruja discreta, com o mesmo pacote `br.com.diariodeclasse`, banco `diario.db` e funcionalidades aprovadas da 0.4.0. [Consolidação e testes](docs/NOCTUA.md). **A primeira release permanente depende do proprietário:** siga o [passo a passo de assinatura](docs/ASSINATURA_PASSO_A_PASSO.md). O APK debug continua sendo de teste. A versão 0.4.0 abaixo permanece como histórico funcional.
 
+[Baixar APK debug Noctua 0.4.1](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38989743182/artifacts/12084473884) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38989743182) • [Resultados](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38989743182/artifacts/12084449177). 24 testes JVM, 63 Android e dez fases de sondas aprovados. Atualização release controlada e rejeição de certificado incompatível verificadas. **Este APK é de teste; a release permanente ainda depende da chave do proprietário.**
+
+
 Aplicativo Android nativo em Kotlin, Jetpack Compose/Material 3 e Room/SQLite, com ViewModel e Repository. Android 8.0 (API 26) ou superior. Interface em português brasileiro, armazenamento privado e funcionamento offline, sem cadastro ou permissão de Internet.
 
 ## Versão 0.4.0 — Primeiro incremento da Etapa 4A
@@ -18,7 +21,7 @@ Referências: [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.m
 
 No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **noctua-apk-teste**: contém o APK debug, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-noctua** contém resultados e capturas de tela sintéticas, incluindo os testes de assinatura/atualização release com chaves descartáveis. Para distribuição permanente, use somente o workflow release após a configuração descrita no guia.
 
-O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [ETAPA4A](docs/ETAPA4A.md).
+O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados atuais estão registrados em [NOCTUA](docs/NOCTUA.md); o teste adicional valida também a atualização 0.4.0 para release com chave descartável e a rejeição de assinatura incompatível.
 
 ### Android Studio / terminal
 
