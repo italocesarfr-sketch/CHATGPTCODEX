@@ -29,7 +29,8 @@ class ActivityChangesUiInstrumentedTest {
         app.selectionStore.write(AppSelection(2026,c.id))
         waitText(c.name);compose.onNodeWithTag("nav-2").performClick();waitList()
         compose.onNodeWithText("3º bim.").performClick()
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasTestTag("activity-${a.id}"));waitText(a.name)
+        compose.waitUntil(5000){compose.onAllNodes(hasText("3º bim.") and isSelected()).fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithTag("activities-list").performScrollToNode(hasTestTag("activity-${a.id}"));waitText(a.name)
     }
     @After fun cleanup()=runBlocking {
         app.commands.awaitPendingWrites()
@@ -43,8 +44,8 @@ class ActivityChangesUiInstrumentedTest {
         app.selectionStore.write(previous)
     }
     private fun waitText(text:String){compose.waitUntil(10000){compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()}}
-    private fun waitList(){compose.waitUntil(10000){compose.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty()&&compose.onAllNodesWithText("+ Criar atividade").fetchSemanticsNodes().isNotEmpty()}}
-    private fun clickList(tag:String){waitList();compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasTestTag(tag));compose.onNodeWithTag(tag).performClick()}
+    private fun waitList(){compose.waitUntil(10000){compose.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty()&&compose.onAllNodesWithTag("activities-list").fetchSemanticsNodes().isNotEmpty()}}
+    private fun clickList(tag:String){waitList();compose.onNodeWithTag("activities-list").performScrollToNode(hasTestTag(tag));compose.onNodeWithTag(tag).performClick()}
     private fun editMaximum(value:String){
         clickList("activity-edit-${a.id}");waitText("Editar atividade")
         compose.onNodeWithText("Pontuação máxima").performScrollTo().performTextReplacement(value)

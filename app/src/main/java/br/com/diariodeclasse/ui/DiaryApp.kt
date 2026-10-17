@@ -225,7 +225,7 @@ private val pages = listOf(
 @Composable private fun ActivitiesPage(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, edit: (Activity) -> Unit, grades: (String) -> Unit) {
     val activities = data.activities.filter { it.classId == c.id && it.term == term }
     var removing by remember { mutableStateOf<Activity?>(null) }
-    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.testTag("activities-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Button(create, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Criar atividade") } }
         if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
         items(activities, key = { it.id }) { a -> Card(Modifier.fillMaxWidth().testTag("activity-${a.id}")) {
