@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.test.espresso.Espresso
 import br.com.diariodeclasse.data.*
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -71,7 +70,7 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithText("3º bim.").performClick();waitText("Nota 1,50 / 10,00")
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
         compose.onNodeWithTag("individual-term-4").assertTextContains("Sem atividades")
-        Espresso.pressBack();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithText("‹ Voltar").performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Boletim do 3º bimestre")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
