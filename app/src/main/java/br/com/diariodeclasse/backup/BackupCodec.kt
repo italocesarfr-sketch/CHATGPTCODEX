@@ -3,6 +3,7 @@ package br.com.diariodeclasse.backup
 import br.com.diariodeclasse.data.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import java.io.InputStream
 import java.security.MessageDigest
 import java.time.Instant
@@ -70,6 +71,7 @@ object BackupCodec {
             if (!legacy && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
+            if (current && "recompositions" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de recomposição.")
             val snapshot = json.decodeFromString<BackupSnapshot>(envelope.payload).canonical()
             if (legacy && snapshot.recompositions.isNotEmpty()) throw BackupFailure("Backup antigo não pode conter recomposições.")
             validate(snapshot)

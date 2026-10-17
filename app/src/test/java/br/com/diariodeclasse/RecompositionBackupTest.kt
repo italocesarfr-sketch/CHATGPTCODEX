@@ -4,6 +4,8 @@ import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.Recomposition
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -41,5 +43,7 @@ class RecompositionBackupTest {
         fails {BackupCodec.decode(BackupCodec.json.encodeToString(e.copy(formatVersion=2,databaseVersion=1,schemaIdentityHash=BackupCodec.LEGACY_IDENTITY)).toByteArray())}
         fails {BackupCodec.decode(BackupCodec.json.encodeToString(e.copy(payload=e.payload.replace("5.0","6.0"))).toByteArray())}
         fails {BackupCodec.decode(BackupCodec.json.encodeToString(e.copy(databaseVersion=1)).toByteArray())}
+        val missing=JsonObject(BackupCodec.json.parseToJsonElement(e.payload).jsonObject.filterKeys {it!="recompositions"}).toString()
+        fails {BackupCodec.decode(BackupCodec.json.encodeToString(e.copy(payload=missing,payloadSha256=BackupCodec.hash(missing.toByteArray()))).toByteArray())}
     }
 }
