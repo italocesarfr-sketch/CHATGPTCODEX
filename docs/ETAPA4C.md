@@ -1,6 +1,6 @@
 # Etapa 4C — Remanejamento seguro de alunos
 
-Incremento **Noctua 0.7.0 / código 11**, base **0.6.1 / código 10**. Escopo: remanejamento confirmado, histórico vinculado, consultas consolidadas e segurança de atualização. Resultados do CI serão preenchidos após a validação. A Etapa 5 não foi iniciada.
+Incremento **Noctua 0.7.0 / código 11**, base **0.6.1 / código 10**. Escopo: remanejamento confirmado, histórico vinculado, consultas consolidadas e segurança de atualização. Resultados de compilação, testes e atualização registrados ao final. A Etapa 5 não foi iniciada.
 
 ## Uso e confirmação
 
@@ -63,4 +63,45 @@ O workflow manual `release.yml`, a configuração de assinatura e os Secrets per
 
 Testes novos abrangem pontos antes/depois, zero/pendente/não aplicável, quatro períodos, recomposição única, destino externo, identidade compartilhada, matrícula existente e cadeia, origem oculta/consulta, horários diferentes, FJ/cancelamentos, incompatibilidades, ciclos, repetição, cancelamento, falha no meio da transação, prévia obsoleta, reinício, backup e migração v2→v3. A regressão anterior de cadastro, frequência, recálculo proporcional, recomposição e relatórios permanece exigida no CI.
 
-Resultados, links e limitações de execução serão registrados após conclusão do GitHub Actions. A conferência física da versão nova cabe ao proprietário após os testes do emulador. A Etapa 5 continua aguardando autorização.
+## Resultados verificados — 17/10/2026
+
+[Baixar APK com assinatura release existente](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256/artifacts/12109269070) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256) • [Testes e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256/artifacts/12108994076) • [Provas de atualização](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256/artifacts/12108984698). O ZIP contém `app-release.apk`, SHA-256, identidade pública e comparação de compatibilidade. Código testado: [`fe6468b`](https://github.com/italocesarfr-sketch/CHATGPTCODEX/commit/fe6468b08901735d502e03aebdf26633b928120b). O commit documental posterior conserva o mesmo código.
+
+| Verificação | Resultado |
+| --- | --- |
+| JVM, incluindo dez novos testes de vínculo/projeção/backup | 55 aprovados, zero falhas |
+| Android API 30, incluindo dez novos testes Room e quatro Compose | 101 aprovados, zero falhas |
+| Reinício de chamadas/notas | 2 fases aprovadas |
+| Atualização legada Room v1 → v3 | 2 fases aprovadas; oito tabelas anteriores preservadas |
+| Migração Room v2 → v3 | Nove tabelas anteriores, IDs e recomposições preservados; vínculo inicialmente vazio |
+| Release real 0.6.1 → 0.7.0 | 4 fases aprovadas: antes, depois, backup/restauração e reabertura |
+| Novos registros após atualizar | Remanejamento e histórico consolidado, backup formato 4 e reinício aprovados |
+| Backup e restauração | Formatos 1/2/3 lidos; formato 4 completo, integridade e rollback com vínculos aprovados |
+| Compilação | `assembleDebug`, `assembleDebugAndroidTest` e `assembleRelease` aprovados |
+| Assinatura | Verificação criptográfica aprovada; mesmo certificado da release 0.6.1 |
+| Domínio Java local | 28 cenários aprovados |
+
+Quatro sondas exclusivas ficam ignoradas na suíte Android normal. Três sondas ativas são acionadas separadamente em oito fases. A quarta, `ReleaseContinuityProbeTest`, é histórica; seu script de criação de chaves de teste não foi acionado. A atualização atual reutiliza a assinatura permanente. Foram conferidos os XMLs JUnit, as saídas das oito fases, os JSONs Room e as capturas. Só foram usados dados fictícios.
+
+A primeira execução ([39054865337](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39054865337)) aprovou os 55 testes JVM e todos os dez testes Room novos, mas encontrou uma espera incorreta no novo teste de interface: a linha de destino ainda não estava composta pela lista ao trocar de turma. O teste passou a aguardar o novo contexto e rolar até a linha. O filtro de histórico passou a aparecer somente onde existem remanejados, preservando o espaço das demais turmas. A regressão completa foi repetida após os ajustes.
+
+Localmente passaram 55 testes JVM, os 28 cenários Java e compilações intermediárias debug/instrumentação. O candidato final, a validação Android, a migração distribuída e a release assinada foram validados no CI. O APK release foi baixado e novamente conferido por manifesto binário, checksum e `apksigner`.
+
+- Release: **7163346 bytes**, `br.com.diariodeclasse`, **0.7.0 / código 11**, Android 8.0+.
+- Caminho verificado: `app/build/outputs/apk/release/app-release.apk` (absoluto: `/workspace/diario-de-classe/app/build/outputs/apk/release/app-release.apk`).
+- APK SHA-256: `0021fc4027b22c85d63b5a0f6a57397844903aac06f6035fd3025c915dfe1b86`.
+- Certificado público SHA-256: `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`.
+- Room v3: identidade `9e864249a18922cfb9caa6e54ee6c3af`, JSON SHA-256 `3e087b839b8c286589b1d7cabc0e7d2e8e83645728d1df757c05e32a95b5c7ce`.
+- JSONs v1 e v2 anteriores intactos; nove entidades v2 comparadas estruturalmente com a v3.
+- [Metadados completos](baseline/etapa4c-validacao.json).
+- [Debug interno](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256/artifacts/12109357895): certificado diferente da release, sem promessa de atualização sobre ela. Caminho verificado: `app/build/outputs/apk/debug/app-debug.apk`.
+
+**Compatibilidade comprovada:** instalação por cima da release 0.6.1 de referência, com a mesma assinatura, sem desinstalar, preservando nove tabelas e preferências sintéticas e aplicando somente a migração aditiva. Após a prova de preservação, um remanejamento foi confirmado, incluído no backup/restauração e verificado depois do encerramento/reabertura. Notas e chamadas antigas permaneceram nos IDs de origem.
+
+O workflow manual `release.yml` permanece intacto. Nenhuma chave permanente foi criada/substituída e nenhum arquivo privado ou senha foi publicado. Secrets não foram modificados. APKs têm retenção de 30 dias no workflow; o CI depende da disponibilidade do artefato de referência. Quando expirar, deve-se fixar outra referência legítima e seus metadados públicos, preservando a comparação obrigatória de assinatura.
+
+**Limites de validação:** o APK novo ainda precisa de conferência do proprietário no celular físico. Os testes Android desta entrega foram em emulador API 30; não foram repetidos em API 26, tablets, TalkBack, fonte ampliada ou bases escolares extensas. Não foi inspecionado o certificado da instalação física. Compatibilidade está comprovada com a release 0.6.1 de referência. Faça backup externo válido antes de atualizar e não desinstale para contornar assinatura incompatível.
+
+**Limites funcionais deliberados:** calendários/escalas/políticas de FJ incompatíveis e recomposições conflitantes bloqueiam a operação. Não há fusão por nomes, reconstrução automática de transferências legadas, reversão de vínculo, remanejamento no meio do dia ou editor individual de notas/chamadas da origem vinculada. Esses casos exigem outro incremento autorizado. A consulta histórica continua disponível, sem apagar dados.
+
+Somente a Etapa 4C foi implementada. Exportação, registros de aula, novas regras pedagógicas e identidade definitiva permanecem fora do escopo. A Etapa 5 aguarda autorização.

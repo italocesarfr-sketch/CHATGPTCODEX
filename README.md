@@ -1,6 +1,6 @@
 # Noctua
 
-Incremento em validação: [Etapa 4C — Remanejamento seguro](docs/ETAPA4C.md), **Noctua 0.7.0 / código 11**. Vínculos preservam matrículas, notas, chamadas e recomposição na origem e consolidam o histórico no destino. Migração aditiva Room v2→v3; backup formato 4 lê os anteriores. Resultados serão publicados após o CI. Etapa 5 não iniciada.
+Incremento atual: [Etapa 4C — Remanejamento seguro](docs/ETAPA4C.md), **Noctua 0.7.0 / código 11 — entregue**. Uma matrícula vinculada no destino consolida notas, chamadas e recomposição preservadas na origem, sem copiar registros escolares. Prévia/confirmação, origem oculta com consulta histórica e destino externo. 55 testes JVM e 101 Android aprovados; atualização assinada 0.6.1 → 0.7.0 comprovada com migração aditiva e backups compatíveis. [Baixar APK de teste assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256/artifacts/12109269070) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39055280256). Limitações no documento do incremento. Etapa 5 não iniciada.
 
 Histórico: [Etapa 4B.3 — Consolidação dos relatórios](docs/ETAPA4B3.md), **Noctua 0.6.1 / código 10 — entregue**. Relatórios bimestrais, individuais e anuais distinguem original, recomposição, vigente e pendências, com frequência e matrícula integradas. 45 testes JVM e 87 Android aprovados; atualização sobre a release 0.6.0 comprovada com a mesma assinatura e nove tabelas preservadas, sem mudança do esquema. [Baixar APK de teste assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39049512375/artifacts/12106789781) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39049512375). Detalhes e limites no documento do incremento. Etapa 5 não iniciada.
 
@@ -29,7 +29,7 @@ Referências: [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.m
 
 No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. O job de regressão publica **noctua-apk-teste** (debug interno) e **resultados-etapa4c**. Após aprovação, o job `stable-update` usa a chave release existente, verifica assinatura e testa instalação sobre a release 0.6.1. Só então publica **noctua-etapa4c-release**, o APK indicado para atualizar aquela release, e **resultados-atualizacao-release**.
 
-O CI configura JDK 17/SDK 35, executa testes JVM, `assembleDebug`, `assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1. O job release executa `assembleRelease`, confere o certificado fixado e a preservação das oito tabelas anteriores e da nova tabela de recomposição, preferências e backup. Não cria nem substitui chave permanente. O workflow manual **Noctua — APK com assinatura estável** também continua disponível, sem alteração. Resultados e limites em [ETAPA4C](docs/ETAPA4C.md).
+O CI configura JDK 17/SDK 35, executa testes JVM, `assembleDebug`, `assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1. O job release executa `assembleRelease`, confere o certificado fixado e a preservação das dez tabelas, incluindo recomposições e vínculos de remanejamento, preferências e backup. Não cria nem substitui chave permanente. O workflow manual **Noctua — APK com assinatura estável** também continua disponível, sem alteração. Resultados e limites em [ETAPA4C](docs/ETAPA4C.md).
 
 ### Android Studio / terminal
 
@@ -51,7 +51,7 @@ No Windows, use `gradlew.bat`. Após sucesso, o APK fica em:
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Para instalação por USB, confira primeiro os certificados em [ASSINATURA](docs/ASSINATURA.md). `adb install -r app/build/outputs/apk/debug/app-debug.apk` exige mesmo pacote/certificado e versão adequada. Este debug é para testes; **não há garantia de atualização sobre instalações anteriores**. A assinatura permanente já configurada é utilizada pelo workflow release; o debug local não deve ser instalado por cima dela presumindo compatibilidade. Nunca são publicadas chaves privadas. Para atualizar a release 0.6.0 de referência, utilize o APK release validado acima, fazendo backup antes.
+Para instalação por USB, confira primeiro os certificados em [ASSINATURA](docs/ASSINATURA.md). `adb install -r app/build/outputs/apk/debug/app-debug.apk` exige mesmo pacote/certificado e versão adequada. Este debug é para testes; **não há garantia de atualização sobre instalações anteriores**. A assinatura permanente já configurada é utilizada pelo workflow release; o debug local não deve ser instalado por cima dela presumindo compatibilidade. Nunca são publicadas chaves privadas. Para atualizar a release 0.6.1 de referência, utilize o APK release validado acima, fazendo backup antes.
 
 ## Utilização
 
@@ -70,7 +70,7 @@ Para instalação por USB, confira primeiro os certificados em [ASSINATURA](docs
 - `domain/`: cálculos de notas/frequência, normalização/duplicidades e leitor de CSV/texto.
 - `ui/`: quatro páginas Compose, tabelas de frequência, formulários, conferência e fila de gravações pertencente ao processo.
 - `backup/`: formato versionado, validação, restauração transacional e cópia de segurança.
-- `app/schemas/`: referência imutável Room v1 e esquema atual v3, sem migração destrutiva.
+- `app/schemas/`: referências imutáveis Room v1/v2 e esquema atual v3, sem migração destrutiva.
 - `app/src/test/` e `app/src/androidTest/`: testes com fixtures sintéticas separadas dos dados do usuário.
 - `.github/workflows/`: compilação/testes e release com chave estável fornecida externamente.
 
@@ -78,4 +78,4 @@ A fila aguarda o commit antes de indicar Salvo; gravações ainda pendentes pode
 
 ## Próximas etapas
 
-Etapa 4C em validação: remanejamento seguro com histórico vinculado. Aguardar autorização para os próximos incrementos. Recuperação comum permanece atividade regular, sem automação aditiva. Exportação inteligente PDF/CSV/XLSX, regras de fechamento anual e refinamento amplo de acessibilidade/desempenho seguem o ROADMAP. Relatórios atuais são consultas na tela. Não há feriados oficiais automáticos. As capturas e testes do CI não substituem a validação posterior em aparelho físico.
+Etapa 4C concluída: remanejamento seguro com histórico vinculado. Aguardar autorização para os próximos incrementos. Recuperação comum permanece atividade regular, sem automação aditiva. Exportação inteligente PDF/CSV/XLSX, regras de fechamento anual e refinamento amplo de acessibilidade/desempenho seguem o ROADMAP. Relatórios atuais são consultas na tela. Não há feriados oficiais automáticos. As capturas e testes do CI não substituem a validação posterior em aparelho físico.

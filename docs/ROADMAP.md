@@ -1,6 +1,6 @@
 # Roadmap — Noctua (Diário de Classe)
 
-> Etapa 4C autorizada: remanejamento seguro sobre a 0.6.1, com vínculos entre matrículas e pontos do mesmo bimestre acompanhando o aluno. Incremento 0.7.0 / código 11 em validação: migração aditiva v2→v3 e backup compatível com os formatos anteriores. Compatibilidades e bloqueios explícitos em [ETAPA4C.md](ETAPA4C.md). Não autoriza a Etapa 5.
+> Etapa 4C autorizada: remanejamento seguro sobre a 0.6.1, com vínculos entre matrículas e pontos do mesmo bimestre acompanhando o aluno. Incremento 0.7.0 / código 11 concluído: migração aditiva v2→v3 e backup compatível com os formatos anteriores. Compatibilidades e bloqueios explícitos em [ETAPA4C.md](ETAPA4C.md). 55 testes JVM, 101 Android e atualização assinada 0.6.1 → 0.7.0 aprovados; resultados em ETAPA4C.md. Não autoriza a Etapa 5.
 
 > Etapa 4B.3 autorizada: consolidação somente leitura dos relatórios sobre a 0.6.0 aprovada em aparelho físico pelo proprietário. Incremento 0.6.1 / código 10: projeções compartilhadas, notas e recomposição separadas, frequência integrada e preservação da leitura. Sem alteração do esquema Room v2, do backup formato 3 ou das regras pedagógicas. Consulte [ETAPA4B3.md](ETAPA4B3.md) para escopo e resultados. 45 testes JVM, 87 Android e atualização assinada 0.6.0 → 0.6.1 aprovados; links no documento do incremento. A Etapa 5 permanece sem autorização.
 
