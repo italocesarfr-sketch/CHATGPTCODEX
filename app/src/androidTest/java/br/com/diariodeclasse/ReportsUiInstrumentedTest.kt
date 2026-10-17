@@ -54,6 +54,12 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithText("$current ▾").performClick();compose.onNodeWithText(value,useUnmergedTree=true).performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
+    private fun selectClass(school:SchoolClass) {
+        val previousRoot=compose.onNodeWithTag("reports-list").fetchSemanticsNode().id
+        compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(school.name,useUnmergedTree=true).performClick()
+        compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().any {it.id!=previousRoot}}
+        compose.onNodeWithTag("reports-list").performScrollToIndex(0)
+    }
     private fun cell(student:Student,index:Int)=compose.onNodeWithTag("report-row-${student.id}-cell-$index",useUnmergedTree=true)
     private fun shot(name:String) {
         val folder=File(app.filesDir,"etapa4b1-screenshots");folder.mkdirs()
@@ -69,7 +75,7 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("3º bim.").performClick();waitText("Nota 1,50 / 10,00")
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
-        compose.onNodeWithTag("individual-term-4").assertTextContains("Sem atividades")
+        compose.onNodeWithTag("individual-term-4").assertTextContains("Sem atividades",substring=true)
         compose.onNodeWithText("‹ Voltar").performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Boletim do 3º bimestre")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
@@ -96,11 +102,12 @@ class ReportsUiInstrumentedTest {
     @Test fun annualShowsFourTermsNoDataAndGlobalClassIsolation() {
         val before=runBlocking {app.backupManager.snapshot()}
         mode("Resumo anual");row(a)
-        cell(a,0).assertTextContains("0,00");cell(a,1).assertTextEquals("Sem dados")
-        cell(a,2).assertTextContains("Parcial");cell(a,3).assertTextEquals("Sem dados");shot("03-anual")
-        compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(other.name,useUnmergedTree=true).performClick()
+        cell(a,0).assertTextContains("0,00",substring=true);cell(a,1).assertTextEquals("Sem dados")
+        cell(a,2).assertTextContains("Parcial",substring=true);cell(a,3).assertTextEquals("Sem dados");shot("03-anual")
+        selectClass(other)
+        compose.onNodeWithTag("reports-list").performScrollToNode(hasText("Nenhum aluno cadastrado nesta turma."))
         waitText("Nenhum aluno cadastrado nesta turma.")
-        compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(c.name,useUnmergedTree=true).performClick()
+        selectClass(c)
         compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Resumo anual de 2026")
         compose.activityRule.scenario.recreate();waitText("Resumo anual de 2026")

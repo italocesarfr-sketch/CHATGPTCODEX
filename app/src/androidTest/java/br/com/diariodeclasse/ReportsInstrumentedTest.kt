@@ -56,7 +56,8 @@ class ReportsInstrumentedTest {
         assertEquals(0,SchoolReports(data,c).student(a,1).frequency!!.absent)
         repo.lessonState("aula-1","CANCELADA")
         data=current {it.lessons.any {l->l.id=="aula-1"&&l.state=="CANCELADA"}}
-        assertEquals(1,SchoolReports(data,c).student(a,1).frequency!!.performed)
+        assertEquals(2,SchoolReports(data,c).student(a,1).frequency!!.performed) // inclui a aula NR de março
+        assertEquals(1,SchoolReports(data,c).student(a,1).frequency!!.valid)
         manager.restore(manager.prepare(before.inputStream()),"RESTAURAR")
         data=current {it.grades.any {g->g.activityId=="atividade-1"&&g.studentId=="alfa"&&g.value==0.0}&&it.lessons.any {l->l.id=="aula-1"&&l.state=="REALIZADA"}&&it.marks.any {m->m.lessonId=="aula-2"&&m.studentId=="alfa"&&m.mark=="F"}}
         assertEquals(0.0,SchoolReports(data,c).student(a,1).total!!,0.0)

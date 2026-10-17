@@ -26,7 +26,7 @@ internal fun gradeStatus(row: StudentPeriodReport): String = when (row.state) {
 }
 private fun percent(f: SchoolRules.Frequency?) = f?.percent?.let { "${number(it)}%" } ?: "Sem registros válidos"
 private fun frequencyText(f: SchoolRules.Frequency?): String = if (f == null) "Bimestre não configurado" else
-    "Aulas elegíveis: ${f.performed} • presenças: ${f.present}\nFaltas: ${f.absent} • justificadas: ${f.justified}\nFrequência: ${percent(f)}\n${f.valid} chamadas válidas • ${f.performed - f.valid} não registradas"
+    "Aulas elegíveis: ${f.performed}\nFaltas: ${f.absent} • justificadas: ${f.justified}\nPresenças: ${f.present} • frequência: ${percent(f)}\n${f.valid} chamadas válidas de ${f.performed} aulas realizadas • ${f.performed - f.valid} não registradas"
 private fun justificationPolicy(c: SchoolClass) = if (c.countJustified)
     "Faltas efetivas: F + FJ, conforme a configuração da turma. Justificar não abona a falta."
 else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a configuração da turma."
