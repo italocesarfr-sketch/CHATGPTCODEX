@@ -1,5 +1,8 @@
 # Especificação-mestre — Noctua (Diário de Classe)
 
+> Autorização posterior: primeiro incremento da Etapa 4B.1, somente relatórios de leitura, conforme [ETAPA4B1.md](ETAPA4B1.md). Não autoriza recuperação ou exportação. Base atual Noctua 0.4.1; candidato 0.5.0, código 8.
+
+
 > Incremento autorizado posterior à 0.4.0: [identidade Noctua e assinatura](NOCTUA.md). O professor aprovou fisicamente a 0.4.0. Permanecem pacote `br.com.diariodeclasse`, banco `diario.db`, esquema/IDs e funcionalidades. A primeira chave permanente é criada e guardada pelo proprietário; [guia](ASSINATURA_PASSO_A_PASSO.md). Nenhum outro incremento foi autorizado nesta execução. O diagnóstico original abaixo permanece histórico.
 
 > Etapa 4A, primeiro incremento autorizado: ações de atividade na lista e recálculo proporcional explícito; consulte [ETAPA4A.md](ETAPA4A.md). Os demais incrementos seguem pendentes de autorização. A base 0.3.1 foi aprovada pelo professor em celular físico.

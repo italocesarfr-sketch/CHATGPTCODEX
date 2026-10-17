@@ -36,6 +36,15 @@ public final class SchoolRules {
         }
         return new Frequency(performed, valid, p, f, fj, countJustified);
     }
+    /** Soma de oportunidades de frequência das matrículas, sem média de percentuais. */
+    public static Frequency aggregateFrequency(List<Frequency> rows, boolean countJustified) {
+        int performed = 0, valid = 0, present = 0, absent = 0, justified = 0;
+        for (Frequency row : rows) {
+            performed += row.performed; valid += row.valid; present += row.present;
+            absent += row.absent; justified += row.justified;
+        }
+        return new Frequency(performed, valid, present, absent, justified, countJustified);
+    }
     public static final class GradeSummary {
         public final double total, maximum;
         public final int pending;

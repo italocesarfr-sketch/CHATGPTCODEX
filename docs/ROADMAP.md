@@ -1,5 +1,8 @@
 # Roadmap — Noctua (Diário de Classe)
 
+> Autorização posterior: primeiro incremento da Etapa 4B.1, somente relatórios de leitura, conforme [ETAPA4B1.md](ETAPA4B1.md). Não autoriza recuperação ou exportação. Base atual Noctua 0.4.1; candidato 0.5.0, código 8.
+
+
 > Consolidação autorizada após a aprovação física da 0.4.0: [Noctua — identidade e assinatura](NOCTUA.md). Não amplia o escopo de notas, relatórios, recuperação ou exportação. A release permanente depende da configuração da chave pelo proprietário; [guia](ASSINATURA_PASSO_A_PASSO.md). As etapas originais abaixo permanecem como referência, com os estados históricos indicados.
 
 > Etapa 4A, primeiro incremento autorizado: ações de atividade na lista e recálculo proporcional explícito; consulte [ETAPA4A.md](ETAPA4A.md). Os demais incrementos seguem pendentes de autorização. A base 0.3.1 foi aprovada pelo professor em celular físico.

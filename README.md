@@ -1,5 +1,7 @@
 # Noctua
 
+Incremento atual em validação: **0.5.0 / código 8 — relatórios bimestrais, individuais, frequência, faltosos e quatro bimestres**, sem alterações do Room ou regras anteriores. [Etapa 4B.1](docs/ETAPA4B1.md). Reutiliza a assinatura release já configurada pelo proprietário; resultados serão registrados após o CI. As entregas abaixo permanecem como histórico.
+
 Anteriormente Diário de Classe. Incremento **0.4.1 / código 7**: nome Android/cabeçalho e coruja discreta, com o mesmo pacote `br.com.diariodeclasse`, banco `diario.db` e funcionalidades aprovadas da 0.4.0. [Consolidação e testes](docs/NOCTUA.md). **A primeira release permanente depende do proprietário:** siga o [passo a passo de assinatura](docs/ASSINATURA_PASSO_A_PASSO.md). O APK debug continua sendo de teste. A versão 0.4.0 abaixo permanece como histórico funcional.
 
 [Baixar APK debug Noctua 0.4.1](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38989743182/artifacts/12084473884) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38989743182) • [Resultados](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38989743182/artifacts/12084449177). 24 testes JVM, 63 Android e dez fases de sondas aprovados. Atualização release controlada e rejeição de certificado incompatível verificadas. **Este APK é de teste; a release permanente ainda depende da chave do proprietário.**

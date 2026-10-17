@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Noctua — identidade, assinatura e preservação
+    name: Etapa 4B.1 — relatórios e regressão
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -57,14 +57,6 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - uses: actions/checkout@v4
-        with:
-          ref: 962a18db56416d974b6559cac052aa910415fd6c
-          path: .baseline-release-source
-      - name: Compilar base 0.4.0 para teste de atualização release
-        run: |
-          chmod +x .baseline-release-source/gradlew
-          .baseline-release-source/gradlew -p .baseline-release-source --no-daemon assembleDebug
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
@@ -92,7 +84,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: resultados-noctua
+          name: resultados-etapa4b1
           path: |
             app/build/reports/tests/
             app/build/test-results/
@@ -103,10 +95,121 @@ jobs:
             build/upgrade-before.txt
             build/upgrade-after.txt
             build/release-blocked.txt
-            build/noctua-signing/
+            build/etapa4b1-telas.tar
             build/etapa2-telas.tar
             build/etapa3-telas.tar
             build/etapa4a-telas.tar
             build/frequency-process-write.txt
             build/frequency-process-read.txt
           if-no-files-found: ignore
+  stable-update:
+    name: Release — atualização da Noctua 0.4.1 com a assinatura existente
+    needs: validation
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    environment: release
+    permissions:
+      contents: read
+      actions: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+      - name: Usar somente a chave já configurada pelo proprietário
+        env:
+          STORE_B64: ${{ secrets.DIARY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.DIARY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.DIARY_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.DIARY_KEY_PASSWORD }}
+          CERT_SHA: ${{ vars.DIARY_CERT_SHA256 }}
+        run: |
+          python3 - <<'PY'
+          import os,base64,pathlib,sys
+          if not all(os.environ.get(k) for k in ['STORE_B64','STORE_PASS','KEY_ALIAS','KEY_PASS','CERT_SHA']):
+              sys.exit('Assinatura existente indisponível. Não será criada nem substituída nenhuma chave.')
+          path=pathlib.Path(os.environ['RUNNER_TEMP'])/'diario-signing.p12'
+          with os.fdopen(os.open(path,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600),'wb') as output:
+              output.write(base64.b64decode(os.environ['STORE_B64'],validate=True))
+          PY
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Compilar release e instrumentação sem mudar assinatura
+        env:
+          DIARY_RELEASE_STORE_FILE: ${{ runner.temp }}/diario-signing.p12
+          DIARY_RELEASE_STORE_PASSWORD: ${{ secrets.DIARY_STORE_PASSWORD }}
+          DIARY_RELEASE_KEY_ALIAS: ${{ secrets.DIARY_KEY_ALIAS }}
+          DIARY_RELEASE_KEY_PASSWORD: ${{ secrets.DIARY_KEY_PASSWORD }}
+          DIARY_RELEASE_CERT_SHA256: ${{ vars.DIARY_CERT_SHA256 }}
+        run: |
+          ./gradlew --no-daemon assembleRelease assembleDebugAndroidTest
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign --ks "$DIARY_RELEASE_STORE_FILE" --ks-type PKCS12 --ks-key-alias "$DIARY_RELEASE_KEY_ALIAS" --ks-pass env:DIARY_RELEASE_STORE_PASSWORD --key-pass env:DIARY_RELEASE_KEY_PASSWORD --out "$RUNNER_TEMP/stable-instrumentation.apk" app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          mkdir -p build/stable-upgrade
+          sha256sum app/build/outputs/apk/release/app-release.apk > build/stable-upgrade/apk-tested.sha256
+      - name: Obter o APK release original, sem acesso a bancos pessoais
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: 38992921225
+          name: noctua-assinatura-estavel
+          path: .stable-baseline
+      - name: Verificar identidade da referência e do candidato
+        env:
+          EXPECTED_CERT: ${{ vars.DIARY_CERT_SHA256 }}
+        run: |
+          python3 - <<'PY'
+          import json,sys
+          from pathlib import Path
+          sys.path.insert(0,'scripts')
+          from apk_identity import identity
+          actual=identity('.stable-baseline/app-release.apk')
+          expected=json.loads(Path('docs/baseline/noctua-release-0.4.1.json').read_text())
+          assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
+          PY
+          python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          disable-animations: true
+          script: ./scripts/ci/test-stable-upgrade.sh
+      - name: Conferir e disponibilizar exatamente o release testado
+        run: |
+          sha256sum -c build/stable-upgrade/apk-tested.sha256
+          sha256sum app/build/outputs/apk/release/app-release.apk > app/build/outputs/apk/release/app-release.apk.sha256
+          python3 scripts/apk_identity.py app/build/outputs/apk/release/app-release.apk > app/build/outputs/apk/release/identidade-apk.json
+          cp build/stable-upgrade/compatibilidade.txt app/build/outputs/apk/release/compatibilidade.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noctua-etapa4b1-release
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/release/app-release.apk.sha256
+            app/build/outputs/apk/release/identidade-apk.json
+            app/build/outputs/apk/release/compatibilidade.txt
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultados-atualizacao-release
+          path: build/stable-upgrade/
+          if-no-files-found: ignore
+      - name: Remover cópias temporárias de assinatura e instrumentação
+        if: always()
+        run: rm -f "$RUNNER_TEMP/diario-signing.p12" "$RUNNER_TEMP/stable-instrumentation.apk"

@@ -19,6 +19,7 @@ local.properties
 *.key
 .baseline-source/
 .baseline-release-source/
+.stable-baseline/
 resgate-*/
 __pycache__/
 *.pyc

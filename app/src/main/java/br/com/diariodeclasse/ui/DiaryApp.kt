@@ -50,6 +50,7 @@ private val pages = listOf(
     var returnDetail by rememberSaveable { mutableStateOf("") }
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
     val frequencyStates = rememberSaveableStateHolder()
+    val reportStates = rememberSaveableStateHolder()
     var activityId by rememberSaveable { mutableStateOf("") }
     var studentId by rememberSaveable { mutableStateOf("") }
     var classForm by remember { mutableStateOf(false) }
@@ -113,6 +114,9 @@ private val pages = listOf(
                         detail == "profile" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
                             ProfileScreen(vm, data, c, it, term) { term = it }
                         }
+                        detail == "student-report" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
+                            IndividualReportScreen(data, c, it, term) { term = it }
+                        }
                         detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; returnDetail = "roster"; detail = "profile" }
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
@@ -130,7 +134,9 @@ private val pages = listOf(
                             when (page) {
                                 2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
-                                3 -> ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "profile" }
+                                3 -> reportStates.SaveableStateProvider(c.id) {
+                                    ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "student-report" }
+                                }
                             }
                         }
                     }

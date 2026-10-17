@@ -15,6 +15,9 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa4a-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa4a-screenshots > build/etapa4a-telas.tar
 fi
+if adb shell run-as br.com.diariodeclasse test -d files/etapa4b1-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa4b1-screenshots > build/etapa4b1-telas.tar
+fi
 if (( status != 0 )); then exit "$status"; fi
 python3 - <<'PY'
 import tarfile
@@ -37,4 +40,5 @@ print('Sonda de frequência/reinício aprovada:',sys.argv[1])
 PYPROBE
 done
 ./scripts/ci/test-upgrade.sh
-./scripts/ci/test-release-upgrade.sh
+# A atualização release agora reutiliza a chave existente no job stable-update.
+# Não executar aqui o ensaio histórico que gerava novas chaves descartáveis.
