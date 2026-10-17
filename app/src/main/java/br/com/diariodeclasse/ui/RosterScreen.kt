@@ -44,7 +44,7 @@ import java.text.Collator
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            RelocatedFilter(showRelocated) {showRelocated=it}
+            if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section("Alunos da turma", "${c.name} • ${counted(roster.size, "matrícula", "matrículas")}")
             Button(onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("+ Adicionar aluno") }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

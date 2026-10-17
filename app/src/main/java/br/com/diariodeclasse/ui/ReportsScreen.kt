@@ -96,7 +96,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     }
     LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
-            RelocatedFilter(showRelocated) {showRelocated=it}
+            if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section(when (mode) {
                 "Frequência" -> "Frequência do ${term}º bimestre"
                 "Mais faltosos" -> "Mais faltosos do ${term}º bimestre"

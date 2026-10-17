@@ -78,9 +78,10 @@ class RelocationUiInstrumentedTest {
         compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 4º bimestre")
         compose.onNodeWithText("3º bim.").performClick();waitText("Boletim do 3º bimestre")
         compose.onAllNodesWithTag("report-row-${a.id}").assertCountEquals(0)
+        val reportRoot=compose.onNodeWithTag("reports-list").fetchSemanticsNode().id
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().any {it.id!=reportRoot}}
         val target=runBlocking{app.repository.dao.roster(h.id).single()}
-        compose.waitUntil(10000){compose.onAllNodesWithTag("report-row-${target.id}").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${target.id}"))
         fun value()=compose.onNodeWithTag("report-row-${target.id}-current",useUnmergedTree=true).onChild()
         value().assertTextEquals("2,00")

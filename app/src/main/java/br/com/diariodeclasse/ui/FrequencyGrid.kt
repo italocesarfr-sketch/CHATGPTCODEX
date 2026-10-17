@@ -46,7 +46,7 @@ import kotlin.math.ceil
     var fullName by remember { mutableStateOf<Student?>(null) }
     val background = MaterialTheme.colorScheme.surfaceContainer
     Column(Modifier.fillMaxSize().testTag(if (daily) "daily-frequency" else "term-frequency")) {
-        RelocatedFilter(showRelocated) {showRelocated=it}
+        if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
         if(data.relocations.any {link->roster.any {it.id==link.targetStudentId}}) Text("Totais incluem histórico vinculado; as colunas são desta turma.",Modifier.padding(horizontal=8.dp),style=MaterialTheme.typography.labelSmall)
         Row(Modifier.fillMaxWidth().background(background), verticalAlignment = Alignment.CenterVertically) {
             Text("Aluno", Modifier.width(124.dp).padding(8.dp), style = MaterialTheme.typography.labelLarge)

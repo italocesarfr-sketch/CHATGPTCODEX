@@ -24,7 +24,7 @@ import br.com.diariodeclasse.reports.*
         if (feedback.isNotBlank()) Text(feedback, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).testTag("recomposition-feedback"), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f).testTag("recomposition-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
-                RelocatedFilter(showRelocated) {showRelocated=it}
+                if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
                 Section("Recomposição de Notas", "${c.name} • ${c.subject} • ${c.year}")
                 Text("Bimestre de origem: ${term}º. A data da avaliação pode pertencer a outro bimestre.")
                 TermSelector(term, changeTerm)

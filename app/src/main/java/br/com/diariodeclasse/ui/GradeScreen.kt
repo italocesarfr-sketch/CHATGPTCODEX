@@ -24,7 +24,7 @@ import br.com.diariodeclasse.data.*
     DisposableEffect(a.id) { onDispose { dirty(false) } }
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
-            RelocatedFilter(showRelocated) {showRelocated=it}
+            if(data.roster(a.classId).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section(a.name, "${a.term}º bimestre • ${shortDate(a.date)} • máximo ${number(a.maximum)}")
             Info("Notas válidas são salvas automaticamente. Deixe vazio para pendente; digite 0 para nota zero.")
             TextButton(onClick = edit) { Text("Editar atividade") }

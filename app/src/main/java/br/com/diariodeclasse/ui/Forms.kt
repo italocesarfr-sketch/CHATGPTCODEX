@@ -137,6 +137,7 @@ import java.time.LocalDate
             val formJoined=joined;val formLeft=left;val formStatus=status;val formDay=effective;val formTarget=target;val formExternal=external
             vm.act {
                 if(relocating) {
+                    require(iso(formJoined)==student.joined && formLeft==(student.left?.let(::shortDate)?:"")) {"Confirme separadamente qualquer correção de ingresso/saída antes de remanejar. As datas digitadas não serão ignoradas."}
                     val p=vm.repository.previewRelocation(student.id,formTarget.takeUnless {it=="@external"},formExternal.takeIf {formTarget=="@external"},iso(formDay),edited)
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { preview=p }
                 } else {
