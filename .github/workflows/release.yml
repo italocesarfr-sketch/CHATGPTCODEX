@@ -1,14 +1,17 @@
-name: APK com assinatura estável
+name: Noctua — APK com assinatura estável
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   stable:
+    environment: release
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -18,7 +21,7 @@ jobs:
           packages: platform-tools
       - uses: gradle/actions/setup-gradle@v4
         with:
-          cache-read-only: true
+          cache-disabled: true
       - name: Preparar chave fora do repositório
         env:
           STORE_B64: ${{ secrets.DIARY_KEYSTORE_BASE64 }}
@@ -53,11 +56,12 @@ jobs:
           sha256sum app/build/outputs/apk/release/app-release.apk > app/build/outputs/apk/release/app-release.apk.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: diario-de-classe-assinatura-estavel
+          name: noctua-assinatura-estavel
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/release/app-release.apk.sha256
           if-no-files-found: error
+          retention-days: 30
       - name: Remover material privado do runner
         if: always()
         run: rm -f "$RUNNER_TEMP/diario-signing.p12"

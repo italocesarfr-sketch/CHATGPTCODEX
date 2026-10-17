@@ -62,7 +62,7 @@ object BackupCodec {
         if (bytes.isEmpty() || bytes.size > MAX_BYTES) throw BackupFailure("Arquivo vazio ou muito grande.")
         try {
             val envelope = json.decodeFromString<BackupEnvelope>(bytes.toString(Charsets.UTF_8))
-            if (envelope.format != "diario-de-classe-backup" || envelope.applicationId != "br.com.diariodeclasse") throw BackupFailure("Este arquivo não é um backup do Diário de Classe.")
+            if (envelope.format != "diario-de-classe-backup" || envelope.applicationId != "br.com.diariodeclasse") throw BackupFailure("Este arquivo não é um backup do Noctua (Diário de Classe).")
             if (envelope.formatVersion !in 1..2 || envelope.databaseVersion != 1 || envelope.schemaIdentityHash != IDENTITY) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")

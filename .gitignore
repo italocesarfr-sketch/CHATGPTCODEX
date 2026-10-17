@@ -18,6 +18,7 @@ local.properties
 *.pfx
 *.key
 .baseline-source/
+.baseline-release-source/
 resgate-*/
 __pycache__/
 *.pyc

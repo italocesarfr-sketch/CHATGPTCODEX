@@ -2,7 +2,7 @@
     <!-- Remover permissões eventualmente adicionadas por bibliotecas: dados ficam locais. -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
-    <application android:name=".DiaryApplication" android:label="Diário de Classe"
+    <application android:name=".DiaryApplication" android:label="@string/app_name"
         android:icon="@drawable/ic_diary" android:theme="@style/Theme.Diary"
         android:allowBackup="false" android:supportsRtl="true">
         <activity android:name=".MainActivity" android:exported="true">

@@ -15,8 +15,8 @@ android {
         applicationId = "br.com.diariodeclasse"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.4.0"
+        versionCode = 7
+        versionName = "0.4.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
@@ -81,9 +81,12 @@ tasks.matching { it.name == "preReleaseBuild" }.configureEach {
             file(releaseValues.getValue("DIARY_RELEASE_STORE_FILE")!!).inputStream().use {
                 store.load(it, releaseValues.getValue("DIARY_RELEASE_STORE_PASSWORD")!!.toCharArray())
             }
+            check(store.isKeyEntry(releaseValues.getValue("DIARY_RELEASE_KEY_ALIAS")!!))
             val cert = requireNotNull(store.getCertificate(releaseValues.getValue("DIARY_RELEASE_KEY_ALIAS")!!))
+            (cert as java.security.cert.X509Certificate).checkValidity()
             val actual = MessageDigest.getInstance("SHA-256").digest(cert.encoded).joinToString("") { "%02x".format(it) }
             val expected = releaseValues.getValue("DIARY_RELEASE_CERT_SHA256")!!.replace(":", "").lowercase()
+            check(expected.matches(Regex("[0-9a-f]{64}")))
             check(actual == expected) { "Certificado diferente do esperado." }
         } catch (_: Exception) { throw GradleException("Release bloqueado: chave ou certificado esperado não confere.") }
     }

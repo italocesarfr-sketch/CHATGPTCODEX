@@ -37,3 +37,4 @@ print('Sonda de frequência/reinício aprovada:',sys.argv[1])
 PYPROBE
 done
 ./scripts/ci/test-upgrade.sh
+./scripts/ci/test-release-upgrade.sh

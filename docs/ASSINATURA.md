@@ -1,4 +1,6 @@
-# Assinatura e compatibilidade de atualização — Etapa 1
+# Assinatura e compatibilidade de atualização — Noctua
+
+> **Orientação atual:** [passo a passo para o proprietário](ASSINATURA_PASSO_A_PASSO.md) e [incremento Noctua](NOCTUA.md). A identidade passa a Noctua em 0.4.1, mantendo pacote/banco. Abaixo fica o histórico das verificações anteriores. A autorização antiga sobre dados descartáveis não permite presumir que os novos registros da 0.4.0 também sejam descartáveis. Só orientar instalação limpa após confirmação de dados descartáveis ou backup válido preservado. A primeira release permanente depende da chave criada pelo proprietário e dos secrets; nenhum debug é apresentado como essa release.
 
 > Etapa 2 autorizada: o responsável informou que a instalação original contém apenas dados de teste descartáveis e admite futura instalação limpa com chave permanente. Isso libera o desenvolvimento/teste desta etapa, sem comprovar compatibilidade de certificados. Não foram removidas as proteções de backup/migração. A chave estável continua pendente antes do uso real.
 

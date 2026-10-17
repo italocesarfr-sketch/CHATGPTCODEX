@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,7 +80,10 @@ private val pages = listOf(
     BackHandler(detail.isNotEmpty() && !navigating) { back() }
     Scaffold(
         topBar = { TopAppBar(title = { Column {
-            Text("Diário de Classe", style = MaterialTheme.typography.titleLarge)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(painterResource(R.drawable.ic_owl), null, Modifier.size(24.dp))
+                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+            }
             Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } }, navigationIcon = {
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating) { Text("‹ Voltar") }

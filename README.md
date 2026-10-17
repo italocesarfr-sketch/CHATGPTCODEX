@@ -1,4 +1,6 @@
-# Diário de Classe
+# Noctua
+
+Anteriormente Diário de Classe. Incremento **0.4.1 / código 7**: nome Android/cabeçalho e coruja discreta, com o mesmo pacote `br.com.diariodeclasse`, banco `diario.db` e funcionalidades aprovadas da 0.4.0. [Consolidação e testes](docs/NOCTUA.md). **A primeira release permanente depende do proprietário:** siga o [passo a passo de assinatura](docs/ASSINATURA_PASSO_A_PASSO.md). O APK debug continua sendo de teste. A versão 0.4.0 abaixo permanece como histórico funcional.
 
 Aplicativo Android nativo em Kotlin, Jetpack Compose/Material 3 e Room/SQLite, com ViewModel e Repository. Android 8.0 (API 26) ou superior. Interface em português brasileiro, armazenamento privado e funcionamento offline, sem cadastro ou permissão de Internet.
 
@@ -14,7 +16,7 @@ Referências: [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.m
 
 ## Compilar e baixar o APK
 
-No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **diario-de-classe-apk**: contém o APK, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-etapa4a** contém resultados e capturas de tela sintéticas.
+No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **noctua-apk-teste**: contém o APK debug, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-noctua** contém resultados e capturas de tela sintéticas, incluindo os testes de assinatura/atualização release com chaves descartáveis. Para distribuição permanente, use somente o workflow release após a configuração descrita no guia.
 
 O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [ETAPA4A](docs/ETAPA4A.md).
 
