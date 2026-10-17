@@ -30,8 +30,8 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
     LaunchedEffect(Unit) { vm.clearError() }
     if (error != null) Text(error.orEmpty(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
 }
-@Composable fun Field(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier, lines: Int = 1) {
-    OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label) }, modifier = modifier.fillMaxWidth(), singleLine = lines == 1, minLines = lines)
+@Composable fun Field(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier, lines: Int = 1, enabled: Boolean = true) {
+    OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label) }, modifier = modifier.fillMaxWidth(), singleLine = lines == 1, minLines = lines, enabled = enabled)
 }
 @Composable fun Section(title: String, subtitle: String? = null) {
     Column(Modifier.padding(vertical = 8.dp)) {

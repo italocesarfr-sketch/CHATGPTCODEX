@@ -3,15 +3,17 @@ package br.com.diariodeclasse.reports
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.SchoolRules
 import java.util.Locale
+import br.com.diariodeclasse.domain.RecompositionRules
 
 enum class GradeState { OUTSIDE_ENROLLMENT, NO_ACTIVITIES, NO_SCORES, PARTIAL, COMPLETE }
 data class ActivityResult(val activity: Activity, val eligible: Boolean, val score: Double?)
 data class StudentPeriodReport(
     val student: Student, val number: Int, val period: Term?, val activities: List<ActivityResult>,
-    val grades: SchoolRules.GradeSummary, val frequency: SchoolRules.Frequency?, val state: GradeState
+    val grades: SchoolRules.GradeSummary, val frequency: SchoolRules.Frequency?, val state: GradeState, val recomposition: Recomposition? = null
 ) {
     val launched: Int get() = activities.count { it.eligible && it.score != null }
-    val total: Double? get() = if (launched == 0) null else grades.total
+    val original: Double? get() = if (launched == 0) null else grades.total
+    val total: Double? get() = RecompositionRules.effective(original, recomposition?.value)
     fun effectiveAbsences(countJustified: Boolean): Int = frequency?.let { it.absent + if (countJustified) it.justified else 0 } ?: 0
 }
 data class ClassPeriodReport(
@@ -45,7 +47,7 @@ class SchoolReports(private val data: DiarySnapshot, val school: SchoolClass) {
         }
         // null é usado pelo cálculo legado para o ano inteiro; nunca como substituto de bimestre ausente.
         val frequency = period?.let { scoped.frequency(student, it, school.countJustified) }
-        return StudentPeriodReport(student, number, period, rows, grades, frequency, state)
+        return StudentPeriodReport(student, number, period, rows, grades, frequency, state, data.recompositions.firstOrNull { it.studentId == student.id && it.term == number })
     }
     fun term(number: Int): ClassPeriodReport {
         require(number in 1..4)

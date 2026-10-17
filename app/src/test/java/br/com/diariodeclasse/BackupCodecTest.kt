@@ -25,7 +25,7 @@ class BackupCodecTest {
         val withSelection = value.copy(selection = br.com.diariodeclasse.data.AppSelection(value.classes.first().year, value.classes.first().id))
         assertEquals(withSelection.canonical(), BackupCodec.decode(BackupCodec.encode(withSelection,3,null)).snapshot)
         val oldPayload = requireNotNull(javaClass.classLoader?.getResourceAsStream("baseline-v1.json")).bufferedReader().use { it.readText() }
-        val envelope = BackupEnvelope("diario-de-classe-backup",1,"br.com.diariodeclasse",1,BackupCodec.IDENTITY,"2026-01-01T00:00:00Z",2,null,BackupCodec.hash(oldPayload.toByteArray(Charsets.UTF_8)),oldPayload)
+        val envelope = BackupEnvelope("diario-de-classe-backup",1,"br.com.diariodeclasse",1,BackupCodec.LEGACY_IDENTITY,"2026-01-01T00:00:00Z",2,null,BackupCodec.hash(oldPayload.toByteArray(Charsets.UTF_8)),oldPayload)
         val decoded = BackupCodec.decode(BackupCodec.json.encodeToString(envelope).toByteArray(Charsets.UTF_8))
         assertNull(decoded.snapshot.selection)
         assertEquals(fixture().canonical(),decoded.snapshot)
@@ -36,7 +36,7 @@ class BackupCodecTest {
     }
     @Test fun rejectsCorruptionWrongVersionsAndWrongApplication() {
         val original = BackupCodec.json.decodeFromString<BackupEnvelope>(BackupCodec.encode(fixture(),2,null).toString(Charsets.UTF_8))
-        listOf(original.copy(payloadSha256="0".repeat(64)), original.copy(formatVersion=3), original.copy(databaseVersion=2),
+        listOf(original.copy(payloadSha256="0".repeat(64)), original.copy(formatVersion=4), original.copy(databaseVersion=3),
             original.copy(applicationId="outro.app"), original.copy(schemaIdentityHash="outro-esquema")).forEach { changed ->
             expectFailure { BackupCodec.decode(BackupCodec.json.encodeToString(changed).toByteArray()) }
         }

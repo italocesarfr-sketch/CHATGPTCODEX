@@ -107,6 +107,7 @@ private val pages = listOf(
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
+                        detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
                             GradeScreen(vm, data, a, edit = { navigate { editingActivity = a; activityForm = true } },
                                 deleted = { detail = "" }, dirty = { invalidGrade = it })
@@ -132,7 +133,7 @@ private val pages = listOf(
                             }
                             TermSelector(term) { next -> navigate { term = next; detail = "" } }
                             when (page) {
-                                2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true },
+                                2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true }, recomposition = { detail = "recomposition" },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> reportStates.SaveableStateProvider(c.id) {
                                     ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "student-report" }
@@ -233,11 +234,12 @@ private val pages = listOf(
     }
 }
 
-@Composable private fun ActivitiesPage(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, edit: (Activity) -> Unit, grades: (String) -> Unit) {
+@Composable private fun ActivitiesPage(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, recomposition: () -> Unit, edit: (Activity) -> Unit, grades: (String) -> Unit) {
     val activities = data.activities.filter { it.classId == c.id && it.term == term }
     var removing by remember { mutableStateOf<Activity?>(null) }
     LazyColumn(Modifier.testTag("activities-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Button(create, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Criar atividade") } }
+        item { OutlinedButton(recomposition, Modifier.fillMaxWidth().testTag("open-recomposition")) { Text("Recomposição de Notas") } }
         if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
         items(activities, key = { it.id }) { a -> Card(Modifier.fillMaxWidth().testTag("activity-${a.id}")) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

@@ -17,7 +17,7 @@ data class DiarySnapshot(
     val classes: List<SchoolClass> = emptyList(), val students: List<Student> = emptyList(),
     val terms: List<Term> = emptyList(), val lessons: List<Lesson> = emptyList(),
     val marks: List<Attendance> = emptyList(), val activities: List<Activity> = emptyList(),
-    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false
+    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList()
 ) {
     fun roster(classId: String) = students.filter { it.classId == classId }
     fun frequency(student: Student, term: Term?, countJustified: Boolean): SchoolRules.Frequency {
@@ -38,8 +38,8 @@ class DiaryRepository(val db: DiaryDatabase) {
     private val base = combine(dao.classes(), dao.students(), dao.terms(), dao.lessons(), dao.marks()) { c, s, t, l, m ->
         DiarySnapshot(c, s, t, l, m)
     }
-    val snapshot = combine(base, dao.activities(), dao.grades(), dao.drafts()) { b, a, g, d ->
-        b.copy(activities = a, grades = g, drafts = d, loaded = true)
+    val snapshot = combine(base, dao.activities(), dao.grades(), dao.drafts(), dao.recompositions()) { b, a, g, d, r ->
+        b.copy(activities = a, grades = g, drafts = d, recompositions = r, loaded = true)
     }
     suspend fun saveClass(value: SchoolClass, effective: String) = db.withTransaction {
         require(value.name.isNotBlank() && value.subject.isNotBlank()) { "Informe turma e disciplina." }
@@ -214,6 +214,18 @@ class DiaryRepository(val db: DiaryDatabase) {
         require(student.classId == activity.classId && student.enrolled(activity.date)) { "Aluno fora do período de matrícula." }
         require(value == null || value.isFinite() && value in 0.0..activity.maximum) { "Nota deve estar entre 0 e ${activity.maximum}." }
         dao.save(Grade(activityId, studentId, value))
+    }
+    suspend fun saveRecomposition(value: Recomposition, expected: Recomposition? = null) = db.withTransaction {
+        val student = requireNotNull(dao.student(value.studentId)) { "Matrícula não encontrada." }
+        require(value.term in 1..4 && dao.periods(student.classId).any { it.number == value.term }) { "Selecione o bimestre de origem." }
+        require(date(value.date).toString() == value.date) { "Data inválida." }
+        require(value.value == null || value.value.isFinite() && value.value in 0.0..10.0) { "Recomposição deve estar entre 0 e 10." }
+        require(dao.recomposition(value.studentId, value.term) == expected) { "A recomposição mudou. Reabra o lançamento antes de confirmar." }
+        dao.save(value)
+    }
+    suspend fun deleteRecomposition(expected: Recomposition) = db.withTransaction {
+        require(dao.recomposition(expected.studentId, expected.term) == expected) { "A recomposição mudou. Reabra o lançamento." }
+        dao.deleteRecomposition(expected.studentId, expected.term)
     }
     suspend fun appendDrafts(classId: String, candidates: List<CsvRoster.Row>) = db.withTransaction {
         requireNotNull(dao.schoolClass(classId))

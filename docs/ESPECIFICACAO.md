@@ -1,5 +1,8 @@
 # Especificação-mestre — Noctua (Diário de Classe)
 
+> Etapa 4B.2 autorizada: recomposição substitutiva por bimestre, sem recuperação aditiva. Candidato 0.6.0 / código 9, migração aditiva Room 1→2 e backup compatível com formatos anteriores. Consulte [ETAPA4B2.md](ETAPA4B2.md) para o contrato e a validação. Esta autorização prevalece sobre o planejamento genérico histórico de quatro regras de recuperação; não autoriza exportação ou outros módulos.
+
+
 > Autorização posterior: primeiro incremento da Etapa 4B.1, somente relatórios de leitura, conforme [ETAPA4B1.md](ETAPA4B1.md). Não autoriza recuperação ou exportação. Incremento 0.5.0, código 8, concluído e validado, inclusive atualização sobre a release 0.4.1 com a mesma assinatura existente. Consultar os resultados em ETAPA4B1.md; próximas etapas aguardam autorização.
 
 

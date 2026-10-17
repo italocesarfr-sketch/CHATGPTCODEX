@@ -12,14 +12,15 @@ import java.time.LocalDate
 data class BackupSnapshot(
     val classes: List<SchoolClass>, val students: List<Student>, val terms: List<Term>,
     val lessons: List<Lesson>, val marks: List<Attendance>, val activities: List<Activity>,
-    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null
+    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null, val recompositions: List<Recomposition> = emptyList()
 ) {
     fun canonical(): BackupSnapshot = copy(
         classes = classes.sortedBy { it.id }, students = students.sortedBy { it.id },
         terms = terms.sortedWith(compareBy({ it.classId }, { it.number })), lessons = lessons.sortedBy { it.id },
         marks = marks.sortedWith(compareBy({ it.lessonId }, { it.studentId })), activities = activities.sortedBy { it.id },
-        grades = grades.sortedWith(compareBy({ it.activityId }, { it.studentId })), drafts = drafts.sortedBy { it.id })
-    fun summary(): String = "${classes.size} turmas • ${students.size} matrículas\n${terms.size} bimestres • ${lessons.size} aulas\n${marks.size} frequências • ${activities.size} atividades\n${grades.size} notas • ${drafts.size} linhas de rascunho"
+        grades = grades.sortedWith(compareBy({ it.activityId }, { it.studentId })), drafts = drafts.sortedBy { it.id },
+        recompositions = recompositions.sortedWith(compareBy({ it.studentId }, { it.term })))
+    fun summary(): String = "${classes.size} turmas • ${students.size} matrículas\n${terms.size} bimestres • ${lessons.size} aulas\n${marks.size} frequências • ${activities.size} atividades\n${grades.size} notas • ${drafts.size} linhas de rascunho\n${recompositions.size} recomposições"
 }
 @Serializable
 data class BackupEnvelope(
@@ -34,7 +35,8 @@ class BackupFailure(message: String) : IllegalArgumentException(message)
 
 /** Formato JSON local, completo e estrito. O checksum detecta corrupção, não autentica o autor. */
 object BackupCodec {
-    const val IDENTITY = "99b868cf68cf5dffb82edf267ddc78be"
+    const val LEGACY_IDENTITY = "99b868cf68cf5dffb82edf267ddc78be"
+    const val IDENTITY = "32104b8df79c150ac61b09fadc450221"
     const val MAX_BYTES = 32 * 1024 * 1024
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false }
     fun hash(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
@@ -42,7 +44,7 @@ object BackupCodec {
     fun encode(value: BackupSnapshot, version: Int, certificate: String?): ByteArray {
         validate(value)
         val payload = json.encodeToString(value.canonical())
-        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 2, applicationId = "br.com.diariodeclasse", databaseVersion = 1, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
+        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 3, applicationId = "br.com.diariodeclasse", databaseVersion = 2, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
             sourceCertificateSha256 = certificate, payloadSha256 = hash(payload.toByteArray(Charsets.UTF_8)), payload = payload)
         val bytes = json.encodeToString(envelope).toByteArray(Charsets.UTF_8)
         if (bytes.size > MAX_BYTES) throw BackupFailure("O backup excede o limite seguro de 32 MB.")
@@ -63,10 +65,13 @@ object BackupCodec {
         try {
             val envelope = json.decodeFromString<BackupEnvelope>(bytes.toString(Charsets.UTF_8))
             if (envelope.format != "diario-de-classe-backup" || envelope.applicationId != "br.com.diariodeclasse") throw BackupFailure("Este arquivo não é um backup do Noctua (Diário de Classe).")
-            if (envelope.formatVersion !in 1..2 || envelope.databaseVersion != 1 || envelope.schemaIdentityHash != IDENTITY) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
+            val legacy = envelope.formatVersion in 1..2 && envelope.databaseVersion == 1 && envelope.schemaIdentityHash == LEGACY_IDENTITY
+            val current = envelope.formatVersion == 3 && envelope.databaseVersion == 2 && envelope.schemaIdentityHash == IDENTITY
+            if (!legacy && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
             val snapshot = json.decodeFromString<BackupSnapshot>(envelope.payload).canonical()
+            if (legacy && snapshot.recompositions.isNotEmpty()) throw BackupFailure("Backup antigo não pode conter recomposições.")
             validate(snapshot)
             return DecodedBackup(envelope, snapshot)
         } catch (error: BackupFailure) { throw error }
@@ -110,6 +115,13 @@ object BackupCodec {
             val activity = activities[it.activityId]; val student = students[it.studentId]
             check(activity != null && student != null && activity.classId == student.classId)
             check(it.value == null || it.value.isFinite() && it.value >= 0 && it.value <= activity!!.maximum)
+        }
+        check(s.recompositions.map { it.studentId to it.term }.toSet().size == s.recompositions.size)
+        s.recompositions.forEach {
+            check(it.studentId in students && it.term in 1..4)
+            check(s.terms.any { t -> t.classId == students[it.studentId]!!.classId && t.number == it.term })
+            check(it.value == null || it.value.isFinite() && it.value in 0.0..10.0)
+            validDate(it.date)
         }
         s.drafts.forEach { check(it.classId in classes && it.position >= 0 && it.page >= 0) }
         // Não rejeitar registros fora do ingresso/bimestre atual: datas podem ter sido editadas

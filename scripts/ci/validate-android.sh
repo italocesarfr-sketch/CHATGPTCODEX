@@ -18,6 +18,9 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa4b1-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa4b1-screenshots > build/etapa4b1-telas.tar
 fi
+if adb shell run-as br.com.diariodeclasse test -d files/etapa4b2-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa4b2-screenshots > build/etapa4b2-telas.tar
+fi
 if (( status != 0 )); then exit "$status"; fi
 python3 - <<'PY'
 import tarfile

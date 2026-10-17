@@ -20,8 +20,10 @@ class UpgradeProbeTest {
             scenario.onActivity { activity -> assertFalse(activity.isFinishing) }
             val path=instrumentation.targetContext.getDatabasePath("diario.db")
             SQLiteDatabase.openDatabase(path.path,null,SQLiteDatabase.OPEN_READONLY).use { sql ->
-                sql.rawQuery("PRAGMA user_version",null).use { assertTrue(it.moveToFirst());assertEquals(1,it.getInt(0)) }
-                sql.rawQuery("SELECT identity_hash FROM room_master_table WHERE id=42",null).use { assertTrue(it.moveToFirst());assertEquals("99b868cf68cf5dffb82edf267ddc78be",it.getString(0)) }
+                @Suppress("DEPRECATION")
+                val migrated=instrumentation.targetContext.packageManager.getPackageInfo("br.com.diariodeclasse",0).versionCode >= 9
+                sql.rawQuery("PRAGMA user_version",null).use { assertTrue(it.moveToFirst());assertEquals(if(migrated) 2 else 1,it.getInt(0)) }
+                sql.rawQuery("SELECT identity_hash FROM room_master_table WHERE id=42",null).use { assertTrue(it.moveToFirst());assertEquals(if(migrated) br.com.diariodeclasse.backup.BackupCodec.IDENTITY else "99b868cf68cf5dffb82edf267ddc78be",it.getString(0)) }
                 expected.keys().forEach { field ->
                     val rows=expected.getJSONArray(field);val table=if(field=="drafts") "import_drafts" else field
                     sql.rawQuery("SELECT COUNT(*) FROM `$table`",null).use { assertTrue(it.moveToFirst());assertEquals(rows.length(),it.getInt(0)) }

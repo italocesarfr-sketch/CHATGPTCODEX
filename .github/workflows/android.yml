@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Etapa 4B.1 — relatórios e regressão
+    name: Etapa 4B.2 — recomposição, migração e regressão
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -41,7 +41,7 @@ jobs:
           assert 'Release bloqueado: configure a chave estável' in text
           print('Bloqueio de release sem chave comprovado.')
           PYGUARD
-      - name: Conferir que o esquema Room v1 continua idêntico
+      - name: Conferir que o esquema legado permanece idêntico e esquema atual está versionado
         run: git diff --exit-code -- app/schemas
       - uses: actions/checkout@v4
         with:
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: resultados-etapa4b1
+          name: resultados-etapa4b2
           path: |
             app/build/reports/tests/
             app/build/test-results/
@@ -95,6 +95,7 @@ jobs:
             build/upgrade-before.txt
             build/upgrade-after.txt
             build/release-blocked.txt
+            build/etapa4b2-telas.tar
             build/etapa4b1-telas.tar
             build/etapa2-telas.tar
             build/etapa3-telas.tar
@@ -103,7 +104,7 @@ jobs:
             build/frequency-process-read.txt
           if-no-files-found: ignore
   stable-update:
-    name: Release — atualização da Noctua 0.4.1 com a assinatura existente
+    name: Release — atualização da Noctua 0.5.0 com a assinatura existente
     needs: validation
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: release
@@ -159,8 +160,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 38992921225
-          name: noctua-assinatura-estavel
+          run-id: 39032589083
+          name: noctua-etapa4b1-release
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
         env:
@@ -172,7 +173,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.4.1.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.5.0.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk
@@ -196,7 +197,7 @@ jobs:
           cp build/stable-upgrade/compatibilidade.txt app/build/outputs/apk/release/compatibilidade.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: noctua-etapa4b1-release
+          name: noctua-etapa4b2-release
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/release/app-release.apk.sha256

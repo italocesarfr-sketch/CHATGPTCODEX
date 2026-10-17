@@ -25,6 +25,9 @@ internal fun gradeStatus(row: StudentPeriodReport): String = when (row.state) {
     GradeState.PARTIAL -> "Parcial (${row.grades.pending} pend.)"
     GradeState.COMPLETE -> "Notas completas"
 }
+internal fun recompositionText(row: StudentPeriodReport): String = row.recomposition?.let {
+    "\nOriginal das atividades: ${row.original?.let(::number) ?: "Pendente"} • Recomposição: ${it.value?.let(::number) ?: "Não realizada"} (${shortDate(it.date)})\nResultado vigente: ${row.total?.let(::number) ?: "Pendente"}"
+}.orEmpty()
 private fun percent(f: SchoolRules.Frequency?) = f?.percent?.let { "${number(it)}%" } ?: "Sem registros válidos"
 private fun frequencyText(f: SchoolRules.Frequency?): String = if (f == null) "Bimestre não configurado" else
     "Aulas elegíveis: ${f.performed}\nFaltas: ${f.absent} • justificadas: ${f.justified}\nPresenças: ${f.present} • frequência: ${percent(f)}\n${f.valid} chamadas válidas de ${f.performed} aulas realizadas • ${f.performed - f.valid} não registradas"
@@ -83,11 +86,11 @@ else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a config
         when (mode) {
             "Bimestral" -> {
                 if (report.activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Não há notas a totalizar.") }
-                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}\nMáx. ${number(it.maximum)}" } + listOf("Total obtido", "Pendências", "F / FJ", "Frequência")) }
+                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}\nMáx. ${number(it.maximum)}" } + listOf("Total obtido / vigente", "Pendências", "F / FJ", "Frequência") + if (report.students.any { it.recomposition != null }) listOf("Original atividades", "Recomposição") else emptyList()) }
                 items(sorted, key = { it.student.id }) { row ->
                     TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.activities.map {
                         if (!it.eligible) "Fora da matrícula" else it.score?.let(::number) ?: "Pendente"
-                    } + listOf(row.total?.let(::number) ?: "Não lançado", gradeStatus(row), row.frequency?.let { "${it.absent} / ${it.justified}" } ?: "—", percent(row.frequency)), report.activities.size, row.total) { profile(row.student.id) }
+                    } + listOf(row.total?.let(::number) ?: "Não lançado", gradeStatus(row), row.frequency?.let { "${it.absent} / ${it.justified}" } ?: "—", percent(row.frequency)) + if (report.students.any { it.recomposition != null }) listOf(row.original?.let(::number) ?: "Pendente", row.recomposition?.value?.let(::number) ?: "Não realizada") else emptyList(), report.activities.size, row.total) { profile(row.student.id) }
                 }
             }
             "Frequência", "Mais faltosos" -> {
@@ -109,8 +112,8 @@ else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a config
                 items(annual, key = { it.student.id }) { row ->
                     TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.terms.map { termRow ->
                         if (termRow.period == null) "Bimestre não configurado"
-                        else if (termRow.state == GradeState.NO_ACTIVITIES && termRow.frequency?.performed == 0) "Sem dados"
-                        else "${termRow.total?.let(::number) ?: "Não lançado"}\n${gradeStatus(termRow)}\nF: ${termRow.frequency?.absent ?: 0} • FJ: ${termRow.frequency?.justified ?: 0}\n${percent(termRow.frequency)}"
+                        else if (termRow.state == GradeState.NO_ACTIVITIES && termRow.frequency?.performed == 0 && termRow.recomposition == null) "Sem dados"
+                        else "${termRow.total?.let(::number) ?: "Não lançado"}\n${gradeStatus(termRow)}${recompositionText(termRow)}\nF: ${termRow.frequency?.absent ?: 0} • FJ: ${termRow.frequency?.justified ?: 0}\n${percent(termRow.frequency)}"
                     } + "${row.frequency.absent} F • ${row.frequency.justified} FJ\n${percent(row.frequency)}") { profile(row.student.id) }
                 }
                 item { Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula.", style = MaterialTheme.typography.bodySmall) }
@@ -129,7 +132,7 @@ else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a config
             Text("Matrícula: ${shortDate(student.joined)} a ${student.left?.let(::shortDate) ?: "sem saída informada"}")
             TermSelector(term, changeTerm)
             Text(row.period?.let { "${term}º bimestre • ${shortDate(it.start)} a ${shortDate(it.end)}" } ?: "Bimestre não configurado")
-            Info("Nota ${row.total?.let(::number) ?: "não lançada"} / ${number(c.scale)} • ${gradeStatus(row)}\n${row.grades.pending} notas pendentes\n${frequencyText(row.frequency)}")
+            Info("Nota ${row.total?.let(::number) ?: "não lançada"} / ${number(c.scale)} • ${gradeStatus(row)}\n${row.grades.pending} notas pendentes${recompositionText(row)}\n${frequencyText(row.frequency)}")
             if (student.notes.isNotBlank()) Text("Observações: ${student.notes}")
         }
         if (row.activities.isEmpty()) item { Text("Nenhuma atividade neste bimestre.") }
@@ -138,7 +141,7 @@ else "Faltas efetivas: somente F. FJ é abonada no percentual, conforme a config
         }
         item { Section("Histórico anual", "Quatro bimestres, sem média anual presumida") }
         items(year.terms, key = { it.number }) { r ->
-            Text("${r.number}º bim. • ${r.total?.let(::number) ?: "Não lançado"} • ${gradeStatus(r)}\n${frequencyText(r.frequency)}", Modifier.testTag("individual-term-${r.number}"))
+            Text("${r.number}º bim. • ${r.total?.let(::number) ?: "Não lançado"} • ${gradeStatus(r)}${recompositionText(r)}\n${frequencyText(r.frequency)}", Modifier.testTag("individual-term-${r.number}"))
         }
         item { Info("Resumo anual da matrícula\n${frequencyText(year.frequency)}\n${justificationPolicy(c)}") }
     }

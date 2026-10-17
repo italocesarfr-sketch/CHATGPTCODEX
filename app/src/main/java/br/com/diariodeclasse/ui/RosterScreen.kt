@@ -87,14 +87,15 @@ import java.text.Collator
     var target by remember { mutableStateOf("") }; var day by rememberSaveable { mutableStateOf(shortDate(today())) }
     val period = data.terms.firstOrNull { it.classId == c.id && it.number == term }
     val frequency = data.frequency(student, period, c.countJustified)
-    val result = data.result(student, term, c.scale)
+    val report = br.com.diariodeclasse.reports.SchoolReports(data, c).student(student, term)
+    val result = report.grades
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Section(student.name, "${c.name} • nº ${student.number} • ${student.status}")
             TextButton(onClick = { edit = true }) { Text("Editar cadastro e observações") }
             if (student.status == "Ativo") TextButton(onClick = { transfer = true }) { Text("Transferir para outra turma") }
             TermSelector(term, changeTerm)
-            Info("Nota ${number(result.total)} / ${number(c.scale)}${if (result.partial) " • parcial" else ""}\n${result.pending} notas pendentes\nFaltas: ${frequency.absent} • justificadas: ${frequency.justified}\nPresenças: ${frequency.present} • frequência: ${number(frequency.percent)}%\n${frequency.valid} chamadas válidas de ${frequency.performed} aulas realizadas")
+            Info("Nota ${report.total?.let(::number) ?: "Pendente"} / ${number(c.scale)}${if (result.partial) " • parcial" else ""}\n${result.pending} notas pendentes${recompositionText(report)}\nFaltas: ${frequency.absent} • justificadas: ${frequency.justified}\nPresenças: ${frequency.present} • frequência: ${number(frequency.percent)}%\n${frequency.valid} chamadas válidas de ${frequency.performed} aulas realizadas")
             if (student.notes.isNotBlank()) Text("Observações: ${student.notes}")
         }
         items(data.activities.filter { it.classId == c.id && it.term == term }, key = { it.id }) { activity ->
@@ -103,9 +104,10 @@ import java.text.Collator
         }
         item { Section("Histórico anual") }
         items((1..4).toList()) { n ->
-            val r = data.result(student, n, c.scale)
+            val reportRow = br.com.diariodeclasse.reports.SchoolReports(data, c).student(student, n)
+            val r = reportRow.grades
             val f = data.frequency(student, data.terms.firstOrNull { it.classId == c.id && it.number == n }, c.countJustified)
-            Text("${n}º bim. • ${number(r.total)}${if (r.partial) " (parcial)" else ""} • ${f.absent} F • ${f.justified} FJ")
+            Text("${n}º bim. • ${reportRow.total?.let(::number) ?: "Pendente"}${if (r.partial) " (parcial)" else ""} • ${f.absent} F • ${f.justified} FJ${recompositionText(reportRow)}")
         }
         item {
             val annual = data.frequency(student, null, c.countJustified)

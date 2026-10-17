@@ -14,6 +14,9 @@ interface BackupDao {
     @Query("SELECT * FROM activities ORDER BY id") suspend fun activities(): List<Activity>
     @Query("SELECT * FROM grades ORDER BY activityId, studentId") suspend fun grades(): List<Grade>
     @Query("SELECT * FROM import_drafts ORDER BY id") suspend fun drafts(): List<ImportDraft>
+    @Query("SELECT * FROM recompositions ORDER BY studentId, term") suspend fun recompositions(): List<Recomposition>
+    @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertRecompositions(rows: List<Recomposition>)
+    @Query("DELETE FROM recompositions") suspend fun removeRecompositions()
     @Query("DELETE FROM marks") suspend fun removeMarks()
     @Query("DELETE FROM grades") suspend fun removeGrades()
     @Query("DELETE FROM import_drafts") suspend fun removeDrafts()
