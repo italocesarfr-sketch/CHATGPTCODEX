@@ -1,6 +1,6 @@
 # Noctua
 
-Incremento em validação: [Etapa 4B.3 — Consolidação dos relatórios](docs/ETAPA4B3.md), **Noctua 0.6.1 / código 10**. Mesmas regras e Room v2; original, recomposição e vigente integrados à frequência e aos quatro bimestres. Resultados finais serão publicados após o CI. Etapa 5 não iniciada.
+Incremento atual: [Etapa 4B.3 — Consolidação dos relatórios](docs/ETAPA4B3.md), **Noctua 0.6.1 / código 10 — entregue**. Relatórios bimestrais, individuais e anuais distinguem original, recomposição, vigente e pendências, com frequência e matrícula integradas. 45 testes JVM e 87 Android aprovados; atualização sobre a release 0.6.0 comprovada com a mesma assinatura e nove tabelas preservadas, sem mudança do esquema. [Baixar APK de teste assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39049512375/artifacts/12106789781) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39049512375). Detalhes e limites no documento do incremento. Etapa 5 não iniciada.
 
 Histórico: [Etapa 4B.2 — Recomposição de Notas](docs/ETAPA4B2.md), **Noctua 0.6.0 / código 9 — entregue**. Mantém pacote e assinatura release, com migração aditiva e leitura dos backups anteriores. [Baixar APK de teste assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39045605081/artifacts/12105803073) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39045605081). 39 testes JVM e 80 Android aprovados; atualização sobre a release 0.5.0 comprovada com a mesma assinatura. Detalhes e limites no documento do incremento.
 
@@ -75,4 +75,4 @@ A fila aguarda o commit antes de indicar Salvo; gravações ainda pendentes pode
 
 ## Próximas etapas
 
-Etapa 4B.3 em validação: consolidação dos relatórios sobre a recomposição substitutiva existente. Aguardar autorização para os próximos incrementos. Recuperação comum permanece atividade regular, sem automação aditiva. Exportação inteligente PDF/CSV/XLSX, regras de fechamento anual e refinamento amplo de acessibilidade/desempenho seguem o ROADMAP. Relatórios atuais são consultas na tela. Não há feriados oficiais automáticos. As capturas e testes do CI não substituem a validação posterior em aparelho físico.
+Etapa 4B.3 concluída: consolidação dos relatórios sobre a recomposição substitutiva existente. Aguardar autorização para os próximos incrementos. Recuperação comum permanece atividade regular, sem automação aditiva. Exportação inteligente PDF/CSV/XLSX, regras de fechamento anual e refinamento amplo de acessibilidade/desempenho seguem o ROADMAP. Relatórios atuais são consultas na tela. Não há feriados oficiais automáticos. As capturas e testes do CI não substituem a validação posterior em aparelho físico.

@@ -1,0 +1,81 @@
+{
+  "testedCommit": "706b8a0bfc7ead1206db94259b741f3ddbe143df",
+  "workflowRunId": 39049512375,
+  "debugArtifactId": 12107466325,
+  "reportsArtifactId": 12107565969,
+  "releaseArtifactId": 12106789781,
+  "upgradeReportsArtifactId": 12107880437,
+  "versionName": "0.6.1",
+  "versionCode": 10,
+  "databaseName": "diario.db",
+  "databaseVersion": 2,
+  "backupFormatVersion": 3,
+  "legacySchemaSha256": "43fe5f77af75d462dff34128582fdeb6cf759b9504fa2bb6ee468a6951ec3ed7",
+  "schemaSha256": "ba4e422868ecb8d532609a3f6488a0f2b4262551d265588e964305468232b7bc",
+  "schemaIdentity": "32104b8df79c150ac61b09fadc450221",
+  "tests": {
+    "unit": {
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "passed": 87,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "apk": {
+    "debug": {
+      "apkSha256": "74acdbf5ca6dc244ada7d2c64ec648a629b23d3465a6084d06b98a0d0c9b475f",
+      "certificateSha256": "a8df25bc40360d4ffe7b67a0398917736925277543ffc9699597678aa6b0bcd7",
+      "bytes": 10424484,
+      "manifest": {
+        "versionCode": 10,
+        "versionName": "0.6.1",
+        "compileSdkVersion": 35,
+        "compileSdkVersionCodename": "15",
+        "package": "br.com.diariodeclasse",
+        "platformBuildVersionCode": 35,
+        "platformBuildVersionName": 15
+      }
+    },
+    "release": {
+      "apkSha256": "ac69dfee0d908255a7041798934f27fde5a39eaf0c7b632e3639125b0acd382e",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "bytes": 7130574,
+      "manifest": {
+        "versionCode": 10,
+        "versionName": "0.6.1",
+        "compileSdkVersion": 35,
+        "compileSdkVersionCodename": "15",
+        "package": "br.com.diariodeclasse",
+        "platformBuildVersionCode": 35,
+        "platformBuildVersionName": 15
+      }
+    }
+  },
+  "controlledLegacyUpgradeProbesPassed": 2,
+  "processRestartProbesPassed": 2,
+  "stableUpgradeProbesPassed": 4,
+  "stableReleaseCompatibility": {
+    "old": {
+      "apkSha256": "8ca266790cb32a1e9572bc9cdefec0a737533291c0f973e5dcf15c71e5282369",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 9
+    },
+    "new": {
+      "apkSha256": "ac69dfee0d908255a7041798934f27fde5a39eaf0c7b632e3639125b0acd382e",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 10
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "ownerKeyReused": true,
+  "manualReleaseWorkflowUnchanged": true,
+  "domainScenariosPassed": 28
+}
