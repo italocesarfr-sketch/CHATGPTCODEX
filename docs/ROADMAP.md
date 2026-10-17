@@ -1,8 +1,10 @@
 # Roadmap — Diário de Classe
 
+> Etapa 4A, primeiro incremento autorizado: ações de atividade na lista e recálculo proporcional explícito; consulte [ETAPA4A.md](ETAPA4A.md). Os demais incrementos seguem pendentes de autorização. A base 0.3.1 foi aprovada pelo professor em celular físico.
+
 > Correção posterior 0.3.1: novos alunos passam a ter ingresso padrão em 01/01 do ano letivo, sem reescrever datas existentes. Consulte [CORRECAO_ETAPA3.md](CORRECAO_ETAPA3.md). Os resultados 0.3.0 permanecem como histórico.
 
-> Atualização posterior à Etapa 0: a Etapa 1 foi autorizada pelo responsável e implementada/testada. Consulte [ETAPA1.md](ETAPA1.md) para resultados e o gate de assinatura ainda pendente. As descrições de “estado atual” abaixo referem-se à base auditada da Etapa 0. A Etapa 2 foi autorizada posteriormente e concluída com APK de teste validado, inclusive com dados antigos de teste descartáveis; consulte [ETAPA2.md](ETAPA2.md). A assinatura estável deve ser resolvida antes do uso real. A Etapa 3 foi autorizada e sua implementação/validação está registrada em [ETAPA3.md](ETAPA3.md). A Etapa 4 aguarda autorização.
+> Atualização posterior à Etapa 0: a Etapa 1 foi autorizada pelo responsável e implementada/testada. Consulte [ETAPA1.md](ETAPA1.md) para resultados e o gate de assinatura ainda pendente. As descrições de “estado atual” abaixo referem-se à base auditada da Etapa 0. A Etapa 2 foi autorizada posteriormente e concluída com APK de teste validado, inclusive com dados antigos de teste descartáveis; consulte [ETAPA2.md](ETAPA2.md). A assinatura estável deve ser resolvida antes do uso real. A Etapa 3 foi autorizada e sua implementação/validação está registrada em [ETAPA3.md](ETAPA3.md). Os incrementos seguintes da Etapa 4 aguardam autorização.
 
 Versão documental: 1.0 · Etapa 0 · 16/10/2026.
 
@@ -308,4 +310,4 @@ Falha de migração/restauração/assinatura é bloqueadora. Erro deve ser corri
 
 Decisões técnicas a fechar no incremento correspondente: continuidade da chave de assinatura/resgate legado (1.1), formato/validação do backup (1.2), política anual/recuperação (4.3–4.4), armazenamento da disposição (5.1) e viabilidade XLSX (5.4). Não são razões para bloquear a documentação nem autorização para implementar antecipadamente.
 
-**Situação após as autorizações posteriores:** Etapas 1, 2 e 3 implementadas/testadas; consultar ETAPA1.md, ETAPA2.md e ETAPA3.md para os APKs, resultados e limites de cada entrega. A assinatura estável continua pendente antes do uso real. Aguardar autorização para iniciar a Etapa 4. O plano original da Etapa 0 permanece como referência dos critérios.
+**Situação após as autorizações posteriores:** Etapas 1, 2 e 3 implementadas/testadas; consultar ETAPA1.md, ETAPA2.md e ETAPA3.md para os APKs, resultados e limites de cada entrega. A assinatura estável continua pendente antes do uso real. Consultar ETAPA4A.md para o primeiro incremento autorizado; aguardar autorização para os incrementos seguintes. O plano original da Etapa 0 permanece como referência dos critérios.

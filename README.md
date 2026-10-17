@@ -2,21 +2,21 @@
 
 Aplicativo Android nativo em Kotlin, Jetpack Compose/Material 3 e Room/SQLite, com ViewModel e Repository. Android 8.0 (API 26) ou superior. Interface em português brasileiro, armazenamento privado e funcionamento offline, sem cadastro ou permissão de Internet.
 
-## Versão 0.3.1 — Correção da Etapa 3
+## Versão 0.4.0 — Primeiro incremento da Etapa 4A
 
-Quatro páginas: **Cadastrar Turma**, **Fazer Chamada**, **Atividades e Notas** e **Relatórios**, com seletor global de turma/ano memorizado. A chamada agora usa qualquer data do ano letivo, 1–12 horários informados pelo professor, P/F independentes, menu FJ/NR e consulta bimestral. Nenhuma grade semanal é necessária e navegar não gera aulas. Nomes ficam fixos durante a rolagem horizontal.
+As quatro páginas, o seletor global e os comportamentos da versão 0.3.1 foram preservados. Cada atividade agora tem **Lançar notas**, **Editar** e **Excluir** diretamente na lista. Excluir pede confirmação e mostra quantas notas já foram lançadas, avisando que todas as notas vinculadas serão excluídas permanentemente.
 
-[Baixar APK 0.3.1 de teste (ZIP)](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186/artifacts/12079149881) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186) • [Relatórios/capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186/artifacts/12079179558). Testes: 20 JVM, 46 Android, quatro sondas separadas e 28 cenários de domínio aprovados. APK baixado e hash conferido.
+Alterar o máximo com notas lançadas abre uma prévia: **Recalcular proporcionalmente**, **Manter notas existentes** (se couberem no novo máximo) ou **Cancelar**. A alteração e todas as notas são salvas em uma transação Room; zero e pendentes são preservados. O cálculo não arredonda internamente para as duas casas exibidas nos boletins. Os campos de edição preservam a precisão armazenada.
 
-**Correção de matrícula:** novos cadastros individuais e por lista/CSV começam em 01/01 do ano letivo. Ingresso e saída continuam editáveis para exceções reais. Datas de matrículas existentes não são reescritas. Layout, Room v1, backup/restauração e regras da chamada permanecem preservados. Resultados e APK da correção em [CORRECAO_ETAPA3](docs/CORRECAO_ETAPA3.md); a entrega 0.3.0 permanece documentada em [ETAPA3](docs/ETAPA3.md). A assinatura estável continua pendente antes do uso real.
+[Baixar APK 0.4.0 (ZIP)](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38985770801/artifacts/12083077686) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38985770801) • [Resultados e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38985770801/artifacts/12083451234). Validação: 24 testes JVM, 62 Android, quatro sondas separadas e 28 cenários locais aprovados. APK baixado e hash conferido. Detalhes em [ETAPA4A](docs/ETAPA4A.md). Room v1, backup/restauração, matrícula padrão 01/01, chamadas e salvamento automático continuam existentes. A assinatura permanente permanece pendente antes do uso com dados reais. Os demais incrementos, recuperação, exportação e relatórios avançados aguardam autorização.
 
-Consulte [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.md) e [entrega da Etapa 3](docs/ETAPA3.md). As entregas anteriores permanecem em [ETAPA1](docs/ETAPA1.md) e [ETAPA2](docs/ETAPA2.md).
+Referências: [especificação](docs/ESPECIFICACAO.md), [roadmap](docs/ROADMAP.md), [base 0.3.1](docs/CORRECAO_ETAPA3.md), [Etapa 3](docs/ETAPA3.md), [Etapa 2](docs/ETAPA2.md) e [Etapa 1](docs/ETAPA1.md).
 
 ## Compilar e baixar o APK
 
-No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **diario-de-classe-apk**: contém o APK, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-etapa3** contém resultados e capturas de tela sintéticas.
+No repositório `italocesarfr-sketch/CHATGPTCODEX`, abra **Actions → Compilar APK Android**. Pushes em `main` também iniciam o workflow. Após todos os testes aprovados, baixe o artefato **diario-de-classe-apk**: contém o APK, SHA-256 e metadados públicos de assinatura/compatibilidade. O artefato **resultados-etapa4a** contém resultados e capturas de tela sintéticas.
 
-O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [CORRECAO_ETAPA3](docs/CORRECAO_ETAPA3.md).
+O CI configura JDK 17/SDK 35, executa `testDebugUnitTest assembleDebug assembleDebugAndroidTest`, testes de interface/Room/backup em emulador API 30 e atualização da base v1 com a mesma chave descartável. Verifica que o APK publicado é o mesmo testado. A execução e os metadados desta versão estão registrados em [ETAPA4A](docs/ETAPA4A.md).
 
 ### Android Studio / terminal
 
@@ -46,7 +46,7 @@ Para instalação por USB, confira primeiro os certificados em [ASSINATURA](docs
 2. **Gerenciar alunos**: adicione, edite ou transfira alunos. O ingresso padrão é 01/01 do ano letivo; altere ingresso/saída apenas para uma matrícula real diferente. A data de cadastro no aplicativo não limita a retroatividade. Matrículas antigas mantêm suas datas. A ordem alfabética é a visualização padrão; escolha Ordem da chamada para mover posições ou editar números.
 3. **Colar lista / Importar CSV**: UTF-8, um nome por linha, com número opcional. Exemplo CSV: `numero;nome`. Nomes/números permanecem em rascunho até a conferência de cada linha e a confirmação final. Resolva duplicidades/números repetidos; homônimos exigem confirmação explícita. Rascunhos das versões com fotografia também aparecem aqui. A importação por fotografia foi retirada.
 4. **Fazer Chamada**: escolha mês/data e toque em Registrar horários depois de informar a quantidade (1–12). Marque P/F diretamente, ou FJ/NR no menu da célula. Marcação coletiva, cópia e cancelamento exigem confirmação. Horários têm registros independentes. Horários → Alterar permite reduzir com cancelamento explícito, mantendo as marcações. Abra Bimestre para a tabela geral cronológica e os totais F/FJ. NR nunca é falta; matrícula delimita a frequência. Bimestres permite editar os períodos com prévia de impacto. Aulas previstas antigas só contam depois de confirmadas como realizadas.
-5. **Atividades e Notas**: escolha bimestre, crie atividade e lance notas. Campo vazio é pendente; zero é válido. Valores válidos são salvos automaticamente. Notas inválidas são sinalizadas; ao trocar de contexto, há aviso de que o valor não foi salvo.
+5. **Atividades e Notas**: escolha bimestre, crie atividade e lance notas. Campo vazio é pendente; zero é válido. Valores válidos são salvos automaticamente. Os botões Editar e Excluir ficam na lista. Editar permite prévia proporcional ao mudar o máximo; excluir conta notas e exige confirmação permanente. Notas inválidas são sinalizadas; ao trocar de contexto, há aviso de que o valor não foi salvo.
 6. **Relatórios**: boletim bimestral com atividades, totais e faltas comuns/justificadas, ordenação por notas/faltas e perfil individual com histórico anual. Tabela com rolagem horizontal.
 7. **Backup**, na barra superior: exporte arquivo completo pelo seletor Android. Restaurar exige prévia validada, digitar RESTAURAR e cria cópia privada dos dados anteriores. Consulte [BACKUP](docs/BACKUP.md).
 
@@ -64,4 +64,4 @@ A fila aguarda o commit antes de indicar Salvo; gravações ainda pendentes pode
 
 ## Próximas etapas
 
-Aguardar autorização para Etapa 4 (organização de notas/consultas). Recuperação integrada, exportação inteligente PDF/CSV/XLSX, fechamento anual e refinamento amplo de acessibilidade/desempenho seguem o ROADMAP. Relatórios atuais são consultas na tela. Não há feriados oficiais automáticos. As capturas e testes do CI não substituem a validação posterior em aparelho físico.
+Aguardar autorização para os próximos incrementos da Etapa 4A e seguintes. Recuperação integrada, exportação inteligente PDF/CSV/XLSX, fechamento anual e refinamento amplo de acessibilidade/desempenho seguem o ROADMAP. Relatórios atuais são consultas na tela. Não há feriados oficiais automáticos. As capturas e testes do CI não substituem a validação posterior em aparelho físico.

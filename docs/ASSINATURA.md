@@ -100,3 +100,9 @@ O CI aprovou a instalação por cima da referência v1 com a mesma chave descart
 [APK de teste](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186/artifacts/12079149881), [Actions](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38978133186) e [resultados](CORRECAO_ETAPA3.md). Certificado público SHA-256 `d6f78d14b655b13e69566cf4b05b70bdea3d3bbe732e7c5b5c62a32396ee02ff`. O certificado do APK debug difere do APK 0.3.0 analisado: este artefato não o atualiza diretamente.
 
 A configuração de assinatura e o identificador permanecem iguais. O CI comprovou a atualização da referência v1 com a mesma chave descartável, preservando as oito tabelas. Isso não comprova compatibilidade com o APK instalado no celular; nenhum certificado dessa instalação foi inspecionado. A release permanece bloqueada sem configuração segura da chave estável. Se houver registros a conservar, exportar/conferir backup antes de trocar de instalação. Nenhuma chave privada foi publicada.
+
+## Primeiro incremento da Etapa 4A — 0.4.0
+
+[APK](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/38985770801/artifacts/12083077686) e [validação](ETAPA4A.md). Certificado público SHA-256 `0f9ee6e89bc8307d5359ab594f8514d511afef3e63585901d2117d14f689dea8`. O certificado debug difere do APK 0.3.1 publicado; este artefato não o atualiza diretamente.
+
+Pacote e configuração de assinatura mantidos. A instalação física não foi inspecionada. A atualização controlada com a mesma chave descartável preservou todas as oito tabelas, e o reinício forçado conservou nota recalculada e chamada confirmadas. A continuidade da chave real continua pendente; a release sem configuração segura permanece bloqueada. Exportar/conferir backup antes de qualquer troca de instalação com dados a preservar. Não houve publicação de chaves privadas.
