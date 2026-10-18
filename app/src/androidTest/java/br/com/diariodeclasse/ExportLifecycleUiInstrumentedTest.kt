@@ -97,7 +97,7 @@ class ExportLifecycleUiInstrumentedTest {
         manage();compose.onNodeWithTag("archive-class").performClick();compose.onNodeWithText("Confirmar").performClick();waitText("Arquivada •")
         compose.onNodeWithTag("nav-0").performClick();waitTag("class-selector");compose.onNodeWithTag("class-selector").performClick()
         compose.onAllNodesWithText(c.name,useUnmergedTree=true).assertCountEquals(0)
-        compose.activityRule.scenario.onActivity{it.onBackPressedDispatcher.onBackPressed()}
+        compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()
         compose.onNodeWithTag("open-archives").performScrollTo().performClick();waitTag("archived-${c.id}");compose.onNodeWithTag("archived-${c.id}").performClick();waitText("Arquivada •")
     }
     @Test fun deletionRequiresExactIdentificationCancelDoesNothingAndOtherClassSurvives() {
