@@ -1,0 +1,62 @@
+{
+  "jvm": {
+    "tests": 102,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 102
+  },
+  "android": {
+    "tests": 176,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 172
+  },
+  "captures": {
+    "editar-turma.png": "3dcba2b854f2a96ed659403f76a5c38595edb2a53bc042930d7086006a9396ce",
+    "editar-acoes.png": "fb8fbc7cb55c0cb1b043b9cd3d3c640e7a2960c194f07208d0a9e469ef860ee7",
+    "excluir-turma.png": "ae4c374ce4dec8a3776f336073a6f2787ac66d9f8c9a98ff1d1b1a6494a4b3aa",
+    "historico-no-destino.png": "79252c830955f51c7765c646d37f437f3889fbd6f5877891daf6f4a3ca89f4a6",
+    "perfil-historico.png": "ba12be9566c85b110b773bbcbbd8c2851e6ef11d1594a0dbd985420d2681f622"
+  },
+  "apk": {
+    "apkSha256": "ee977e5ae1f5ebe970f354f94eb8aeb75c1fa17e234060ff2d776ea2ff8d7eb1",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "bytes": 8452686
+  },
+  "signedUpgradePhases": [
+    "after.txt",
+    "backup.txt",
+    "before.txt",
+    "deleted-history.txt",
+    "reopened-history.txt",
+    "reopened.txt"
+  ],
+  "compatibility": {
+    "old": {
+      "apkSha256": "7081e85866391959d9623810636ef21be1ba66fbdd951e730a24f5c0f6f31271",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 19
+    },
+    "new": {
+      "apkSha256": "ee977e5ae1f5ebe970f354f94eb8aeb75c1fa17e234060ff2d776ea2ff8d7eb1",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 20
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "versionName": "0.11.4",
+  "versionCode": 20,
+  "testedCommit": "9f7f1519267454d84010b01b1c9adb7d0caafec7",
+  "workflowRunId": 39169682897,
+  "releaseArtifactId": 12152067256,
+  "resultsArtifactId": 12152640534,
+  "updateArtifactId": 12152291647,
+  "databaseVersion": 7,
+  "backupVersion": 8
+}
