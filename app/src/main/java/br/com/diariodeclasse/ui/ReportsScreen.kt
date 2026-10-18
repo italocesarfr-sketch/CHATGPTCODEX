@@ -8,13 +8,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import br.com.diariodeclasse.R
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.SchoolRules
 import br.com.diariodeclasse.reports.*
@@ -57,6 +61,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     var mode by rememberSaveable { mutableStateOf("Bimestral") }
     var order by rememberSaveable { mutableStateOf("Chamada") }
     var showRelocated by rememberSaveable(c.id) { mutableStateOf(false) }
+    var showInformation by rememberSaveable(c.id, term, mode) { mutableStateOf(false) }
     val reports = remember(data, c, showRelocated) { SchoolReports(data, c, showRelocated) }
     val report = remember(reports, term) { reports.term(term) }
     val annual = remember(reports) { reports.year() }
@@ -70,6 +75,24 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     val ranking = remember(report, c.countJustified) { SchoolReports.rank(report.students, c.countJustified) }
     val horizontal = rememberScrollState()
     val listState = rememberLazyListState()
+    if (showInformation) AlertDialog(
+        onDismissRequest = { showInformation = false },
+        title = { Text("Informações do relatório") },
+        text = {
+            Column(Modifier.testTag("report-information").verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
+                if (mode == "Bimestral") Text("Atividades: escala 0 a ${number(c.scale)}. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.")
+                Text("Deslize as colunas para os lados. O nome permanece visível; toque para consultar o histórico. O status identifica a matrícula atual.")
+                Text(justificationPolicy(c))
+                if (mode == "Frequência" || mode == "Mais faltosos") Text("Aulas elegíveis variam conforme a matrícula.")
+                if (mode == "Mais faltosos") Text("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.")
+                if (mode == "Resumo anual") {
+                    Text("Quatro resultados separados; não há média anual ou decisão de aprovação.")
+                    Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula. Não é a média dos percentuais bimestrais.")
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { showInformation = false }) { Text("Fechar") } }
+    )
     // Só mudanças explícitas de contexto reposicionam a leitura, nunca emissões dos dados.
     LaunchedEffect(c.id, term, mode) { listState.scrollToItem(0); horizontal.scrollTo(0) }
     @Composable fun TableRow(name: String, tag: String, cells: List<String>, totalIndex: Int? = null,
@@ -95,19 +118,20 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
             if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
-            Section(when (mode) {
-                "Frequência" -> "Frequência do ${term}º bimestre"
-                "Mais faltosos" -> "Mais faltosos do ${term}º bimestre"
-                "Resumo anual" -> "Resumo anual de ${c.year}"
-                else -> "Boletim do ${term}º bimestre"
-            }, "${c.name} • ${c.subject} • ${c.year}")
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) { Section(when (mode) {
+                    "Frequência" -> "Frequência do ${term}º bimestre"
+                    "Mais faltosos" -> "Mais faltosos do ${term}º bimestre"
+                    "Resumo anual" -> "Resumo anual de ${c.year}"
+                    else -> "Boletim do ${term}º bimestre"
+                }, "${c.name} • ${c.subject} • ${c.year}") }
+                IconButton(onClick = { showInformation = true }, modifier = Modifier.size(48.dp)) {
+                    Icon(painterResource(R.drawable.ic_info), contentDescription = "Informações do relatório", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
             Choice("Relatório", listOf("Bimestral", "Frequência", "Mais faltosos", "Resumo anual"), mode) { mode = it }
             if (mode == "Bimestral") Choice("Ordenação", listOf("Chamada", "Mais faltas", "Menor nota", "Maior nota"), order) { order = it }
-            if (mode == "Bimestral") Text("Atividades: escala 0 a ${number(c.scale)}. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.", style = MaterialTheme.typography.bodySmall)
             if (mode != "Resumo anual") Text(report.period?.let { "${shortDate(it.start)} a ${shortDate(it.end)}" } ?: "Bimestre não configurado", style = MaterialTheme.typography.bodySmall)
-            Text("Deslize as colunas para os lados. O nome permanece visível; toque para consultar o histórico. O status identifica a matrícula atual.", style = MaterialTheme.typography.bodySmall)
-            Text(justificationPolicy(c), style = MaterialTheme.typography.bodySmall)
-            if (mode == "Resumo anual") Text("Quatro resultados separados; não há média anual ou decisão de aprovação.", style = MaterialTheme.typography.bodySmall)
         }
         if (report.students.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado nesta turma." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico.") }
         when (mode) {
@@ -126,8 +150,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
             }
             "Frequência", "Mais faltosos" -> {
                 item {
-                    Info("${report.performedLessons} horários realizados na turma. Aulas elegíveis variam conforme a matrícula.")
-                    if (mode == "Mais faltosos") Text("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.", style = MaterialTheme.typography.bodySmall)
+                    Info("${report.performedLessons} horários realizados na turma.")
                     report.frequency?.let { Text("Soma das matrículas — ${frequencyText(it)}", Modifier.testTag("report-frequency-total"), style = MaterialTheme.typography.bodySmall) }
                     if (report.frequency?.performed == 0) Text("Nenhuma aula realizada elegível no período.")
                     else if (report.frequency?.valid == 0) Text("Há aulas realizadas, mas nenhuma chamada válida foi preenchida.")
@@ -154,7 +177,6 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
                         }
                     } + summaryText(row.attendance), status = relocationLabel(data,row.student), keys = (1..4).map { "term-$it" } + "annual-frequency") { profile(row.student.id) }
                 }
-                item { Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula. Não é a média dos percentuais bimestrais.", style = MaterialTheme.typography.bodySmall) }
             }
         }
     }

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -64,7 +65,59 @@ class ReportsUiInstrumentedTest {
     private fun cell(student:Student,index:Int)=compose.onNodeWithTag("report-row-${student.id}-cell-$index",useUnmergedTree=true)
     private fun shot(name:String) {
         val folder=File(app.filesDir,"etapa4b3-screenshots");folder.mkdirs()
-        File(folder,"$name.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+        val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty()) compose.onNode(isDialog()) else compose.onRoot()
+        File(folder,"$name.png").outputStream().use {root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+    }
+    @Test fun explanatoryHelpStaysOffTheTableAndClosesWithoutChangingDataOrFilters() {
+        val before=runBlocking {app.backupManager.snapshot()}
+        compose.onNodeWithTag("export-organize").assertIsDisplayed()
+        compose.onNodeWithTag("open-export").assertIsDisplayed()
+        compose.onNodeWithTag("report-information").assertDoesNotExist()
+        compose.onNodeWithText("Atividades: escala",substring=true).assertDoesNotExist()
+        compose.onNodeWithText("Deslize as colunas",substring=true).assertDoesNotExist()
+        compose.onNodeWithText("Faltas efetivas: F + FJ",substring=true).assertDoesNotExist()
+        val help=compose.onNodeWithContentDescription("Informações do relatório")
+        help.assertWidthIsAtLeast(48.dp)
+        help.assertHeightIsAtLeast(48.dp)
+        shot("06-relatorios-sem-blocos-auxiliares")
+        help.performClick()
+        compose.onNodeWithTag("report-information").assertIsDisplayed()
+        compose.onNodeWithText("Atividades: escala 0 a 10,00. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.").assertExists()
+        compose.onNodeWithText("Deslize as colunas",substring=true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Faltas efetivas: F + FJ",substring=true).performScrollTo().assertIsDisplayed()
+        shot("07-informacoes-do-relatorio")
+        compose.onNodeWithText("Fechar").performClick()
+        compose.onNodeWithTag("report-information").assertDoesNotExist()
+        compose.onNodeWithText("Chamada ▾").performClick()
+        compose.onNodeWithText("Maior nota",useUnmergedTree=true).performClick()
+        row(a);cell(a,0).assertTextEquals("0,00")
+        compose.onNodeWithTag("reports-list").performScrollToIndex(0)
+        compose.onNodeWithText("Maior nota ▾").assertIsDisplayed()
+        help.performClick();compose.onNodeWithText("Fechar").performClick()
+        compose.onNodeWithText("Maior nota ▾").assertIsDisplayed()
+        assertEquals(before,runBlocking {app.backupManager.snapshot()})
+    }
+    @Test fun helpPreservesAnnualAndAbsenteeExplanationsAndCurrentClassPolicy() {
+        mode("Resumo anual")
+        compose.onNodeWithText("Quatro resultados separados",substring=true).assertDoesNotExist()
+        compose.onNodeWithText("A frequência anual inclui",substring=true).assertDoesNotExist()
+        compose.onNodeWithContentDescription("Informações do relatório").performClick()
+        compose.onNodeWithText("Quatro resultados separados",substring=true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("A frequência anual inclui",substring=true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Fechar").performClick()
+        mode("Mais faltosos","Resumo anual")
+        compose.onNodeWithText("Ordem: faltas efetivas",substring=true).assertDoesNotExist()
+        compose.onNodeWithContentDescription("Informações do relatório").performClick()
+        compose.onNodeWithText("Aulas elegíveis variam conforme a matrícula.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Fechar").performClick()
+        runBlocking {app.repository.saveClass(c.copy(countJustified=false),"2026-01-01")}
+        compose.waitForIdle()
+        compose.onNodeWithContentDescription("Informações do relatório").performClick()
+        waitText("Faltas efetivas: somente F.")
+        compose.onNodeWithText("Faltas efetivas: somente F.",substring=true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Fechar").performClick()
+        row(a);cell(a,4).assertTextEquals("1")
     }
     @Test fun bimestralDistinguishesZeroPendingOutsideEnrollmentAndIndividualIsReadOnly() {
         val before=runBlocking {app.backupManager.snapshot()}
