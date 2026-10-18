@@ -1,6 +1,6 @@
 # Etapa 6 — Identidade noturna e navegação integrada
 
-Candidato **Noctua 0.11.0 / código 16**, sobre a **0.10.0 / código 15** aprovada em aparelho físico. Somente experiência de uso, navegação e apresentação. Nenhuma funcionalidade pedagógica nova.
+**Noctua 0.11.0 / código 16**, sobre a **0.10.0 / código 15** aprovada em aparelho físico. Somente experiência de uso, navegação e apresentação. Nenhuma funcionalidade pedagógica nova.
 
 ## Impeccable e auditoria
 
@@ -62,7 +62,32 @@ O CI compara o APK **real 0.10.0** do [Actions 39137573909](https://github.com/i
 
 ## Validação e resultados
 
-Primeiro ensaio [39145646257](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39145646257): 93 JVM e 152 Android aprovados, quatro falhas de interface. Uma identificou truncamento real da barra em 320 dp/fonte 130%; os itens passaram a usar a largura de sua célula, dentro do NavigationBar Material e com semântica de aba. Três ajustes de teste preservaram as asserções: aguardar o controle na nova área de Relatórios, verificar a turma como parte do rótulo completo e restringir texto repetido ao diálogo de visualização. Nenhum erro de regra ou Room foi encontrado. Aguardando nova execução completa e prova de atualização. Compilação local não substitui teste de interface nem atualização assinada.
+Primeiro ensaio [39145646257](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39145646257): 93 JVM e 152 Android aprovados, quatro falhas de interface. Uma identificou truncamento real da barra em 320 dp/fonte 130%; os itens passaram a usar a largura de sua célula, dentro do NavigationBar Material e com semântica de aba. Três ajustes de teste preservaram as asserções: aguardar o controle na nova área de Relatórios, verificar a turma como parte do rótulo completo e restringir texto repetido ao diálogo de visualização. Nenhum erro de regra ou Room foi encontrado. A repetição completa e a atualização assinada foram aprovadas, conforme as evidências abaixo. Compilação local não substitui teste de interface nem atualização assinada.
+
+
+### Retomada após interrupção
+
+Antes da interrupção: tema, componentes, navegação, organização de exportação e ajuste de rolagem já implementados no workspace; 93 testes JVM e assembleDebug/assembleDebugAndroidTest aprovados, sem commit/publicação desta etapa. Nenhuma fonte do aplicativo tinha sido alterada após o último build válido. A Impeccable já havia sido procurada e não estava disponível; a auditoria não foi repetida.
+
+Na retomada: estado preservado, sem reset/limpeza/reimplementação. Compilada apenas a instrumentação após acrescentar a asserção explícita do botão Registrar horários na largura 320 dp/fonte 130%; depois publicado o candidato para o primeiro teste Android real. Corrigidos somente os quatro pontos identificados no ensaio acima. Os testes completos foram repetidos porque havia falha real e alteração de código de interface; não por ausência de resultados locais válidos.
+
+### Resultado final
+
+- **93 testes JVM e 156 Android aprovados, sem falhas**; quatro sondas exclusivas ignoradas na suíte comum, identificadas nos XMLs. Três recebem execução separada nas oito fases abaixo; o ensaio histórico ReleaseContinuity continua ignorado e é substituído pela atualização release real. Os 28 cenários Java permanecem na regressão.
+- Seis testes novos de interface: modos e contexto; diário por data com campos preenchidos e marcador; múltiplos textos/visualização/independência; mudança de turma; organização seguida de exportação; quatro rótulos completos, alvos de modo de 48 dp e botão Registrar horários alcançável/funcional em **320 dp, fonte 130%**. Os seis testes anteriores do diário e cinco da disposição de exportação foram mantidos na nova navegação.
+- Room, backups anteriores/atuais, restauração, notas, recálculo proporcional, frequência, recomposição, remanejamento/reativação, arquivamento e exclusão segura permaneceram na suíte. Dois ensaios de frequência/reinício e dois de atualização legada aprovados.
+- **Atualização real assinada 0.10.0 → 0.11.0** aprovada, em quatro fases: semente nas treze tabelas (incluindo dois textos legados e arquivamento), instalação por cima sem desinstalar/limpar, igualdade integral do snapshot/IDs, backup/restauração e reinício com os registros de aula. Certificado permanente mantido.
+- **33 XLSX reais, 33 CSV e 99 TSV** novamente validados por openpyxl 3.1.5 e parser independente, incluindo três conjuntos produzidos no Android. A apresentação não modificou os escritores/projeções.
+- [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39146616428), código testado `1dae13fca5fd3d43446a0b5ee36ae557166a9e7f`.
+- [**Baixar APK release — ZIP**](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39146616428/artifacts/12143514492), artefato **noctua-etapa6-release**. Extrair `app-release.apk`; é a release com a assinatura existente.
+- [Resultados e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39146616428/artifacts/12143193297) • [Provas de atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39146616428/artifacts/12144345359) • [Debug interno](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39146616428/artifacts/12142829666). Debug não é indicado para atualizar a release permanente.
+- [Antes/depois e fluxos](CAPTURAS_ETAPA6.md) • [Hashes e metadados](ETAPA6_RESULTADOS.json).
+
+APK release baixado e verificado em `app/build/outputs/apk/release/app-release.apk` (7294418 bytes); debug em `app/build/outputs/apk/debug/app-debug.apk`. Ambos existem e indicam Noctua **0.11.0 / código 16**, `br.com.diariodeclasse`, mínimo API 26 e sem INTERNET. Os hashes dos ZIPs, XMLs de testes, DEX do módulo novo e os seis JSONs Room foram examinados após o download.
+
+SHA-256 release: `ecf8881582a4458560ad51359741417b85e000fac1cf59222aef92b6140545e4`. Certificado público SHA-256 `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`, igual à release 0.10.0 fixada; assinatura v2 conferida com apksigner. Nenhuma chave ou Secret criado, substituído ou publicado. A prova cobre o APK 0.10.0 publicado com esse certificado; não houve leitura direta do certificado do aparelho físico. Fazer backup antes de atualizar e usar a release compatível, sem desinstalar. Salvar o APK: artefatos de APK do Actions expiram após 30 dias.
+
+Room **v6** e backup **7** inalterados; identidade `0bb463bface3e8d6c547f9424574818b` e JSON v6 SHA-256 `35fe2e187d63b5763b03952a17473d63fcb96251a1e79a72533d8c68a8c712fe`. `release.yml`, regras, entidades e mecanismos de backup permanecem idênticos à base. Apenas o versionamento mudou no Gradle do aplicativo; o bloco de assinatura ficou intacto. O commit documental final não altera o código nem os workflows testados.
 
 ## Limitações e aprovação
 

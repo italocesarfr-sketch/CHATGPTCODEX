@@ -1,0 +1,198 @@
+{
+  "testedCommit": "1dae13fca5fd3d43446a0b5ee36ae557166a9e7f",
+  "workflowRunId": 39146616428,
+  "versionName": "0.11.0",
+  "versionCode": 16,
+  "databaseName": "diario.db",
+  "databaseVersion": 6,
+  "backupFormatVersion": 7,
+  "schemaIdentity": "0bb463bface3e8d6c547f9424574818b",
+  "schemas": {
+    "1": {
+      "sha256": "43fe5f77af75d462dff34128582fdeb6cf759b9504fa2bb6ee468a6951ec3ed7",
+      "identity": "99b868cf68cf5dffb82edf267ddc78be"
+    },
+    "2": {
+      "sha256": "ba4e422868ecb8d532609a3f6488a0f2b4262551d265588e964305468232b7bc",
+      "identity": "32104b8df79c150ac61b09fadc450221"
+    },
+    "3": {
+      "sha256": "3e087b839b8c286589b1d7cabc0e7d2e8e83645728d1df757c05e32a95b5c7ce",
+      "identity": "9e864249a18922cfb9caa6e54ee6c3af"
+    },
+    "4": {
+      "sha256": "4a648da7396965706ec50f7a13b6ab8f3b459d4031b9d6f7cf48375bbae2a4d9",
+      "identity": "924bea88bcff9fe88f85edf884f4ab65"
+    },
+    "5": {
+      "sha256": "ffe06a1148e6a10869a4db6eaf77e5e8be25f15b3b9ea122ef388222528c1ce8",
+      "identity": "4fb9b076fb8a111f68f23ad0863c5f5c"
+    },
+    "6": {
+      "sha256": "35fe2e187d63b5763b03952a17473d63fcb96251a1e79a72533d8c68a8c712fe",
+      "identity": "0bb463bface3e8d6c547f9424574818b"
+    }
+  },
+  "tests": {
+    "unit": {
+      "passed": 93,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "passed": 156,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "independentReaders": [
+    {
+      "runtime": "jvm",
+      "reader": "openpyxl 3.1.5",
+      "xlsx": 30,
+      "csv": 30,
+      "tsv": 90
+    },
+    {
+      "runtime": "android",
+      "reader": "openpyxl 3.1.5",
+      "xlsx": 3,
+      "csv": 3,
+      "tsv": 9
+    }
+  ],
+  "domainScenariosPassed": 28,
+  "controlledLegacyUpgradeProbesPassed": 2,
+  "processRestartProbesPassed": 2,
+  "stableUpgradeProbesPassed": 4,
+  "unusedHistoricalReleaseContinuityProbeSkipped": true,
+  "apk": {
+    "debug": {
+      "apkSha256": "b69f6324460e90a1fd1a5d5851ea88b7d62db6fda51ef7f5b39626c52e7ac715",
+      "certificateSha256": "6a90f6cfeab9b1c30dfb64a2a3209120d9add4a81a463a594ad1826a6c011158",
+      "bytes": 10703134,
+      "manifest": {
+        "package": "br.com.diariodeclasse",
+        "versionCode": 16,
+        "versionName": "0.11.0",
+        "minSdk": 26
+      }
+    },
+    "release": {
+      "apkSha256": "ecf8881582a4458560ad51359741417b85e000fac1cf59222aef92b6140545e4",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "bytes": 7294418,
+      "manifest": {
+        "package": "br.com.diariodeclasse",
+        "versionCode": 16,
+        "versionName": "0.11.0",
+        "minSdk": 26
+      }
+    }
+  },
+  "artifacts": {
+    "reports": {
+      "id": 12143193297,
+      "name": "resultados-etapa6",
+      "digest": "sha256:899024b8805f8cdcb8d0909d87412e3f1da7d9a511d76543a55cd1d58b7b038f"
+    },
+    "debug": {
+      "id": 12142829666,
+      "name": "noctua-apk-teste",
+      "digest": "sha256:68942223d36d3c38aee1eb47f12eb906b2f2ec73074a840cfa6244c487e607ff"
+    },
+    "upgrade": {
+      "id": 12144345359,
+      "name": "resultados-atualizacao-release",
+      "digest": "sha256:ed75948b70f355c87920ac97de159f952029f15f85ba7d31374ad314014de4eb"
+    },
+    "release": {
+      "id": 12143514492,
+      "name": "noctua-etapa6-release",
+      "digest": "sha256:42c22d9dc96f9d03fc2fb38548ea63292b96e5bf8367b39dc1ad9035edb98233"
+    }
+  },
+  "stableReleaseCompatibility": {
+    "old": {
+      "apkSha256": "6ccfa6a440ea5acd11cca00cb3176ce7114ab7f4ddb10e96c4a146aee9807b58",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 15
+    },
+    "new": {
+      "apkSha256": "ecf8881582a4458560ad51359741417b85e000fac1cf59222aef92b6140545e4",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 16
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "ownerKeyReused": true,
+  "releaseSignatureV2Verified": true,
+  "manualReleaseWorkflowUnchanged": true,
+  "offlineManifestVerified": true,
+  "artifactArchiveDigestsVerified": true,
+  "databaseSchemaChanged": false,
+  "backupFormatChanged": false,
+  "impeccableUsed": false,
+  "screenshots": [
+    {
+      "path": "docs/capturas/etapa6/01-chamada-bimestre.png",
+      "sha256": "2acf0ffb341d90b334793587da6aa128ac1a6c0bd4e273e2eefb1b45430f1dac"
+    },
+    {
+      "path": "docs/capturas/etapa6/02-diario-calendario.png",
+      "sha256": "9b7e68fba1b5abbb19010c38357f23c476b39534cb5e910b97c73e170f7cb9ed"
+    },
+    {
+      "path": "docs/capturas/etapa6/03-organizar-exportacao.png",
+      "sha256": "533a0693c283d547e9b6980ff5c258107a418d93ef8113fb82dd070758f45079"
+    },
+    {
+      "path": "docs/capturas/etapa6/04-exportacao.png",
+      "sha256": "f582f87a45143ba581bd2a5de430984afb5f5dc6092191f75870b7c0d9bb739f"
+    },
+    {
+      "path": "docs/capturas/etapa6/05-celular-320-fonte-ampliada.png",
+      "sha256": "11f0da34463d9a2a27d6381f63bac9a746d95c4bdc9ea481880fdb8fd2f150c0"
+    },
+    {
+      "path": "docs/capturas/etapa6/06-diario-compacto.png",
+      "sha256": "c10b5799b6d21e98e2bd6a50a04229d262efd7c5ca2617875682f52a12eb5cb0"
+    },
+    {
+      "path": "docs/capturas/etapa6/antes-01-turmas.png",
+      "sha256": "55f5f298735f198dd1cf861a72d94099558101c111d031355cea8c21a2403c3b"
+    },
+    {
+      "path": "docs/capturas/etapa6/antes-02-chamada.png",
+      "sha256": "96b8be8ff1198739ed52049ca0061cd6eedff6051791b39f23b0b09f350b14bc"
+    },
+    {
+      "path": "docs/capturas/etapa6/antes-03-atividades.png",
+      "sha256": "69377cf010bc7bbfaa721224e8fa3e2494bbddecdd87625895ab3a0b2097b835"
+    },
+    {
+      "path": "docs/capturas/etapa6/antes-04-relatorios.png",
+      "sha256": "4dbbf93f74d122a707f045c23c3b3b2cf87d93e5565ab19e47276ab48fc6e482"
+    },
+    {
+      "path": "docs/capturas/etapa6/depois-01-turmas.png",
+      "sha256": "34344d3d297ef9bb5941cc3a244a480d3587cba30e7578d0b42110663c8ff0d5"
+    },
+    {
+      "path": "docs/capturas/etapa6/depois-02-chamada.png",
+      "sha256": "87c0d315e54cc3b05ac7a4ff170800bb53c57914fe45c658ebea3e751593f2d3"
+    },
+    {
+      "path": "docs/capturas/etapa6/depois-03-atividades.png",
+      "sha256": "3415bc0e93a147195cffb080e852d6fb1d29e2247e960b43b76018902f738e1d"
+    },
+    {
+      "path": "docs/capturas/etapa6/depois-04-relatorios.png",
+      "sha256": "30606fc6b8f5adf1c5a713d406013cc147a3b0156c81393834002be4281ec764"
+    }
+  ]
+}
