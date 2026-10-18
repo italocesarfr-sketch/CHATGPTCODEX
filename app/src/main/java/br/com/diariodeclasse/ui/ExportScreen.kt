@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -51,7 +52,7 @@ import java.io.File
     val xlsx=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(ExportFormat.XLSX.mime),::delivered)
     val csv=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(ExportFormat.CSV.mime),::delivered)
     val scroll=rememberScrollState();val matrix=remember(table,notesPreview,allGrades){table.rows(notesPreview,allGrades)}
-    LazyColumn(Modifier.fillMaxSize().testTag("export-screen"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("export-screen"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(10.dp)) {
         item {
             Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
             Text("Ordem, ocultação e linhas vazias seguem Organizar exportação. A prévia abaixo é a mesma matriz usada nos arquivos e na cópia.",style=MaterialTheme.typography.bodySmall)

@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,7 +36,7 @@ import br.com.diariodeclasse.domain.RosterParser
         ).joinToString(" • ")
     }
     val blocked = rows.isEmpty() || rows.any { issues(it).isNotEmpty() }
-    LazyColumn(Modifier.fillMaxSize().testTag("import-review-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("import-review-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item {
             Section("Conferir importação", "${c.name} • ${counted(rows.size, "nome", "nomes")} em rascunho")
             Info("Confira nomes, números e ingresso. Nenhum rascunho gera frequência ou notas antes da confirmação. Rascunhos antigos permanecem disponíveis aqui.")
@@ -49,7 +50,7 @@ import br.com.diariodeclasse.domain.RosterParser
         items(rows, key = { it.id }) { row ->
             val issue = issues(row)
             OutlinedCard(Modifier.fillMaxWidth(), colors = CardDefaults.outlinedCardColors(containerColor = if (issue.isNotBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface)) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(Modifier.padding(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${row.number?.toString() ?: "Sem nº"} • ${row.name.ifBlank { "Nome não preenchido" }}", style = MaterialTheme.typography.titleMedium)
                     Text("Posição ${row.position + 1}${if (row.page > 0) " • lote/página ${row.page}" else ""}", style = MaterialTheme.typography.labelSmall)
                     if (issue.isNotBlank()) Text(issue, style = MaterialTheme.typography.bodySmall)

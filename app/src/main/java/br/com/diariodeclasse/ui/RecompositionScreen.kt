@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,7 +23,7 @@ import br.com.diariodeclasse.reports.*
     val rows = reports.students.filter { all || RecompositionRules.belowFive(it.total) }
     Column(Modifier.fillMaxSize()) {
         if (feedback.isNotBlank()) Text(feedback, Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).testTag("recomposition-feedback"), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
-        LazyColumn(Modifier.weight(1f).testTag("recomposition-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        LazyColumn(Modifier.weight(1f).testTag("recomposition-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
                 if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
                 Section("Recomposição de Notas", "${c.name} • ${c.subject} • ${c.year}")

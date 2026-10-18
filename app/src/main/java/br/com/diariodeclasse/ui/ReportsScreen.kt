@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -81,7 +82,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
             Row(Modifier.weight(1f).testTag("$tag-values").horizontalScroll(horizontal)) {
                 cells.forEachIndexed { index, cell ->
                     val color = if (index != totalIndex || totalValue == null) MaterialTheme.colorScheme.onSurface else when {
-                        totalValue < c.low -> Color(0xFFAD3333); totalValue < c.high -> Color(0xFF9B7100); else -> Color(0xFF247749)
+                        totalValue < c.low -> br.com.diariodeclasse.ui.theme.NoctuaColors.danger; totalValue < c.high -> br.com.diariodeclasse.ui.theme.NoctuaColors.warning; else -> br.com.diariodeclasse.ui.theme.NoctuaColors.success
                     }
                     Box(Modifier.width(135.dp).then(keys.getOrNull(index)?.let { Modifier.testTag("$tag-$it") } ?: Modifier)) {
                         Text(cell, Modifier.fillMaxWidth().padding(end = 8.dp).testTag("$tag-cell-$index"), style = MaterialTheme.typography.bodySmall, color = color)
@@ -91,7 +92,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
         }
         HorizontalDivider()
     }
-    LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
             if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section(when (mode) {
@@ -165,7 +166,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     val year = remember(reports, student) { reports.year(student) }
     val listState = rememberLazyListState()
     LaunchedEffect(student.id, term) { listState.scrollToItem(0) }
-    LazyColumn(Modifier.fillMaxSize().testTag("individual-report"), state = listState, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("individual-report"), state = listState, contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Section(student.name, "${c.name} • ${c.subject} • ${c.year} • nº ${student.number} • ${student.status}")
             RelocationNotice(data,student)

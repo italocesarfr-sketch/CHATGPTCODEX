@@ -53,11 +53,11 @@ class FrequencyUiInstrumentedTest {
         compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,Locale.forLanguageTag("pt-BR"))} ▾").performClick()
         compose.onAllNodesWithText("8 • agosto").onLast().performScrollTo().performClick()
         compose.onNodeWithTag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"))
-        compose.onNodeWithTag("date-$day").performClick();waitTag("attendance-day-$day")
+        compose.onNodeWithTag("date-$day").performScrollTo().performClick();waitTag("attendance-day-$day")
     }
     private fun shot(name:String){val folder=File(app.filesDir,"etapa3-screenshots");folder.mkdirs();File(folder,"$name.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
     @Test fun retroactiveTwoHoursIndependentCellsFixedNamesAndClassSwitch()=runBlocking {
-        openAugust();compose.onNodeWithTag("hours-choice-2").performClick();compose.onNodeWithText("Registrar horários").performClick()
+        openAugust();compose.onNodeWithTag("hours-choice-2").performClick();compose.onNodeWithText("Registrar horários").performScrollTo().performClick()
         waitTag("daily-frequency");val lessons=app.repository.dao.day(c.id,day)
         compose.onNodeWithTag("cell-${lessons[0].id}-${a.id}-P").performClick()
         val left=compose.onNodeWithTag("student-name-${a.id}").fetchSemanticsNode().boundsInRoot.left
@@ -115,7 +115,7 @@ class FrequencyUiInstrumentedTest {
         assertEquals("2026-01-01",regular.joined)
         assertTrue(app.database.backupDao().lessons().isEmpty());assertTrue(app.database.backupDao().marks().isEmpty())
         compose.onNodeWithTag("nav-1").performClick();waitText("Mês do ano letivo 2026");openAugust()
-        compose.onNodeWithTag("hours-choice-2").performClick();compose.onNodeWithText("Registrar horários").performClick();waitTag("daily-frequency")
+        compose.onNodeWithTag("hours-choice-2").performClick();compose.onNodeWithText("Registrar horários").performScrollTo().performClick();waitTag("daily-frequency")
         val lessons=app.repository.dao.day(c.id,day)
         compose.onNodeWithText("Marcar todos como presentes").performClick();compose.onNodeWithText("Confirmar").performClick()
         compose.waitUntil(5000){runBlocking{app.database.backupDao().marks().count {it.studentId==regular.id}==2}}

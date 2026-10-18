@@ -18,6 +18,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.*
+import androidx.compose.foundation.shape.CircleShape
+import br.com.diariodeclasse.ui.theme.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.diariodeclasse.R
 import br.com.diariodeclasse.backup.BackupDialog
@@ -31,7 +34,7 @@ import br.com.diariodeclasse.backup.BackupCodec
 private data class MainPage(val title: String, val label: String, val icon: Int)
 private val pages = listOf(
     MainPage("Cadastrar Turma", "Cadastrar\nTurma", R.drawable.ic_classes),
-    MainPage("Fazer Chamada", "Fazer\nChamada", R.drawable.ic_attendance),
+    MainPage("Fazer Chamada / Diário de Classe", "Chamada/\nDiário", R.drawable.ic_diary),
     MainPage("Atividades e Notas", "Atividades\ne Notas", R.drawable.ic_grades),
     MainPage("Relatórios", "Relatórios", R.drawable.ic_reports))
 
@@ -49,6 +52,7 @@ private val pages = listOf(
     val activeClasses = data.classes.filter { c -> data.classArchives.none { it.classId == c.id } }
     val selected = resolveSelection(savedSelection, activeClasses)
     val c = data.classes.firstOrNull { it.id == selected.classId }
+    var classAreaMode by rememberSaveable { mutableStateOf("Chamada") }
     var page by rememberSaveable { mutableIntStateOf(0) }
     var detail by rememberSaveable { mutableStateOf("") }
     var managedClassId by rememberSaveable { mutableStateOf("") }
@@ -94,13 +98,13 @@ private val pages = listOf(
         else if(exportDraft?.dirty == true) pendingExportNavigation = safe
         else if (invalidGrade) pendingNavigation = safe else safe()
     }
-    fun concludeExport() {
+    fun concludeExport(openFile: Boolean = false) {
         val draft = exportDraft ?: return
         vm.act {
             vm.repository.saveExportLayout(draft.classId,draft.expected,draft.rows)
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 changeExport(null)
-                if(detail == "export-layout") detail = "roster"
+                if(detail == "export-layout") { page=3;detail=if(openFile) "export" else "" }
             }
         }
     }
@@ -116,21 +120,22 @@ private val pages = listOf(
     }; returnDetail = "" }
     BackHandler(detail.isNotEmpty() && !navigating) { back() }
     Scaffold(
-        topBar = { TopAppBar(title = { Column {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(painterResource(R.drawable.ic_owl), null, Modifier.size(24.dp), tint = Color.Unspecified)
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
+        topBar = { TopAppBar(title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Surface(shape=CircleShape,color=Color(0xFFDCEAF5)) {
+                    Icon(painterResource(R.drawable.ic_owl), null, Modifier.padding(NoctuaSpace.tiny).size(24.dp), tint = Color.Unspecified)
+                }
+                NoctuaWordmark()
             }
-            Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } }, navigationIcon = {
-            if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy) { Text("‹ Voltar") }
-        }, actions = { TextButton(enabled = !exportBusy, onClick = { if(exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
+        }, navigationIcon = {
+            if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy,contentPadding=PaddingValues(8.dp)) { Text("‹ Voltar") }
+        }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = { if(exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item -> NavigationBarItem(
                 selected = page == index,
                 onClick = { if (page != index || detail.isNotEmpty()) navigate { page = index; detail = "" } },
                 enabled = !navigating && !exportBusy,
-                modifier = Modifier.testTag("nav-$index"),
+                modifier = Modifier.testTag("nav-$index").semantics{contentDescription=item.title},
                 icon = { Icon(painterResource(item.icon), null, Modifier.size(23.dp)) },
                 label = { Text(item.label, textAlign = TextAlign.Center, maxLines = 2, style = MaterialTheme.typography.labelSmall) }) }
         } }, snackbarHost = { SnackbarHost(snack) }
@@ -145,7 +150,7 @@ private val pages = listOf(
                         detail == "archives" -> ArchivedClassesScreen(data) { managedClassId=it;managementReturn="archives";detail="manage-class" }
                         detail == "manage-class" -> ClassLifecycleScreen(vm,data,managedClassId,{detail="archived-reports"},{detail="archived-export"},records={detail="archived-records"}) { detail=managementReturn }
                         detail == "archived-reports" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived ->
-                            Column { Text("Turma arquivada • ${archived.name} • ${archived.year}",Modifier.padding(16.dp));TermSelector(term){term=it}
+                            Column { Text("Turma arquivada • ${archived.name} • ${archived.year}",Modifier.padding(NoctuaSpace.page));TermSelector(term){term=it}
                                 ReportScreen(data,archived,term) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
@@ -153,7 +158,7 @@ private val pages = listOf(
                         detail == "records" && c != null -> LessonRecordsScreen(vm,data,c,recordDraft,::changeRecord,::dismissRecord)
                         detail == "archived-records" -> data.classes.firstOrNull{it.id==managedClassId}?.let { LessonRecordsScreen(vm,data,it,recordDraft,::changeRecord,::dismissRecord,readOnly=true) }
                         detail == "export" && c != null -> ExportScreen(data,c,term,vm::message,ready=!saving){exportBusy=it}
-                        detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,::concludeExport) { changeExport(null);detail="roster" }
+                        detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,{concludeExport()},{changeExport(null);detail=""},export={concludeExport(true)})
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
                             GradeScreen(vm, data, a, edit = { navigate { editingActivity = a; activityForm = true } },
@@ -165,17 +170,16 @@ private val pages = listOf(
                         detail == "student-report" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
                             IndividualReportScreen(data, c, it, term) { term = it }
                         }
-                        detail == "roster" && c != null -> RosterScreen(vm, data, c, exportDraft, ::changeExport, ::concludeExport,
-                            organizeExport = { navigate { changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout" } }) { studentId = it; returnDetail = "roster"; detail = "profile" }
+                        detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; returnDetail = "roster"; detail = "profile" }
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
                             edit = { editingClass = c; classForm = true }, roster = { detail = "roster" }, manage = { c?.let {managedClassId=it.id;managementReturn="";detail="manage-class"} }, archives={detail="archives"})
                         c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
                         page == 1 && c != null -> frequencyStates.SaveableStateProvider(c.id) {
-                            CalendarScreen(vm, data, c, term, { term = it }, { termForm = true })
+                            ClassJournalArea(vm,data,c,term,{term=it},{termForm=true},classAreaMode,{next->navigate{classAreaMode=next}},recordDraft,::changeRecord,::dismissRecord,::navigate)
                         }
                         else -> Column {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.page), verticalAlignment = Alignment.CenterVertically) {
                                 Text(pages[page].title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                                 TextButton(onClick = { termForm = true }) { Text("Bimestres") }
                             }
@@ -184,9 +188,9 @@ private val pages = listOf(
                                 2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true }, recomposition = { detail = "recomposition" },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> Column {
-                                    Row(Modifier.padding(horizontal=16.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                                        OutlinedButton(onClick={detail="export"},modifier=Modifier.testTag("open-export")){Text("Exportar")}
-                                        OutlinedButton(onClick={detail="records"},modifier=Modifier.testTag("open-lesson-records")){Text("Registros de Aula")}
+                                    Row(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page), horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+                                        OutlinedButton(onClick={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("export-organize")){Text("Organizar exportação")}
+                                        FilledTonalButton(onClick={detail="export"},modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("open-export")){Text("Exportar planilha")}
                                     }
                                     reportStates.SaveableStateProvider(c.id) {
                                     ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "student-report" }
@@ -229,7 +233,7 @@ private val pages = listOf(
     var classesOpen by remember { mutableStateOf(false) }
     val klass = classes.firstOrNull { it.id == selected.classId }
     Surface(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
-        Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.padding(NoctuaSpace.small), horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small),verticalAlignment=Alignment.CenterVertically) {
             Box {
                 OutlinedButton(onClick = { yearsOpen = true }, enabled = enabled, modifier = Modifier.testTag("year-selector")) { Text("${selected.year} ▾") }
                 DropdownMenu(yearsOpen, { yearsOpen = false }) {
@@ -243,8 +247,8 @@ private val pages = listOf(
             Box(Modifier.weight(1f)) {
                 FilledTonalButton(onClick = { classesOpen = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().testTag("class-selector")) {
                     Column(Modifier.weight(1f)) {
-                        Text(klass?.name ?: "Selecionar turma", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        if (klass != null) Text(klass.subject, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(klass?.name ?: "Selecionar turma",style=MaterialTheme.typography.titleSmall)
+                        if (klass != null) Text(klass.subject, style = MaterialTheme.typography.labelSmall)
                     }
                     Text("▾")
                 }
@@ -261,27 +265,26 @@ private val pages = listOf(
 }
 
 @Composable private fun ClassManagementScreen(data: DiarySnapshot, c: SchoolClass?, year: Int, create: () -> Unit, edit: () -> Unit, roster: () -> Unit, manage: () -> Unit, archives: () -> Unit) {
-    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    LazyColumn(contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.page)) {
         item {
             Section("Cadastrar Turma", "Organize suas turmas e seus estudantes")
             Button(create, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Nova Turma") }
             Spacer(Modifier.height(10.dp))
             OutlinedButton(edit, enabled = c != null, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Editar Turma Existente") }
         }
-        item { Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        item { Row(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
             TextButton(onClick=manage,enabled=c!=null,modifier=Modifier.testTag("manage-class")){Text("Gerenciar turma")}
             TextButton(onClick=archives,modifier=Modifier.testTag("open-archives")){Text("Turmas arquivadas")}
         } }
         if (c == null) item { Info("Nenhuma turma selecionada em $year. Comece em Nova Turma ou escolha outro ano no seletor acima.") }
         else {
             item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("TURMA SELECIONADA", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                Text(c.name, style = MaterialTheme.typography.headlineMedium)
-                Text("${c.subject} • ${c.stage}\n${c.shift} • ano letivo ${c.year}")
+                Text(c.name, style = MaterialTheme.typography.titleLarge)
+                Text("${c.stage} • ${c.shift}",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                 HorizontalDivider()
                 Text("${counted(data.roster(c.id).count { it.status == "Ativo" }, "aluno ativo", "alunos ativos")} • ${counted(data.roster(c.id).size, "matrícula", "matrículas")}", style = MaterialTheme.typography.titleMedium)
                 Button(roster, Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Gerenciar alunos") }
-                Text("Cadastro individual, colagem de lista, CSV e organização da chamada.", style = MaterialTheme.typography.bodySmall)
+                Text("Cadastro, lista, CSV e situações de matrícula.", style = MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             } } }
             val drafts = data.drafts.count { it.classId == c.id }
             if (drafts > 0) item { OutlinedCard(onClick = roster, modifier = Modifier.fillMaxWidth()) { Text("${counted(drafts, "nome em rascunho aguarda", "nomes em rascunho aguardam")} conferência. Toque para continuar.", Modifier.padding(18.dp)) } }
@@ -291,7 +294,7 @@ private val pages = listOf(
 }
 
 @Composable private fun EmptyClassPage(title: String, create: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxSize().padding(NoctuaSpace.section), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.page)) {
         Section(title, "Escolha uma turma para continuar")
         Info("Selecione o ano e a turma acima. Se ainda não houver turmas, faça seu primeiro cadastro.")
         Button(create, Modifier.fillMaxWidth()) { Text("Nova Turma") }
@@ -301,7 +304,7 @@ private val pages = listOf(
 @Composable private fun ActivitiesPage(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, term: Int, create: () -> Unit, recomposition: () -> Unit, edit: (Activity) -> Unit, grades: (String) -> Unit) {
     val activities = data.activities.filter { it.classId == c.id && it.term == term }
     var removing by remember { mutableStateOf<Activity?>(null) }
-    LazyColumn(Modifier.testTag("activities-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.testTag("activities-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item { Button(create, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Criar atividade") } }
         item { OutlinedButton(recomposition, Modifier.fillMaxWidth().testTag("open-recomposition")) { Text("Recomposição de Notas") } }
         if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
@@ -312,9 +315,9 @@ private val pages = listOf(
                 val pending = data.currentRoster(c.id).filter { it.enrolled(a.date) }.count { s -> data.grades.none { it.activityId == a.id && it.studentId == s.id && it.value != null } }
                 Text("${counted(pending, "nota pendente", "notas pendentes")}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { grades(a.id) }, modifier = Modifier.testTag("activity-grades-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Lançar notas") }
-                    TextButton(onClick = { edit(a) }, modifier = Modifier.testTag("activity-edit-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Editar") }
-                    TextButton(onClick = { removing = a }, modifier = Modifier.testTag("activity-delete-${a.id}"), contentPadding = PaddingValues(4.dp)) { Text("Excluir", color = MaterialTheme.colorScheme.error) }
+                    TextButton(onClick = { grades(a.id) }, modifier = Modifier.testTag("activity-grades-${a.id}"), contentPadding = PaddingValues(NoctuaSpace.tiny)) { Text("Lançar notas") }
+                    TextButton(onClick = { edit(a) }, modifier = Modifier.testTag("activity-edit-${a.id}"), contentPadding = PaddingValues(NoctuaSpace.tiny)) { Text("Editar") }
+                    TextButton(onClick = { removing = a }, modifier = Modifier.testTag("activity-delete-${a.id}"), contentPadding = PaddingValues(NoctuaSpace.tiny)) { Text("Excluir", color = MaterialTheme.colorScheme.error) }
                 }
             }
         } }
@@ -323,7 +326,7 @@ private val pages = listOf(
 }
 
 @Composable fun TermSelector(selected: Int, select: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.page), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         (1..4).forEach { n -> FilterChip(modifier = Modifier.weight(1f), selected = selected == n,
             onClick = { if (selected != n) select(n) }, label = { Text("${n}º bim.", maxLines = 1, style = MaterialTheme.typography.labelSmall) }) }
     }

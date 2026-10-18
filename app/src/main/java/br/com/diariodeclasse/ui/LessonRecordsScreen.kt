@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -16,15 +17,17 @@ import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 import java.time.LocalDate
 
-/** Entrada secundária: Relatórios → Registros de Aula. Nenhuma ação cria uma chamada. */
+/** Diário facultativo: data do calendário ou consulta de todo o histórico. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun LessonRecordsScreen(vm: DiaryViewModel, data: DiarySnapshot, school: SchoolClass,
     draft: LessonRecordDraft?, change: (LessonRecordDraft?) -> Unit, dismissEditor: () -> Unit,
-    readOnly: Boolean = false) {
+    readOnly: Boolean = false, day: String? = null, backToCalendar: (() -> Unit)? = null) {
     val saving by vm.saving.collectAsState()
     var filters by rememberSaveable(school.id) { mutableStateOf(false) }
-    var from by rememberSaveable(school.id) { mutableStateOf("01/01/${school.year}") }
-    var until by rememberSaveable(school.id) { mutableStateOf("31/12/${school.year}") }
+    var from by rememberSaveable(school.id, day) { mutableStateOf(day?.let(::shortDate) ?: "01/01/${school.year}") }
+    var until by rememberSaveable(school.id, day) { mutableStateOf(day?.let(::shortDate) ?: "31/12/${school.year}") }
     var removing by remember { mutableStateOf<LessonRecord?>(null) }
+    var viewing by remember { mutableStateOf<LessonRecord?>(null) }
     var copied by remember { mutableStateOf<Pair<String, String>?>(null) }
     val context = LocalContext.current
     val rows = runCatching { LessonRecords.list(data.lessonRecords, school.id,
@@ -34,16 +37,17 @@ import java.time.LocalDate
         clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
         copied = id to if (label == "Descrição") "Descrição copiada." else "Título copiado."
     }
-    LazyColumn(Modifier.testTag("lesson-records-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.testTag("lesson-records-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item {
-            Section("Registros de Aula", "${school.name} • ${school.subject} • ${school.year}")
+            backToCalendar?.let { TextButton(onClick=it,modifier=Modifier.testTag("journal-back")){Text("‹ Calendário")} }
+            Section(if(day==null) "Registros de Aula" else "Diário • ${shortDate(day)}", "${school.name} • ${school.subject} • ${school.year}")
             Text("Espaço livre e facultativo. Registre quando quiser, mesmo sem chamada.", style = MaterialTheme.typography.bodySmall)
             if (!readOnly) Button(enabled = !saving, onClick = {
-                val now = LocalDate.now(); val day = if (now.year == school.year) now.toString() else "${school.year}-01-01"
-                change(LessonRecordDraft(null, LessonRecord(classId = school.id, date = day, title = "", description = "")))
-            }, modifier = Modifier.fillMaxWidth().testTag("new-lesson-record")) { Text("+ Criar registro") }
+                val now = LocalDate.now(); val initialDay = day ?: if (now.year == school.year) now.toString() else "${school.year}-01-01"
+                change(LessonRecordDraft(null, LessonRecord(classId = school.id, date = initialDay, title = "", description = "")))
+            }, modifier = Modifier.fillMaxWidth().testTag("new-lesson-record")) { Text(if(day==null) "+ Criar registro" else if(rows.getOrDefault(emptyList()).isEmpty()) "Criar registro de aula" else "Adicionar outro registro") }
             else Info("Turma arquivada: consulta e cópia disponíveis. Reative a turma para editar; você também pode duplicar para uma turma ativa.")
-            TextButton(onClick = { filters = !filters }, modifier = Modifier.testTag("record-filters")) { Text(if (filters) "Recolher período" else "Filtrar período") }
+            if(day==null) TextButton(onClick = { filters = !filters }, modifier = Modifier.testTag("record-filters")) { Text(if (filters) "Recolher período" else "Filtrar período") }
             if (filters) {
                 Text(if (readOnly) "Histórico desta turma arquivada. Deixe as datas vazias para consultar todo o período." else "A turma é escolhida no seletor acima. Deixe as datas vazias para consultar todo o histórico.", style = MaterialTheme.typography.bodySmall)
                 Field("De (dd/mm/aaaa)", from, { from = it }, Modifier.testTag("records-from"))
@@ -54,16 +58,17 @@ import java.time.LocalDate
         if (rows.isSuccess && rows.getOrThrow().isEmpty()) item { Info("Nenhum registro neste período. Preencher é opcional e não interfere nas outras funções.") }
         items(rows.getOrDefault(emptyList()), key = { it.id }) { record ->
             OutlinedCard(Modifier.fillMaxWidth().testTag("record-${record.id}")) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
                     Text(shortDate(record.date), style = MaterialTheme.typography.labelLarge)
                     if (record.title.isNotBlank()) Text(record.title, style = MaterialTheme.typography.titleMedium)
                     if (record.description.isNotBlank()) Text(record.description, style = MaterialTheme.typography.bodyMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         TextButton(onClick = { copy(record.id, "Título", record.title) }, modifier = Modifier.testTag("copy-title-${record.id}")) { Text("Copiar título") }
                         TextButton(onClick = { copy(record.id, "Descrição", record.description) }, modifier = Modifier.testTag("copy-description-${record.id}")) { Text("Copiar descrição") }
                     }
                     if (copied?.first == record.id) Text(copied!!.second, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        TextButton(onClick={viewing=record},modifier=Modifier.testTag("view-record-${record.id}")){Text("Visualizar")}
                         if (!readOnly) TextButton(enabled = !saving, onClick = { change(LessonRecordDraft(record, record)) }, modifier = Modifier.testTag("edit-record-${record.id}")) { Text("Editar") }
                         TextButton(enabled = !saving && data.classes.any { c -> data.classArchives.none { it.classId == c.id } }, onClick = {
                             val target = if (readOnly) data.classes.first { c -> data.classArchives.none { it.classId == c.id } }.id else school.id
@@ -75,6 +80,12 @@ import java.time.LocalDate
             }
         }
     }
+    viewing?.let { record -> Form(record.title.ifBlank { "Registro de aula" },{viewing=null}) {
+        Text(shortDate(record.date));Text(record.description)
+        OutlinedButton(onClick={copy(record.id,"Título",record.title)}){Text("Copiar título")}
+        OutlinedButton(onClick={copy(record.id,"Descrição",record.description)}){Text("Copiar descrição")}
+        if(copied?.first==record.id)Text(copied!!.second)
+    } }
     removing?.let { record -> Confirm("Excluir registro de aula?",
         "${shortDate(record.date)} • ${record.title.ifBlank { "Sem título" }}. O texto será excluído permanentemente. Chamadas, atividades e notas não serão alteradas.",
         { if (!saving) removing = null }, { if (!saving) vm.act(done = { removing = null }) { vm.repository.deleteLessonRecord(record) } }) }

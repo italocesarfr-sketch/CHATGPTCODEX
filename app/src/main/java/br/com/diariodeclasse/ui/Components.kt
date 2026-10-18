@@ -1,4 +1,5 @@
 package br.com.diariodeclasse.ui
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -34,14 +35,14 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
     OutlinedTextField(value = value, onValueChange = onChange, label = { Text(label) }, modifier = modifier.fillMaxWidth(), singleLine = lines == 1, minLines = lines, enabled = enabled)
 }
 @Composable fun Section(title: String, subtitle: String? = null) {
-    Column(Modifier.padding(vertical = 8.dp)) {
+    Column(Modifier.padding(vertical = br.com.diariodeclasse.ui.theme.NoctuaSpace.small)) {
         Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         subtitle?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 @Composable fun Info(text: String) {
     Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.medium, modifier = Modifier.fillMaxWidth()) {
-        Text(text, Modifier.padding(14.dp), style = MaterialTheme.typography.bodyMedium)
+        Text(text, Modifier.padding(br.com.diariodeclasse.ui.theme.NoctuaSpace.medium), style = MaterialTheme.typography.bodyMedium)
     }
 }
 @Composable fun Choice(label: String, options: List<String>, value: String, select: (String) -> Unit) {
@@ -58,7 +59,7 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
 }
 @Composable fun Form(title: String, dismiss: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     Dialog(onDismissRequest = dismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Surface(modifier = Modifier.padding(16.dp).widthIn(max = 640.dp).fillMaxWidth().imePadding(), shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
+        Surface(modifier = Modifier.padding(NoctuaSpace.page).widthIn(max = 640.dp).fillMaxWidth().imePadding(), shape = MaterialTheme.shapes.large, tonalElevation = 4.dp) {
             Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp - 80).coerceAtLeast(200).dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(title, style = MaterialTheme.typography.titleLarge)
                 content()

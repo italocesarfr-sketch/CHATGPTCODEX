@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 128 128">
+<title>Noctua — proposta reversível de coruja e N, não instalada</title>
+<rect width="128" height="128" rx="28" fill="#101b2c"/>
+<path d="M26 30 46 38Q64 30 82 38L102 30 98 72Q94 97 64 108 34 97 30 72Z" fill="none" stroke="#9dcadf" stroke-width="5" stroke-linejoin="round"/>
+<path d="M43 79V49L85 79V49" fill="none" stroke="#b1bfd3" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="46" cy="57" r="8" fill="#e4eaf5"/><circle cx="82" cy="57" r="8" fill="#e4eaf5"/>
+<circle cx="47" cy="57" r="3" fill="#101b2c"/><circle cx="81" cy="57" r="3" fill="#101b2c"/>
+<path d="m59 73 5 7 5-7" fill="#e8cc84"/>
+</svg>

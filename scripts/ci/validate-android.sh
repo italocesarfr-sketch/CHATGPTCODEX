@@ -33,6 +33,9 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa52-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa52-screenshots > build/etapa52-telas.tar
 fi
+if adb shell run-as br.com.diariodeclasse test -d files/etapa6-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa6-screenshots > build/etapa6-telas.tar
+fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa53-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa53-screenshots > build/etapa53-telas.tar
 fi
@@ -51,6 +54,8 @@ print('Capturas da lista, exclusão e recálculo coletadas.')
 with tarfile.open('build/etapa51-telas.tar') as images:
     assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 3
 print('Capturas da ocultação, disposição e remanejamento coletadas.')
+with tarfile.open('build/etapa6-telas.tar') as images:
+    assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 6
 with tarfile.open('build/etapa53-telas.tar') as images:
     assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 3
 with tarfile.open('build/etapa52-telas.tar') as images:

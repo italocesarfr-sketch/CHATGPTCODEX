@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,16 +48,16 @@ import kotlin.math.ceil
     val background = MaterialTheme.colorScheme.surfaceContainer
     Column(Modifier.fillMaxSize().testTag(if (daily) "daily-frequency" else "term-frequency")) {
         if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
-        if(data.relocations.any {link->roster.any {it.id==link.targetStudentId}}) Text("Totais incluem histórico vinculado; as colunas são desta turma.",Modifier.padding(horizontal=8.dp),style=MaterialTheme.typography.labelSmall)
+        if(data.relocations.any {link->roster.any {it.id==link.targetStudentId}}) Text("Totais incluem histórico vinculado; as colunas são desta turma.",Modifier.padding(horizontal=NoctuaSpace.small),style=MaterialTheme.typography.labelSmall)
         Row(Modifier.fillMaxWidth().background(background), verticalAlignment = Alignment.CenterVertically) {
-            Text("Aluno", Modifier.width(124.dp).padding(8.dp), style = MaterialTheme.typography.labelLarge)
+            Text("Aluno", Modifier.width(124.dp).padding(NoctuaSpace.small), style = MaterialTheme.typography.labelLarge)
             Box(Modifier.weight(1f)) { HorizontalCells(columns.size + 1, width, scroll) { index ->
                 if (index == columns.size) Text("F / FJ\n${if (period == null) "Ano" else "Bim."}", Modifier.fillMaxWidth().height(52.dp).padding(6.dp), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                 else {
                     val l = columns[index]
                     if (daily) TextButton(onClick = { options(l) }, modifier = Modifier.fillMaxWidth().height(52.dp).testTag("hour-options-${l.ordinal}")) {
                         Text("${l.ordinal}º horário ${when(l.state) { "CANCELADA" -> "×"; "PREVISTA" -> "◇"; else -> "" }} ▾", style = MaterialTheme.typography.labelMedium)
-                    } else Text(shortDate(l.date).take(5) + "\n${l.ordinal}º${if(l.state == "CANCELADA") " ×" else ""}", Modifier.fillMaxWidth().height(52.dp).clickable { openDay(l.date) }.padding(4.dp), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+                    } else Text(shortDate(l.date).take(5) + "\n${l.ordinal}º${if(l.state == "CANCELADA") " ×" else ""}", Modifier.fillMaxWidth().height(52.dp).clickable { openDay(l.date) }.padding(NoctuaSpace.tiny), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
                 }
             } }
         }
@@ -86,7 +87,7 @@ import kotlin.math.ceil
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
-            if (roster.isEmpty()) item { Text(if(data.roster(c.id).isEmpty()) "Cadastre os alunos em Cadastrar Turma → Gerenciar alunos." else "Use Mostrar remanejados para consultar as chamadas anteriores, somente leitura.", Modifier.padding(16.dp)) }
+            if (roster.isEmpty()) item { Text(if(data.roster(c.id).isEmpty()) "Cadastre os alunos em Cadastrar Turma → Gerenciar alunos." else "Use Mostrar remanejados para consultar as chamadas anteriores, somente leitura.", Modifier.padding(NoctuaSpace.page)) }
         }
     }
     fullName?.let { student -> AlertDialog(onDismissRequest = { fullName = null }, title = { Text(student.name) },

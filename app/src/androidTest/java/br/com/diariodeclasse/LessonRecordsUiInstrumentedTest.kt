@@ -33,7 +33,7 @@ class LessonRecordsUiInstrumentedTest {
         app.selectionStore.write(previous)
     }
     private fun waitTag(tag:String){compose.waitUntil(10000){compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()}}
-    private fun open(){compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithTag("open-lesson-records").performClick();waitTag("lesson-records-list")}
+    private fun open(){compose.onNodeWithTag("nav-1").performClick();compose.onNodeWithTag("class-mode-Diário").performClick();compose.onNodeWithTag("journal-calendar").performScrollToNode(hasTestTag("journal-all-records"));compose.onNodeWithTag("journal-all-records").performClick();waitTag("lesson-records-list")}
     private fun top(){compose.onNodeWithTag("lesson-records-list").performScrollToIndex(0)}
     private fun scrollRecord(id:String){
         val row=records().first{it.id==id}
@@ -97,7 +97,7 @@ class LessonRecordsUiInstrumentedTest {
         dialogText("Voltar").performScrollTo().performClick();dialogText("Cancelar").performClick();compose.onNodeWithTag("record-title").assertTextContains("Texto ainda não salvo")
         dialogText("Voltar").performScrollTo().performClick();dialogText("Confirmar").performClick();assertEquals(2,records().size)
         compose.onNodeWithTag("class-selector").performClick();compose.onNode(hasText(h.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
-        waitTag("open-lesson-records");compose.onNodeWithTag("open-lesson-records").performClick();waitTag("record-ui53-other");compose.onAllNodesWithTag("record-${note.id}").assertCountEquals(0)
+        waitTag("journal-calendar");compose.onNodeWithTag("journal-calendar").performScrollToNode(hasTestTag("journal-all-records"));compose.onNodeWithTag("journal-all-records").performClick();waitTag("record-ui53-other");compose.onAllNodesWithTag("record-${note.id}").assertCountEquals(0)
     }
     @Test fun archivedClassKeepsReadOnlyRecordsAndCancelledDuplicateDoesNotCreateAnything() {
         seed();runBlocking{app.repository.archiveClass(c.id,true)}

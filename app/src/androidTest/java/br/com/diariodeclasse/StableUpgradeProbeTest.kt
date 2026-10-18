@@ -15,7 +15,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
-/** Semente executada na release REAL 0.9.0. Só emulador descartável com argumento explícito. */
+/** Semente executada na release REAL 0.10.0. Só emulador descartável com argumento explícito. */
 class StableUpgradeProbeTest {
     @Test fun sameOwnerSignaturePreservesEveryRowPreferencesAndBackup() {
         val phase=InstrumentationRegistry.getArguments().getString("stableUpgradePhase")
@@ -62,6 +62,8 @@ class StableUpgradeProbeTest {
                 app.selectionStore.write(AppSelection(2026,origin.id));val seedData=repo.snapshot.first{it.loaded}
                 val seedRows=ExportLayout.normalize(listOf(ExportRow("blank:stable-seed",origin.id,null,0))+ExportLayout.rows(seedData,origin.id).reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
                 repo.saveExportLayout(origin.id,emptyList(),seedRows)
+                repo.saveLessonRecord(LessonRecord("stable-existing-record",origin.id,"2026-08-12","Título Fictício Legado","Descrição da 0.10.0\nMantida na atualização visual."))
+                repo.saveLessonRecord(LessonRecord("stable-existing-second",target.id,"2026-08-12","Registro Fictício Arquivado","Também preservado no novo calendário."))
                 repo.archiveClass("stable-history-target",true)
                 file.writeBytes(manager.backupBytes())
             }
@@ -157,7 +159,7 @@ class StableUpgradeProbeTest {
         val note=LessonRecord(id="stable-record",classId="classe-alfa",date="2026-08-12",title="Título Fictício Atualização",description="Descrição livre\nSem chamada nem horário.")
         repo.saveLessonRecord(note)
         val noted=manager.snapshot();val noteBytes=manager.backupBytes()
-        assertEquals(archived,noted.copy(lessonRecords=emptyList()))
+        assertEquals(archived,noted.copy(lessonRecords=archived.lessonRecords))
         repo.saveLessonRecord(note.copy(title="Correção fictícia"),note)
         manager.restore(manager.prepare(noteBytes.inputStream()),"RESTAURAR")
         assertEquals(noted,manager.snapshot())

@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -48,7 +49,7 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
 }
 
 @Composable fun ExportSaveControls(saving: Boolean, conclude: () -> Unit, cancel: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
         Button(enabled = !saving, onClick = conclude, modifier = Modifier.testTag("export-conclude")) { Text(if (saving) "Salvando…" else "Concluir") }
         OutlinedButton(enabled = !saving, onClick = cancel, modifier = Modifier.testTag("export-cancel")) { Text("Cancelar") }
     }
@@ -63,37 +64,45 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
         style = MaterialTheme.typography.labelSmall, modifier = Modifier.testTag("export-auto-${student.id}"))
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun ExportLayoutScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass,
-    session: ExportEditSession, change: (ExportEditSession) -> Unit, conclude: () -> Unit, cancel: () -> Unit) {
+    session: ExportEditSession, change: (ExportEditSession) -> Unit, conclude: () -> Unit, cancel: () -> Unit, export: () -> Unit = conclude) {
     val saving by vm.saving.collectAsState()
     var preview by rememberSaveable(c.id) { mutableStateOf(false) }
     val slots = ExportLayout.project(data, session.rows)
     val included = slots.filter { it.included }; val excluded = slots.filterNot { it.included }
-    LazyColumn(Modifier.fillMaxSize().testTag("export-layout-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(Modifier.fillMaxSize().testTag("export-layout-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Section("Organizar exportação", "${c.name} • ${c.year}")
-            Info("Esta ordem é independente da chamada. Novas matrículas entram no final. Ocultar retira somente das futuras exportações e cópias; linhas vazias explícitas são mantidas. Concluir salva; Cancelar descarta esta sessão.")
+            Text("Ordem e visibilidade só para planilhas. A chamada permanece igual.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+                FilterChip(session.mode=="ORDER",{change(session.copy(mode="ORDER"))},label={Text("Disposição")},modifier=Modifier.testTag("export-order"))
+                FilterChip(session.mode=="HIDE",{change(session.copy(mode="HIDE"))},label={Text("Ocultar alunos")},modifier=Modifier.testTag("export-hide"))
+            }
             ExportSaveControls(saving, conclude, cancel)
+            TextButton(enabled=!saving,onClick=export,modifier=Modifier.testTag("export-conclude-and-export")){Text("Concluir e exportar planilha")}
             SaveError(vm)
+            FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
             FilterChip(selected = preview, onClick = { preview = !preview }, label = { Text(if (preview) "Voltar à organização" else "Ver prévia") }, modifier = Modifier.testTag("export-preview"))
-            if (!preview) OutlinedButton(enabled = !saving, onClick = { change(session.addBlank()) }, modifier = Modifier.testTag("export-add-blank")) { Text("Adicionar linha vazia ao final") }
+            if (!preview && session.mode=="ORDER") OutlinedButton(enabled = !saving, onClick = { change(session.addBlank()) }, modifier = Modifier.testTag("export-add-blank")) { Text("Adicionar linha vazia") }
+            }
             Text(if (preview) "Prévia da sequência • ${included.size} linhas" else "Sequência de organização • ${slots.size} posições", style = MaterialTheme.typography.titleSmall)
             if (preview) Text("Ocultos não ocupam linha na saída. Somente linhas vazias adicionadas explicitamente preservam espaços.", style = MaterialTheme.typography.bodySmall)
         }
         if (slots.isEmpty()) item { Info("Nenhum aluno cadastrado. Você pode preparar linhas vazias e acrescentar alunos depois.") }
         itemsIndexed(if (preview) included else slots, key = { _, slot -> slot.row.id }) { index, slot ->
             Card(Modifier.fillMaxWidth().testTag("export-row-${slot.row.id}")) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.padding(NoctuaSpace.medium), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.tiny)) {
                     Row {
                         if (!preview && slot.student != null) Checkbox(slot.row.manualHidden, { change(session.hide(slot.student.id, it)) }, enabled = !saving,
-                            modifier = Modifier.testTag("export-order-hide-${slot.student.id}").semantics { contentDescription = "Ocultar manualmente ${slot.student.number}. ${slot.student.name}" })
+                            modifier = Modifier.testTag(if(session.mode=="HIDE") "export-hide-toggle-${slot.student.id}" else "export-order-hide-${slot.student.id}").semantics { contentDescription = "Ocultar manualmente ${slot.student.number}. ${slot.student.name}" })
                         Column(Modifier.weight(1f)) {
                             Text("${index + 1}. ${slot.student?.name ?: "Linha vazia"}", style = MaterialTheme.typography.titleSmall)
                             slot.student?.let { Text("Chamada nº ${it.number}", style = MaterialTheme.typography.bodySmall); ExportExclusion(data, it, slot.row) }
                         }
                     }
-                    if (!preview) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (!preview && session.mode=="ORDER") {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             TextButton(enabled = !saving && index > 0, onClick = { change(session.move(slot.row.id, -1)) }, modifier = Modifier.testTag("export-up-${slot.row.id}")) { Text("↑ Subir") }
                             TextButton(enabled = !saving && index < slots.lastIndex, onClick = { change(session.move(slot.row.id, 1)) }, modifier = Modifier.testTag("export-down-${slot.row.id}")) { Text("↓ Descer") }
                             TextButton(enabled = !saving, onClick = { change(session.addBlank(slot.row.id)) }, modifier = Modifier.testTag("export-blank-after-${slot.row.id}")) { Text("Linha abaixo") }

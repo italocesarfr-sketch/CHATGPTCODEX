@@ -1,6 +1,9 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,17 +39,17 @@ import br.com.diariodeclasse.data.*
         vm.act(done = { hoursForm = false; pendingCount = null }, context = context) { vm.repository.setDayHours(c.id, day, n, confirmed) }
     }
     Column(Modifier.fillMaxSize().testTag("attendance-day-$day")) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.small), horizontalArrangement = Arrangement.SpaceBetween) {
             TextButton(onClick = calendar) { Text("‹ Calendário") }
             Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically), style = MaterialTheme.typography.titleSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             TextButton(onClick = termView) { Text("Bimestre") }
         }
-        Text(period?.let { "${it.number}º bimestre • ${counted(performed, "horário", "horários")} • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = 12.dp), style = MaterialTheme.typography.labelSmall)
+        Text(period?.let { "${it.number}º bimestre • ${counted(performed, "horário", "horários")} • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = NoctuaSpace.medium), style = MaterialTheme.typography.labelSmall)
         AttendanceSaveStatus(vm)
         if (lessons.isEmpty()) {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(NoctuaSpace.medium), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
                 Text("Quantos horários foram ministrados?", style = MaterialTheme.typography.titleMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
                     (1..3).forEach { n -> FilterChip(count == n, { count = n }, label = { Text("$n") }, modifier = Modifier.testTag("hours-choice-$n")) }
                     Box {
                         FilterChip(count > 3, { more = true }, label = { Text(if(count > 3) "$count" else "Mais") })
@@ -58,7 +61,7 @@ import br.com.diariodeclasse.data.*
                 SaveError(vm)
             }
         } else {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.small), horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.tiny)) {
                 OutlinedButton(enabled = !saving, onClick = { hoursText = (active.maxOfOrNull { it.ordinal } ?: 0).toString(); hoursForm = true }, modifier = Modifier.weight(1f)) { Text("Horários: ${active.size} • Alterar", style = MaterialTheme.typography.labelSmall) }
                 FilledTonalButton(enabled = !saving && performed > 0, onClick = { allPresent = true }, modifier = Modifier.weight(1f)) { Text("Marcar todos como presentes", style = MaterialTheme.typography.labelSmall) }
             }

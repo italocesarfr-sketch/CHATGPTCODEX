@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +15,7 @@ import br.com.diariodeclasse.data.*
 @Composable fun ArchivedClassesScreen(data:DiarySnapshot,open:(String)->Unit) {
     val ids=data.classArchives.map{it.classId}.toSet()
     val classes=data.classes.filter{it.id in ids}.sortedWith(compareByDescending<SchoolClass>{it.year}.thenBy{it.name}.thenBy{it.id})
-    LazyColumn(Modifier.testTag("archived-classes"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.testTag("archived-classes"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.medium)) {
         item{Section("Turmas arquivadas","Histórico preservado; consultar não reativa a turma")}
         if(classes.isEmpty())item{Info("Nenhuma turma arquivada.")}
         items(classes,key={it.id}){c->OutlinedButton(onClick={open(c.id)},modifier=Modifier.fillMaxWidth().testTag("archived-${c.id}")){Text("${c.name} • ${c.subject} • ${c.year}")}}
@@ -28,7 +29,7 @@ import br.com.diariodeclasse.data.*
     var confirmation by rememberSaveable(classId){mutableStateOf("")}
     if(c==null){Info("A turma não está mais disponível. Volte para selecionar outra turma.");return}
     val archived=data.classArchives.any{it.classId==classId}
-    LazyColumn(Modifier.testTag("class-lifecycle"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.testTag("class-lifecycle"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.medium)) {
         item {
             Section("Gerenciar turma","${c.name} • ${c.subject} • ${c.year}")
             Text(if(archived)"Arquivada • registros escolares preservados"else"Ativa")

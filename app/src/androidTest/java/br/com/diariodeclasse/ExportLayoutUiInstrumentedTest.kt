@@ -46,21 +46,21 @@ class ExportLayoutUiInstrumentedTest {
     }
     private fun waitText(value:String) {compose.waitUntil(10000){compose.onAllNodesWithText(value,substring=true).fetchSemanticsNodes().isNotEmpty()}}
     private fun waitTag(value:String) {compose.waitUntil(10000){compose.onAllNodesWithTag(value).fetchSemanticsNodes().isNotEmpty()}}
-    private fun roster() {compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitTag("roster-list")}
-    private fun top(root:String="roster-list") {compose.onNodeWithTag(root).performScrollToIndex(0)}
-    private fun hideMode() {top();compose.onNodeWithTag("export-hide").performClick();waitTag("export-conclude")}
+    private fun reports() {compose.onNodeWithTag("nav-3").performClick();waitTag("export-organize")}
+    private fun top(root:String="export-layout-list") {compose.onNodeWithTag(root).performScrollToIndex(0)}
+    private fun hideMode() {compose.onNodeWithTag("export-organize").performClick();waitTag("export-layout-list");compose.onNodeWithTag("export-hide").performClick();waitTag("export-conclude")}
     private fun checkbox(id:String):SemanticsNodeInteraction {
-        compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("export-hide-toggle-$id"))
+        compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-$id"))
         return compose.onNodeWithTag("export-hide-toggle-$id")
     }
     private fun toggle(id:String) { checkbox(id).performClick() }
-    private fun conclude(root:String="roster-list") {
-        top(root);compose.onNodeWithTag("export-conclude").performClick();waitTag("export-hide")
+    private fun conclude(root:String="export-layout-list") {
+        top(root);compose.onNodeWithTag("export-conclude").performClick();waitTag("export-organize")
         val persisted=runBlocking{app.repository.dao.exportRows(c.id)}
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.exportRows.filter{it.classId==c.id}==persisted}
     }
-    private fun organize() {top();compose.onNodeWithTag("export-organize").performClick();waitTag("export-layout-list")}
+    private fun organize() {compose.onNodeWithTag("export-organize").performClick();waitTag("export-layout-list")}
     private fun shot(name:String) {
         compose.waitForIdle()
         val folder=File(app.filesDir,"etapa51-screenshots");folder.mkdirs()
@@ -71,10 +71,10 @@ class ExportLayoutUiInstrumentedTest {
         runBlocking{people.forEach{app.repository.saveStudent(it)}}
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.roster(c.id).size==22}
-        val before=runBlocking{app.backupManager.snapshot()};roster();hideMode();toggle(a.id);toggle(people.last().id)
-        compose.activityRule.scenario.recreate();waitTag("roster-list")
-        compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOn()
-        compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("export-hide-toggle-${people.last().id}"));compose.onNodeWithTag("export-hide-toggle-${people.last().id}").assertIsOn()
+        val before=runBlocking{app.backupManager.snapshot()};reports();hideMode();toggle(a.id);toggle(people.last().id)
+        compose.activityRule.scenario.recreate();waitTag("export-layout-list")
+        compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOn()
+        compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${people.last().id}"));compose.onNodeWithTag("export-hide-toggle-${people.last().id}").assertIsOn()
         top();shot("01-selecao");conclude()
         val after=runBlocking{app.backupManager.snapshot()};assertEquals(before,after.copy(exportRows=emptyList()))
         assertEquals(2,after.exportRows.count{it.classId==c.id&&it.manualHidden})
@@ -82,7 +82,7 @@ class ExportLayoutUiInstrumentedTest {
         assertFalse(runBlocking{app.repository.dao.exportRows(c.id).first{it.studentId==a.id}.manualHidden})
     }
     @Test fun cancelAndNavigationGuardPreserveIntentUntilExplicitDiscard() {
-        val before=runBlocking{app.backupManager.snapshot()};roster();hideMode();toggle(a.id)
+        val before=runBlocking{app.backupManager.snapshot()};reports();hideMode();toggle(a.id)
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick();waitText("Descartar alterações de exportação?")
         compose.onNode(hasText("Cancelar") and hasAnyAncestor(isDialog())).performClick();checkbox(a.id).assertIsOn()
         compose.activityRule.scenario.onActivity{it.onBackPressedDispatcher.onBackPressed()};waitText("Descartar alterações de exportação?")
@@ -90,13 +90,14 @@ class ExportLayoutUiInstrumentedTest {
         compose.onNodeWithText("Backup").performClick();waitText("Descartar alterações de exportação?");compose.onNode(hasText("Cancelar") and hasAnyAncestor(isDialog())).performClick()
         compose.onNodeWithTag("nav-3").performClick();waitText("Descartar alterações de exportação?");compose.onNodeWithText("Confirmar").performClick();waitTag("reports-list")
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
-        compose.onNodeWithTag("nav-0").performClick();roster();hideMode();checkbox(a.id).assertIsOff()
-        toggle(a.id);top();compose.onNodeWithTag("export-cancel").performClick();waitTag("export-hide")
+        compose.onNodeWithTag("nav-0").performClick();reports();hideMode();checkbox(a.id).assertIsOff()
+        toggle(a.id);top();compose.onNodeWithTag("export-cancel").performClick();waitTag("export-organize")
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        compose.onNodeWithTag("nav-0").performClick();compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitTag("roster-list")
         compose.onAllNodesWithText("Editar").onFirst().performScrollTo().performClick();waitText("Editar aluno")
     }
     @Test fun independentOrderBlankPreviewAndRenamePersistWithoutRenumberingRoster() {
-        val before=runBlocking{app.backupManager.snapshot()};roster();organize()
+        val before=runBlocking{app.backupManager.snapshot()};reports();organize()
         compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-up-student:${b.id}"));compose.onNodeWithTag("export-up-student:${b.id}").performClick()
         compose.onNodeWithTag("export-blank-after-student:${b.id}").performScrollTo().performClick()
         compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-order-hide-${a.id}"));compose.onNodeWithTag("export-order-hide-${a.id}").performClick()
@@ -117,21 +118,21 @@ class ExportLayoutUiInstrumentedTest {
         val p=runBlocking{app.repository.previewRelocation(a.id,h.id,null,"2026-09-01").also{app.repository.confirmRelocation(it)}}
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.relocations.any{it.sourceStudentId==a.id}}
-        roster();compose.onNodeWithTag("show-relocated").performScrollTo().performClick();hideMode()
-        compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOff()
+        reports();compose.onNodeWithTag("show-relocated").performScrollTo().performClick();hideMode()
+        compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOff()
         compose.onNodeWithTag("export-auto-${a.id}",useUnmergedTree=true).assertTextContains("Exclusão automática",substring=true);shot("03-remanejado")
         top();compose.onNodeWithTag("export-cancel").performClick()
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()
         compose.waitUntil(10000){vm.selection.value?.classId==h.id && compose.onAllNodesWithText("Gerenciar alunos").fetchSemanticsNodes().isNotEmpty()}
-        roster();hideMode();compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("export-hide-toggle-${p.target!!.id}"));compose.onNodeWithTag("export-hide-toggle-${p.target!!.id}").assertIsOff()
+        reports();hideMode();compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${p.target!!.id}"));compose.onNodeWithTag("export-hide-toggle-${p.target!!.id}").assertIsOff()
         assertEquals("Ativo",runBlocking{app.repository.dao.student(p.target!!.id)!!.status})
     }
     @Test fun cancellingBlankInsertionAndRemovalDoesNotWriteAnyPreference() {
-        val before=runBlocking{app.backupManager.snapshot()};roster();organize()
-        compose.onNodeWithTag("export-add-blank").performClick()
+        val before=runBlocking{app.backupManager.snapshot()};reports();organize()
+        compose.onNodeWithTag("export-add-blank").performScrollTo().performClick()
         compose.onNodeWithTag("export-layout-list").performScrollToNode(hasText("Remover linha vazia"));compose.onNodeWithText("Remover linha vazia").performClick()
-        top("export-layout-list");compose.onNodeWithTag("export-add-blank").performClick()
-        top("export-layout-list");compose.onNodeWithTag("export-cancel").performClick();waitTag("export-hide")
+        top("export-layout-list");compose.onNodeWithTag("export-add-blank").performScrollTo().performClick()
+        top("export-layout-list");compose.onNodeWithTag("export-cancel").performClick();waitTag("export-organize")
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
 }

@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.backup
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -32,7 +33,7 @@ import java.time.LocalDate
     val enabled = ready && !state.busy
     Dialog(onDismissRequest = { if (enabled) dismiss() }) {
         Surface(shape = MaterialTheme.shapes.large) {
-            Column(Modifier.fillMaxWidth().heightIn(max = 700.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.fillMaxWidth().heightIn(max = 700.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
                 Text("Backup e restauração", style = MaterialTheme.typography.titleLarge)
                 Info("Inclui turmas, alunos, bimestres, aulas, chamadas, atividades, notas, recomposições, remanejamentos, preferências de exportação, turmas arquivadas, registros de aula e rascunhos. O arquivo contém dados pessoais: guarde-o em um local protegido. Tudo é processado offline.")
                 if (!ready || state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())

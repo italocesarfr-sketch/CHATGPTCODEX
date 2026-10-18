@@ -1,5 +1,6 @@
 package br.com.diariodeclasse.ui
 
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -22,7 +23,7 @@ import br.com.diariodeclasse.data.*
     var invalid by rememberSaveable(a.id, a.maximum) { mutableStateOf(listOf<String>()) }
     LaunchedEffect(invalid) { dirty(invalid.isNotEmpty()) }
     DisposableEffect(a.id) { onDispose { dirty(false) } }
-    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    LazyColumn(contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             if(data.roster(a.classId).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section(a.name, "${a.term}º bimestre • ${shortDate(a.date)} • máximo ${number(a.maximum)}")
@@ -35,7 +36,7 @@ import br.com.diariodeclasse.data.*
             var text by rememberSaveable(a.id, student.id, a.maximum) { mutableStateOf(grade?.let { editableNumber(it) } ?: "") }
             val valid = text.isBlank() || decimal(text)?.let { it.isFinite() && it in 0.0..a.maximum } == true
             LaunchedEffect(student.id, text, a.maximum) { invalid = if (valid) invalid - student.id else (invalid + student.id).distinct() }
-            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(12.dp)) {
+            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(NoctuaSpace.medium)) {
                 Text("${student.number}. ${student.name}", style = MaterialTheme.typography.titleMedium)
                 if(student.status=="Remanejado") Text("Histórico somente leitura: ${grade?.let(::number) ?: "Pendente"}")
                 else OutlinedTextField(value = text, onValueChange = { value ->
