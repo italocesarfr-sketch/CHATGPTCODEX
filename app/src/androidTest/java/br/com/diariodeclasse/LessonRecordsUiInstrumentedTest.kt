@@ -34,6 +34,12 @@ class LessonRecordsUiInstrumentedTest {
     }
     private fun waitTag(tag:String){compose.waitUntil(10000){compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()}}
     private fun open(){compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithTag("open-lesson-records").performClick();waitTag("lesson-records-list")}
+    private fun top(){compose.onNodeWithTag("lesson-records-list").performScrollToIndex(0)}
+    private fun scrollRecord(id:String){
+        val row=records().first{it.id==id}
+        val index=LessonRecords.list(records(),row.classId,null,null).indexOfFirst{it.id==id}+1
+        compose.onNodeWithTag("lesson-records-list").performScrollToIndex(index)
+    }
     private fun records()=runBlocking{app.database.backupDao().lessonRecords()}.filter{it.classId in listOf(c.id,h.id)}
     private fun seed(){runBlocking{app.repository.saveLessonRecord(note)};compose.waitUntil(10000){vm.data.value.lessonRecords.any{it.id==note.id}}}
     private fun dialogText(text:String)=compose.onNode(hasText(text) and hasAnyAncestor(isDialog()),useUnmergedTree=true)
@@ -56,7 +62,7 @@ class LessonRecordsUiInstrumentedTest {
     @Test fun duplicateSameDayAndAnotherClassOnlyPersistAfterExplicitSave() {
         seed();open();compose.onNodeWithTag("duplicate-record-${note.id}").performScrollTo().performClick();assertEquals(1,records().size);save()
         compose.waitUntil(10000){records().size==2};assertTrue(records().all{it.date==note.date&&it.description==note.description})
-        compose.onNodeWithTag("duplicate-record-${note.id}").performScrollTo().performClick()
+        scrollRecord(note.id);compose.onNodeWithTag("duplicate-record-${note.id}").performScrollTo().performClick()
         compose.onNodeWithTag("record-class").performScrollTo().performClick()
         compose.onNode(hasText("${h.name} • ${h.subject} • ${h.year}") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
         compose.onNodeWithTag("record-date").performTextReplacement("13/08/2026");save()
@@ -76,16 +82,18 @@ class LessonRecordsUiInstrumentedTest {
         compose.onNodeWithTag("copy-title-${note.id}").performScrollTo().performClick();assertEquals(note.title,clip())
         compose.onNodeWithTag("copy-description-${note.id}").performScrollTo().performClick();assertEquals(note.description,clip())
         compose.waitUntil(10000){compose.onAllNodesWithText("Descrição copiada.").fetchSemanticsNodes().isNotEmpty()}
-        compose.waitUntil(12000){compose.onAllNodesWithText("Descrição copiada.").fetchSemanticsNodes().isEmpty()}
+        compose.onNodeWithText("Descrição copiada.").assertExists()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun classAndDateFiltersDoNotWriteAndDirtyDismissRequiresDecision() {
         seed();runBlocking{app.repository.saveLessonRecord(note.copy(id="ui53-other",classId=h.id))};open()
         compose.onNodeWithTag("record-filters").performClick();compose.onNodeWithTag("records-from").performScrollTo().performTextReplacement("13/08/2026")
+        compose.onNodeWithTag("lesson-records-list").performScrollToIndex(1)
+        compose.onNodeWithText("Nenhum registro neste período.",substring=true).assertExists()
         compose.onAllNodesWithTag("record-${note.id}").assertCountEquals(0)
-        compose.onNodeWithTag("records-from").performTextReplacement("12/08/2026");compose.onNodeWithTag("records-until").performScrollTo().performTextReplacement("12/08/2026")
-        waitTag("record-${note.id}");compose.onAllNodesWithTag("record-ui53-other").assertCountEquals(0)
-        compose.onNodeWithTag("new-lesson-record").performScrollTo().performClick();compose.onNodeWithTag("record-title").performScrollTo().performTextInput("Texto ainda não salvo")
+        top();compose.onNodeWithTag("records-from").performTextReplacement("12/08/2026");compose.onNodeWithTag("records-until").performScrollTo().performTextReplacement("12/08/2026")
+        scrollRecord(note.id);waitTag("record-${note.id}");compose.onAllNodesWithTag("record-ui53-other").assertCountEquals(0)
+        top();compose.onNodeWithTag("new-lesson-record").performScrollTo().performClick();compose.onNodeWithTag("record-title").performScrollTo().performTextInput("Texto ainda não salvo")
         dialogText("Voltar").performScrollTo().performClick();dialogText("Cancelar").performClick();compose.onNodeWithTag("record-title").assertTextContains("Texto ainda não salvo")
         dialogText("Voltar").performScrollTo().performClick();dialogText("Confirmar").performClick();assertEquals(2,records().size)
         compose.onNodeWithTag("class-selector").performClick();compose.onNode(hasText(h.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()

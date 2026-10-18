@@ -18,7 +18,7 @@ O aplicativo não cobra preenchimento nem gera pendências de registro. Ausênci
 
 ## Copiar e colar no EducaDF
 
-Cada registro apresenta **Copiar título** e **Copiar descrição**. A área de transferência padrão do Android recebe exatamente o texto salvo, inclusive acentos, aspas, tabulações e quebras de linha; nenhuma turma/data/cabeçalho é acrescentada. Depois, o professor abre o EducaDF e cola no campo correspondente. Não há autenticação, conexão ou envio automático ao EducaDF. O Android pode exibir seu indicador de cópia. A disponibilidade posterior da área de transferência segue as políticas do sistema.
+Cada registro apresenta **Copiar título** e **Copiar descrição**. A área de transferência padrão do Android recebe exatamente o texto salvo, inclusive acentos, aspas, tabulações e quebras de linha; nenhuma turma/data/cabeçalho é acrescentada. Depois, o professor abre o EducaDF e cola no campo correspondente. Não há autenticação, conexão ou envio automático ao EducaDF. A confirmação da cópia aparece junto ao registro, sem cobrir os botões seguintes; o Android também pode exibir seu indicador de cópia. A disponibilidade posterior da área de transferência segue as políticas do sistema.
 
 ## Arquitetura e dados
 
@@ -34,7 +34,7 @@ Mantidos `br.com.diariodeclasse`, `diario.db`, armazenamento privado e ausência
 
 ## Testes e evidências
 
-Aguardando resultados finais do CI. Não confundir compilação local da instrumentação com execução Android. Os resultados e links serão registrados após a execução.
+Primeiro ensaio [39136000130](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39136000130): 89 JVM e 147 Android aprovados, três falhas de UI. Dois testes procuravam itens ainda não renderizados pela LazyColumn; passaram a rolar até o índice da fixture antes da consulta, mantendo as asserções. A notificação de cópia cobria o segundo botão; a confirmação foi movida para o próprio registro, permitindo as duas cópias em sequência. Os nove testes Room novos passaram. Aguardando repetição completa e atualização assinada. Não confundir compilação local da instrumentação com execução Android. Os resultados e links serão registrados após a execução.
 
 Cenários acrescentados: filtros turma/data; dois registros no mesmo dia; texto livre; rascunho/recriação; criação/edição/mudança de turma/duplicação/exclusão; confirmações/cancelamento; cópia exata; reinício Room; backup novo e formato 6 real; referência/arquivo inválido; conflito de edição; falha de restauração e de exclusão de turma com rollback; migração 5→6 e preservação das doze tabelas; ausência de impacto nos relatórios/exportações. A regressão anterior permanece na suíte. A sonda release sem desinstalar verifica dados fictícios antes/depois, novo registro, backup, reinício e a correção Transferida → Ativa → Remanejada.
 

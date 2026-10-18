@@ -25,13 +25,14 @@ import java.time.LocalDate
     var from by rememberSaveable(school.id) { mutableStateOf("01/01/${school.year}") }
     var until by rememberSaveable(school.id) { mutableStateOf("31/12/${school.year}") }
     var removing by remember { mutableStateOf<LessonRecord?>(null) }
+    var copied by remember { mutableStateOf<Pair<String, String>?>(null) }
     val context = LocalContext.current
     val rows = runCatching { LessonRecords.list(data.lessonRecords, school.id,
         from.takeIf { it.isNotBlank() }?.let(::iso), until.takeIf { it.isNotBlank() }?.let(::iso)) }
-    fun copy(label: String, text: String) {
+    fun copy(id: String, label: String, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
-        vm.message(if (label == "Descrição") "Descrição copiada." else "Título copiado.")
+        copied = id to if (label == "Descrição") "Descrição copiada." else "Título copiado."
     }
     LazyColumn(Modifier.testTag("lesson-records-list"), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
@@ -58,9 +59,10 @@ import java.time.LocalDate
                     if (record.title.isNotBlank()) Text(record.title, style = MaterialTheme.typography.titleMedium)
                     if (record.description.isNotBlank()) Text(record.description, style = MaterialTheme.typography.bodyMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        TextButton(onClick = { copy("Título", record.title) }, modifier = Modifier.testTag("copy-title-${record.id}")) { Text("Copiar título") }
-                        TextButton(onClick = { copy("Descrição", record.description) }, modifier = Modifier.testTag("copy-description-${record.id}")) { Text("Copiar descrição") }
+                        TextButton(onClick = { copy(record.id, "Título", record.title) }, modifier = Modifier.testTag("copy-title-${record.id}")) { Text("Copiar título") }
+                        TextButton(onClick = { copy(record.id, "Descrição", record.description) }, modifier = Modifier.testTag("copy-description-${record.id}")) { Text("Copiar descrição") }
                     }
+                    if (copied?.first == record.id) Text(copied!!.second, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (!readOnly) TextButton(enabled = !saving, onClick = { change(LessonRecordDraft(record, record)) }, modifier = Modifier.testTag("edit-record-${record.id}")) { Text("Editar") }
                         TextButton(enabled = !saving && data.classes.any { c -> data.classArchives.none { it.classId == c.id } }, onClick = {
