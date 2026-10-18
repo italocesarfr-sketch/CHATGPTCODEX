@@ -24,6 +24,9 @@ import br.com.diariodeclasse.backup.BackupDialog
 import br.com.diariodeclasse.data.*
 import kotlinx.coroutines.flow.receiveAsFlow
 import java.time.LocalDate
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
+import br.com.diariodeclasse.backup.BackupCodec
 
 private data class MainPage(val title: String, val label: String, val icon: Int)
 private val pages = listOf(
@@ -70,6 +73,11 @@ private val pages = listOf(
     val exportDraft = remember(exportDraftJson) { exportDraftJson?.let(ExportEditSession::decode) }
     fun changeExport(value: ExportEditSession?) { exportDraftJson = value?.encode() }
     var pendingExportNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var recordDraftJson by rememberSaveable { mutableStateOf<String?>(null) }
+    val recordDraft = remember(recordDraftJson) { recordDraftJson?.let { BackupCodec.json.decodeFromString<LessonRecordDraft>(it) } }
+    fun changeRecord(value: LessonRecordDraft?) { recordDraftJson = value?.let { BackupCodec.json.encodeToString(it) } }
+    var pendingRecordNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    fun dismissRecord() { if (recordDraft?.dirty == true) pendingRecordNavigation = { changeRecord(null) } else changeRecord(null) }
     val snack = remember { SnackbarHostState() }
     LaunchedEffect(vm) { vm.messages.receiveAsFlow().collect { snack.showSnackbar(it) } }
     LaunchedEffect(data.loaded, data.classes, savedSelection) {
@@ -77,12 +85,13 @@ private val pages = listOf(
     }
     // A fila já captura os IDs de origem. A navegação só é liberada depois das gravações.
     fun navigate(action: () -> Unit) {
-        if(exportBusy || exportDraft != null && saving) return
+        if(exportBusy || (exportDraft != null || recordDraft != null) && saving) return
         val safe = {
             navigating = true
-            vm.act(done = { invalidGrade = false; changeExport(null); action(); navigating = false }, clearError = false) {}
+            vm.act(done = { invalidGrade = false; changeExport(null); changeRecord(null); action(); navigating = false }, clearError = false) {}
         }
-        if(exportDraft?.dirty == true) pendingExportNavigation = safe
+        if(recordDraft?.dirty == true) pendingRecordNavigation = safe
+        else if(exportDraft?.dirty == true) pendingExportNavigation = safe
         else if (invalidGrade) pendingNavigation = safe else safe()
     }
     fun concludeExport() {
@@ -101,7 +110,7 @@ private val pages = listOf(
     fun back() = navigate { detail = when(detail) {
         "profile" -> returnDetail
         "archived-student-report" -> "archived-reports"
-        "archived-reports", "archived-export" -> "manage-class"
+        "archived-reports", "archived-export", "archived-records" -> "manage-class"
         "manage-class" -> managementReturn
         else -> ""
     }; returnDetail = "" }
@@ -115,7 +124,7 @@ private val pages = listOf(
             Text("Seu espaço de gestão escolar", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } }, navigationIcon = {
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy) { Text("‹ Voltar") }
-        }, actions = { TextButton(enabled = !exportBusy, onClick = { if(exportDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
+        }, actions = { TextButton(enabled = !exportBusy, onClick = { if(exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item -> NavigationBarItem(
                 selected = page == index,
@@ -129,18 +138,20 @@ private val pages = listOf(
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             Box(Modifier.fillMaxWidth().height(4.dp)) { if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!data.loaded) { CircularProgressIndicator(Modifier.padding(32.dp)); return@Column }
-            if(detail !in setOf("archives","manage-class","archived-reports","archived-export","archived-student-report")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
+            if(detail !in setOf("archives","manage-class","archived-reports","archived-export","archived-student-report","archived-records")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
                         detail == "archives" -> ArchivedClassesScreen(data) { managedClassId=it;managementReturn="archives";detail="manage-class" }
-                        detail == "manage-class" -> ClassLifecycleScreen(vm,data,managedClassId,{detail="archived-reports"},{detail="archived-export"}) { detail=managementReturn }
+                        detail == "manage-class" -> ClassLifecycleScreen(vm,data,managedClassId,{detail="archived-reports"},{detail="archived-export"},records={detail="archived-records"}) { detail=managementReturn }
                         detail == "archived-reports" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived ->
                             Column { Text("Turma arquivada • ${archived.name} • ${archived.year}",Modifier.padding(16.dp));TermSelector(term){term=it}
                                 ReportScreen(data,archived,term) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
                         detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,vm::message,ready=!saving){exportBusy=it}}
+                        detail == "records" && c != null -> LessonRecordsScreen(vm,data,c,recordDraft,::changeRecord,::dismissRecord)
+                        detail == "archived-records" -> data.classes.firstOrNull{it.id==managedClassId}?.let { LessonRecordsScreen(vm,data,it,recordDraft,::changeRecord,::dismissRecord,readOnly=true) }
                         detail == "export" && c != null -> ExportScreen(data,c,term,vm::message,ready=!saving){exportBusy=it}
                         detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,::concludeExport) { changeExport(null);detail="roster" }
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
@@ -173,7 +184,10 @@ private val pages = listOf(
                                 2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true }, recomposition = { detail = "recomposition" },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> Column {
-                                    OutlinedButton(onClick={detail="export"},modifier=Modifier.padding(horizontal=16.dp).testTag("open-export")){Text("Exportar")}
+                                    Row(Modifier.padding(horizontal=16.dp), horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                                        OutlinedButton(onClick={detail="export"},modifier=Modifier.testTag("open-export")){Text("Exportar")}
+                                        OutlinedButton(onClick={detail="records"},modifier=Modifier.testTag("open-lesson-records")){Text("Registros de Aula")}
+                                    }
                                     reportStates.SaveableStateProvider(c.id) {
                                     ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "student-report" }
                                     }
@@ -191,6 +205,9 @@ private val pages = listOf(
     pendingExportNavigation?.let { action -> Confirm("Descartar alterações de exportação?",
         "Há alterações não confirmadas na disposição de exportação. Cancelar mantém a edição. Confirmar descarta somente esta sessão e continua a navegação; os registros escolares não mudam.",
         {pendingExportNavigation=null}, {pendingExportNavigation=null;action()}) }
+    pendingRecordNavigation?.let { action -> Confirm("Descartar texto não salvo?",
+        "As alterações deste registro ainda não foram salvas. Cancelar mantém o texto; confirmar descarta somente esta edição.",
+        {pendingRecordNavigation=null}, {pendingRecordNavigation=null;action()}) }
     if (showBackup) BackupDialog(vm) { showBackup = false }
     if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false }) { id ->
         classForm = false

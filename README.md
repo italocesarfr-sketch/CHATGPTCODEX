@@ -1,6 +1,8 @@
 # Noctua
 
-Atualização atual: **Noctua 0.9.0 / código 14 — Etapa 5.2**. Relatórios → Exportar oferece XLSX real, CSV UTF-8 e cópia tabulada, com três modelos e a disposição 5.1. Gerenciar turma oferece arquivamento/reativação e exclusão transacional protegida por vínculos. [Contrato e testes](docs/ETAPA52.md). **83 testes JVM, 135 Android e oito fases de sondas aprovados**, além dos 28 cenários Java. Openpyxl validou 33 XLSX reais, junto a 33 CSV e 99 TSV. Atualização assinada 0.8.0 → 0.9.0 aprovada. [Baixar APK release](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000/artifacts/12137479823) • [Actions](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000). Validação física e colagem/edição manual no Excel permanecem pendentes. Sem PDF ou outras etapas.
+Atualização em validação: **Noctua 0.10.0 / código 15 — Etapa 5.3**. Relatórios → Registros de Aula: texto livre e facultativo por turma/data, edição, duplicação, exclusão confirmada e cópia de título/descrição para colar no EducaDF. Independente da chamada e das notas. [Arquitetura e testes](docs/ETAPA53.md).
+
+Entrega anterior: **Noctua 0.9.0 / código 14 — Etapa 5.2**. Relatórios → Exportar oferece XLSX real, CSV UTF-8 e cópia tabulada, com três modelos e a disposição 5.1. Gerenciar turma oferece arquivamento/reativação e exclusão transacional protegida por vínculos. [Contrato e testes](docs/ETAPA52.md). **83 testes JVM, 135 Android e oito fases de sondas aprovados**, além dos 28 cenários Java. Openpyxl validou 33 XLSX reais, junto a 33 CSV e 99 TSV. Atualização assinada 0.8.0 → 0.9.0 aprovada. [Baixar APK release](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000/artifacts/12137479823) • [Actions](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000). Validação física e colagem/edição manual no Excel permanecem pendentes. Sem PDF ou outras etapas.
 
 Histórico: **Noctua 0.8.0 / código 13 — Etapa 5.1**. Em Gerenciar alunos, **Ocultar** seleciona vários alunos e **Concluir** salva preferências exclusivas de exportação; **Organizar exportação** prepara ordem e linhas vazias independentes da chamada. Não altera registros escolares. [Contrato, migração e testes](docs/ETAPA51.md). **72 testes JVM, 120 Android, 28 cenários Java e oito fases de sondas aprovados**. Atualização assinada real 0.7.1 → 0.8.0, migração e backups antigos/novos validados. [Baixar APK release (ZIP)](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39073693052/artifacts/12116178776) • [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39073693052). Ainda não gera arquivos nem copia notas; 5.2 aguarda autorização. PDF retirado da versão 1.0.
 
@@ -77,7 +79,7 @@ Para instalação por USB, confira primeiro os certificados em [ASSINATURA](docs
 - `domain/`: cálculos de notas/frequência, normalização/duplicidades e leitor de CSV/texto.
 - `ui/`: quatro páginas Compose, tabelas de frequência, formulários, conferência e fila de gravações pertencente ao processo.
 - `backup/`: formato versionado, validação, restauração transacional e cópia de segurança.
-- `app/schemas/`: referências imutáveis Room v1/v2/v3/v4 e esquema atual v5, sem migração destrutiva.
+- `app/schemas/`: referências imutáveis Room v1–v5 e esquema atual v6, sem migração destrutiva.
 - `app/src/test/` e `app/src/androidTest/`: testes com fixtures sintéticas separadas dos dados do usuário.
 - `.github/workflows/`: compilação/testes e release com chave estável fornecida externamente.
 
@@ -85,4 +87,4 @@ A fila aguarda o commit antes de indicar Salvo; gravações ainda pendentes pode
 
 ## Próximas etapas
 
-Etapa 5.2 implementada. Aguardar validação física da 0.9.0 e autorização para outros incrementos. Recuperação comum permanece atividade regular, sem automação aditiva. PDF está fora da versão 1.0; poderá ser produzido no Excel. Registros de aula e identidade visual definitiva não fazem parte deste incremento. Os ensaios no emulador não substituem o uso em aparelho físico nem a colagem/edição manual no Excel.
+Etapa 5.3 em validação sobre a 0.9.0 aprovada fisicamente. A etapa visual final aguarda autorização. Recuperação comum permanece atividade regular, sem automação aditiva. PDF está fora da versão 1.0; poderá ser produzido no Excel. Registros de aula são facultativos; identidade visual definitiva não faz parte deste incremento. Os ensaios no emulador não substituem o uso em aparelho físico nem a colagem/edição manual no Excel.

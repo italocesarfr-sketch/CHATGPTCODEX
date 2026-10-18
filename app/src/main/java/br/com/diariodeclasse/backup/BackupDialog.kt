@@ -34,7 +34,7 @@ import java.time.LocalDate
         Surface(shape = MaterialTheme.shapes.large) {
             Column(Modifier.fillMaxWidth().heightIn(max = 700.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Backup e restauração", style = MaterialTheme.typography.titleLarge)
-                Info("Inclui turmas, alunos, bimestres, aulas, chamadas, atividades, notas e rascunhos. O arquivo contém dados pessoais: guarde-o em um local protegido. Tudo é processado offline.")
+                Info("Inclui turmas, alunos, bimestres, aulas, chamadas, atividades, notas, recomposições, remanejamentos, preferências de exportação, turmas arquivadas, registros de aula e rascunhos. O arquivo contém dados pessoais: guarde-o em um local protegido. Tudo é processado offline.")
                 if (!ready || state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (state.message.isNotBlank()) Text(state.message)
                 Button(enabled = enabled, onClick = { create.launch("diario-backup-${LocalDate.now()}.json") }, modifier = Modifier.fillMaxWidth()) { Text("Criar backup completo") }

@@ -1,3 +1,5 @@
+> **Autorização vigente — Etapa 5.3 / candidato Noctua 0.10.0 (15):** Registros de Aula livres e facultativos, com turma/data/título/descrição, edição/duplicação/exclusão confirmada e cópia para a área de transferência. Independentes da chamada e de cálculos escolares. Room v6 aditivo e backup 7 compatível com anteriores. Base 0.9.0 aprovada em aparelho físico pelo proprietário. [Contrato e resultados](ETAPA53.md). Não autoriza etapa visual final, IA, BNCC ou obrigatoriedade de preenchimento.
+
 > **Atualização autorizada — Etapa 5.2 / Noctua 0.9.0 (14):** exportação XLSX/CSV e cópia, usando a disposição 5.1 e as projeções SchoolReports. Turmas podem ser arquivadas, consultadas, reativadas e excluídas com validação transacional; histórico compartilhado bloqueia exclusão. Room v5 aditivo e backup 6, lendo anteriores. Contrato em [ETAPA52.md](ETAPA52.md). PDF permanece fora da versão 1.0.
 
 > **Atualização autorizada — Etapa 5.1 / Noctua 0.8.0 (13):** organização para exportação por matrícula, ocultação manual em lote, ordem independente e linhas vazias. Room v4 aditivo; backup 5 com leitura dos formatos anteriores. [ETAPA51.md](ETAPA51.md) define o contrato atual. Somente a organização está implementada; arquivos e cópia dependem da Etapa 5.2. **PDF não integra a versão 1.0**, por decisão do proprietário; descrições históricas da base não são funcionalidades atuais.
@@ -341,3 +343,7 @@ Conjunto mínimo de regressão: turmas de anos diferentes; matrícula anterior/p
 Antes de distribuir código novo: testes pertinentes aprovados, `assembleDebug` ou build da variante estável aprovado, APK existente e assinatura conferida; instalar sem desinstalar e conferir dados sintéticos. Testes reais de câmera não serão requisito da arquitetura futura após a retirada do OCR, mas os dados já importados continuam na regressão.
 
 O primeiro marco utilizável reorganizado será: **turmas + frequência por data sem grade obrigatória + avaliações/notas + consultas básicas**, com preservação e backup validados. Exportação inteligente, XLSX e refinamentos adicionais não bloqueiam esse marco. A autorização para implementar começa na Etapa 1 do [ROADMAP](ROADMAP.md); nenhuma implementação modular faz parte da Etapa 0.
+
+## Adendo vigente — Registros de Aula facultativos (Etapa 5.3)
+
+[ETAPA53.md](ETAPA53.md) define o módulo secundário de texto livre por turma/data. Não altera os seis módulos escolares nem as quatro páginas principais. Sem pendências obrigatórias, ligação com horários/chamadas ou campos burocráticos. Vários registros por dia, operações explícitas e cópia exata. Preservação via Room v6 e backup 7 com leitura dos anteriores; etapa visual final depende de autorização.

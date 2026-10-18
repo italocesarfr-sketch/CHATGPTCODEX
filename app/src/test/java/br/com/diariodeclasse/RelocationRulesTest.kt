@@ -95,7 +95,7 @@ class RelocationRulesTest {
     @Test fun backupFormatFourPreservesLinksAndVersionThreeHasNoInventedLinks() {
         fun snapshot(d:DiarySnapshot)=BackupSnapshot(d.classes,d.students,d.terms,d.lessons,d.marks,d.activities,d.grades,d.drafts,recompositions=d.recompositions,relocations=d.relocations)
         val value=snapshot(base).canonical();val decoded=BackupCodec.decode(BackupCodec.encode(value,11,null))
-        assertEquals(6,decoded.envelope.formatVersion);assertEquals(5,decoded.envelope.databaseVersion);assertEquals(value,decoded.snapshot)
+        assertEquals(7,decoded.envelope.formatVersion);assertEquals(6,decoded.envelope.databaseVersion);assertEquals(value,decoded.snapshot)
         val old=value.copy(relocations=emptyList())
         val payload=JsonObject(BackupCodec.json.parseToJsonElement(BackupCodec.json.encodeToString(old)).jsonObject.filterKeys {it!="relocations"}).toString()
         val envelope=BackupEnvelope("diario-de-classe-backup",3,"br.com.diariodeclasse",2,BackupCodec.V2_IDENTITY,"2026-10-17T00:00:00Z",10,null,BackupCodec.hash(payload.toByteArray()),payload)

@@ -13,15 +13,15 @@ import java.time.LocalDate
 data class BackupSnapshot(
     val classes: List<SchoolClass>, val students: List<Student>, val terms: List<Term>,
     val lessons: List<Lesson>, val marks: List<Attendance>, val activities: List<Activity>,
-    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList()
+    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList(), val lessonRecords: List<LessonRecord> = emptyList()
 ) {
     fun canonical(): BackupSnapshot = copy(
         classes = classes.sortedBy { it.id }, students = students.sortedBy { it.id },
         terms = terms.sortedWith(compareBy({ it.classId }, { it.number })), lessons = lessons.sortedBy { it.id },
         marks = marks.sortedWith(compareBy({ it.lessonId }, { it.studentId })), activities = activities.sortedBy { it.id },
         grades = grades.sortedWith(compareBy({ it.activityId }, { it.studentId })), drafts = drafts.sortedBy { it.id },
-        recompositions = recompositions.sortedWith(compareBy({ it.studentId }, { it.term })), relocations = relocations.sortedBy {it.sourceStudentId}, exportRows = exportRows.sortedWith(compareBy({it.classId}, {it.position})), classArchives = classArchives.sortedBy { it.classId })
-    fun summary(): String = "${classes.size} turmas • ${students.size} matrículas\n${terms.size} bimestres • ${lessons.size} aulas\n${marks.size} frequências • ${activities.size} atividades\n${grades.size} notas • ${drafts.size} linhas de rascunho\n${recompositions.size} recomposições • ${relocations.size} remanejamentos\n${exportRows.size} linhas de disposição de exportação\n${classArchives.size} turmas arquivadas"
+        recompositions = recompositions.sortedWith(compareBy({ it.studentId }, { it.term })), relocations = relocations.sortedBy {it.sourceStudentId}, exportRows = exportRows.sortedWith(compareBy({it.classId}, {it.position})), classArchives = classArchives.sortedBy { it.classId }, lessonRecords = lessonRecords.sortedBy { it.id })
+    fun summary(): String = "${classes.size} turmas • ${students.size} matrículas\n${terms.size} bimestres • ${lessons.size} aulas\n${marks.size} frequências • ${activities.size} atividades\n${grades.size} notas • ${drafts.size} linhas de rascunho\n${recompositions.size} recomposições • ${relocations.size} remanejamentos\n${exportRows.size} linhas de disposição de exportação\n${classArchives.size} turmas arquivadas\n${lessonRecords.size} registros de aula"
 }
 @Serializable
 data class BackupEnvelope(
@@ -40,7 +40,8 @@ object BackupCodec {
     const val V2_IDENTITY = "32104b8df79c150ac61b09fadc450221"
     const val V3_IDENTITY = "9e864249a18922cfb9caa6e54ee6c3af"
     const val V4_IDENTITY = "924bea88bcff9fe88f85edf884f4ab65"
-    const val IDENTITY = "4fb9b076fb8a111f68f23ad0863c5f5c"
+    const val V5_IDENTITY = "4fb9b076fb8a111f68f23ad0863c5f5c"
+    const val IDENTITY = "0bb463bface3e8d6c547f9424574818b"
     const val MAX_BYTES = 32 * 1024 * 1024
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false }
     fun hash(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
@@ -48,7 +49,7 @@ object BackupCodec {
     fun encode(value: BackupSnapshot, version: Int, certificate: String?): ByteArray {
         validate(value)
         val payload = json.encodeToString(value.canonical())
-        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 6, applicationId = "br.com.diariodeclasse", databaseVersion = 5, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
+        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 7, applicationId = "br.com.diariodeclasse", databaseVersion = 6, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
             sourceCertificateSha256 = certificate, payloadSha256 = hash(payload.toByteArray(Charsets.UTF_8)), payload = payload)
         val bytes = json.encodeToString(envelope).toByteArray(Charsets.UTF_8)
         if (bytes.size > MAX_BYTES) throw BackupFailure("O backup excede o limite seguro de 32 MB.")
@@ -73,19 +74,22 @@ object BackupCodec {
             val previous = envelope.formatVersion == 3 && envelope.databaseVersion == 2 && envelope.schemaIdentityHash == V2_IDENTITY
             val linked = envelope.formatVersion == 4 && envelope.databaseVersion == 3 && envelope.schemaIdentityHash == V3_IDENTITY
             val organized = envelope.formatVersion == 5 && envelope.databaseVersion == 4 && envelope.schemaIdentityHash == V4_IDENTITY
-            val current = envelope.formatVersion == 6 && envelope.databaseVersion == 5 && envelope.schemaIdentityHash == IDENTITY
-            if (!legacy && !previous && !linked && !organized && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
+            val archived = envelope.formatVersion == 6 && envelope.databaseVersion == 5 && envelope.schemaIdentityHash == V5_IDENTITY
+            val current = envelope.formatVersion == 7 && envelope.databaseVersion == 6 && envelope.schemaIdentityHash == IDENTITY
+            if (!legacy && !previous && !linked && !organized && !archived && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
-            if ((previous || linked || organized || current) && "recompositions" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de recomposição.")
-            if ((linked || organized || current) && "relocations" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os vínculos de remanejamento.")
-            if ((organized || current) && "exportRows" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as preferências de exportação.")
-            if (current && "classArchives" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as turmas arquivadas.")
+            if ((previous || linked || organized || archived || current) && "recompositions" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de recomposição.")
+            if ((linked || organized || archived || current) && "relocations" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os vínculos de remanejamento.")
+            if ((organized || archived || current) && "exportRows" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as preferências de exportação.")
+            if ((archived || current) && "classArchives" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as turmas arquivadas.")
+            if (current && "lessonRecords" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de aula.")
             val snapshot = json.decodeFromString<BackupSnapshot>(envelope.payload).canonical()
             if (legacy && snapshot.recompositions.isNotEmpty()) throw BackupFailure("Backup antigo não pode conter recomposições.")
-            if (!linked && !organized && !current && snapshot.relocations.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter remanejamentos vinculados.")
-            if (!organized && !current && snapshot.exportRows.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter preferências de exportação.")
-            if (!current && snapshot.classArchives.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter arquivamento.")
+            if (!linked && !organized && !archived && !current && snapshot.relocations.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter remanejamentos vinculados.")
+            if (!organized && !archived && !current && snapshot.exportRows.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter preferências de exportação.")
+            if (!archived && !current && snapshot.classArchives.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter arquivamento.")
+            if (!current && snapshot.lessonRecords.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter registros de aula.")
             validate(snapshot)
             return DecodedBackup(envelope, snapshot)
         } catch (error: BackupFailure) { throw error }
@@ -96,6 +100,10 @@ object BackupCodec {
         fun validDate(value: String) { check(runCatching { LocalDate.parse(value).toString() == value }.getOrDefault(false)) }
         fun unique(ids: List<String>) { check(ids.all { it.isNotBlank() } && ids.toSet().size == ids.size) }
         unique(s.classArchives.map { it.classId }); check(s.classArchives.all { a -> s.classes.any { it.id == a.classId } })
+        unique(s.lessonRecords.map { it.id }); s.lessonRecords.forEach { value ->
+            check(s.classes.any { it.id == value.classId })
+            try { LessonRecords.validate(value) } catch (_: Exception) { throw BackupFailure("Backup contém registro de aula inválido.") }
+        }
         unique(s.classes.map { it.id }); unique(s.students.map { it.id }); unique(s.lessons.map { it.id })
         unique(s.activities.map { it.id }); unique(s.drafts.map { it.id })
         check(s.terms.map { it.classId to it.number }.toSet().size == s.terms.size)

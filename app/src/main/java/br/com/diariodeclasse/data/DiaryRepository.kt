@@ -19,7 +19,7 @@ data class DiarySnapshot(
     val classes: List<SchoolClass> = emptyList(), val students: List<Student> = emptyList(),
     val terms: List<Term> = emptyList(), val lessons: List<Lesson> = emptyList(),
     val marks: List<Attendance> = emptyList(), val activities: List<Activity> = emptyList(),
-    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList()
+    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList(), val lessonRecords: List<LessonRecord> = emptyList()
 ) {
     fun roster(classId: String) = students.filter { it.classId == classId }
     fun currentRoster(classId: String, showRelocated: Boolean = false) = roster(classId).filter { showRelocated || it.status != "Remanejado" }
@@ -61,10 +61,10 @@ data class DiarySnapshot(
 
 class DiaryRepository(val db: DiaryDatabase) {
     val dao = db.dao()
-    // Cada emissão lê as onze tabelas no mesmo snapshot SQLite confirmado.
+    // Cada emissão lê as treze tabelas no mesmo snapshot SQLite confirmado.
     // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
     val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
-        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows", "class_archives").map {
+        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows", "class_archives", "lesson_records").map {
         readSnapshot()
     }.distinctUntilChanged()
     internal suspend fun readSnapshot(): DiarySnapshot = db.withTransaction {
@@ -77,7 +77,20 @@ class DiaryRepository(val db: DiaryDatabase) {
                 marks = read.marks(),
                 activities = read.activities().sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id }),
                 grades = read.grades(), drafts = read.drafts().sortedWith(compareBy<ImportDraft> { it.position }.thenBy { it.id }),
-                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), classArchives = read.classArchives(), loaded = true)
+                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), classArchives = read.classArchives(), lessonRecords = read.lessonRecords(), loaded = true)
+    }
+
+    /** Comparação otimista impede sobrescrever/excluir uma edição confirmada por outra tela. */
+    suspend fun saveLessonRecord(value: LessonRecord, expected: LessonRecord? = null) = db.withTransaction {
+        LessonRecords.validate(value)
+        requireNotNull(dao.schoolClass(value.classId)) { "Turma não encontrada." }
+        require(dao.lessonRecord(value.id) == expected) { "O registro mudou ou foi excluído. Reabra para conferir; nada foi sobrescrito." }
+        require(expected == null || expected.id == value.id) { "A identidade do registro deve ser preservada." }
+        if (expected == null) dao.insertRecord(value) else check(dao.updateRecord(value) == 1)
+    }
+    suspend fun deleteLessonRecord(expected: LessonRecord) = db.withTransaction {
+        require(dao.lessonRecord(expected.id) == expected) { "O registro mudou ou foi excluído. Confira novamente antes de excluir." }
+        check(dao.removeRecord(expected.id) == 1)
     }
 
     /** Substitui apenas a disposição desta turma; dados escolares e IDs das linhas são preservados. */
@@ -116,7 +129,7 @@ class DiaryRepository(val db: DiaryDatabase) {
             "DELETE FROM marks WHERE lessonId IN (SELECT id FROM lessons WHERE classId=?)",
             "DELETE FROM grades WHERE activityId IN (SELECT id FROM activities WHERE classId=?)",
             "DELETE FROM recompositions WHERE studentId IN (SELECT id FROM students WHERE classId=?)",
-            "DELETE FROM export_rows WHERE classId=?", "DELETE FROM class_archives WHERE classId=?",
+            "DELETE FROM lesson_records WHERE classId=?", "DELETE FROM export_rows WHERE classId=?", "DELETE FROM class_archives WHERE classId=?",
             "DELETE FROM import_drafts WHERE classId=?", "DELETE FROM activities WHERE classId=?",
             "DELETE FROM lessons WHERE classId=?", "DELETE FROM terms WHERE classId=?",
             "DELETE FROM students WHERE classId=?", "DELETE FROM classes WHERE id=?")) sql.execSQL(query, arrayOf(id))

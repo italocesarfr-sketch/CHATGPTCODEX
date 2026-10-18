@@ -33,3 +33,11 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `class_archives` (`classId` TEXT NOT NULL, PRIMARY KEY(`classId`), FOREIGN KEY(`classId`) REFERENCES `classes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT)")
     }
 }
+
+/** Aditiva: as doze tabelas da 0.9.0 não são reescritas. Não gera nenhum registro. */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `lesson_records` (`id` TEXT NOT NULL, `classId` TEXT NOT NULL, `date` TEXT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, PRIMARY KEY(`id`), FOREIGN KEY(`classId`) REFERENCES `classes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_lesson_records_classId_date` ON `lesson_records` (`classId`, `date`)")
+    }
+}

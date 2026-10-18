@@ -1,0 +1,17 @@
+{
+  "apkSha256": "9638cc30aaf1cee9f7ee20a5aa484beb5af7e9015eaafa7bfd9cefaa7a0791e5",
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "bytes": 7261650,
+  "manifest": {
+    "versionCode": 14,
+    "versionName": "0.9.0",
+    "compileSdkVersion": 35,
+    "compileSdkVersionCodename": "15",
+    "package": "br.com.diariodeclasse",
+    "platformBuildVersionCode": 35,
+    "platformBuildVersionName": 15
+  },
+  "runId": 39131368000,
+  "artifactId": 12137479823,
+  "artifactName": "noctua-etapa52-release"
+}

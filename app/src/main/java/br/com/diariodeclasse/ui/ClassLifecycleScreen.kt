@@ -20,7 +20,7 @@ import br.com.diariodeclasse.data.*
         items(classes,key={it.id}){c->OutlinedButton(onClick={open(c.id)},modifier=Modifier.fillMaxWidth().testTag("archived-${c.id}")){Text("${c.name} • ${c.subject} • ${c.year}")}}
     }
 }
-@Composable fun ClassLifecycleScreen(vm:DiaryViewModel,data:DiarySnapshot,classId:String,reports:()->Unit,export:()->Unit,removed:()->Unit) {
+@Composable fun ClassLifecycleScreen(vm:DiaryViewModel,data:DiarySnapshot,classId:String,reports:()->Unit,export:()->Unit,records:()->Unit = {},removed:()->Unit) {
     val c=data.classes.firstOrNull{it.id==classId}
     val saving by vm.saving.collectAsState()
     var archiveConfirmation by remember{mutableStateOf(false)}
@@ -35,6 +35,7 @@ import br.com.diariodeclasse.data.*
             Button(enabled=!saving,onClick={archiveConfirmation=true},modifier=Modifier.testTag("archive-class")){Text(if(archived)"Reativar turma"else"Arquivar turma")}
             if(archived) {
                 OutlinedButton(onClick=reports,modifier=Modifier.testTag("archived-reports")){Text("Consultar relatórios")}
+                OutlinedButton(onClick=records,modifier=Modifier.testTag("archived-records")){Text("Consultar registros de aula")}
                 OutlinedButton(onClick=export,modifier=Modifier.testTag("archived-export")){Text("Exportar dados")}
             }
             HorizontalDivider()

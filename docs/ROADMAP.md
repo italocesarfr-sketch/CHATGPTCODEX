@@ -1,3 +1,5 @@
+> **Autorização vigente — Etapa 5.3 / candidato Noctua 0.10.0 (15):** Registros de Aula livres e facultativos, com turma/data/título/descrição, edição/duplicação/exclusão confirmada e cópia para a área de transferência. Independentes da chamada e de cálculos escolares. Room v6 aditivo e backup 7 compatível com anteriores. Base 0.9.0 aprovada em aparelho físico pelo proprietário. [Contrato e resultados](ETAPA53.md). Não autoriza etapa visual final, IA, BNCC ou obrigatoriedade de preenchimento.
+
 # Roadmap — Noctua (Diário de Classe)
 
 > **Autorização vigente: Etapa 5.2 / Noctua 0.9.0 (14)**, sobre a 0.8.0 aprovada em aparelho físico. Inclui XLSX real, CSV, cópia tabulada, arquivamento/reativação e exclusão transacional bloqueada por histórico compartilhado. **83 JVM, 135 Android e atualização assinada 0.8.0 → 0.9.0 aprovados**, com 33 planilhas XLSX lidas por openpyxl. [ETAPA52.md](ETAPA52.md) registra arquitetura e evidências. A prova XLSX originalmente prevista em 5.4 foi antecipada por esta autorização. Não libera PDF, registros de aula nem identidade definitiva.
@@ -263,9 +265,17 @@ Trabalho planejado: cópia tabulada com opção somente notas; CSV UTF-8 adequad
 
 **Testes:** golden files/saídas esperadas, acentos, aspas, delimitadores, decimais pt-BR, campos vazios e linhas vazias; teste manual de colagem no Excel ou LibreOffice. Seletor cancelado/erro de escrita não altera registros.
 
-### 5.3. PDF — retirado do escopo da versão 1.0
+### 5.3. Registros de Aula livres e facultativos — autorização posterior
 
-Decisão do proprietário na autorização 5.1: não implementar PDF no aplicativo. O professor poderá gerar PDF posteriormente no Excel a partir do XLSX. A numeração histórica é mantida para rastreabilidade, sem dependência nem trabalho autorizado.
+**Dependência:** base 0.9.0 aprovada em aparelho físico; banco v5 e backup 6 preservados. [ETAPA53.md](ETAPA53.md).
+
+**Escopo:** uma tela secundária em Relatórios, com turma, data, título e descrição. Criar, editar, duplicar, excluir com confirmação, filtrar período e copiar título/descrição. Vários registros por dia são permitidos; nenhum vínculo com quantidade de horários, existência de chamada ou planejamento.
+
+**Aceitação:** nenhuma operação escolar exige registro. Texto/IDs persistem após reinício, migração aditiva e backup; cancelamento não grava nem exclui. Chamadas, notas, recomposição, remanejamento e exportação permanecem idênticos.
+
+**Testes:** funções puras, CRUD Room, cópia Android e navegação, rascunho/recriação, confirmação, filtros, migração 5→6, backup antigo/novo, atualização release real 0.9.0 com a mesma assinatura e regressão completa.
+
+A antiga seção 5.3/PDF permanece apenas como decisão histórica: PDF foi retirado da versão 1.0 e não voltou ao escopo. Não iniciar etapa visual final. Pendências de UX somente documentadas: centralizar Organizar exportação em Relatórios e identidade noturna azul escuro/preto.
 
 ### 5.4. Prova de viabilidade XLSX — P2, condicional
 
