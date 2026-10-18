@@ -167,7 +167,20 @@ class ExportLifecycleUiInstrumentedTest {
         list.performScrollToNode(hasTestTag("report-row-${target.id}"))
         compose.onNodeWithTag("report-row-${target.id}-original",useUnmergedTree=true).onChild().assertTextEquals("0,00")
         compose.onNodeWithTag("report-row-${target.id}-current",useUnmergedTree=true).onChild().assertTextEquals("5,00")
-        compose.onNodeWithText("${target.number}. ${target.name}").performScrollTo().performClick();waitTag("individual-report")
+        // O nó mesclado com esse texto é a linha inteira, cujo centro pode ficar
+        // fora do viewport quando há várias células históricas altas. Tocar no
+        // texto real, na coluna fixa, reproduz o gesto do professor.
+        compose.onNodeWithTag("report-row-${target.id}").assertHasClickAction()
+        val name=compose.onNodeWithText("${target.number}. ${target.name}",useUnmergedTree=true)
+        name.performScrollTo().assertIsDisplayed()
+        println("Fictitious history tap: viewport=${list.fetchSemanticsNode().boundsInRoot}; row=${compose.onNodeWithTag("report-row-${target.id}").fetchSemanticsNode().boundsInRoot}; name=${name.fetchSemanticsNode().boundsInRoot}")
+        shot("07-historico-no-destino")
+        name.performClick()
+        try {waitTag("individual-report")} catch(e:Throwable) {
+            shot("09-diagnostico-toque-historico")
+            throw AssertionError("Não abriu o perfil após toque no nome visível. ${compose.onRoot().printToString(maxDepth=5)}",e)
+        }
+        shot("08-perfil-historico")
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("history-enrollment-${a.id}"))
         compose.onNodeWithTag("history-enrollment-${a.id}").assertTextContains("${c.name} (turma excluída)",substring=true)
         compose.activityRule.scenario.recreate();waitTag("individual-report")
