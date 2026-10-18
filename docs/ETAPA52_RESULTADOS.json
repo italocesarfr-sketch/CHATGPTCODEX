@@ -1,0 +1,138 @@
+{
+  "testedCommit": "3b34563f202ebab7176892b0a0593f3ec7b3bc4f",
+  "workflowRunId": 39131368000,
+  "versionName": "0.9.0",
+  "versionCode": 14,
+  "databaseName": "diario.db",
+  "databaseVersion": 5,
+  "backupFormatVersion": 6,
+  "schemaIdentity": "4fb9b076fb8a111f68f23ad0863c5f5c",
+  "schemas": {
+    "1": {
+      "sha256": "43fe5f77af75d462dff34128582fdeb6cf759b9504fa2bb6ee468a6951ec3ed7",
+      "identity": "99b868cf68cf5dffb82edf267ddc78be"
+    },
+    "2": {
+      "sha256": "ba4e422868ecb8d532609a3f6488a0f2b4262551d265588e964305468232b7bc",
+      "identity": "32104b8df79c150ac61b09fadc450221"
+    },
+    "3": {
+      "sha256": "3e087b839b8c286589b1d7cabc0e7d2e8e83645728d1df757c05e32a95b5c7ce",
+      "identity": "9e864249a18922cfb9caa6e54ee6c3af"
+    },
+    "4": {
+      "sha256": "4a648da7396965706ec50f7a13b6ab8f3b459d4031b9d6f7cf48375bbae2a4d9",
+      "identity": "924bea88bcff9fe88f85edf884f4ab65"
+    },
+    "5": {
+      "sha256": "ffe06a1148e6a10869a4db6eaf77e5e8be25f15b3b9ea122ef388222528c1ce8",
+      "identity": "4fb9b076fb8a111f68f23ad0863c5f5c"
+    }
+  },
+  "tests": {
+    "unit": {
+      "passed": 83,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "passed": 135,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "independentReaders": [
+    {
+      "runtime": "jvm",
+      "reader": "openpyxl 3.1.5",
+      "xlsx": 30,
+      "csv": 30,
+      "tsv": 90
+    },
+    {
+      "runtime": "android",
+      "reader": "openpyxl 3.1.5",
+      "xlsx": 3,
+      "csv": 3,
+      "tsv": 9
+    }
+  ],
+  "domainScenariosPassed": 28,
+  "controlledLegacyUpgradeProbesPassed": 2,
+  "processRestartProbesPassed": 2,
+  "stableUpgradeProbesPassed": 4,
+  "unusedHistoricalReleaseContinuityProbeSkipped": true,
+  "apk": {
+    "debug": {
+      "apkSha256": "00e2029835ce1d6baa4b5aabcf8366acb9ba6a2ef2066939ee3681914493c089",
+      "certificateSha256": "8d36628cabd96edbbde5fae6ff3b928dba3068eff00ca37fe938276ec3566bdc",
+      "bytes": 10637535,
+      "manifest": {
+        "package": "br.com.diariodeclasse",
+        "versionCode": 14,
+        "versionName": "0.9.0",
+        "minSdk": 26
+      }
+    },
+    "release": {
+      "apkSha256": "9638cc30aaf1cee9f7ee20a5aa484beb5af7e9015eaafa7bfd9cefaa7a0791e5",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "bytes": 7261650,
+      "manifest": {
+        "package": "br.com.diariodeclasse",
+        "versionCode": 14,
+        "versionName": "0.9.0",
+        "minSdk": 26
+      }
+    }
+  },
+  "artifacts": {
+    "debug": {
+      "id": 12138108458,
+      "name": "noctua-apk-teste",
+      "digest": "sha256:e14aeac4348bdbaec4ed2a6e8da9d0b3479703521cdc65550f0094fd55c71feb"
+    },
+    "reports": {
+      "id": 12138481486,
+      "name": "resultados-etapa52",
+      "digest": "sha256:baef427b6f57d5490df69e2523c5df0db3c7cbadece80d04acaf528f0945dfb9"
+    },
+    "release": {
+      "id": 12137479823,
+      "name": "noctua-etapa52-release",
+      "digest": "sha256:908ced060158d005016f2ac6940baef97c1e98ec1f45705ebf85d8fe2f187fe6"
+    },
+    "upgrade": {
+      "id": 12138700492,
+      "name": "resultados-atualizacao-release",
+      "digest": "sha256:38a46ebe94ba8488a42cca686c18c0a658602fdc436caf2386a59509518105bd"
+    }
+  },
+  "stableReleaseCompatibility": {
+    "old": {
+      "apkSha256": "6c8fcc3a615d00e63071111863259cc3c9e6b77224b771a316655804cc44b385",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 13
+    },
+    "new": {
+      "apkSha256": "9638cc30aaf1cee9f7ee20a5aa484beb5af7e9015eaafa7bfd9cefaa7a0791e5",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 14
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "ownerKeyReused": true,
+  "releaseSignatureV2Verified": true,
+  "manualReleaseWorkflowUnchanged": true,
+  "offlineManifestVerified": true,
+  "artifactArchiveDigestsVerified": true,
+  "supersededRuns": [
+    39127648173,
+    39129055875,
+    39130427689
+  ]
+}

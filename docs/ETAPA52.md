@@ -54,7 +54,23 @@ Novos testes Room exercitam arquivar/reabrir/reativar, histórico de origem arqu
 
 O workflow mantém a assinatura existente e testa atualização do APK **real 0.8.0** do [run 39073693052](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39073693052), com hash/certificado público fixados em `docs/baseline/noctua-release-0.8.0.json`. A semente agora inclui preferências 5.1, além das onze tabelas anteriores; as fases seguintes conferem migração, backup, arquivos, arquivamento e reinício. A regressão Transferida → Ativa → Remanejada permanece na suíte/sondas.
 
-Resultados finais e artefatos serão registrados após o CI. Não declarar instalação física da 0.9.0 validada antes do teste do proprietário.
+**Resultado final:** 83 testes JVM e 135 Android aprovados, sem falhas; quatro casos exclusivos ignorados na suíte comum. Três são executados pelas oito fases de sondas separadas; o ensaio histórico ReleaseContinuity permanece ignorado e é substituído pela atualização real 0.8.0 → 0.9.0, sem novas chaves. 28 cenários Java também aprovados.
+
+O leitor independente validou **33 XLSX reais, 33 CSV e 99 TSV**: 30 conjuntos gerados pela JVM e três produzidos pelo Android. A suíte de regressão de notas/recálculo/recomposição/frequência/remanejamento permaneceu incluída. A atualização assinada fez instalação real da 0.8.0, semente fictícia com preferências 5.1, `adb install -r` da 0.9.0, migração 4→5, conferência integral, backup antigo/novo e reinício com arquivamento preservado. Todas as fases before/after/backup/reopened passaram. A sonda de frequência/reinício mantém Transferida → Ativa → Remanejada sem duplicação.
+
+**Validação física da 0.9.0 permanece pendente**, assim como abertura/colagem manual no Microsoft Excel do proprietário.
+
+### Artefatos e integridade
+
+- [GitHub Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000), commit de código `3b34563f202ebab7176892b0a0593f3ec7b3bc4f`.
+- [Baixar APK release (ZIP)](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000/artifacts/12137479823), artefato **noctua-etapa52-release**. Extrair `app-release.apk`.
+- [Resultados JVM, Android, Room, planilhas e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000/artifacts/12138481486); [provas da atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000/artifacts/12138700492).
+- [APK debug interno](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39131368000/artifacts/12138108458), sem promessa de atualização sobre a release permanente.
+- [Metadados e hashes](ETAPA52_RESULTADOS.json).
+
+APK release baixado e verificado em `app/build/outputs/apk/release/app-release.apk`; debug em `app/build/outputs/apk/debug/app-debug.apk`. Ambos existem, informam Noctua 0.9.0 / código 14, pacote preservado, mínimo API 26 e sem permissão INTERNET. SHA-256 release: `9638cc30aaf1cee9f7ee20a5aa484beb5af7e9015eaafa7bfd9cefaa7a0791e5`. Certificado público SHA-256: `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`, igual ao APK 0.8.0 fixado. Assinatura v2 e hashes dos quatro arquivos ZIP confrontados com o Actions. Os DEX contêm ExportProjection, SpreadsheetWriter e ClassLifecycle. Nenhum banco pessoal, chave ou certificado privado integra os artefatos.
+
+Os onze esquemas anteriores permanecem idênticos no v5, e os JSONs v1–v4 foram conferidos byte a byte. Esquema v5 SHA-256 `ffe06a1148e6a10869a4db6eaf77e5e8be25f15b3b9ea122ef388222528c1ce8`, identidade `4fb9b076fb8a111f68f23ad0863c5f5c`. O workflow release manual está inalterado. A prova de atualização cobre a release 0.8.0 do repositório com esse certificado; não identifica APKs arbitrários instalados. Criar backup antes de atualizar; usar a release, sem desinstalar uma instalação compatível. Guardar o APK: os artefatos de APK do Actions expiram após 30 dias.
 
 Primeiro ensaio Android: [run 39127648173](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39127648173), 132 aprovados e três falhas nos testes novos. A montagem de identidade compartilhada passou a usar DAO apenas no banco fictício, pois a API de produção corretamente impede trocar a identidade de uma matrícula. O seletor ficou restrito ao popup, e a prévia é acionada antes das notificações de cópia para evitar toque interceptado. Nenhuma proteção foi removida. Também foi acrescentada preservação explícita de CR no XML, com fixtures CRLF na JVM e no Android, evitando normalização silenciosa de quebras de linha.
 
