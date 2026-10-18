@@ -1,0 +1,77 @@
+{
+  "jvm": {
+    "tests": 102,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 102
+  },
+  "android": {
+    "tests": 172,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 168
+  },
+  "newAndroidTests": [
+    "deletingRelocatedOriginRequiresConfirmationAndDestinationReportsSurviveRecreation",
+    "cancelAndStaleConfirmationDoNotDetachOrDeleteAnyHistory",
+    "errorsWritingHistoryOrDeletingAfterItsWriteRollbackTheWholeDatabase",
+    "deletingOriginActuallyRemovesClassAndPreservesNumbersNotesAndAttendance",
+    "inheritedRecompositionStillEditsAndDeletesInPlaceWithoutTouchingOriginalGrades",
+    "successiveOrIntermediateFirstDeletionKeepsExactExportAndDoesNotDuplicateAnything",
+    "deletingLastConnectedClassCleansOnlyUnneededHistoryAndPreservesUnrelatedRows",
+    "aFurtherRelocationStillSeesDeletedAncestorsAndEnforcesSharedCriteria",
+    "distributedSchemaSixMigratesAdditivelyWithoutChangingAnyOfItsThirteenTables",
+    "backupRestoreDatabaseReopenAndRestoreFailureKeepAllDetachedHistory"
+  ],
+  "apk": {
+    "apkSha256": "c7a5f13c30c8101073e2aada15adf4add3c0ce0cf44e0a766ed1d7f0a4abe069",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "bytes": 7327710
+  },
+  "compatibility": {
+    "old": {
+      "apkSha256": "dbe0179d461ba954eca8046696729aee552d60366bbf810eda2c030fbffdb5f8",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 17
+    },
+    "new": {
+      "apkSha256": "c7a5f13c30c8101073e2aada15adf4add3c0ce0cf44e0a766ed1d7f0a4abe069",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 18
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "signedUpgradePhases": [
+    "after.txt",
+    "backup.txt",
+    "before.txt",
+    "deleted-history.txt",
+    "reopened-history.txt",
+    "reopened.txt"
+  ],
+  "schema7Identity": "0c0a542f53b49d5f6d895515d1b9ec49",
+  "schema7Sha256": "45e14573bede8c237e55bd2bf21dea38d256e650686bb9b2226f0269ad1f1510",
+  "versionName": "0.11.2",
+  "versionCode": 18,
+  "databaseName": "diario.db",
+  "databaseVersion": 7,
+  "backupFormatVersion": 8,
+  "testedCommit": "879e08b6dd3577f381ca38b9e0b6c73c93cc2134",
+  "workflowRunId": 39153312998,
+  "releaseArtifactId": 12146541370,
+  "resultsArtifactId": 12146008176,
+  "signedUpgradeArtifactId": 12146402004,
+  "independentReaders": {
+    "xlsx": 39,
+    "csv": 39,
+    "tsv": 117,
+    "afterDeletionXlsx": 6,
+    "reader": "openpyxl 3.1.5 + Python csv"
+  }
+}
