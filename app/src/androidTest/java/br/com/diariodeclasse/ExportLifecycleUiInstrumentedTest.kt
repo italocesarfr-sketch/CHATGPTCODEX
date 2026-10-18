@@ -110,7 +110,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithText("Cancelar").performClick()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         compose.onNodeWithTag("archive-class").performScrollTo().performClick();compose.onNodeWithText("Confirmar").performClick();waitFinished()
-        assertEquals(before,runBlocking{app.backupManager.snapshot()}.copy(classArchives=emptyList()))
+        assertEquals(before.copy(selection=AppSelection(2026,h.id),classArchives=listOf(ClassArchive(c.id))),runBlocking{app.backupManager.snapshot()})
         assertNotEquals(c.id,app.selectionStore.read()?.classId)
         compose.onNodeWithTag("class-selector").performClick()
         compose.onNode(hasText(c.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).assertDoesNotExist()
@@ -120,7 +120,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.activityRule.scenario.recreate();waitText("Turma arquivada • ${c.name}")
         compose.onNodeWithText("‹ Voltar").performClick();waitTag("archive-class")
         compose.onNodeWithTag("archive-class").performScrollTo().performClick();compose.onNodeWithText("Confirmar").performClick();waitFinished()
-        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        assertEquals(before.copy(selection=AppSelection(2026,h.id)),runBlocking{app.backupManager.snapshot()})
         compose.onNodeWithTag("class-selector").performClick()
         compose.onNode(hasText(c.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
         manage();compose.onNodeWithTag("archive-class").performScrollTo().performClick();compose.onNodeWithText("Confirmar").performClick();waitFinished()
@@ -158,12 +158,16 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("delete-class-preview").performScrollTo().performClick()
         confirmDeletion()
         compose.waitUntil(10000) {runBlocking {app.repository.dao.schoolClass(c.id)==null}}
-        waitFinished();waitTag("class-selector");compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick()
+        waitFinished()
+        // A Snackbar temporária fica sobre o conteúdo inferior: aguardar seu fim
+        // antes de testar o toque real na linha do boletim.
+        compose.waitUntil(12000){compose.onAllNodesWithText("Turma excluída.").fetchSemanticsNodes().isEmpty()}
+        waitTag("class-selector");compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick()
         val list=compose.onNodeWithTag("reports-list")
         list.performScrollToNode(hasTestTag("report-row-${target.id}"))
         compose.onNodeWithTag("report-row-${target.id}-original",useUnmergedTree=true).onChild().assertTextEquals("0,00")
         compose.onNodeWithTag("report-row-${target.id}-current",useUnmergedTree=true).onChild().assertTextEquals("5,00")
-        compose.onNodeWithText("${target.number}. ${target.name}").performClick();waitTag("individual-report")
+        compose.onNodeWithText("${target.number}. ${target.name}").performScrollTo().performClick();waitTag("individual-report")
         compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("history-enrollment-${a.id}"))
         compose.onNodeWithTag("history-enrollment-${a.id}").assertTextContains("${c.name} (turma excluída)",substring=true)
         compose.activityRule.scenario.recreate();waitTag("individual-report")
