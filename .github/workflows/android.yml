@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Exclusão segura — históricos de remanejamento e regressão
+    name: Marca oficial — ícones, launcher e regressão
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -36,6 +36,8 @@ jobs:
           python -m pip install openpyxl==3.1.5
           python scripts/validate-spreadsheets.py
           python scripts/validate-spreadsheets.py app/build/history-export-validation
+      - name: Conferir a arte original e os recursos de marca
+        run: python scripts/validate-noctua-brand.py
       - name: Comprovar bloqueio de release sem assinatura configurada
         run: |
           mkdir -p build
@@ -109,6 +111,7 @@ jobs:
             build/android-export-fixtures/
             build/etapa52-planilhas.tar
             build/etapa6-telas.tar
+            build/noctua-marca-telas.tar
             build/etapa53-telas.tar
             build/etapa52-telas.tar
             build/etapa51-telas.tar
@@ -123,7 +126,7 @@ jobs:
             build/frequency-process-read.txt
           if-no-files-found: ignore
   stable-update:
-    name: Release — atualização da Noctua 0.11.1 com a assinatura existente
+    name: Release — atualização da Noctua 0.11.2 com a assinatura existente
     needs: validation
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: release
@@ -179,7 +182,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 39149230316
+          run-id: 39153312998
           name: noctua-etapa6-release
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
@@ -192,7 +195,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.11.1.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.11.2.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk

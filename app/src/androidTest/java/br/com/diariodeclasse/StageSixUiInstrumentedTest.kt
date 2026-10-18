@@ -53,6 +53,26 @@ class StageSixUiInstrumentedTest {
         tag(calendar).performScrollToNode(hasTestTag("date-${note.date}"));tag("date-${note.date}").performScrollTo()
     }
     private fun shot(name:String){compose.waitForIdle();val dir=File(app.filesDir,"etapa6-screenshots");dir.mkdirs();File(dir,"$name.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
+    @Test fun officialOwlIsVisibleWithoutTintOrDistortionAcrossAllFourPages() {
+        val before=runBlocking {app.backupManager.snapshot()}
+        for(page in 0..3) {
+            tag("nav-$page").performClick()
+            tag("noctua-logo").assertIsDisplayed().assertWidthIsEqualTo(32.dp).assertHeightIsEqualTo(32.dp)
+                .assertContentDescriptionEquals("Logo do Noctua: coruja em forma de N")
+        }
+        val image=tag("noctua-logo").captureToImage().asAndroidBitmap()
+        var blue=0;var gold=0
+        for(y in 0 until image.height) for(x in 0 until image.width) {
+            val color=image.getPixel(x,y);val r=android.graphics.Color.red(color);val g=android.graphics.Color.green(color);val b=android.graphics.Color.blue(color)
+            if(b>r+20) blue++
+            if(r>180 && g>100 && b<120) gold++
+        }
+        assertTrue("O fundo azul original não pode ser tingido pelo tema",blue>image.width*image.height/4)
+        assertTrue("Os olhos dourados originais devem continuar visíveis",gold>0)
+        val folder=File(app.filesDir,"brand-screenshots");folder.mkdirs()
+        File(folder,"05-cabecalho-noctua.png").outputStream().use {compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+        assertEquals(before,runBlocking {app.backupManager.snapshot()})
+    }
     @Test fun initialAttendanceKeepsCalendarTermModeAndContextWhenSwitchingToJournal() {
         val before=runBlocking{app.backupManager.snapshot()}
         tag("nav-1").performClick();tag("class-mode-Chamada").assertIsSelected();tag("frequency-mode-Calendário").assertExists();tag("frequency-mode-Bimestre").performClick()

@@ -1,3 +1,5 @@
+> **Marca oficial aprovada posteriormente:** a arte PNG enviada pelo proprietário substitui as corujas provisórias na 0.11.3. [Fonte, recursos e testes](LOGO_OFICIAL.md). As descrições e capturas antigas abaixo são históricas.
+
 # Noctua — identidade e continuidade da assinatura
 
 Incremento exclusivo sobre a versão 0.4.0: **0.4.1 / código 7**. A aprovação física do cadastro, chamadas, notas, edição, exclusão e proporcionalidade da 0.4.0 foi informada pelo professor na autorização deste incremento. Não houve reformulação dessas funcionalidades.

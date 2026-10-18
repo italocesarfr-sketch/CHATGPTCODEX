@@ -2,6 +2,7 @@ package br.com.diariodeclasse.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +14,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
@@ -20,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.*
-import androidx.compose.foundation.shape.CircleShape
 import br.com.diariodeclasse.ui.theme.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.diariodeclasse.R
@@ -35,7 +36,7 @@ import br.com.diariodeclasse.backup.BackupCodec
 private data class MainPage(val title: String, val label: String, val icon: Int)
 private val pages = listOf(
     MainPage("Cadastrar Turma", "Cadastrar\nTurma", R.drawable.ic_classes),
-    MainPage("Fazer Chamada / Diário de Classe", "Chamada/\nDiário", R.drawable.ic_diary),
+    MainPage("Fazer Chamada / Diário de Classe", "Chamada/\nDiário", R.drawable.noctua_logo),
     MainPage("Atividades e Notas", "Atividades\ne Notas", R.drawable.ic_grades),
     MainPage("Relatórios", "Relatórios", R.drawable.ic_reports))
 
@@ -123,9 +124,8 @@ private val pages = listOf(
     Scaffold(
         topBar = { TopAppBar(title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Surface(shape=CircleShape,color=Color(0xFFDCEAF5)) {
-                    Icon(painterResource(R.drawable.ic_owl), null, Modifier.padding(NoctuaSpace.tiny).size(24.dp), tint = Color.Unspecified)
-                }
+                Image(painterResource(R.drawable.noctua_logo), "Logo do Noctua: coruja em forma de N",
+                    Modifier.size(32.dp).testTag("noctua-logo"), contentScale = ContentScale.Fit)
                 NoctuaWordmark()
             }
         }, navigationIcon = {
@@ -141,7 +141,7 @@ private val pages = listOf(
                     horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(4.dp)) {
                     Surface(shape=MaterialTheme.shapes.large,color=if(active)MaterialTheme.colorScheme.secondaryContainer else Color.Transparent) {
                         Icon(painterResource(item.icon),null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp),
-                            tint=if(active)MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                            tint=if(item.icon==R.drawable.noctua_logo) Color.Unspecified else if(active)MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(item.label,Modifier.fillMaxWidth(),textAlign=TextAlign.Center,maxLines=2,
                         style=MaterialTheme.typography.labelSmall,color=if(active)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)

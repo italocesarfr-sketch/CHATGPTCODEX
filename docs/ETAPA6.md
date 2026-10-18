@@ -1,3 +1,5 @@
+> **Marca oficial aprovada posteriormente:** a arte PNG enviada pelo proprietário substitui as corujas provisórias na 0.11.3. [Fonte, recursos e testes](LOGO_OFICIAL.md). As descrições e capturas antigas abaixo são históricas.
+
 # Etapa 6 — Identidade noturna e navegação integrada
 
 **Noctua 0.11.0 / código 16**, sobre a **0.10.0 / código 15** aprovada em aparelho físico. Somente experiência de uso, navegação e apresentação. Nenhuma funcionalidade pedagógica nova.
