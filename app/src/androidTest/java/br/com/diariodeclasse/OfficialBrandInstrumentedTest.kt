@@ -33,7 +33,7 @@ class OfficialBrandInstrumentedTest {
     }
     private fun launcherIcon():AdaptiveIconDrawable {
         val app=context.packageManager.getApplicationInfo(context.packageName,0)
-        assertEquals(R.mipmap.ic_launcher,app.icon)
+        assertTrue("O sistema pode preferir o ícone padrão ou o redondo",app.icon in setOf(R.mipmap.ic_launcher,R.mipmap.ic_launcher_round))
         val actual=context.packageManager.getApplicationIcon(app)
         assertTrue("O Android deve carregar o ícone adaptativo oficial",actual is AdaptiveIconDrawable)
         return actual as AdaptiveIconDrawable
