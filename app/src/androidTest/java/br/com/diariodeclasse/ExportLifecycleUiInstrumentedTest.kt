@@ -53,6 +53,11 @@ class ExportLifecycleUiInstrumentedTest {
     private fun manage(){compose.onNodeWithTag("manage-class").performScrollTo().performClick();waitTag("class-lifecycle")}
     private fun openExport(){compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick();compose.onNodeWithTag("open-export").performClick();waitTag("export-screen")}
     private fun shot(name:String){compose.waitForIdle();val folder=File(app.filesDir,"etapa52-screenshots");folder.mkdirs();val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog())else compose.onRoot();File(folder,"$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
+    private fun choose(current:String,value:String) {
+        compose.onNodeWithText("$current ▾").performScrollTo().performClick()
+        compose.waitUntil(10000){compose.onAllNodes(isPopup()).fetchSemanticsNodes().isNotEmpty()}
+        compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+    }
     private fun clip():String {var value="";compose.runOnIdle{value=(app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip!!.getItemAt(0).text.toString()};return value}
     @Test fun exportPreviewAndBothClipboardModesUseExactSharedProjectionAndDoNotWriteRoom() {
         val before=runBlocking{app.backupManager.snapshot()};openExport()
@@ -62,13 +67,15 @@ class ExportLifecycleUiInstrumentedTest {
         val table=ExportProjection.build(vm.data.value,c,ExportOptions(term=3))
         assertEquals(SpreadsheetWriter.clipboard(table),clip());assertFalse(clip().contains(b.name));assertTrue(clip().contains(a.name))
         compose.onNodeWithTag("export-copy-grades").performScrollTo().performClick();assertEquals(SpreadsheetWriter.clipboard(table,true),clip());assertFalse(clip().contains(a.name))
+        waitText("Somente notas copiadas.")
+        compose.waitUntil(12000){compose.onAllNodesWithText("Somente notas copiadas.").fetchSemanticsNodes().isEmpty()}
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun groupedOptionsAnnualAndCsvRefreshPreviewAcrossRecreation() {
         val before=runBlocking{app.backupManager.snapshot()};openExport();compose.onNodeWithTag("export-options").performScrollTo().performClick()
-        compose.onNodeWithText("3º bimestre ▾").performScrollTo().performClick();compose.onNodeWithText("Resumo anual",useUnmergedTree=true).performClick()
-        compose.onNodeWithText("Notas ▾").performScrollTo().performClick();compose.onNodeWithText("Consolidado",useUnmergedTree=true).performClick()
-        compose.onNodeWithText("XLSX ▾").performScrollTo().performClick();compose.onNodeWithText("CSV",useUnmergedTree=true).performClick()
+        choose("3º bimestre","Resumo anual")
+        choose("Notas","Consolidado")
+        choose("XLSX","CSV")
         compose.onNodeWithTag("export-options").performScrollTo().performClick()
         waitText("Consolidado • Resumo anual • CSV");shot("02-consolidado")
         compose.activityRule.scenario.recreate();waitText("Consolidado • Resumo anual • CSV")
