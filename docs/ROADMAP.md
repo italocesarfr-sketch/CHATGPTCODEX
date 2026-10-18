@@ -1,3 +1,5 @@
+> **Refinamento autorizado — 0.11.4 / 20:** edição, arquivamento e exclusão reunidos em Editar Turma; confirmação simples com proteções internas intactas. Sem alteração de esquema, backup, regras ou marca. [Fluxo e validação](CORRECAO_UX_TURMAS.md).
+
 > **Correção autorizada posterior à 0.11.1 — exclusão com remanejamentos:** origem e intermediárias podem ser excluídas após confirmação, preservando históricos independentes por IDs. Room v7 aditivo e backup 8, compatível com anteriores. O bloqueio genérico descrito na Etapa 5.2 é substituído pela preservação transacional, sem novas regras pedagógicas. [Arquitetura e validação](CORRECAO_EXCLUSAO_REMANEJAMENTOS.md).
 
 > **Autorização vigente — Etapa 6 / Noctua 0.11.0 (16), concluída:** identidade noturna nativa, navegação Chamada/Diário e exportação concentrada em Relatórios. Room v6 e backup 7 sem alterações. Base 0.10.0 aprovada em aparelho físico. Impeccable indisponível nesta execução, sem alegação de uso; **93 JVM, 156 Android e atualização assinada aprovados**; [auditoria, escopo e resultados](ETAPA6.md). Sem novas regras escolares.

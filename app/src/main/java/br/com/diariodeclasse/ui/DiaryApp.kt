@@ -58,7 +58,6 @@ private val pages = listOf(
     var page by rememberSaveable { mutableIntStateOf(0) }
     var detail by rememberSaveable { mutableStateOf("") }
     var managedClassId by rememberSaveable { mutableStateOf("") }
-    var managementReturn by rememberSaveable { mutableStateOf("") }
     var exportBusy by remember { mutableStateOf(false) }
     var returnDetail by rememberSaveable { mutableStateOf("") }
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
@@ -116,8 +115,9 @@ private val pages = listOf(
     fun back() = navigate { detail = when(detail) {
         "profile" -> returnDetail
         "archived-student-report" -> "archived-reports"
-        "archived-reports", "archived-export", "archived-records" -> "manage-class"
-        "manage-class" -> managementReturn
+        "archived-reports", "archived-export", "archived-records" -> {
+            editingClass=data.classes.firstOrNull{it.id==managedClassId};classForm=editingClass!=null;"archives"
+        }
         else -> ""
     }; returnDetail = "" }
     BackHandler(detail.isNotEmpty() && !navigating) { back() }
@@ -152,12 +152,13 @@ private val pages = listOf(
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             Box(Modifier.fillMaxWidth().height(4.dp)) { if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!data.loaded) { CircularProgressIndicator(Modifier.padding(32.dp)); return@Column }
-            if(detail !in setOf("archives","manage-class","archived-reports","archived-export","archived-student-report","archived-records")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
+            if(detail !in setOf("archives","archived-reports","archived-export","archived-student-report","archived-records")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
-                        detail == "archives" -> ArchivedClassesScreen(data) { managedClassId=it;managementReturn="archives";detail="manage-class" }
-                        detail == "manage-class" -> ClassLifecycleScreen(vm,data,managedClassId,{detail="archived-reports"},{detail="archived-export"},records={detail="archived-records"}) { detail=managementReturn }
+                        detail == "archives" -> ArchivedClassesScreen(data) { id ->
+                            managedClassId=id;editingClass=data.classes.firstOrNull{it.id==id};classForm=editingClass!=null
+                        }
                         detail == "archived-reports" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived ->
                             Column { Text("Turma arquivada • ${archived.name} • ${archived.year}",Modifier.padding(NoctuaSpace.page));TermSelector(term){term=it}
                                 ReportScreen(data,archived,term) {studentId=it;detail="archived-student-report"} }
@@ -182,7 +183,7 @@ private val pages = listOf(
                         detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; returnDetail = "roster"; detail = "profile" }
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
-                            edit = { editingClass = c; classForm = true }, roster = { detail = "roster" }, manage = { c?.let {managedClassId=it.id;managementReturn="";detail="manage-class"} }, archives={detail="archives"})
+                            edit = { editingClass = c; classForm = true }, roster = { detail = "roster" }, archives={detail="archives"})
                         c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
                         page == 1 && c != null -> frequencyStates.SaveableStateProvider(c.id) {
                             ClassJournalArea(vm,data,c,term,{term=it},{termForm=true},classAreaMode,{next->navigate{classAreaMode=next}},recordDraft,::changeRecord,::dismissRecord,::navigate)
@@ -222,12 +223,28 @@ private val pages = listOf(
         "As alterações deste registro ainda não foram salvas. Cancelar mantém o texto; confirmar descarta somente esta edição.",
         {pendingRecordNavigation=null}, {pendingRecordNavigation=null;action()}) }
     if (showBackup) BackupDialog(vm) { showBackup = false }
-    if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false }) { id ->
+    if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false },
+        administrativeFinished = { notice ->
+            classForm=false;page=0;detail=""
+            // Resolver pelo banco já confirmado; o Flow visual pode ainda estar emitindo.
+            vm.act(done={vm.message(notice)}) {
+                val dao=vm.repository.db.backupDao()
+                val archivedIds=dao.classArchives().map{it.classId}.toSet()
+                val active=dao.classes().filter{it.id !in archivedIds}
+                val store=(vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).selectionStore
+                store.write(resolveSelection(store.read(),active))
+            }
+        },
+        archived=data.classArchives.any{it.classId==editingClass?.id},
+        reports={classForm=false;detail="archived-reports"},
+        export={classForm=false;detail="archived-export"},
+        records={classForm=false;detail="archived-records"}) { id ->
         classForm = false
         // O formulário retorna o ano persistido, não a posição da turma no seletor.
-        vm.act(done = { page = 0; detail = "roster" }) {
+        val wasArchived=data.classArchives.any{it.classId==id}
+        vm.act(done = { page = 0; detail = if(wasArchived) "archives" else "roster" }) {
             val klass = requireNotNull(vm.repository.dao.schoolClass(id))
-            (vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).selectionStore.write(AppSelection(klass.year, id))
+            if(!wasArchived) (vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).selectionStore.write(AppSelection(klass.year, id))
         }
     }
     if (termForm && c != null) TermForm(vm, c, data.terms.filter { it.classId == c.id }) { termForm = false }
@@ -273,18 +290,15 @@ private val pages = listOf(
     }
 }
 
-@Composable private fun ClassManagementScreen(data: DiarySnapshot, c: SchoolClass?, year: Int, create: () -> Unit, edit: () -> Unit, roster: () -> Unit, manage: () -> Unit, archives: () -> Unit) {
+@Composable private fun ClassManagementScreen(data: DiarySnapshot, c: SchoolClass?, year: Int, create: () -> Unit, edit: () -> Unit, roster: () -> Unit, archives: () -> Unit) {
     LazyColumn(contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.page)) {
         item {
             Section("Cadastrar Turma", "Organize suas turmas e seus estudantes")
             Button(create, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Nova Turma") }
             Spacer(Modifier.height(10.dp))
-            OutlinedButton(edit, enabled = c != null, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Editar Turma Existente") }
+            OutlinedButton(edit, enabled = c != null, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("edit-class")) { Text("Editar Turma") }
         }
-        item { Row(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
-            TextButton(onClick=manage,enabled=c!=null,modifier=Modifier.testTag("manage-class")){Text("Gerenciar turma")}
-            TextButton(onClick=archives,modifier=Modifier.testTag("open-archives")){Text("Turmas arquivadas")}
-        } }
+        item { TextButton(onClick=archives,modifier=Modifier.testTag("open-archives")){Text("Turmas Arquivadas")} }
         if (c == null) item { Info("Nenhuma turma selecionada em $year. Comece em Nova Turma ou escolha outro ano no seletor acima.") }
         else {
             item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

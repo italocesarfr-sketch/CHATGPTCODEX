@@ -53,7 +53,7 @@ class StageTwoUiInstrumentedTest {
     }
     @Test fun fourPagesShareSelectorPersistYearAndSurviveRecreation() {
         compose.onNodeWithText("+ Nova Turma").assertIsDisplayed()
-        compose.onNodeWithText("Editar Turma Existente").assertIsDisplayed();shot("01-turmas")
+        compose.onNodeWithText("Editar Turma").assertIsDisplayed();shot("01-turmas")
         compose.onNodeWithTag("nav-1").performClick()
         compose.waitUntil(10000) { compose.onAllNodesWithText("Bimestres").fetchSemanticsNodes().isNotEmpty() }
         waitText("Mês do ano letivo 2026")
@@ -133,7 +133,7 @@ class StageTwoUiInstrumentedTest {
         val precise=a.copy(subject="Disciplina Fictícia Precisa",scale=10.125,low=4.875,high=6.995,duration=45,schedule="0,0,2,1,0,0,0",countJustified=false,startPresent=true)
         app.repository.saveClass(precise,"2026-01-01")
         waitText(precise.subject)
-        compose.onNodeWithText("Editar Turma Existente").performClick()
+        compose.onNodeWithText("Editar Turma").performClick()
         compose.onNodeWithText("Nome da turma").performTextReplacement("Turma Fictícia Editada UI")
         compose.onNodeWithText("Salvar turma").performScrollTo().performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.schoolClass(a.id)?.name=="Turma Fictícia Editada UI" } }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -21,45 +20,75 @@ import br.com.diariodeclasse.data.*
         items(classes,key={it.id}){c->OutlinedButton(onClick={open(c.id)},modifier=Modifier.fillMaxWidth().testTag("archived-${c.id}")){Text("${c.name} • ${c.subject} • ${c.year}")}}
     }
 }
-@Composable fun ClassLifecycleScreen(vm:DiaryViewModel,data:DiarySnapshot,classId:String,reports:()->Unit,export:()->Unit,records:()->Unit = {},removed:()->Unit) {
-    val c=data.classes.firstOrNull{it.id==classId}
+/** Somente apresentação: plano, impressão digital e transação permanecem no Repository. */
+@Composable fun ClassAdministrativeActions(vm:DiaryViewModel,c:SchoolClass,archived:Boolean,
+    finished:(String)->Unit,reports:()->Unit,export:()->Unit,records:()->Unit) {
     val saving by vm.saving.collectAsState()
-    var archiveConfirmation by remember{mutableStateOf(false)}
-    var preview by remember{mutableStateOf<ClassDeletionPreview?>(null)}
-    var confirmation by rememberSaveable(classId){mutableStateOf("")}
-    if(c==null){Info("A turma não está mais disponível. Volte para selecionar outra turma.");return}
-    val archived=data.classArchives.any{it.classId==classId}
-    LazyColumn(Modifier.testTag("class-lifecycle"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.medium)) {
-        item {
-            Section("Gerenciar turma","${c.name} • ${c.subject} • ${c.year}")
-            Text(if(archived)"Arquivada • registros escolares preservados"else"Ativa")
-            Button(enabled=!saving,onClick={archiveConfirmation=true},modifier=Modifier.testTag("archive-class")){Text(if(archived)"Reativar turma"else"Arquivar turma")}
-            if(archived) {
-                OutlinedButton(onClick=reports,modifier=Modifier.testTag("archived-reports")){Text("Consultar relatórios")}
-                OutlinedButton(onClick=records,modifier=Modifier.testTag("archived-records")){Text("Consultar registros de aula")}
-                OutlinedButton(onClick=export,modifier=Modifier.testTag("archived-export")){Text("Exportar dados")}
+    val error by vm.error.collectAsState()
+    var archiveConfirmation by remember(c.id){mutableStateOf(false)}
+    var deleting by remember(c.id){mutableStateOf(false)}
+    var preview by remember(c.id){mutableStateOf<ClassDeletionPreview?>(null)}
+    HorizontalDivider()
+    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        OutlinedButton(enabled=!saving,onClick={vm.clearError();archiveConfirmation=true},
+            modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("archive-class")) {
+            Text(if(archived)"Reativar turma"else"Arquivar")
+        }
+        OutlinedButton(enabled=!saving,onClick={
+            vm.clearError();preview=null;deleting=true
+            // A prévia é interna. Abrir/cancelar o diálogo não modifica registros.
+            vm.act {
+                try {
+                    val p=vm.repository.previewClassDeletion(c.id)
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main){preview=p}
+                } catch(e:kotlinx.coroutines.CancellationException){throw e}
+                catch(e:Exception){throw IllegalArgumentException("Não foi possível conferir a turma. Feche e tente novamente.",e)}
             }
-            HorizontalDivider()
-            Text("Exclusão permanente",style=MaterialTheme.typography.titleMedium)
-            Text("Crie um backup completo antes de excluir. A prévia confere vínculos e informa todos os registros afetados.",style=MaterialTheme.typography.bodySmall)
-            OutlinedButton(enabled=!saving,onClick={val id=c.id;vm.act {val p=vm.repository.previewClassDeletion(id);kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main){preview=p;confirmation=""}}},modifier=Modifier.testTag("delete-class-preview")){Text("Conferir exclusão da turma")}
-            SaveError(vm)
-        }
+        },colors=ButtonDefaults.outlinedButtonColors(contentColor=MaterialTheme.colorScheme.error),
+            modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("delete-class-preview")){Text("Excluir")}
     }
-    if(archiveConfirmation)Confirm(if(archived)"Reativar turma?"else"Arquivar turma?",
-        "${c.name} (${c.year}). ${if(archived)"A turma voltará aos seletores ativos."else"A turma sairá dos seletores ativos e continuará disponível em Turmas arquivadas."} Nenhum registro escolar será alterado.",
-        {archiveConfirmation=false},{val id=c.id;vm.act(done={archiveConfirmation=false}){vm.repository.archiveClass(id,!archived)}})
-    preview?.let{p->Form("Excluir turma permanentemente",{if(!saving)preview=null}) {
-        Text("Tem certeza de que deseja excluir permanentemente esta turma?")
-        Text("${p.school.name} • ${p.school.subject} • ${p.school.year}",style=MaterialTheme.typography.titleMedium)
-        p.counts.forEach{(label,count)->Text("$label: $count")}
-        p.blockedReason?.let{Info(it)} ?: run {
-            Info("Irreversível. Crie um backup completo pelo botão Backup antes de continuar. A turma e seus dados exclusivos serão removidos. Históricos vinculados a alunos que permanecem em outras turmas serão preservados, com sua origem, notas e frequência.")
-            Text("Digite exatamente: ${p.confirmation}")
-            Field("Identificação para excluir",confirmation,{confirmation=it},modifier=Modifier.testTag("delete-class-confirmation"))
-            Button(enabled=!saving&&confirmation==p.confirmation,onClick={vm.act(done={preview=null;removed()}){vm.repository.deleteClass(p,confirmation)}},modifier=Modifier.testTag("delete-class-confirm")){Text("Excluir permanentemente")}
-        }
-        OutlinedButton(enabled=!saving,onClick={preview=null}){Text("Cancelar exclusão")}
-        SaveError(vm)
-    }}
+    if(archived) {
+        Text("Arquivada • registros escolares preservados",style=MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick=reports,enabled=!saving,modifier=Modifier.testTag("archived-reports")){Text("Consultar relatórios")}
+        OutlinedButton(onClick=records,enabled=!saving,modifier=Modifier.testTag("archived-records")){Text("Consultar registros de aula")}
+        OutlinedButton(onClick=export,enabled=!saving,modifier=Modifier.testTag("archived-export")){Text("Exportar dados")}
+    }
+    if(archiveConfirmation) AlertDialog(
+        onDismissRequest={if(!saving)archiveConfirmation=false},
+        title={Text(if(archived)"Reativar turma?"else"Arquivar turma?")},
+        text={Column {
+            Text(if(archived)"Reativar a turma ${c.name}?" else "Arquivar a turma ${c.name}? Você poderá reativá-la em Turmas arquivadas.")
+            error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
+        }},
+        dismissButton={TextButton(enabled=!saving,onClick={archiveConfirmation=false}){Text("Cancelar")}},
+        confirmButton={TextButton(enabled=!saving,onClick={
+            vm.act(done={archiveConfirmation=false;finished(if(archived)"Turma reativada."else"Turma arquivada.")}) {
+                try {vm.repository.archiveClass(c.id,!archived)}
+                catch(e:kotlinx.coroutines.CancellationException){throw e}
+                catch(e:Exception){throw IllegalArgumentException("Não foi possível atualizar a turma. Tente novamente.",e)}
+            }
+        }){Text("Confirmar")}})
+    if(deleting) AlertDialog(
+        onDismissRequest={if(!saving){deleting=false;preview=null}},
+        modifier=Modifier.testTag("delete-class-dialog"),
+        title={Text("Excluir turma?")},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            Text("Deseja realmente excluir a turma ${c.name}?\n\nO procedimento é irreversível.")
+            if(saving) LinearProgressIndicator(Modifier.fillMaxWidth())
+            if(preview?.blockedReason!=null) Text("Não foi possível excluir: os vínculos precisam de revisão.",color=MaterialTheme.colorScheme.error)
+            error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
+        }},
+        dismissButton={TextButton(enabled=!saving,onClick={deleting=false;preview=null},modifier=Modifier.testTag("delete-class-cancel")){Text("Não")}},
+        confirmButton={TextButton(enabled=!saving&&preview?.blockedReason==null&&preview!=null,
+            colors=ButtonDefaults.textButtonColors(contentColor=MaterialTheme.colorScheme.error),
+            modifier=Modifier.testTag("delete-class-confirm"),onClick={
+                val plan=preview ?: return@TextButton
+                // A autorização explícita é este clique. Mantém as validações originais,
+                // inclusive contexto imutável e rejeição de prévia obsoleta na transação.
+                vm.act(done={deleting=false;preview=null;finished("Turma excluída.")}) {
+                    try {vm.repository.deleteClass(plan,plan.confirmation)}
+                    catch(e:kotlinx.coroutines.CancellationException){throw e}
+                    catch(e:Exception){throw IllegalArgumentException("Não foi possível excluir a turma. Feche e tente novamente.",e)}
+                }
+            }){Text("Sim, excluir")}})
 }

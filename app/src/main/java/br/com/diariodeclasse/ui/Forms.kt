@@ -11,7 +11,8 @@ import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.RosterParser
 import java.time.LocalDate
 
-@Composable fun ClassForm(vm: DiaryViewModel, original: SchoolClass?, selectedYear: Int, dismiss: () -> Unit, saved: (String) -> Unit) {
+@Composable fun ClassForm(vm: DiaryViewModel, original: SchoolClass?, selectedYear: Int, dismiss: () -> Unit, administrativeFinished: (String) -> Unit,
+    archived: Boolean = false, reports: () -> Unit = {}, export: () -> Unit = {}, records: () -> Unit = {}, saved: (String) -> Unit) {
     val c = remember { original ?: SchoolClass(name = "", subject = "", year = selectedYear) }
     var name by rememberSaveable { mutableStateOf(c.name) }; var subject by rememberSaveable { mutableStateOf(c.subject) }
     var year by rememberSaveable { mutableStateOf(c.year.toString()) }; var stage by rememberSaveable { mutableStateOf(c.stage) }
@@ -24,7 +25,7 @@ import java.time.LocalDate
     var high by rememberSaveable { mutableStateOf(c.high.toString().replace('.', ',')) }; var countFj by rememberSaveable { mutableStateOf(c.countJustified) }
     var present by rememberSaveable { mutableStateOf(c.startPresent) }
     val saving by vm.saving.collectAsState()
-    Form(if (original == null) "Nova Turma" else "Editar Turma Existente", dismiss) {
+    Form(if (original == null) "Nova Turma" else "Editar Turma", { if(!saving) dismiss() }) {
         Text("Dados da turma", style = MaterialTheme.typography.titleMedium)
         Field("Nome da turma", name, { name = it }); Field("Disciplina", subject, { subject = it })
         if (original == null) Field("Ano letivo", year, { year = it })
@@ -58,6 +59,7 @@ import java.time.LocalDate
             }
         }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Salvar turma") }
         SaveError(vm)
+        if(original!=null) ClassAdministrativeActions(vm,c,archived,administrativeFinished,reports,export,records)
     }
 }
 
