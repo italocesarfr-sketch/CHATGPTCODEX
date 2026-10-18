@@ -94,7 +94,15 @@ class OfficialBrandInstrumentedTest {
     }
     private fun waitNode(message:String,find:()->AccessibilityNodeInfo?):AccessibilityNodeInfo {
         val deadline=SystemClock.uptimeMillis()+12000
-        while(SystemClock.uptimeMillis()<deadline) {find()?.let {return it};SystemClock.sleep(80)}
+        while(SystemClock.uptimeMillis()<deadline) {
+            val node=try {find()} catch(e:NullPointerException) {
+                // API 30 pode invalidar a janela durante a transição do launcher.
+                // Reconsulta uma raiz nova; não ignora erros de nossa implementação.
+                if(e.stackTrace.none {it.className=="android.view.accessibility.AccessibilityInteractionClient"}) throw e
+                null
+            }
+            node?.let {return it};SystemClock.sleep(80)
+        }
         throw AssertionError(message)
     }
     private fun label(root:AccessibilityNodeInfo?)=root?.findAccessibilityNodeInfosByText("Noctua")?.firstOrNull {it.isVisibleToUser && (it.text?.toString()=="Noctua" || it.contentDescription?.toString()=="Noctua")}

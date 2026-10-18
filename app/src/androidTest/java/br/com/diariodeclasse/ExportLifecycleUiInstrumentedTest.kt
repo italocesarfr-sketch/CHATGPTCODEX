@@ -26,6 +26,9 @@ class ExportLifecycleUiInstrumentedTest {
     private val b=a.copy(id="ui52-b",personId="ui52-person-b",number=2,name="Estudante Fictício Oculto")
     @Before fun setup()=runBlocking {
         app=compose.activity.application as DiaryApplication;previous=app.selectionStore.read()
+        app.commands.awaitPendingWrites()
+        // Cada caso começa sem notificações enfileiradas por outro caso.
+        while(app.commands.messages.tryReceive().isSuccess) {}
         app.repository.saveClass(c,"2026-01-01");app.repository.saveClass(h,"2026-01-01");app.repository.saveStudent(a);app.repository.saveStudent(b)
         val activity=Activity("ui52-activity",c.id,"Avaliação Fictícia B3",date="2026-08-10",term=3,maximum=10.0)
         app.repository.saveActivity(activity);app.repository.saveGrade(activity.id,a.id,0.0);app.repository.saveRecomposition(Recomposition(a.id,3,5.0,"2026-08-20"))
@@ -36,6 +39,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.waitUntil(10000){vm.selection.value?.classId==c.id&&vm.data.value.exportRows.any{it.classId==c.id}}
     }
     @After fun cleanup()=runBlocking {
+        app.commands.awaitPendingWrites()
         app.database.runInTransaction {
             val sql=app.database.openHelper.writableDatabase
             sql.execSQL("DROP TRIGGER IF EXISTS fail_ui_class_delete")
@@ -49,6 +53,7 @@ class ExportLifecycleUiInstrumentedTest {
                 sql.execSQL("DELETE FROM classes WHERE id=?",arrayOf(id))
             }
         };app.selectionStore.write(previous)
+        while(app.commands.messages.tryReceive().isSuccess) {}
     }
     private fun waitTag(tag:String){compose.waitUntil(10000){compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()}}
     private fun waitText(text:String){compose.waitUntil(10000){compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()}}
@@ -159,17 +164,17 @@ class ExportLifecycleUiInstrumentedTest {
         confirmDeletion()
         compose.waitUntil(10000) {runBlocking {app.repository.dao.schoolClass(c.id)==null}}
         waitFinished()
-        // A Snackbar temporária fica sobre o conteúdo inferior: aguardar seu fim
-        // antes de testar o toque real na linha do boletim.
+        // A ausência inicial não significa que a mensagem já terminou: ela pode
+        // aguardar uma Snackbar anterior. Observar primeiro a confirmação atual.
+        compose.waitUntil(30000){compose.onAllNodesWithText("Turma excluída.").fetchSemanticsNodes().isNotEmpty()}
         compose.waitUntil(12000){compose.onAllNodesWithText("Turma excluída.").fetchSemanticsNodes().isEmpty()}
         waitTag("class-selector");compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick()
         val list=compose.onNodeWithTag("reports-list")
         list.performScrollToNode(hasTestTag("report-row-${target.id}"))
         compose.onNodeWithTag("report-row-${target.id}-original",useUnmergedTree=true).onChild().assertTextEquals("0,00")
         compose.onNodeWithTag("report-row-${target.id}-current",useUnmergedTree=true).onChild().assertTextEquals("5,00")
-        // O nó mesclado com esse texto é a linha inteira, cujo centro pode ficar
-        // fora do viewport quando há várias células históricas altas. Tocar no
-        // texto real, na coluna fixa, reproduz o gesto do professor.
+        // Tocar no texto real da coluna fixa reproduz o gesto do professor,
+        // sem depender do centro do nó mesclado de todas as células.
         compose.onNodeWithTag("report-row-${target.id}").assertHasClickAction()
         val name=compose.onNodeWithText("${target.number}. ${target.name}",useUnmergedTree=true)
         name.performScrollTo().assertIsDisplayed()
