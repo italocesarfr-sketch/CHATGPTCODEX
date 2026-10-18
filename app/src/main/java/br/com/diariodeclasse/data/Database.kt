@@ -111,6 +111,9 @@ interface DiaryDao {
     @Query("SELECT * FROM recompositions ORDER BY studentId, term") fun recompositions(): Flow<List<Recomposition>>
     @Query("SELECT * FROM recompositions WHERE studentId = :studentId AND term = :term") suspend fun recomposition(studentId: String, term: Int): Recomposition?
     @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertRelocation(value: Relocation)
+    @Update suspend fun updateHistory(value: PreservedHistory): Int
+    @Upsert suspend fun saveHistories(values: List<PreservedHistory>)
+    @Query("DELETE FROM preserved_histories WHERE classId = :classId") suspend fun removeHistory(classId: String)
     @Upsert suspend fun save(value: Recomposition)
     @Query("DELETE FROM recompositions WHERE studentId = :studentId AND term = :term") suspend fun deleteRecomposition(studentId: String, term: Int)
     @Upsert suspend fun save(value: SchoolClass)
@@ -130,11 +133,12 @@ interface DiaryDao {
 }
 
 @Database(entities = [SchoolClass::class, Student::class, Term::class, Lesson::class,
-    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class], version = 6, exportSchema = true)
+    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class, PreservedHistory::class], version = 7, exportSchema = true)
+@TypeConverters(HistoricalConverters::class)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
     abstract fun backupDao(): BackupDao
     companion object {
-        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
+        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
     }
 }

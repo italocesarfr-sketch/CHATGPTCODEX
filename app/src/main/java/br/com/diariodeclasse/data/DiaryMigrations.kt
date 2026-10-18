@@ -41,3 +41,10 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_lesson_records_classId_date` ON `lesson_records` (`classId`, `date`)")
     }
 }
+
+/** Aditiva: mantém as treze tabelas v6 e cria somente o histórico independente de turmas. */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `preserved_histories` (`classId` TEXT NOT NULL, `content` TEXT NOT NULL, PRIMARY KEY(`classId`))")
+    }
+}

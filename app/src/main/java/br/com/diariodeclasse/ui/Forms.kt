@@ -104,7 +104,7 @@ import java.time.LocalDate
     var preview by remember { mutableStateOf<RelocationPreview?>(null) }
     var discard by remember { mutableStateOf(false) }
     var confirmReactivation by remember { mutableStateOf(false) }
-    val linked=data.relocations.any {it.sourceStudentId==student.id||it.targetStudentId==student.id}
+    val linked=data.academic().relocations.any {it.sourceStudentId==student.id||it.targetStudentId==student.id}
     val relocating=status=="Remanejado" && student.status=="Ativo" && original!=null
     val reactivating=student.status=="Transferido" && status=="Ativo"
     val duplicate = data.roster(c.id).any { it.id != student.id && RosterParser.possibleDuplicate(it.name, name) }

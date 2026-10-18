@@ -50,10 +50,11 @@ import br.com.diariodeclasse.data.*
         "${c.name} (${c.year}). ${if(archived)"A turma voltará aos seletores ativos."else"A turma sairá dos seletores ativos e continuará disponível em Turmas arquivadas."} Nenhum registro escolar será alterado.",
         {archiveConfirmation=false},{val id=c.id;vm.act(done={archiveConfirmation=false}){vm.repository.archiveClass(id,!archived)}})
     preview?.let{p->Form("Excluir turma permanentemente",{if(!saving)preview=null}) {
+        Text("Tem certeza de que deseja excluir permanentemente esta turma?")
         Text("${p.school.name} • ${p.school.subject} • ${p.school.year}",style=MaterialTheme.typography.titleMedium)
         p.counts.forEach{(label,count)->Text("$label: $count")}
         p.blockedReason?.let{Info(it)} ?: run {
-            Info("Irreversível. Crie um backup completo pelo botão Backup antes de continuar. Somente os dados exclusivos desta turma serão removidos.")
+            Info("Irreversível. Crie um backup completo pelo botão Backup antes de continuar. A turma e seus dados exclusivos serão removidos. Históricos vinculados a alunos que permanecem em outras turmas serão preservados, com sua origem, notas e frequência.")
             Text("Digite exatamente: ${p.confirmation}")
             Field("Identificação para excluir",confirmation,{confirmation=it},modifier=Modifier.testTag("delete-class-confirmation"))
             Button(enabled=!saving&&confirmation==p.confirmation,onClick={vm.act(done={preview=null;removed()}){vm.repository.deleteClass(p,confirmation)}},modifier=Modifier.testTag("delete-class-confirm")){Text("Excluir permanentemente")}

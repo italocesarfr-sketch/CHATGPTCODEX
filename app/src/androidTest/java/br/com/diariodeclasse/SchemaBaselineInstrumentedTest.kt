@@ -9,6 +9,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.DiaryDatabase
+import br.com.diariodeclasse.data.MIGRATION_6_7
 import br.com.diariodeclasse.data.MIGRATION_5_6
 import br.com.diariodeclasse.data.MIGRATION_4_5
 import br.com.diariodeclasse.data.MIGRATION_3_4
@@ -29,7 +30,7 @@ class SchemaBaselineInstrumentedTest {
             sql.execSQL("INSERT INTO classes (id,name,stage,subject,year,shift,schedule,duration,scale,low,high,countJustified,startPresent) VALUES ('frozen','Turma fictícia','Médio','História',2026,'Matutino','0,0,0,0,0,0,0',50,10,5,7,1,0)")
         }
         helper.runMigrationsAndValidate(name,2,true,MIGRATION_1_2).close()
-        val db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6).build()
+        val db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
         try {
             val manager=BackupManager(db,FileSafetyBackupStore(java.io.File(context.cacheDir,"schema-test-safety")),2,null)
             assertEquals("frozen",manager.snapshot().classes.single().id)

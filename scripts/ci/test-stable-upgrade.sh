@@ -29,3 +29,6 @@ probe check after
 probe restore backup
 adb shell am force-stop br.com.diariodeclasse
 probe check reopened
+probe delete-history deleted-history
+adb shell am force-stop br.com.diariodeclasse
+probe reopen-history reopened-history

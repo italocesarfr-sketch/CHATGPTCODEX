@@ -1,0 +1,466 @@
+{
+  "classes": [
+    {
+      "id": "history-x",
+      "name": "1º X Fictício",
+      "stage": "Médio",
+      "subject": "História",
+      "year": 2026,
+      "shift": "Matutino",
+      "schedule": "0,0,0,0,0,0,0",
+      "duration": 50,
+      "scale": 10.0,
+      "low": 5.0,
+      "high": 7.0,
+      "countJustified": true,
+      "startPresent": false
+    },
+    {
+      "id": "history-g",
+      "name": "1º G Fictício",
+      "stage": "Médio",
+      "subject": "História",
+      "year": 2026,
+      "shift": "Matutino",
+      "schedule": "0,0,0,0,0,0,0",
+      "duration": 50,
+      "scale": 10.0,
+      "low": 5.0,
+      "high": 7.0,
+      "countJustified": true,
+      "startPresent": false
+    },
+    {
+      "id": "history-h",
+      "name": "1º H Fictício",
+      "stage": "Médio",
+      "subject": "História",
+      "year": 2026,
+      "shift": "Matutino",
+      "schedule": "0,0,0,0,0,0,0",
+      "duration": 50,
+      "scale": 10.0,
+      "low": 5.0,
+      "high": 7.0,
+      "countJustified": true,
+      "startPresent": false
+    },
+    {
+      "id": "history-other",
+      "name": "Outra Turma Fictícia",
+      "stage": "Médio",
+      "subject": "História",
+      "year": 2026,
+      "shift": "Matutino",
+      "schedule": "0,0,0,0,0,0,0",
+      "duration": 50,
+      "scale": 10.0,
+      "low": 5.0,
+      "high": 7.0,
+      "countJustified": true,
+      "startPresent": false
+    }
+  ],
+  "students": [
+    {
+      "id": "hx",
+      "personId": "history-person",
+      "classId": "history-x",
+      "name": "Estudante Fictício Histórico",
+      "number": 1,
+      "joined": "2026-01-01",
+      "left": "2026-08-31",
+      "status": "Remanejado",
+      "notes": "Observação fictícia preservada"
+    },
+    {
+      "id": "hg",
+      "personId": "history-person",
+      "classId": "history-g",
+      "name": "Estudante Fictício Histórico",
+      "number": 1,
+      "joined": "2026-09-01",
+      "left": "2026-09-14",
+      "status": "Remanejado",
+      "notes": "Observação fictícia preservada"
+    },
+    {
+      "id": "hh",
+      "personId": "history-person",
+      "classId": "history-h",
+      "name": "Estudante Fictício Histórico",
+      "number": 1,
+      "joined": "2026-09-15",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação fictícia preservada"
+    },
+    {
+      "id": "exclusive",
+      "personId": "exclusive-person",
+      "classId": "history-x",
+      "name": "Estudante Fictício Exclusivo",
+      "number": 2,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação fictícia preservada"
+    },
+    {
+      "id": "unrelated",
+      "personId": "unrelated-person",
+      "classId": "history-other",
+      "name": "Estudante Fictício Exclusivo",
+      "number": 1,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação fictícia preservada"
+    }
+  ],
+  "terms": [
+    {
+      "classId": "history-x",
+      "number": 1,
+      "start": "2026-01-01",
+      "end": "2026-03-31"
+    },
+    {
+      "classId": "history-x",
+      "number": 2,
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    {
+      "classId": "history-x",
+      "number": 3,
+      "start": "2026-07-01",
+      "end": "2026-09-30"
+    },
+    {
+      "classId": "history-x",
+      "number": 4,
+      "start": "2026-10-01",
+      "end": "2026-12-31"
+    },
+    {
+      "classId": "history-g",
+      "number": 1,
+      "start": "2026-01-01",
+      "end": "2026-03-31"
+    },
+    {
+      "classId": "history-g",
+      "number": 2,
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    {
+      "classId": "history-g",
+      "number": 3,
+      "start": "2026-07-01",
+      "end": "2026-09-30"
+    },
+    {
+      "classId": "history-g",
+      "number": 4,
+      "start": "2026-10-01",
+      "end": "2026-12-31"
+    },
+    {
+      "classId": "history-h",
+      "number": 1,
+      "start": "2026-01-01",
+      "end": "2026-03-31"
+    },
+    {
+      "classId": "history-h",
+      "number": 2,
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    {
+      "classId": "history-h",
+      "number": 3,
+      "start": "2026-07-01",
+      "end": "2026-09-30"
+    },
+    {
+      "classId": "history-h",
+      "number": 4,
+      "start": "2026-10-01",
+      "end": "2026-12-31"
+    },
+    {
+      "classId": "history-other",
+      "number": 1,
+      "start": "2026-01-01",
+      "end": "2026-03-31"
+    },
+    {
+      "classId": "history-other",
+      "number": 2,
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    {
+      "classId": "history-other",
+      "number": 3,
+      "start": "2026-07-01",
+      "end": "2026-09-30"
+    },
+    {
+      "classId": "history-other",
+      "number": 4,
+      "start": "2026-10-01",
+      "end": "2026-12-31"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "history-x:2026-08-10:1",
+      "classId": "history-x",
+      "date": "2026-08-10",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-x:2026-08-10:2",
+      "classId": "history-x",
+      "date": "2026-08-10",
+      "ordinal": 2,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-x:2026-08-11:1",
+      "classId": "history-x",
+      "date": "2026-08-11",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-x:2026-08-12:1",
+      "classId": "history-x",
+      "date": "2026-08-12",
+      "ordinal": 1,
+      "state": "CANCELADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-x:2026-08-13:1",
+      "classId": "history-x",
+      "date": "2026-08-13",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-g:2026-09-10:1",
+      "classId": "history-g",
+      "date": "2026-09-10",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-g:2026-09-10:2",
+      "classId": "history-g",
+      "date": "2026-09-10",
+      "ordinal": 2,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-g:2026-09-10:3",
+      "classId": "history-g",
+      "date": "2026-09-10",
+      "ordinal": 3,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    },
+    {
+      "id": "history-h:2026-09-20:1",
+      "classId": "history-h",
+      "date": "2026-09-20",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": "Contexto original fictício"
+    }
+  ],
+  "marks": [
+    {
+      "lessonId": "history-x:2026-08-10:1",
+      "studentId": "hx",
+      "mark": "P"
+    },
+    {
+      "lessonId": "history-x:2026-08-10:2",
+      "studentId": "hx",
+      "mark": "F"
+    },
+    {
+      "lessonId": "history-x:2026-08-11:1",
+      "studentId": "hx",
+      "mark": "FJ"
+    },
+    {
+      "lessonId": "history-x:2026-08-12:1",
+      "studentId": "hx",
+      "mark": "F"
+    },
+    {
+      "lessonId": "history-x:2026-08-13:1",
+      "studentId": "hx",
+      "mark": "NR"
+    },
+    {
+      "lessonId": "history-g:2026-09-10:1",
+      "studentId": "hg",
+      "mark": "F"
+    },
+    {
+      "lessonId": "history-g:2026-09-10:2",
+      "studentId": "hg",
+      "mark": "P"
+    },
+    {
+      "lessonId": "history-g:2026-09-10:3",
+      "studentId": "hg",
+      "mark": "NR"
+    },
+    {
+      "lessonId": "history-h:2026-09-20:1",
+      "studentId": "hh",
+      "mark": "P"
+    }
+  ],
+  "activities": [
+    {
+      "id": "hx-score",
+      "classId": "history-x",
+      "name": "Atividade Fictícia hx-score",
+      "type": "Prova",
+      "date": "2026-08-10",
+      "term": 3,
+      "maximum": 2.0,
+      "description": "Descrição original fictícia",
+      "notes": ""
+    },
+    {
+      "id": "hx-zero",
+      "classId": "history-x",
+      "name": "Atividade Fictícia hx-zero",
+      "type": "Prova",
+      "date": "2026-08-11",
+      "term": 3,
+      "maximum": 1.0,
+      "description": "Descrição original fictícia",
+      "notes": ""
+    },
+    {
+      "id": "hx-pending",
+      "classId": "history-x",
+      "name": "Atividade Fictícia hx-pending",
+      "type": "Prova",
+      "date": "2026-08-12",
+      "term": 3,
+      "maximum": 1.0,
+      "description": "Descrição original fictícia",
+      "notes": ""
+    },
+    {
+      "id": "hg-score",
+      "classId": "history-g",
+      "name": "Atividade Fictícia hg-score",
+      "type": "Prova",
+      "date": "2026-09-10",
+      "term": 3,
+      "maximum": 2.0,
+      "description": "Descrição original fictícia",
+      "notes": ""
+    },
+    {
+      "id": "hh-score",
+      "classId": "history-h",
+      "name": "Atividade Fictícia hh-score",
+      "type": "Prova",
+      "date": "2026-09-20",
+      "term": 3,
+      "maximum": 2.0,
+      "description": "Descrição original fictícia",
+      "notes": ""
+    },
+    {
+      "id": "exclusive-only",
+      "classId": "history-x",
+      "name": "Atividade Fictícia exclusive-only",
+      "type": "Prova",
+      "date": "2026-10-10",
+      "term": 4,
+      "maximum": 10.0,
+      "description": "Descrição original fictícia",
+      "notes": ""
+    }
+  ],
+  "grades": [
+    {
+      "activityId": "hx-score",
+      "studentId": "hx",
+      "value": 1.5
+    },
+    {
+      "activityId": "hx-zero",
+      "studentId": "hx",
+      "value": 0.0
+    },
+    {
+      "activityId": "hx-pending",
+      "studentId": "hx",
+      "value": null
+    },
+    {
+      "activityId": "hg-score",
+      "studentId": "hg",
+      "value": 1.0
+    },
+    {
+      "activityId": "hh-score",
+      "studentId": "hh",
+      "value": 2.0
+    },
+    {
+      "activityId": "exclusive-only",
+      "studentId": "exclusive",
+      "value": 8.0
+    }
+  ],
+  "drafts": [],
+  "recompositions": [
+    {
+      "studentId": "hx",
+      "term": 3,
+      "value": 6.0,
+      "date": "2026-08-20"
+    }
+  ],
+  "relocations": [
+    {
+      "sourceStudentId": "hx",
+      "targetStudentId": "hg",
+      "effectiveDate": "2026-09-01",
+      "externalTarget": null
+    },
+    {
+      "sourceStudentId": "hg",
+      "targetStudentId": "hh",
+      "effectiveDate": "2026-09-15",
+      "externalTarget": null
+    }
+  ],
+  "exportRows": [],
+  "classArchives": [],
+  "lessonRecords": []
+}

@@ -39,6 +39,7 @@ class ExportLifecycleUiInstrumentedTest {
         app.database.runInTransaction {
             val sql=app.database.openHelper.writableDatabase
             for(id in listOf(c.id,h.id)){
+                sql.execSQL("DELETE FROM preserved_histories WHERE classId=?",arrayOf(id))
                 sql.execSQL("DELETE FROM class_archives WHERE classId=?",arrayOf(id));sql.execSQL("DELETE FROM export_rows WHERE classId=?",arrayOf(id))
                 sql.execSQL("DELETE FROM relocations WHERE sourceStudentId IN (SELECT id FROM students WHERE classId=?) OR targetStudentId IN (SELECT id FROM students WHERE classId=?)",arrayOf(id,id))
                 sql.execSQL("DELETE FROM recompositions WHERE studentId IN (SELECT id FROM students WHERE classId=?)",arrayOf(id))
@@ -116,5 +117,29 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("delete-class-confirm").performScrollTo().performClick();waitTag("class-selector")
         compose.waitUntil(10000){runBlocking{app.repository.dao.schoolClass(c.id)==null}}
         assertEquals(before.classes.first{it.id==h.id},runBlocking{app.repository.dao.schoolClass(h.id)})
+    }
+    @Test fun deletingRelocatedOriginRequiresConfirmationAndDestinationReportsSurviveRecreation() {
+        val move=runBlocking {app.repository.previewRelocation(a.id,h.id,null,"2026-09-01").also {app.repository.confirmRelocation(it)}}
+        val target=move.target!!;val before=runBlocking {app.backupManager.snapshot()}
+        manage();compose.onNodeWithTag("delete-class-preview").performScrollTo().performClick()
+        waitText("Tem certeza de que deseja excluir permanentemente esta turma?")
+        compose.onNodeWithText("Históricos de matrículas preservados: 1").assertExists()
+        compose.onNodeWithText("Cancelar exclusão").performScrollTo().performClick()
+        assertEquals(before,runBlocking {app.backupManager.snapshot()})
+        compose.onNodeWithTag("delete-class-preview").performScrollTo().performClick()
+        compose.onNodeWithTag("delete-class-confirmation").performScrollTo().performTextInput("EXCLUIR ${c.name} (${c.year})")
+        compose.onNodeWithTag("delete-class-confirm").performScrollTo().performClick()
+        compose.waitUntil(10000) {runBlocking {app.repository.dao.schoolClass(c.id)==null}}
+        waitTag("class-selector");compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick()
+        val list=compose.onNodeWithTag("reports-list")
+        list.performScrollToNode(hasTestTag("report-row-${target.id}"))
+        compose.onNodeWithTag("report-row-${target.id}-original",useUnmergedTree=true).onChild().assertTextEquals("0,00")
+        compose.onNodeWithTag("report-row-${target.id}-current",useUnmergedTree=true).onChild().assertTextEquals("5,00")
+        compose.onNodeWithText("${target.number}. ${target.name}").performClick();waitTag("individual-report")
+        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("history-enrollment-${a.id}"))
+        compose.onNodeWithTag("history-enrollment-${a.id}").assertTextContains("${c.name} (turma excluída)",substring=true)
+        compose.activityRule.scenario.recreate();waitTag("individual-report")
+        assertEquals(before.students.first {it.id==target.id},runBlocking {app.repository.dao.student(target.id)})
+        assertEquals(before.grades.filter {it.studentId==a.id},runBlocking {app.database.backupDao().histories().single().content.grades})
     }
 }

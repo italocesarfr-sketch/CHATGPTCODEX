@@ -52,7 +52,7 @@ object ExportProjection {
             val prefix="${n}º bim.";fun row(s:Student)=periodRows.getValue(n).getValue(s.id)
             if(options.model!=ExportModel.FREQUENCY) {
                 if(options.model==ExportModel.NOTES) reports.term(n).activities.forEach{a->
-                    val origin=data.classes.first{it.id==a.classId}
+                    val origin=data.academic().classes.first{it.id==a.classId}
                     column("activity:${a.id}","$prefix • ${a.name} • ${origin.name} (máx. ${decimal(a.maximum)})",true,a.maximum){s->ExportCell.number(row(s).activities.firstOrNull{it.activity.id==a.id}?.applicableScore)}
                 }
                 column("$n:original","$prefix • Original",true){ExportCell.number(row(it).original)}

@@ -28,7 +28,7 @@ class ClassLifecycleInstrumentedTest {
     private val h=c.copy(id="life-h",name="Turma Fictícia Preservada")
     private val a=Student("life-a","life-person-a",c.id,"Estudante Fictício Alfa Áurea\r\nLinha",1,"2026-01-01",notes="Observação fictícia preservada")
     private val b=a.copy(id="life-b",personId="life-person-b",classId=h.id,name="Estudante Fictício Beta")
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),14,null)}
+    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),14,null)}
     private suspend fun data()=repo.snapshot.first{it.loaded}
     @Before fun setup()=runBlocking {
         context.deleteDatabase(name);folder=File(context.cacheDir,"life-${newId()}");open()
@@ -67,19 +67,19 @@ class ClassLifecycleInstrumentedTest {
         assertEquals(ClassLifecycle.snapshot(ClassLifecycle.without(d,c.id)).canonical(),manager.snapshot())
         assertEquals(before.students.first{it.id==b.id},repo.dao.student(b.id));assertEquals(before.exportRows.filter{it.classId==h.id},repo.dao.exportRows(h.id))
     }
-    @Test fun linkedInternalExternalAndSharedIdentityAlwaysBlockDeletion()=runBlocking {
-        repo.confirmRelocation(repo.previewRelocation(a.id,h.id,null,"2026-09-01"));val before=manager.snapshot()
+    @Test fun linkedInternalHistoryIsDetachedBeforeEitherClassIsDeleted()=runBlocking {
+        repo.confirmRelocation(repo.previewRelocation(a.id,h.id,null,"2026-09-01"))
         for(id in listOf(c.id,h.id)){
-            val preview=repo.previewClassDeletion(id);assertNotNull(preview.blockedReason)
-            try{repo.deleteClass(preview,preview.confirmation);fail()}catch(_:IllegalArgumentException){}
-        };assertEquals(before,manager.snapshot())
+            val preview=repo.previewClassDeletion(id);assertNull(preview.blockedReason)
+            repo.deleteClass(preview,preview.confirmation);assertNull(repo.dao.schoolClass(id))
+        };assertTrue(manager.snapshot().histories.isEmpty())
     }
-    @Test fun externalAndLegacySharedPersonAreBlockedWithoutInventingNewClass()=runBlocking {
+    @Test fun unlinkedLegacyIdentityNeedsReviewButExternalMovementDoesNotBlockDeletion()=runBlocking {
         repo.dao.save(b.copy(personId=a.personId));assertNotNull(repo.previewClassDeletion(c.id).blockedReason)
         repo.dao.save(b);repo.confirmRelocation(repo.previewRelocation(a.id,null,"Destino Externo Fictício","2026-09-01"))
-        val before=manager.snapshot();val p=repo.previewClassDeletion(c.id);assertNotNull(p.blockedReason)
-        try{repo.deleteClass(p,p.confirmation);fail()}catch(_:IllegalArgumentException){}
-        assertEquals(before,manager.snapshot());assertEquals(2,before.classes.size)
+        val p=repo.previewClassDeletion(c.id);assertNull(p.blockedReason)
+        repo.deleteClass(p,p.confirmation);assertNull(repo.dao.schoolClass(c.id))
+        assertTrue(manager.snapshot().histories.isEmpty());assertEquals(listOf(h.id),manager.snapshot().classes.map {it.id})
     }
     @Test fun crossClassGradeAndAttendanceAreNeverDeletedByCascade()=runBlocking {
         repo.dao.save(Grade("activity-${c.id}",b.id,1.0));repo.dao.save(Attendance("${c.id}:2026-08-10:1",b.id,"P"))

@@ -61,7 +61,8 @@ data class ClassYearReport(val school: SchoolClass, val students: List<StudentYe
 data class AttendanceHistory(val enrollment: Student, val school: SchoolClass, val lesson: Lesson, val mark: String?, val eligible: Boolean)
 
 /** Projeções somente leitura. Notas/frequência continuam delegadas ao DiarySnapshot/SchoolRules. */
-class SchoolReports(private val data: DiarySnapshot, val school: SchoolClass, showRelocated: Boolean = false) {
+class SchoolReports(source: DiarySnapshot, val school: SchoolClass, showRelocated: Boolean = false) {
+    private val data=source.academic()
     private val yearStart = "${school.year}-01-01"
     private val yearEnd = "${school.year}-12-31"
     private val scoped = data.copy(lessons = data.lessons.filter { it.date in yearStart..yearEnd })

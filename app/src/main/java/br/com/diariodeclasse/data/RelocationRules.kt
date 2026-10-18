@@ -14,6 +14,7 @@ object RelocationRules {
                 x!=null && y!=null && x.start==y.start && x.end==y.end
             }
     fun validateLinks(data: DiarySnapshot) {
+        if(data.histories.isNotEmpty()) { validateLinks(data.academic()); return }
         val students=data.students.associateBy {it.id};val classes=data.classes.associateBy {it.id}
         require(data.relocations.map {it.sourceStudentId}.distinct().size==data.relocations.size) {"Matrícula de origem já remanejada."}
         require(data.relocations.mapNotNull {it.targetStudentId}.distinct().size==data.relocations.count {it.targetStudentId!=null}) {"Destino já possui outro vínculo."}

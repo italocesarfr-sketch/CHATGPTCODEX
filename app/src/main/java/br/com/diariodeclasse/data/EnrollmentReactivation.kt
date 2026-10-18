@@ -2,7 +2,8 @@ package br.com.diariodeclasse.data
 
 /** Somente uma intenção explícita de reativação pode retirar a saída. Nunca executado ao ler/migrar/restaurar. */
 object EnrollmentReactivation {
-    fun reopen(student: Student, data: DiarySnapshot): Student {
+    fun reopen(student: Student, source: DiarySnapshot): Student {
+        val data=source.academic()
         require(student.status != "Remanejado" && data.relocations.none { it.sourceStudentId == student.id }) {
             "Matrícula já remanejada. Consulte o histórico; a origem não pode ser reativada."
         }

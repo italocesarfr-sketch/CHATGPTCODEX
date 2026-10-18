@@ -138,7 +138,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
             "Bimestral" -> {
                 if (report.activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Não há notas originais a totalizar; recomposições já registradas continuam identificadas.") }
                 val fields = listOf("current", "original", "recomposition", "pending", "performed", "present", "absent", "justified", "effective-absences", "percent")
-                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + (data.classes.firstOrNull {school->school.id==it.classId}?.name?:it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
+                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + data.schoolName(it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
                 items(sorted, key = { it.student.id }) { row ->
                     val f = row.attendance
                     TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.activities.map(::activityText) + listOf(
@@ -201,7 +201,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
         }
         if (row.activities.isEmpty()) item { Text("Nenhuma atividade neste bimestre.") }
         items(row.activities, key = { it.activity.id }) { entry ->
-            Text("${entry.activity.name}: ${activityText(entry)} / ${number(entry.activity.maximum)}\n${entry.activity.type} • ${shortDate(entry.activity.date)} • ${data.classes.firstOrNull {it.id==entry.activity.classId}?.name ?: entry.activity.classId}", Modifier.testTag("individual-activity-${entry.activity.id}"))
+            Text("${entry.activity.name}: ${activityText(entry)} / ${number(entry.activity.maximum)}\n${entry.activity.type} • ${shortDate(entry.activity.date)} • ${data.schoolName(entry.activity.classId)}", Modifier.testTag("individual-activity-${entry.activity.id}"))
         }
         item { Section("Histórico anual", "Quatro bimestres, sem média anual presumida") }
         items(year.terms, key = { it.number }) { entry ->

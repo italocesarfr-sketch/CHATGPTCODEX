@@ -15,15 +15,19 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
 
-/** Semente executada na release REAL 0.10.0. Só emulador descartável com argumento explícito. */
+/** Semente executada na release REAL de referência. Só emulador descartável com argumento explícito. */
 class StableUpgradeProbeTest {
     @Test fun sameOwnerSignaturePreservesEveryRowPreferencesAndBackup() {
         val phase=InstrumentationRegistry.getArguments().getString("stableUpgradePhase")
-        assumeTrue("Sonda exclusiva de atualização estável",phase in listOf("seed","check","restore"))
+        assumeTrue("Sonda exclusiva de atualização estável",phase in listOf("seed","check","restore","delete-history","reopen-history"))
         check(Build.HARDWARE in setOf("ranchu","goldfish")) {"Somente emulador descartável."}
         runBlocking {
             val app=ApplicationProvider.getApplicationContext<DiaryApplication>()
             val repo=app.repository;val manager=app.backupManager
+            if(phase in listOf("delete-history","reopen-history")) {
+                verifyDeletedHistoryAfterSignedUpgrade(app,phase!!)
+                return@runBlocking
+            }
             val file=File(app.filesDir,"stable-upgrade-synthetic.json")
             if(phase=="seed") {
                 val raw=InstrumentationRegistry.getInstrumentation().context.assets.open("baseline-v1.json").bufferedReader().use {it.readText()}
@@ -123,6 +127,42 @@ class StableUpgradeProbeTest {
             }
         }
     }
+    private suspend fun verifyDeletedHistoryAfterSignedUpgrade(app:DiaryApplication,phase:String) {
+        val repo=app.repository;val manager=app.backupManager
+        val state=File(app.filesDir,"stable-deleted-history.json")
+        if(phase=="delete-history") {
+            val previous=manager.snapshot()
+            val fixture=BackupCodec.json.decodeFromString<BackupSnapshot>(InstrumentationRegistry.getInstrumentation().context.assets.open("history-deletion.json").bufferedReader().use {it.readText()})
+            val seeded=previous.copy(classes=previous.classes+fixture.classes,students=previous.students+fixture.students,
+                terms=previous.terms+fixture.terms,lessons=previous.lessons+fixture.lessons,marks=previous.marks+fixture.marks,
+                activities=previous.activities+fixture.activities,grades=previous.grades+fixture.grades,
+                recompositions=previous.recompositions+fixture.recompositions,relocations=previous.relocations+fixture.relocations)
+            val bytes=BackupCodec.encode(seeded,BuildConfig.VERSION_CODE,null)
+            manager.restore(manager.prepare(bytes.inputStream()),"RESTAURAR")
+            for(id in listOf("history-x","history-g")) {
+                val p=repo.previewClassDeletion(id);assertNull(p.blockedReason);repo.deleteClass(p,p.confirmation)
+            }
+            val now=manager.snapshot()
+            val previousTables:List<Pair<List<*>,List<*>>> = listOf(previous.classes to now.classes,previous.students to now.students,
+                previous.terms to now.terms,previous.lessons to now.lessons,previous.marks to now.marks,
+                previous.activities to now.activities,previous.grades to now.grades,previous.recompositions to now.recompositions,
+                previous.relocations to now.relocations,previous.histories to now.histories)
+            previousTables.forEach {(old,current)->assertTrue("Registros anteriores à exclusão devem permanecer íntegros",old.all {row->current.any {it==row}})}
+            assertEquals(previous,now.copy(classes=previous.classes,students=previous.students,terms=previous.terms,
+                lessons=previous.lessons,marks=previous.marks,activities=previous.activities,grades=previous.grades,
+                recompositions=previous.recompositions,relocations=previous.relocations,histories=previous.histories))
+            state.writeBytes(manager.backupBytes())
+            repo.saveGrade("hh-score","hh",0.0)
+            manager.restore(manager.prepare(state.readBytes().inputStream()),"RESTAURAR")
+        }
+        val expected=BackupCodec.decode(state.readBytes()).snapshot
+        assertEquals(expected,manager.snapshot());assertEquals(2,expected.histories.size)
+        assertNull(repo.dao.schoolClass("history-x"));assertNull(repo.dao.schoolClass("history-g"))
+        val data=repo.snapshot.first {it.loaded};val target=repo.dao.student("hh")!!
+        val reports=SchoolReports(data,repo.dao.schoolClass("history-h")!!)
+        assertEquals(4.5,reports.student(target,3).original!!,0.0);assertEquals(6.0,reports.student(target,3).total!!,0.0)
+        assertEquals(8,reports.student(target,3).attendance!!.performed);assertEquals(3,data.lineage(target).size)
+    }
     private suspend fun verifyExportState(app:DiaryApplication, expected:BackupSnapshot) {
         val data=app.repository.snapshot.first{it.loaded}
         assertEquals(expected.exportRows,data.exportRows)
@@ -142,7 +182,7 @@ class StableUpgradeProbeTest {
         val rows=ExportLayout.normalize(listOf(ExportLayout.blank("classe-alfa"))+ExportLayout.rows(data,"classe-alfa").reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
         repo.saveExportLayout("classe-alfa",before.exportRows.filter{it.classId=="classe-alfa"},rows)
         val configured=manager.snapshot();assertEquals(before,configured.copy(exportRows=before.exportRows))
-        val bytes=manager.backupBytes();assertEquals(7,BackupCodec.decode(bytes).envelope.formatVersion)
+        val bytes=manager.backupBytes();assertEquals(8,BackupCodec.decode(bytes).envelope.formatVersion)
         repo.saveExportLayout("classe-alfa",rows,rows.map{it.copy(manualHidden=false)})
         manager.restore(manager.prepare(oldBytes.inputStream()),"RESTAURAR")
         assertEquals(original,manager.snapshot());assertEquals(original.exportRows,manager.snapshot().exportRows)
