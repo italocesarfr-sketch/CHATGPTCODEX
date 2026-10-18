@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.SchoolRules
 import br.com.diariodeclasse.reports.*
+import br.com.diariodeclasse.export.exportStatus
 
 internal fun gradeStatus(row: StudentPeriodReport): String = when (row.state) {
     GradeState.OUTSIDE_ENROLLMENT -> "Fora da matrícula"
@@ -25,11 +26,7 @@ internal fun gradeStatus(row: StudentPeriodReport): String = when (row.state) {
     GradeState.PARTIAL -> "Parcial (${row.grades.pending} pend.)"
     GradeState.COMPLETE -> "Notas completas"
 }
-private fun periodStatus(row: StudentPeriodReport): String = when {
-    !row.hasData && row.enrollment != EnrollmentCoverage.OUTSIDE && row.period != null -> "Sem dados"
-    row.state == GradeState.OUTSIDE_ENROLLMENT && row.enrollment == EnrollmentCoverage.PARTIAL -> "Sem atividades aplicáveis"
-    else -> gradeStatus(row)
-}
+private fun periodStatus(row: StudentPeriodReport): String = row.exportStatus()
 private fun recompositionScore(row: StudentPeriodReport): String = row.recomposition?.let { it.value?.let(::number) ?: "Não realizada" } ?: "Não registrada"
 private fun gradeBreakdown(row: StudentPeriodReport): String =
     "Original das atividades: ${row.original?.let(::number) ?: "Pendente"} • Recomposição: ${recompositionScore(row)}${row.recomposition?.let { " (${shortDate(it.date)})" }.orEmpty()}${row.recompositionSchool?.let { " • ${it.name}" }.orEmpty()}\nResultado vigente: ${row.total?.let(::number) ?: "Pendente"}"

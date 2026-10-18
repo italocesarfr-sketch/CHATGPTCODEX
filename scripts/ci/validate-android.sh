@@ -30,6 +30,12 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa51-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa51-screenshots > build/etapa51-telas.tar
 fi
+if adb shell run-as br.com.diariodeclasse test -d files/etapa52-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa52-screenshots > build/etapa52-telas.tar
+fi
+if adb shell run-as br.com.diariodeclasse test -d files/etapa52-planilhas; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa52-planilhas > build/etapa52-planilhas.tar
+fi
 if (( status != 0 )); then exit "$status"; fi
 python3 - <<'PY'
 import tarfile
@@ -42,7 +48,19 @@ print('Capturas da lista, exclusão e recálculo coletadas.')
 with tarfile.open('build/etapa51-telas.tar') as images:
     assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 3
 print('Capturas da ocultação, disposição e remanejamento coletadas.')
+with tarfile.open('build/etapa52-telas.tar') as images:
+    assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 4
+from pathlib import Path
+with tarfile.open('build/etapa52-planilhas.tar') as files:
+    for entry in files.getmembers():
+        if not entry.isfile(): continue
+        assert not Path(entry.name).is_absolute() and '..' not in Path(entry.name).parts
+        target=Path('build/android-export-fixtures')/entry.name
+        target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_bytes(files.extractfile(entry).read())
+print('Planilhas produzidas pelo Android e quatro capturas coletadas.')
 PY
+python3 scripts/validate-spreadsheets.py build/android-export-fixtures/files/etapa52-planilhas
 for phase in write read; do
     if [[ "$phase" == read ]]; then adb shell am force-stop br.com.diariodeclasse; fi
     adb shell am instrument -w -e frequencyProbePhase "$phase" -e class br.com.diariodeclasse.FrequencyProcessProbeTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/frequency-process-$phase.txt"

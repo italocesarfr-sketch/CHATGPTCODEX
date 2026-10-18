@@ -34,7 +34,7 @@ class ExportLayoutInstrumentedTest {
     private val b=a.copy(id="export-room-b",personId="export-person-b",number=20)
     private val activity=Activity("export-room-activity",c.id,"Avaliação Fictícia",date="2026-08-10",term=3,maximum=10.0)
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5).build()
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),13,null)
     }
     private suspend fun data()=repo.snapshot.first{it.loaded}

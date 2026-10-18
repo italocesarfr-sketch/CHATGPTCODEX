@@ -19,7 +19,7 @@ data class DiarySnapshot(
     val classes: List<SchoolClass> = emptyList(), val students: List<Student> = emptyList(),
     val terms: List<Term> = emptyList(), val lessons: List<Lesson> = emptyList(),
     val marks: List<Attendance> = emptyList(), val activities: List<Activity> = emptyList(),
-    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList()
+    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList()
 ) {
     fun roster(classId: String) = students.filter { it.classId == classId }
     fun currentRoster(classId: String, showRelocated: Boolean = false) = roster(classId).filter { showRelocated || it.status != "Remanejado" }
@@ -64,7 +64,7 @@ class DiaryRepository(val db: DiaryDatabase) {
     // Cada emissão lê as onze tabelas no mesmo snapshot SQLite confirmado.
     // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
     val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
-        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows").map {
+        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows", "class_archives").map {
         readSnapshot()
     }.distinctUntilChanged()
     internal suspend fun readSnapshot(): DiarySnapshot = db.withTransaction {
@@ -77,7 +77,7 @@ class DiaryRepository(val db: DiaryDatabase) {
                 marks = read.marks(),
                 activities = read.activities().sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id }),
                 grades = read.grades(), drafts = read.drafts().sortedWith(compareBy<ImportDraft> { it.position }.thenBy { it.id }),
-                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), loaded = true)
+                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), classArchives = read.classArchives(), loaded = true)
     }
 
     /** Substitui apenas a disposição desta turma; dados escolares e IDs das linhas são preservados. */
@@ -94,6 +94,34 @@ class DiaryRepository(val db: DiaryDatabase) {
         ExportLayout.validate(data.classes, data.students, rows)
         dao.removeExportRows(classId)
         dao.insertExportRows(rows)
+    }
+
+    suspend fun archiveClass(classId: String, archived: Boolean) = db.withTransaction {
+        requireNotNull(dao.schoolClass(classId)) { "Turma não encontrada." }
+        if (archived) {
+            if (db.backupDao().classArchives().none { it.classId == classId }) dao.insertArchive(ClassArchive(classId))
+        } else dao.removeArchive(classId)
+    }
+    suspend fun previewClassDeletion(classId: String): ClassDeletionPreview = ClassLifecycle.preview(readSnapshot(), classId)
+    suspend fun deleteClass(preview: ClassDeletionPreview, confirmation: String) = db.withTransaction {
+        val before = readSnapshot()
+        val current = ClassLifecycle.preview(before, preview.school.id)
+        require(current.fingerprint == preview.fingerprint) { "Os dados mudaram. Confira novamente a prévia; nada foi excluído." }
+        require(current.blockedReason == null) { requireNotNull(current.blockedReason) }
+        require(confirmation == current.confirmation) { "Digite exatamente a identificação da turma para confirmar." }
+        val sql = db.openHelper.writableDatabase
+        val id = current.school.id
+        // Sem cascata de turmas; só registros exclusivos validados, com FKs ativas.
+        for (query in listOf(
+            "DELETE FROM marks WHERE lessonId IN (SELECT id FROM lessons WHERE classId=?)",
+            "DELETE FROM grades WHERE activityId IN (SELECT id FROM activities WHERE classId=?)",
+            "DELETE FROM recompositions WHERE studentId IN (SELECT id FROM students WHERE classId=?)",
+            "DELETE FROM export_rows WHERE classId=?", "DELETE FROM class_archives WHERE classId=?",
+            "DELETE FROM import_drafts WHERE classId=?", "DELETE FROM activities WHERE classId=?",
+            "DELETE FROM lessons WHERE classId=?", "DELETE FROM terms WHERE classId=?",
+            "DELETE FROM students WHERE classId=?", "DELETE FROM classes WHERE id=?")) sql.execSQL(query, arrayOf(id))
+        sql.query("PRAGMA foreign_key_check").use { check(!it.moveToFirst()) { "Falha na integridade. Exclusão desfeita." } }
+        check(ClassLifecycle.fingerprint(readSnapshot()) == ClassLifecycle.fingerprint(ClassLifecycle.without(before,id))) { "Conferência da exclusão falhou; operação desfeita." }
     }
 
     suspend fun saveClass(value: SchoolClass, effective: String) = db.withTransaction {
@@ -212,6 +240,7 @@ class DiaryRepository(val db: DiaryDatabase) {
             target=null;targetName=external.trim()
         } else {
             require(external==null) {"Selecione apenas um destino."}
+            require(before.classArchives.none { it.classId == targetClassId }) {"A turma de destino está arquivada. Reative-a antes de remanejar."}
             val school=requireNotNull(before.classes.firstOrNull {it.id==targetClassId}) {"Turma de destino não encontrada."}
             require(RelocationRules.compatible(origin,school,before.terms)) {"Destino incompatível: use mesmo ano, disciplina, etapa, escala, bimestres e política de FJ. Não há conversão automática."}
             require(before.lineage(source).none {it.classId==targetClassId}) {"O destino já faz parte deste histórico. Retorno/ciclo não permitido."}

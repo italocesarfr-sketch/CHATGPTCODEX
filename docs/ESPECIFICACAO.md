@@ -1,3 +1,5 @@
+> **Atualização autorizada — Etapa 5.2 / Noctua 0.9.0 (14):** exportação XLSX/CSV e cópia, usando a disposição 5.1 e as projeções SchoolReports. Turmas podem ser arquivadas, consultadas, reativadas e excluídas com validação transacional; histórico compartilhado bloqueia exclusão. Room v5 aditivo e backup 6, lendo anteriores. Contrato em [ETAPA52.md](ETAPA52.md). PDF permanece fora da versão 1.0.
+
 > **Atualização autorizada — Etapa 5.1 / Noctua 0.8.0 (13):** organização para exportação por matrícula, ocultação manual em lote, ordem independente e linhas vazias. Room v4 aditivo; backup 5 com leitura dos formatos anteriores. [ETAPA51.md](ETAPA51.md) define o contrato atual. Somente a organização está implementada; arquivos e cópia dependem da Etapa 5.2. **PDF não integra a versão 1.0**, por decisão do proprietário; descrições históricas da base não são funcionalidades atuais.
 
 # Especificação-mestre — Noctua (Diário de Classe)

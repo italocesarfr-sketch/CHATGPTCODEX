@@ -1,5 +1,7 @@
 # Roadmap — Noctua (Diário de Classe)
 
+> **Autorização vigente: Etapa 5.2 / Noctua 0.9.0 (14)**, sobre a 0.8.0 aprovada em aparelho físico. Inclui XLSX real, CSV, cópia tabulada, arquivamento/reativação e exclusão transacional bloqueada por histórico compartilhado. [ETAPA52.md](ETAPA52.md) registra arquitetura e evidências. A prova XLSX originalmente prevista em 5.4 foi antecipada por esta autorização. Não libera PDF, registros de aula nem identidade definitiva.
+
 > **Autorização vigente: Etapa 5.1**, sobre a 0.7.1 aprovada em aparelho físico. Noctua 0.8.0 / código 13: ocultação manual em lote e disposição independente para futuras exportações, com linhas vazias, Room v4 aditivo e backup formato 5. **72 JVM, 120 Android e atualização assinada 0.7.1 → 0.8.0 aprovados.** Contrato e evidências em [ETAPA51.md](ETAPA51.md). As restrições históricas “Etapa 5 não autorizada” abaixo descrevem entregas anteriores. Somente 5.1 está autorizada: 5.2 e geração de arquivos/cópia continuam pendentes. **PDF retirado da versão 1.0 pelo proprietário**; poderá ser produzido fora do aplicativo a partir do XLSX no Excel.
 
 
@@ -251,6 +253,8 @@ Trabalho planejado: salvar por turma a sequência de matrículas e espaços vazi
 
 ### 5.2. Cópia para conselho e CSV/Excel — P2
 
+**Incremento autorizado:** ver [ETAPA52.md](ETAPA52.md). Inclui os três modelos XLSX/CSV/TSV e gerenciamento de turmas com arquivamento e exclusão segura.
+
 **Dependência:** 5.1.
 
 Trabalho planejado: cópia tabulada com opção somente notas; CSV UTF-8 adequado ao Excel, escape e separadores definidos. Prévia com cabeçalhos opcionais, ordem, colunas e linhas vazias.
@@ -265,7 +269,7 @@ Decisão do proprietário na autorização 5.1: não implementar PDF no aplicati
 
 ### 5.4. Prova de viabilidade XLSX — P2, condicional
 
-**Dependência:** 5.2; requer autorização posterior.
+**Atualização de escopo:** a autorização 5.2 incluiu esta prova técnica; resultado e limites em ETAPA52.md. Não é uma etapa adicional implementada sem autorização.
 
 Trabalho planejado: avaliar geração local e dependências compatíveis com API 26, memória, tamanho e manutenção. Testar leitura real de planilha com números, textos e células/linhas vazias.
 

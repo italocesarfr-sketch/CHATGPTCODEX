@@ -13,7 +13,10 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     val selection = selectionStore.state
     fun select(value: AppSelection, done: () -> Unit) = act(done, clearError = false) { selectionStore.write(value) }
     fun initializeSelection() = act(clearError = false) {
-        if (selectionStore.read() == null) selectionStore.write(resolveSelection(null, repository.db.backupDao().classes()))
+        if (selectionStore.read() == null) {
+            val archives=repository.db.backupDao().classArchives().map{it.classId}.toSet()
+            selectionStore.write(resolveSelection(null, repository.db.backupDao().classes().filter{it.id !in archives}))
+        }
     }
     val restoreGeneration = app.backupManager.generation
     val restoreNotice: String get() = app.backupManager.restoreNotice

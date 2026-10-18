@@ -1,3 +1,5 @@
+> **Noctua 0.9.0 / Etapa 5.2:** formato atual **6 / Room v5**, identidade `4fb9b076fb8a111f68f23ad0863c5f5c`. Inclui `classArchives` além das onze listas anteriores. Lê formatos 1–5; arquivos antigos não possuíam arquivamento e restauram suas turmas como ativas. A migração 4→5 cria apenas a tabela separada `class_archives`; não reescreve as demais. Todas as garantias transacionais abaixo permanecem. Consulte [ETAPA52.md](ETAPA52.md). As descrições do formato 5 abaixo são referência de compatibilidade; a 0.8.0 não lê o novo formato 6 nem o banco v5.
+
 # Backup e restauração offline
 
 O acesso fica no botão **Backup** da barra superior existente. A arquitetura da Etapa 1 permanece em uso; a versão 0.8.0 acrescenta disposição de exportação e preserva os vínculos de remanejamento e mantém a leitura dos backups antigos. Consulte [ETAPA51](ETAPA51.md) para a arquitetura e os resultados.

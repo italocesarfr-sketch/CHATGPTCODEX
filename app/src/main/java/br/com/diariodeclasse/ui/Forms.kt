@@ -126,7 +126,7 @@ import java.time.LocalDate
         if(relocating) {
             Field("Data efetiva do remanejamento (dd/mm/aaaa)", effective, {if(!saving) effective=it},Modifier.testTag("relocation-date"))
             Text("Turma de destino",style=MaterialTheme.typography.titleSmall)
-            val targets=data.classes.filter {RelocationRules.compatible(c,it,data.terms)}
+            val targets=data.classes.filter {school->data.classArchives.none{it.classId==school.id}&&RelocationRules.compatible(c,school,data.terms)}
             targets.forEach { school -> Row {
                 RadioButton(target==school.id,{if(!saving) target=school.id},enabled=!saving,modifier=Modifier.testTag("relocation-target-${school.id}"))
                 Text("${school.name} • ${school.subject} • ${school.year}",Modifier.padding(top=12.dp))

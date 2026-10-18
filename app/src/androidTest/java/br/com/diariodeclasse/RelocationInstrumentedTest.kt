@@ -34,7 +34,7 @@ class RelocationInstrumentedTest {
     private val old=Activity("rel-old",g.id,"Trabalho Fictício Origem",date="2026-08-10",term=3,maximum=5.0)
     private val next=old.copy(id="rel-next",classId=h.id,name="Trabalho Fictício Destino",date="2026-09-10")
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5).build()
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),11,null)
     }
     @Before fun setup() {runBlocking {

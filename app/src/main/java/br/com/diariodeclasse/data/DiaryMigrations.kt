@@ -26,3 +26,10 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_export_rows_studentId` ON `export_rows` (`studentId`)")
     }
 }
+
+/** Aditiva: arquivamento separado, sem reescrever as onze tabelas existentes. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `class_archives` (`classId` TEXT NOT NULL, PRIMARY KEY(`classId`), FOREIGN KEY(`classId`) REFERENCES `classes`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT)")
+    }
+}
