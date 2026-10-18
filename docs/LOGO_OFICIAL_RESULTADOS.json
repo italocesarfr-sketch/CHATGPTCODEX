@@ -1,0 +1,57 @@
+{
+  "jvm": {
+    "tests": 102,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 102
+  },
+  "android": {
+    "tests": 175,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 171
+  },
+  "apk": {
+    "apkSha256": "7081e85866391959d9623810636ef21be1ba66fbdd951e730a24f5c0f6f31271",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "bytes": 8452686
+  },
+  "packagedOriginalRgbSha256": "7f9f46c80d1f0118b425722b23998cdab0f39dc36f87a396b100a9a91278cf0a",
+  "signedUpgradePhases": [
+    "after.txt",
+    "backup.txt",
+    "before.txt",
+    "deleted-history.txt",
+    "reopened-history.txt",
+    "reopened.txt"
+  ],
+  "compatibility": {
+    "old": {
+      "apkSha256": "c7a5f13c30c8101073e2aada15adf4add3c0ce0cf44e0a766ed1d7f0a4abe069",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 18
+    },
+    "new": {
+      "apkSha256": "7081e85866391959d9623810636ef21be1ba66fbdd951e730a24f5c0f6f31271",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 19
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "versionName": "0.11.3",
+  "versionCode": 19,
+  "testedCommit": "c91d9a90b638f44f4f84205c58f3184b72b72932",
+  "workflowRunId": 39156642035,
+  "releaseArtifactId": 12147836423,
+  "resultsArtifactId": 12147655491,
+  "updateArtifactId": 12147716768,
+  "databaseVersion": 7,
+  "backupVersion": 8,
+  "captures": 5
+}
