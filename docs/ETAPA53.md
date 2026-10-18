@@ -1,6 +1,6 @@
 # Etapa 5.3 — Registros de Aula livres e facultativos
 
-Candidato **Noctua 0.10.0 / versionCode 15**, sobre a **0.9.0 / código 14**, aprovada pelo proprietário em aparelho físico. Autorização limitada a este módulo; a etapa visual final continua pendente.
+**Noctua 0.10.0 / versionCode 15**, sobre a **0.9.0 / código 14**, aprovada pelo proprietário em aparelho físico. Autorização limitada a este módulo; a etapa visual final continua pendente.
 
 ## Uso e navegação
 
@@ -34,9 +34,26 @@ Mantidos `br.com.diariodeclasse`, `diario.db`, armazenamento privado e ausência
 
 ## Testes e evidências
 
-Primeiro ensaio [39136000130](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39136000130): 89 JVM e 147 Android aprovados, três falhas de UI. Dois testes procuravam itens ainda não renderizados pela LazyColumn; passaram a rolar até o índice da fixture antes da consulta, mantendo as asserções. A notificação de cópia cobria o segundo botão; a confirmação foi movida para o próprio registro, permitindo as duas cópias em sequência. Os nove testes Room novos passaram. Aguardando repetição completa e atualização assinada. Não confundir compilação local da instrumentação com execução Android. Os resultados e links serão registrados após a execução.
+Primeiro ensaio [39136000130](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39136000130): 89 JVM e 147 Android aprovados, três falhas de UI. Dois testes procuravam itens ainda não renderizados pela LazyColumn; passaram a rolar até o índice da fixture antes da consulta, mantendo as asserções. A notificação de cópia cobria o segundo botão; a confirmação foi movida para o próprio registro, permitindo as duas cópias em sequência. Os nove testes Room novos passaram. A repetição completa e a atualização assinada foram aprovadas, conforme as evidências abaixo. Os quatro testes exclusivos ignorados na suíte comum permanecem identificados; não são contados como aprovados nessa suíte.
 
 Cenários acrescentados: filtros turma/data; dois registros no mesmo dia; texto livre; rascunho/recriação; criação/edição/mudança de turma/duplicação/exclusão; confirmações/cancelamento; cópia exata; reinício Room; backup novo e formato 6 real; referência/arquivo inválido; conflito de edição; falha de restauração e de exclusão de turma com rollback; migração 5→6 e preservação das doze tabelas; ausência de impacto nos relatórios/exportações. A regressão anterior permanece na suíte. A sonda release sem desinstalar verifica dados fictícios antes/depois, novo registro, backup, reinício e a correção Transferida → Ativa → Remanejada.
+
+
+### Resultado final e APK
+
+- **89 testes JVM e 150 Android aprovados, sem falhas** na execução final. Os 15 novos testes Android (nove Room e seis de interface) passaram. Quatro sondas exclusivas são ignoradas na suíte comum: três recebem execução separada nas oito fases abaixo; o teste histórico ReleaseContinuity permanece ignorado, substituído pela atualização real assinada. Os 28 cenários Java seguem na regressão.
+- Duas fases de frequência/reinício e duas de atualização do esquema legado aprovadas; quatro fases da atualização **release real 0.9.0 → 0.10.0** aprovadas: semente fictícia nas doze tabelas antigas, instalação `adb install -r` sem desinstalar/limpar dados, conferência integral, restauração de backup 6 e novo backup 7, novo registro de aula e reinício com o texto/IDs preservados. Transferida → Ativa → Remanejada continua coberto.
+- Regressão de planilhas: **33 XLSX reais, 33 CSV e 99 TSV** novamente conferidos com openpyxl 3.1.5 e parser independente, incluindo três conjuntos produzidos no Android. O novo módulo não acrescenta formato de exportação.
+- [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39137573909), commit de código `412118bf5e1b0a43622f68352bb4b0bb48fc8d41`.
+- [**Baixar APK release — ZIP**](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39137573909/artifacts/12140304165), artefato **noctua-etapa53-release**; extrair `app-release.apk`. Este é o APK assinado com a chave permanente existente.
+- [Resultados JVM/Android/Room, planilhas e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39137573909/artifacts/12140367156) • [Provas da atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39137573909/artifacts/12140926164) • [Debug interno](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39137573909/artifacts/12139962985). Debug não é indicado para atualizar a instalação release.
+- [Metadados verificados](ETAPA53_RESULTADOS.json).
+
+O release foi baixado e verificado em `app/build/outputs/apk/release/app-release.apk` (7,294,418 bytes); debug em `app/build/outputs/apk/debug/app-debug.apk`. Ambos existem, identificam **0.10.0 / código 15**, Noctua, pacote `br.com.diariodeclasse`, mínimo API 26 e sem permissão INTERNET. O DEX contém o módulo novo. Os hashes dos ZIPs foram confrontados com os artefatos do Actions; os XMLs de testes e seis esquemas foram examinados localmente.
+
+SHA-256 do release: `6ccfa6a440ea5acd11cca00cb3176ce7114ab7f4ddb10e96c4a146aee9807b58`. Certificado público SHA-256: `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`, igual ao APK real 0.9.0 fixado. Assinatura v2 verificada com apksigner. O certificado da instalação física não foi lido diretamente nesta execução: a prova cobre o APK 0.9.0 publicado com esse certificado. Antes de atualizar, crie backup; use a release correspondente sem desinstalar uma instalação compatível. Guarde o APK, pois o artefato de APK do Actions expira após 30 dias.
+
+Room v6: identidade `0bb463bface3e8d6c547f9424574818b`, SHA-256 `35fe2e187d63b5763b03952a17473d63fcb96251a1e79a72533d8c68a8c712fe`. Os JSONs v1–v5 e as doze entidades anteriores no JSON v6 permanecem idênticos. `release.yml` e o bloco de assinatura Gradle permanecem preservados. Nenhuma chave/Secret foi criada, substituída ou publicada. Os testes usam exclusivamente dados fictícios.
 
 ## Limitações e próximas decisões
 

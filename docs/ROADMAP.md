@@ -1,4 +1,4 @@
-> **Autorização vigente — Etapa 5.3 / candidato Noctua 0.10.0 (15):** Registros de Aula livres e facultativos, com turma/data/título/descrição, edição/duplicação/exclusão confirmada e cópia para a área de transferência. Independentes da chamada e de cálculos escolares. Room v6 aditivo e backup 7 compatível com anteriores. Base 0.9.0 aprovada em aparelho físico pelo proprietário. [Contrato e resultados](ETAPA53.md). Não autoriza etapa visual final, IA, BNCC ou obrigatoriedade de preenchimento.
+> **Autorização vigente — Etapa 5.3 / Noctua 0.10.0 (15), concluída:** Registros de Aula livres e facultativos, com turma/data/título/descrição, edição/duplicação/exclusão confirmada e cópia para a área de transferência. Independentes da chamada e de cálculos escolares. Room v6 aditivo e backup 7 compatível com anteriores. Base 0.9.0 aprovada em aparelho físico pelo proprietário. **89 JVM, 150 Android e atualização assinada 0.9.0 → 0.10.0 aprovados**. [Contrato e resultados](ETAPA53.md). Não autoriza etapa visual final, IA, BNCC ou obrigatoriedade de preenchimento.
 
 # Roadmap — Noctua (Diário de Classe)
 

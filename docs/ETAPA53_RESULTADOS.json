@@ -1,0 +1,137 @@
+{
+  "testedCommit": "412118bf5e1b0a43622f68352bb4b0bb48fc8d41",
+  "workflowRunId": 39137573909,
+  "versionName": "0.10.0",
+  "versionCode": 15,
+  "databaseName": "diario.db",
+  "databaseVersion": 6,
+  "backupFormatVersion": 7,
+  "schemaIdentity": "0bb463bface3e8d6c547f9424574818b",
+  "schemas": {
+    "1": {
+      "sha256": "43fe5f77af75d462dff34128582fdeb6cf759b9504fa2bb6ee468a6951ec3ed7",
+      "identity": "99b868cf68cf5dffb82edf267ddc78be"
+    },
+    "2": {
+      "sha256": "ba4e422868ecb8d532609a3f6488a0f2b4262551d265588e964305468232b7bc",
+      "identity": "32104b8df79c150ac61b09fadc450221"
+    },
+    "3": {
+      "sha256": "3e087b839b8c286589b1d7cabc0e7d2e8e83645728d1df757c05e32a95b5c7ce",
+      "identity": "9e864249a18922cfb9caa6e54ee6c3af"
+    },
+    "4": {
+      "sha256": "4a648da7396965706ec50f7a13b6ab8f3b459d4031b9d6f7cf48375bbae2a4d9",
+      "identity": "924bea88bcff9fe88f85edf884f4ab65"
+    },
+    "5": {
+      "sha256": "ffe06a1148e6a10869a4db6eaf77e5e8be25f15b3b9ea122ef388222528c1ce8",
+      "identity": "4fb9b076fb8a111f68f23ad0863c5f5c"
+    },
+    "6": {
+      "sha256": "35fe2e187d63b5763b03952a17473d63fcb96251a1e79a72533d8c68a8c712fe",
+      "identity": "0bb463bface3e8d6c547f9424574818b"
+    }
+  },
+  "tests": {
+    "unit": {
+      "passed": 89,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "passed": 150,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "independentReaders": [
+    {
+      "runtime": "jvm",
+      "reader": "openpyxl 3.1.5",
+      "xlsx": 30,
+      "csv": 30,
+      "tsv": 90
+    },
+    {
+      "runtime": "android",
+      "reader": "openpyxl 3.1.5",
+      "xlsx": 3,
+      "csv": 3,
+      "tsv": 9
+    }
+  ],
+  "domainScenariosPassed": 28,
+  "controlledLegacyUpgradeProbesPassed": 2,
+  "processRestartProbesPassed": 2,
+  "stableUpgradeProbesPassed": 4,
+  "unusedHistoricalReleaseContinuityProbeSkipped": true,
+  "apk": {
+    "debug": {
+      "apkSha256": "211d420af03b0ff48eabb17fa17d36294b3c2e376f740b46c6dd419312b98809",
+      "certificateSha256": "d8d95ea4a8abee9e2c39166598a308f34f65813c1632cd51013e0dec768c0f24",
+      "bytes": 10686687,
+      "manifest": {
+        "package": "br.com.diariodeclasse",
+        "versionCode": 15,
+        "versionName": "0.10.0",
+        "minSdk": 26
+      }
+    },
+    "release": {
+      "apkSha256": "6ccfa6a440ea5acd11cca00cb3176ce7114ab7f4ddb10e96c4a146aee9807b58",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "bytes": 7294418,
+      "manifest": {
+        "package": "br.com.diariodeclasse",
+        "versionCode": 15,
+        "versionName": "0.10.0",
+        "minSdk": 26
+      }
+    }
+  },
+  "artifacts": {
+    "reports": {
+      "id": 12140367156,
+      "name": "resultados-etapa53",
+      "digest": "sha256:ba885f4c7f1acaed97101f3b1c98646df8f79729e7dbb39533032dfee1bbe099"
+    },
+    "debug": {
+      "id": 12139962985,
+      "name": "noctua-apk-teste",
+      "digest": "sha256:efbdce825f72b3c2bfa906cd5c9d0855368d600158dad093e854df7c02e41e42"
+    },
+    "upgrade": {
+      "id": 12140926164,
+      "name": "resultados-atualizacao-release",
+      "digest": "sha256:73c6f2c60878d9b0f9ab43cd405047d711edf4c42d98697865e1f2dfd5edb949"
+    },
+    "release": {
+      "id": 12140304165,
+      "name": "noctua-etapa53-release",
+      "digest": "sha256:2c55a514dd69fa5b397fddcf946e5feb27bf993c08d30e8852fce2de07709d2c"
+    }
+  },
+  "stableReleaseCompatibility": {
+    "old": {
+      "apkSha256": "9638cc30aaf1cee9f7ee20a5aa484beb5af7e9015eaafa7bfd9cefaa7a0791e5",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 14
+    },
+    "new": {
+      "apkSha256": "6ccfa6a440ea5acd11cca00cb3176ce7114ab7f4ddb10e96c4a146aee9807b58",
+      "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+      "applicationId": "br.com.diariodeclasse",
+      "versionCode": 15
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true
+  },
+  "ownerKeyReused": true,
+  "releaseSignatureV2Verified": true,
+  "manualReleaseWorkflowUnchanged": true,
+  "offlineManifestVerified": true,
+  "artifactArchiveDigestsVerified": true
+}
