@@ -56,12 +56,12 @@ class ExportLifecycleUiInstrumentedTest {
     private fun clip():String {var value="";compose.runOnIdle{value=(app.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip!!.getItemAt(0).text.toString()};return value}
     @Test fun exportPreviewAndBothClipboardModesUseExactSharedProjectionAndDoNotWriteRoom() {
         val before=runBlocking{app.backupManager.snapshot()};openExport()
+        compose.onNodeWithTag("export-notes-preview").performScrollTo().performClick();waitText("Sem nomes ou cabeçalhos.");shot("01-notas-previa")
         compose.onNodeWithTag("export-copy").performScrollTo().performClick()
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         val table=ExportProjection.build(vm.data.value,c,ExportOptions(term=3))
         assertEquals(SpreadsheetWriter.clipboard(table),clip());assertFalse(clip().contains(b.name));assertTrue(clip().contains(a.name))
         compose.onNodeWithTag("export-copy-grades").performScrollTo().performClick();assertEquals(SpreadsheetWriter.clipboard(table,true),clip());assertFalse(clip().contains(a.name))
-        compose.onNodeWithTag("export-notes-preview").performScrollTo().performClick();waitText("Sem nomes ou cabeçalhos.");shot("01-notas-previa")
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun groupedOptionsAnnualAndCsvRefreshPreviewAcrossRecreation() {
@@ -97,7 +97,7 @@ class ExportLifecycleUiInstrumentedTest {
         manage();compose.onNodeWithTag("archive-class").performClick();compose.onNodeWithText("Confirmar").performClick();waitText("Arquivada •")
         compose.onNodeWithTag("nav-0").performClick();waitTag("class-selector");compose.onNodeWithTag("class-selector").performClick()
         compose.onAllNodesWithText(c.name,useUnmergedTree=true).assertCountEquals(0)
-        compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()
+        compose.onNode(hasText(h.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
         compose.onNodeWithTag("open-archives").performScrollTo().performClick();waitTag("archived-${c.id}");compose.onNodeWithTag("archived-${c.id}").performClick();waitText("Arquivada •")
     }
     @Test fun deletionRequiresExactIdentificationCancelDoesNothingAndOtherClassSurvives() {

@@ -13,7 +13,7 @@ object SpreadsheetWriter {
     fun csv(table:ExportTable,output:OutputStream) {output.write(byteArrayOf(0xEF.toByte(),0xBB.toByte(),0xBF.toByte()));output.write(delimited(table.rows(),';').toByteArray(Charsets.UTF_8))}
     fun clipboard(table:ExportTable,onlyGrades:Boolean=false,allGrades:Boolean=false)=delimited(table.rows(onlyGrades,allGrades),'\t')
     private fun xml(s:String):String=buildString {
-        s.codePoints().forEach{cp->when(cp){38->append("&amp;");60->append("&lt;");62->append("&gt;");34->append("&quot;");39->append("&apos;");
+        s.codePoints().forEach{cp->when(cp){13->append("&#13;");38->append("&amp;");60->append("&lt;");62->append("&gt;");34->append("&quot;");39->append("&apos;");
             else->{require(cp==9||cp==10||cp==13||cp in 32..0xD7FF||cp in 0xE000..0xFFFD||cp in 0x10000..0x10FFFF){"Texto contém um caractere incompatível com XML/Excel."};appendCodePoint(cp)}}}
     }
     private fun column(index:Int):String {var n=index+1;var s="";while(n>0){n--;s=('A'.code+n%26).toChar()+s;n/=26};return s}

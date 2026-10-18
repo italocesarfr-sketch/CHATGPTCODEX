@@ -12,7 +12,7 @@ import java.util.zip.ZipInputStream
 class SpreadsheetExportTest {
     private val g=SchoolClass(id="export-origin",name="Origem Fictícia",subject="História",year=2026)
     private val c=g.copy(id="export-destination",name="Destino Fictício")
-    private val a=Student("export-a","person-a",c.id,"Estudante Fictício Áurea; \"β\"\nLinha\tTeste",1,"2026-01-01")
+    private val a=Student("export-a","person-a",c.id,"Estudante Fictício Áurea; \"β\"\r\nLinha\tTeste",1,"2026-01-01")
     private val b=a.copy(id="export-b",personId="person-b",number=2)
     private val old=a.copy(id="export-source",personId="moved-person",classId=g.id,name="Estudante Fictício Remanejado",left="2026-08-31",status="Remanejado")
     private val moved=old.copy(id="export-target",classId=c.id,number=3,joined="2026-09-01",left=null,status="Ativo")

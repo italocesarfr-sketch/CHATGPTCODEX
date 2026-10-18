@@ -56,6 +56,8 @@ O workflow mantém a assinatura existente e testa atualização do APK **real 0.
 
 Resultados finais e artefatos serão registrados após o CI. Não declarar instalação física da 0.9.0 validada antes do teste do proprietário.
 
+Primeiro ensaio Android: [run 39127648173](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39127648173), 132 aprovados e três falhas nos testes novos. A montagem de identidade compartilhada passou a usar DAO apenas no banco fictício, pois a API de produção corretamente impede trocar a identidade de uma matrícula. O seletor ficou restrito ao popup, e a prévia é acionada antes das notificações de cópia para evitar toque interceptado. Nenhuma proteção foi removida. Também foi acrescentada preservação explícita de CR no XML, com fixtures CRLF na JVM e no Android, evitando normalização silenciosa de quebras de linha.
+
 ## Limitações e escopo
 
 Arquivos validados por openpyxl e parser CSV/TSV, sem execução do Microsoft Excel/LibreOffice neste ambiente. A conferência de edição/colagem no Excel do proprietário e a validação física da 0.9.0 permanecem pendentes. Os testes Android usam API 30; não comprovam todos os fabricantes/API 26+. As planilhas não contêm fórmulas de cálculo futuro. Um programa consumidor pode interpretar texto iniciado por sinais como fórmula em CSV/TSV; XLSX mantém texto explicitamente tipado, sem fórmulas. As escolhas do provedor de documentos do Android são do professor; o aplicativo não possui permissão INTERNET.
