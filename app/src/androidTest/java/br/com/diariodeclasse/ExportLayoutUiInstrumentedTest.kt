@@ -123,7 +123,7 @@ class ExportLayoutUiInstrumentedTest {
         compose.onNodeWithTag("export-auto-${a.id}",useUnmergedTree=true).assertTextContains("Exclusão automática",substring=true);shot("03-remanejado")
         top();compose.onNodeWithTag("export-cancel").performClick()
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()
-        compose.waitUntil(10000){vm.selection.value?.classId==h.id && compose.onAllNodesWithText("Gerenciar alunos").fetchSemanticsNodes().isNotEmpty()}
+        compose.waitUntil(10000){vm.selection.value?.classId==h.id && compose.onAllNodesWithTag("export-organize").fetchSemanticsNodes().isNotEmpty()}
         reports();hideMode();compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${p.target!!.id}"));compose.onNodeWithTag("export-hide-toggle-${p.target!!.id}").assertIsOff()
         assertEquals("Ativo",runBlocking{app.repository.dao.student(p.target!!.id)!!.status})
     }

@@ -62,7 +62,7 @@ class StageSixUiInstrumentedTest {
     }
     @Test fun selectedJournalDatePrefillsEditorPersistsAndMarksCalendarWithoutCreatingAttendance() {
         val before=runBlocking{app.backupManager.snapshot()};openDiary();august("journal-calendar");tag("date-${note.date}").performClick()
-        waitTag("new-lesson-record");tag("new-lesson-record").performClick();tag("record-date").assertTextContains("06/08/2026");tag("record-class").assertTextContains(c.name)
+        waitTag("new-lesson-record");tag("new-lesson-record").performClick();tag("record-date").assertTextContains("06/08/2026");tag("record-class").assertTextContains(c.name,substring=true)
         tag("record-title").performScrollTo().performTextInput(note.title);tag("record-description").performScrollTo().performTextInput(note.description);tag("save-lesson-record").performScrollTo().performClick()
         compose.waitUntil(10000){runBlocking{app.database.backupDao().lessonRecords().size==1}};compose.waitUntil(12000){compose.onAllNodesWithText("Registro de aula salvo.").fetchSemanticsNodes().isEmpty()}
         tag("lesson-records-list").performScrollToIndex(0);tag("journal-back").performClick();waitTag("journal-calendar")
@@ -75,7 +75,8 @@ class StageSixUiInstrumentedTest {
         val before=runBlocking{app.backupManager.snapshot()};openDiary();august("journal-calendar")
         tag("date-${note.date}").assertContentDescriptionContains("2 registros de aula",substring=true)
         tag("date-${note.date}").performClick();tag("new-lesson-record").assertTextContains("Adicionar outro registro")
-        tag("view-record-${note.id}").performScrollTo().performClick();compose.onNodeWithText(note.description).assertExists()
+        tag("lesson-records-list").performScrollToIndex(1)
+        tag("view-record-${note.id}").performScrollTo().performClick();compose.onNode(hasText(note.description) and hasAnyAncestor(isDialog()),useUnmergedTree=true).assertExists()
         compose.onNode(hasText("Voltar") and hasAnyAncestor(isDialog()),useUnmergedTree=true).performScrollTo().performClick()
         tag("class-mode-Chamada").performClick();waitTag("attendance-calendar")
         tag("date-${note.date}").performScrollTo().assertContentDescriptionContains("chamada preenchida",substring=true)

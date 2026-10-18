@@ -2,6 +2,7 @@ package br.com.diariodeclasse.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -131,13 +132,21 @@ private val pages = listOf(
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy,contentPadding=PaddingValues(8.dp)) { Text("‹ Voltar") }
         }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = { if(exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
-            pages.forEachIndexed { index, item -> NavigationBarItem(
-                selected = page == index,
-                onClick = { if (page != index || detail.isNotEmpty()) navigate { page = index; detail = "" } },
-                enabled = !navigating && !exportBusy,
-                modifier = Modifier.testTag("nav-$index").semantics{contentDescription=item.title},
-                icon = { Icon(painterResource(item.icon), null, Modifier.size(23.dp)) },
-                label = { Text(item.label, textAlign = TextAlign.Center, maxLines = 2, style = MaterialTheme.typography.labelSmall) }) }
+            pages.forEachIndexed { index, item ->
+                val active=page==index
+                Column(Modifier.weight(1f).heightIn(min=80.dp).testTag("nav-$index")
+                    .selectable(selected=active,enabled=!navigating&&!exportBusy,role=Role.Tab,
+                        onClick={if(page!=index||detail.isNotEmpty())navigate{page=index;detail=""}})
+                    .semantics{contentDescription=item.title}.padding(vertical=8.dp),
+                    horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    Surface(shape=MaterialTheme.shapes.large,color=if(active)MaterialTheme.colorScheme.secondaryContainer else Color.Transparent) {
+                        Icon(painterResource(item.icon),null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp),
+                            tint=if(active)MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text(item.label,Modifier.fillMaxWidth(),textAlign=TextAlign.Center,maxLines=2,
+                        style=MaterialTheme.typography.labelSmall,color=if(active)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         } }, snackbarHost = { SnackbarHost(snack) }
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {

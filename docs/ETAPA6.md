@@ -62,7 +62,7 @@ O CI compara o APK **real 0.10.0** do [Actions 39137573909](https://github.com/i
 
 ## Validação e resultados
 
-Em andamento. Os resultados, APK e capturas serão registrados após execução real do CI. Compilação local não substitui teste de interface nem prova de atualização.
+Primeiro ensaio [39145646257](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39145646257): 93 JVM e 152 Android aprovados, quatro falhas de interface. Uma identificou truncamento real da barra em 320 dp/fonte 130%; os itens passaram a usar a largura de sua célula, dentro do NavigationBar Material e com semântica de aba. Três ajustes de teste preservaram as asserções: aguardar o controle na nova área de Relatórios, verificar a turma como parte do rótulo completo e restringir texto repetido ao diálogo de visualização. Nenhum erro de regra ou Room foi encontrado. Aguardando nova execução completa e prova de atualização. Compilação local não substitui teste de interface nem atualização assinada.
 
 ## Limitações e aprovação
 
