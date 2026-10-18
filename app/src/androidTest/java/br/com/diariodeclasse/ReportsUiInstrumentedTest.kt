@@ -76,7 +76,9 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("3º bim.").performClick();waitText("Nota 1,50 / 10,00")
         compose.waitForIdle()
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
+        // Fixture B3: cabeçalho, uma atividade, cabeçalho anual e quatro bimestres.
+        // Evita a busca recursiva de semântica durante a mudança de período (bug do harness Compose).
+        compose.onNodeWithTag("individual-report").performScrollToIndex(6)
         compose.onNodeWithTag("individual-term-4").assertTextContains("Sem dados",substring=true)
         compose.onNodeWithText("‹ Voltar").performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Boletim do 3º bimestre")
@@ -150,7 +152,9 @@ class ReportsUiInstrumentedTest {
         // O resumo anual também contém 6,00 antes de terminar a troca de período.
         // Aguardar o cabeçalho corrente evita consultar a lista enquanto ela é recomposta.
         waitText("Nota 6,00 / 10,00");compose.waitForIdle()
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
+        // Fixture B3: cabeçalho, uma atividade, cabeçalho anual e quatro bimestres.
+        // Evita a busca recursiva de semântica durante a mudança de período (bug do harness Compose).
+        compose.onNodeWithTag("individual-report").performScrollToIndex(6)
         compose.onNodeWithTag("individual-term-4").assertTextContains("Recomposição: Não registrada",substring=true)
     }
     @Test fun longNamesRemainFixedAndConfirmedUpdatesPreserveReadingPosition() {

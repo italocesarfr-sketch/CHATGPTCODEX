@@ -60,6 +60,8 @@ Primeiro ensaio Android: [run 39127648173](https://github.com/italocesarfr-sketc
 
 Segundo ensaio: [run 39129055875](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39129055875), 134 Android aprovados e um teste de seleção CSV falhou por não encontrar o menu. Os testes agora aguardam explicitamente o encerramento da última notificação de cópia e selecionam itens apenas dentro do popup. A validação completa é repetida; critérios de dados e proteções não foram reduzidos.
 
+Terceiro ensaio: [run 39130427689](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39130427689), todos os testes novos passaram; 134 Android aprovados e uma falha intermitente no teste anterior do relatório individual. O stack aponta `SnapshotStateObserver` ao pesquisar recursivamente a semântica durante a rolagem. A fixture passou a rolar diretamente até o item conhecido e mantém a mesma asserção do quarto bimestre sem dados; asserções de zero, pendência, matrícula e ausência de gravação permanecem. A implementação dos relatórios não foi alterada para contornar o teste.
+
 ## Limitações e escopo
 
 Arquivos validados por openpyxl e parser CSV/TSV, sem execução do Microsoft Excel/LibreOffice neste ambiente. A conferência de edição/colagem no Excel do proprietário e a validação física da 0.9.0 permanecem pendentes. Os testes Android usam API 30; não comprovam todos os fabricantes/API 26+. As planilhas não contêm fórmulas de cálculo futuro. Um programa consumidor pode interpretar texto iniciado por sinais como fórmula em CSV/TSV; XLSX mantém texto explicitamente tipado, sem fórmulas. As escolhas do provedor de documentos do Android são do professor; o aplicativo não possui permissão INTERNET.
