@@ -42,7 +42,7 @@ class PromptTwoUiInstrumentedTest {
         app.selectionStore.write(AppSelection(2026,c.id));waitTag("class-selector")
         compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()}
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
-        compose.waitUntil(10000){vm.data.value.grades.any{it.activityId==other.id&&it.value==7.5}&&vm.data.value.marks.any{it.studentId==a.id&&it.mark=="FJ"}}
+        compose.waitUntil(10000){vm.data.value.lessons.count{it.classId==c.id}==3&&vm.data.value.grades.any{it.activityId==other.id&&it.value==7.5}&&vm.data.value.marks.any{it.studentId==a.id&&it.mark=="FJ"}}
     }
     @After fun clean()=runBlocking {
         app.commands.awaitPendingWrites()
@@ -102,7 +102,20 @@ class PromptTwoUiInstrumentedTest {
         tag("nav-1").performClick();waitTag("attendance-calendar")
         val now=LocalDate.now();compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,Locale.forLanguageTag("pt-BR"))} ▾").performClick()
         compose.onAllNodesWithText("8 • agosto").onLast().performScrollTo().performClick()
-        tag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"));tag("date-$day").performScrollTo().performClick();waitTag("daily-frequency")
+        val calendar=tag("attendance-calendar")
+        calendar.performScrollToNode(hasTestTag("date-$day"))
+        // O grid inteiro é um único item lazy. Para a última semana, trazer o item
+        // da legenda à vista também desloca verticalmente o grid, não só seu scroll horizontal.
+        calendar.performScrollToIndex(2)
+        val date=tag("date-$day");date.assertIsDisplayed()
+        val viewport=calendar.fetchSemanticsNode().boundsInRoot;val bounds=date.fetchSemanticsNode().boundsInRoot
+        assertTrue("A data deve caber verticalmente na área tocável do calendário",bounds.top>=viewport.top&&bounds.bottom<=viewport.bottom)
+        shot("00-calendario-final-do-mes")
+        date.performClick()
+        try{waitTag("attendance-day-$day");waitTag("daily-frequency")}catch(e:Exception){
+            shot("falha-abertura-chamada")
+            throw AssertionError("Abertura da data: "+compose.onRoot().printToString(),e)
+        }
     }
     @Test fun repeatPAndFAndFjClearOnlyTheirOwnCellAndNrSurvivesRecreation() {
         val id="${c.id}:$day:1";val before=runBlocking{app.backupManager.snapshot()};openDay()
