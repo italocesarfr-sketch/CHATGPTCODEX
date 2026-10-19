@@ -9,6 +9,8 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.lifecycle.ViewModelProvider
+import br.com.diariodeclasse.ui.DiaryViewModel
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.CsvRoster
 import kotlinx.coroutines.runBlocking
@@ -39,6 +41,8 @@ class PromptTwoUiInstrumentedTest {
         app.repository.mark("${c.id}:2026-08-29:1",a.id,"FJ")
         app.selectionStore.write(AppSelection(2026,c.id));waitTag("class-selector")
         compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()}
+        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        compose.waitUntil(10000){vm.data.value.grades.any{it.activityId==other.id&&it.value==7.5}&&vm.data.value.marks.any{it.studentId==a.id&&it.mark=="FJ"}}
     }
     @After fun clean()=runBlocking {
         app.commands.awaitPendingWrites()
@@ -65,7 +69,8 @@ class PromptTwoUiInstrumentedTest {
         tag("import-select-all").assertIsOn()
         assertEquals(before.students,runBlocking{app.backupManager.snapshot()}.students)
         compose.onAllNodesWithText("Cadastrar os alunos conferidos?").assertCountEquals(0)
-        tag("import-reviewed-${rows[0].id}").performScrollTo().performClick()
+        tag("import-review-list").performScrollToNode(hasTestTag("import-reviewed-${rows[0].id}"))
+        tag("import-reviewed-${rows[0].id}").performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).count{it.reviewed}==1}}
         tag("import-review-list").performScrollToNode(hasTestTag("import-select-all"))
         tag("import-select-all").assert(SemanticsMatcher.expectValue(SemanticsProperties.ToggleableState,ToggleableState.Indeterminate));shot("01-conferencia-parcial")
@@ -97,7 +102,7 @@ class PromptTwoUiInstrumentedTest {
         tag("nav-1").performClick();waitTag("attendance-calendar")
         val now=LocalDate.now();compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,Locale.forLanguageTag("pt-BR"))} ▾").performClick()
         compose.onAllNodesWithText("8 • agosto").onLast().performScrollTo().performClick()
-        tag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"));tag("date-$day").performClick();waitTag("daily-frequency")
+        tag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"));tag("date-$day").performScrollTo().performClick();waitTag("daily-frequency")
     }
     @Test fun repeatPAndFAndFjClearOnlyTheirOwnCellAndNrSurvivesRecreation() {
         val id="${c.id}:$day:1";val before=runBlocking{app.backupManager.snapshot()};openDay()

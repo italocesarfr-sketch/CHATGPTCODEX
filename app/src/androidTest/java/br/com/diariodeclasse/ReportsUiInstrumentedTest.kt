@@ -53,7 +53,7 @@ class ReportsUiInstrumentedTest {
     private fun waitText(text:String) { compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()} }
     private fun mode(value:String,current:String="Bimestral") {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("$current ▾").performScrollTo().performClick();compose.onNodeWithText(value,useUnmergedTree=true).performClick()
+        compose.onNodeWithText("$current ▾").performScrollTo().performClick();compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
     private fun selectClass(school:SchoolClass) {
@@ -80,7 +80,7 @@ class ReportsUiInstrumentedTest {
         help.assertWidthIsAtLeast(48.dp)
         help.assertHeightIsAtLeast(48.dp)
         shot("06-relatorios-sem-blocos-auxiliares")
-        help.performClick()
+        help.performScrollTo().performClick()
         compose.onNodeWithTag("report-information").assertIsDisplayed()
         compose.onNodeWithText("Atividades: escala 0 a 10,00. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.").assertExists()
         compose.onNodeWithText("Deslize as colunas",substring=true).performScrollTo().assertIsDisplayed()
@@ -92,9 +92,9 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithText("Maior nota",useUnmergedTree=true).performClick()
         row(a);cell(a,0).assertTextEquals("0,00")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("Maior nota ▾").assertIsDisplayed()
-        help.performClick();compose.onNodeWithText("Fechar").performClick()
-        compose.onNodeWithText("Maior nota ▾").assertIsDisplayed()
+        compose.onNodeWithText("Maior nota ▾").performScrollTo().assertIsDisplayed()
+        help.performScrollTo().performClick();compose.onNodeWithText("Fechar").performClick()
+        compose.onNodeWithText("Maior nota ▾").performScrollTo().assertIsDisplayed()
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
     @Test fun helpPreservesAnnualAndAbsenteeExplanationsAndCurrentClassPolicy() {

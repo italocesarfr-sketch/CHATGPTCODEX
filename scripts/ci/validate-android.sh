@@ -48,7 +48,19 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa52-planilhas; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa52-planilhas > build/etapa52-planilhas.tar
 fi
-if (( status != 0 )); then exit "$status"; fi
+if (( status != 0 )); then
+    python3 - <<'PYFAILURES'
+from pathlib import Path
+import xml.etree.ElementTree as E
+for path in Path('app/build/outputs/androidTest-results').rglob('TEST-*.xml'):
+    for case in E.parse(path).getroot().findall('testcase'):
+        failure=case.find('failure')
+        if failure is not None:
+            print('FAILURE_CASE:',case.get('classname'),case.get('name'))
+            print(failure.text)
+PYFAILURES
+    exit "$status"
+fi
 python3 - <<'PY'
 import tarfile
 with tarfile.open('build/prompt2-telas.tar') as images:

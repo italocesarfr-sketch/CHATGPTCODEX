@@ -164,8 +164,9 @@ class StageTwoUiInstrumentedTest {
         compose.onNodeWithText("Conferir 1 nome em rascunho").performClick()
         waitText("Conferir importação")
         compose.onNodeWithText("Ingresso dos novos alunos (dd/mm/aaaa)").assertTextContains("01/01/2026")
-        compose.onNodeWithTag("import-review-list").performScrollToNode(isToggleable())
-        compose.onNode(isToggleable()).performClick()
+        val reviewedTag="import-reviewed-${app.repository.dao.draftRows(a.id).single().id}"
+        compose.onNodeWithTag("import-review-list").performScrollToNode(hasTestTag(reviewedTag))
+        compose.onNodeWithTag(reviewedTag).performClick()
         compose.waitUntil(5000) { runBlocking { app.repository.dao.draftRows(a.id).single().reviewed } }
         shot("05-conferencia")
         compose.onNodeWithTag("import-review-list").performScrollToNode(hasText("Confirmar cadastro de 1 aluno"))

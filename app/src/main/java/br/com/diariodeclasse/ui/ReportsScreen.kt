@@ -186,14 +186,16 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
                 modifier=Modifier.fillMaxWidth().testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
             if(data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)})RelocatedFilter(showRelocated){showRelocated=it}
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else when(mode){
+                Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(mode){
                     "Frequência"->"Frequência do ${term}º bimestre";"Mais faltosos"->"Mais faltosos do ${term}º bimestre";"Resumo anual"->"Resumo anual de ${c?.year ?: "—"}";else->"Boletim do ${term}º bimestre"
                 },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})}
                 IconButton(onClick={showInformation=true},modifier=Modifier.size(48.dp)){Icon(painterResource(R.drawable.ic_info),"Informações do relatório",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
+            if(c!=null||searching) {
             Choice("Relatório",listOf("Bimestral","Frequência","Mais faltosos","Resumo anual"),mode){mode=it}
             if(mode=="Bimestral")Choice("Ordenação",listOf("Chamada","Mais faltas","Menor nota","Maior nota"),order){order=it}
             if(!searching && mode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c?.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
+            } else Info("Selecione uma turma ou pesquise um aluno em todas as turmas.")
         }
         when {
             searching -> {
@@ -206,7 +208,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
                 }
             }
             c!=null -> reportGroup(data,c,term,mode,selectedOrder,showRelocated,null,false,horizontal,profile)
-            else -> item{Info("Selecione uma turma ou pesquise um aluno em todas as turmas.")}
+            else -> Unit
         }
     }
 }

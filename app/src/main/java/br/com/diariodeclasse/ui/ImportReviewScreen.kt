@@ -40,15 +40,6 @@ import br.com.diariodeclasse.domain.RosterParser
     LazyColumn(Modifier.fillMaxSize().testTag("import-review-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item {
             Section("Conferir importação", "${c.name} • ${counted(rows.size, "nome", "nomes")} em rascunho")
-            Info("Confira nomes, números e ingresso. Nenhum rascunho gera frequência ou notas antes da confirmação. Rascunhos antigos permanecem disponíveis aqui.")
-            Field("Ingresso dos novos alunos (dd/mm/aaaa)", joined, { joined = it })
-            Text("Números em branco serão atribuídos após os utilizados. O ingresso padrão é 01/01 do ano letivo, independentemente da data de cadastro no app. Altere somente para uma matrícula real posterior; nesse caso, chamadas anteriores ficam fora do período.", style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(onClick = {
-                editing = ImportDraft(classId = c.id, name = "", number = null, position = (rows.maxOfOrNull { it.position } ?: -1) + 1, page = 0)
-            }, modifier = Modifier.fillMaxWidth()) { Text("+ Adicionar nome ao rascunho") }
-            TextButton(onClick = close) { Text("Voltar e manter rascunhos") }
-        }
-        item {
             val state = when { rows.isNotEmpty() && rows.all { it.reviewed } -> ToggleableState.On
                 rows.any { it.reviewed } -> ToggleableState.Indeterminate
                 else -> ToggleableState.Off }
@@ -60,6 +51,13 @@ import br.com.diariodeclasse.domain.RosterParser
                     })
                 Text("Selecionar todos")
             }
+            Info("Confira nomes, números e ingresso. Nenhum rascunho gera frequência ou notas antes da confirmação. Rascunhos antigos permanecem disponíveis aqui.")
+            Field("Ingresso dos novos alunos (dd/mm/aaaa)", joined, { joined = it })
+            Text("Números em branco serão atribuídos após os utilizados. O ingresso padrão é 01/01 do ano letivo, independentemente da data de cadastro no app. Altere somente para uma matrícula real posterior; nesse caso, chamadas anteriores ficam fora do período.", style = MaterialTheme.typography.bodySmall)
+            OutlinedButton(onClick = {
+                editing = ImportDraft(classId = c.id, name = "", number = null, position = (rows.maxOfOrNull { it.position } ?: -1) + 1, page = 0)
+            }, modifier = Modifier.fillMaxWidth()) { Text("+ Adicionar nome ao rascunho") }
+            TextButton(onClick = close) { Text("Voltar e manter rascunhos") }
         }
         items(rows, key = { it.id }) { row ->
             val issue = issues(row)

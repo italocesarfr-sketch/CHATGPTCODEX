@@ -122,7 +122,7 @@ class FrequencyUiInstrumentedTest {
         compose.onNodeWithTag("frequency-students").performScrollToNode(hasTestTag("student-name-${late.id}"))
         compose.onNodeWithTag("cell-${lessons[0].id}-${late.id}-F").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithTag("frequency-students").performScrollToNode(hasTestTag("student-name-${regular.id}"))
-        compose.onNodeWithTag("cell-${lessons[0].id}-${regular.id}-P").performScrollTo().performClick()
+        compose.onNodeWithTag("cell-${lessons[0].id}-${regular.id}-P").performScrollTo().assertIsSelected()
         compose.onNodeWithTag("cell-${lessons[1].id}-${regular.id}-F").performScrollTo().performClick()
         compose.waitUntil(5000){runBlocking{app.repository.dao.attendance(lessons[1].id).any {it.studentId==regular.id&&it.mark=="F"}}}
         assertTrue(app.database.backupDao().marks().none {it.studentId==late.id})
