@@ -66,11 +66,11 @@ import br.com.diariodeclasse.data.*
                 FilledTonalButton(enabled = !saving && performed > 0, onClick = { allPresent = true }, modifier = Modifier.weight(1f)) { Text("Marcar todos como presentes", style = MaterialTheme.typography.labelSmall) }
             }
             if (lessons.any { it.state == "PREVISTA" }) TextButton(onClick = { saveHours(active.maxOfOrNull { it.ordinal }?.coerceAtMost(12) ?: 0) }, enabled = !saving) { Text("Confirmar horários ministrados") }
-            Text("P / F: toque direto • NR ▾: justificar ou limpar • deslize →", Modifier.padding(horizontal = 12.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
+            Text("P / F: toque novamente para limpar • NR ▾: justificar • deslize →", Modifier.padding(horizontal = 12.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
             Box(Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id
-                    vm.act(context = context, key = "mark:$lessonId:$studentId") { vm.repository.mark(lessonId, studentId, value) }
+                    vm.act(context = context, key = "mark:$lessonId:$studentId") { vm.repository.toggleMark(lessonId, studentId, value) }
                 }, options = { option = it; action = "menu" }, openDay = {}) }
         }
     }

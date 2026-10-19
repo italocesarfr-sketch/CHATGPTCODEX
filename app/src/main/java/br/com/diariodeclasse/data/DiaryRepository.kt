@@ -363,6 +363,12 @@ class DiaryRepository(val db: DiaryDatabase) {
         require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
         dao.save(Attendance(lessonId, studentId, mark))
     }
+    /** Resolve o segundo toque dentro da transação, inclusive com cliques rápidos antes do Flow. */
+    suspend fun toggleMark(lessonId: String, studentId: String, value: String) = db.withTransaction {
+        require(value in listOf("P", "F", "FJ", "NR"))
+        val current = dao.attendance(lessonId).firstOrNull { it.studentId == studentId }?.mark
+        mark(lessonId, studentId, if(value != "NR" && current == value) "NR" else value)
+    }
     suspend fun startLesson(id: String) = db.withTransaction {
         val lesson = requireNotNull(dao.lesson(id)); require(lesson.state != "CANCELADA") { "Reative a aula antes de registrar." }
         val c = requireNotNull(dao.schoolClass(lesson.classId)); dao.save(lesson.copy(state = "REALIZADA"))
@@ -466,6 +472,14 @@ class DiaryRepository(val db: DiaryDatabase) {
         val position = (old.maxOfOrNull { it.position } ?: -1) + 1
         candidates.forEachIndexed { index, candidate -> dao.save(ImportDraft(classId = classId, name = candidate.name,
             number = candidate.number, position = position + index, page = page, reason = "Importação textual — confira nome e número")) }
+    }
+    /** Atualiza apenas os IDs conferidos nesta sessão, sem sobrescrever nomes ou matricular. */
+    suspend fun reviewDrafts(classId: String, ids: Set<String>, reviewed: Boolean) = db.withTransaction {
+        require(ids.isNotEmpty()) { "Nenhum rascunho para conferir." }
+        val current = dao.draftRows(classId).map { it.id }.toSet()
+        require(current.containsAll(ids)) { "A importação mudou. Confira a lista novamente." }
+        // SQLite do Android 8 limita a quantidade de parâmetros por comando.
+        ids.toList().chunked(900).forEach{chunk->check(dao.reviewDrafts(classId,chunk,reviewed)==chunk.size)}
     }
     suspend fun confirmImport(classId: String, joined: String): Int = db.withTransaction {
         val klass = requireNotNull(dao.schoolClass(classId))

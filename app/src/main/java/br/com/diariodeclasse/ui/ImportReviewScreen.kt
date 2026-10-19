@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
@@ -47,6 +48,19 @@ import br.com.diariodeclasse.domain.RosterParser
             }, modifier = Modifier.fillMaxWidth()) { Text("+ Adicionar nome ao rascunho") }
             TextButton(onClick = close) { Text("Voltar e manter rascunhos") }
         }
+        item {
+            val state = when { rows.isNotEmpty() && rows.all { it.reviewed } -> ToggleableState.On
+                rows.any { it.reviewed } -> ToggleableState.Indeterminate
+                else -> ToggleableState.Off }
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                TriStateCheckbox(state=state, enabled=!saving && rows.isNotEmpty(),
+                    modifier=Modifier.testTag("import-select-all"), onClick={
+                        val ids=rows.map{it.id}.toSet();val reviewed=state!=ToggleableState.On
+                        vm.act {vm.repository.reviewDrafts(c.id,ids,reviewed)}
+                    })
+                Text("Selecionar todos")
+            }
+        }
         items(rows, key = { it.id }) { row ->
             val issue = issues(row)
             OutlinedCard(Modifier.fillMaxWidth(), colors = CardDefaults.outlinedCardColors(containerColor = if (issue.isNotBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface)) {
@@ -59,7 +73,7 @@ import br.com.diariodeclasse.domain.RosterParser
                         TextButton(onClick = { removing = row }) { Text("Excluir") }
                     }
                     Row {
-                        Checkbox(row.reviewed, enabled = !saving, onCheckedChange = { reviewed -> val updated = row.copy(reviewed = reviewed); vm.act { vm.repository.dao.save(updated) } })
+                        Checkbox(row.reviewed, modifier=Modifier.testTag("import-reviewed-${row.id}"), enabled = !saving, onCheckedChange = { reviewed -> val updated = row.copy(reviewed = reviewed); vm.act { vm.repository.dao.save(updated) } })
                         Text("Nome e número conferidos", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.bodyMedium)
                     }
                 }

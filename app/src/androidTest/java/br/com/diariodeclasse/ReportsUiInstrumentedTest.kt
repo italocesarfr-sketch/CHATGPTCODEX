@@ -53,7 +53,7 @@ class ReportsUiInstrumentedTest {
     private fun waitText(text:String) { compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()} }
     private fun mode(value:String,current:String="Bimestral") {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("$current ▾").performClick();compose.onNodeWithText(value,useUnmergedTree=true).performClick()
+        compose.onNodeWithText("$current ▾").performScrollTo().performClick();compose.onNodeWithText(value,useUnmergedTree=true).performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
     private fun selectClass(school:SchoolClass) {
@@ -88,7 +88,7 @@ class ReportsUiInstrumentedTest {
         shot("07-informacoes-do-relatorio")
         compose.onNodeWithText("Fechar").performClick()
         compose.onNodeWithTag("report-information").assertDoesNotExist()
-        compose.onNodeWithText("Chamada ▾").performClick()
+        compose.onNodeWithText("Chamada ▾").performScrollTo().performClick()
         compose.onNodeWithText("Maior nota",useUnmergedTree=true).performClick()
         row(a);cell(a,0).assertTextEquals("0,00")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)

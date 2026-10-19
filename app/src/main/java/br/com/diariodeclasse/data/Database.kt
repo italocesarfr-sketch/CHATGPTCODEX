@@ -128,6 +128,8 @@ interface DiaryDao {
     @Query("DELETE FROM lessons WHERE classId = :classId AND date >= :from AND state = 'PREVISTA' AND note = '' AND id NOT IN (SELECT lessonId FROM marks)")
     suspend fun removeUnrecordedPlans(classId: String, from: String)
     @Query("DELETE FROM activities WHERE id = :id") suspend fun deleteActivity(id: String)
+    @Query("UPDATE import_drafts SET reviewed = :reviewed WHERE classId = :classId AND id IN (:ids)")
+    suspend fun reviewDrafts(classId: String, ids: List<String>, reviewed: Boolean): Int
     @Query("DELETE FROM import_drafts WHERE id = :id") suspend fun deleteDraft(id: String)
     @Query("DELETE FROM import_drafts WHERE classId = :classId") suspend fun clearDraft(classId: String)
 }

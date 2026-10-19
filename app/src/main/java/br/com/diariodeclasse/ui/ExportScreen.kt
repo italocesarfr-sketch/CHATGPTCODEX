@@ -24,7 +24,7 @@ import br.com.diariodeclasse.export.*
 import kotlinx.coroutines.*
 import java.io.File
 
-@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,notify:(String)->Unit,ready:Boolean=true,busyChanged:(Boolean)->Unit) {
+@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,notify:(String)->Unit,ready:Boolean=true,attendance:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
     val context=LocalContext.current;val scope=rememberCoroutineScope()
     var model by rememberSaveable(c.id){mutableStateOf(ExportModel.NOTES.name)}
     var period by rememberSaveable(c.id){mutableIntStateOf(initialTerm)}
@@ -55,6 +55,7 @@ import java.io.File
     LazyColumn(Modifier.fillMaxSize().testTag("export-screen"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(10.dp)) {
         item {
             Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
+            attendance?.let{OutlinedButton(onClick=it,enabled=ready&&!busy,modifier=Modifier.testTag("open-attendance-export")){Text("Exportar chamada (XLSX)")}}
             Text("Ordem, ocultação e linhas vazias seguem Organizar exportação. A prévia abaixo é a mesma matriz usada nos arquivos e na cópia.",style=MaterialTheme.typography.bodySmall)
             OutlinedButton(onClick={controls=!controls},enabled=ready&&!busy,modifier=Modifier.testTag("export-options")){Text(if(controls)"Recolher opções"else"Opções de exportação")}
             if(controls && !busy) {

@@ -112,10 +112,16 @@ private val pages = listOf(
     fun changeSelection(value: AppSelection) = navigate {
         vm.select(value) { detail = "" }
     }
+    fun openReportStudent(school:SchoolClass,student:Student) = navigate {
+        if(data.classArchives.any{it.classId==school.id}) {
+            managedClassId=school.id;studentId=student.id;detail="archived-student-report"
+        } else vm.select(AppSelection(school.year,school.id)) {studentId=student.id;detail="student-report"}
+    }
     fun back() = navigate { detail = when(detail) {
+        "attendance-export" -> "export"
         "profile" -> returnDetail
         "archived-student-report" -> "archived-reports"
-        "archived-reports", "archived-export", "archived-records" -> {
+        "archived-reports", "archived-export", "archived-records", "archived-attendance-export" -> {
             editingClass=data.classes.firstOrNull{it.id==managedClassId};classForm=editingClass!=null;"archives"
         }
         else -> ""
@@ -152,7 +158,7 @@ private val pages = listOf(
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             Box(Modifier.fillMaxWidth().height(4.dp)) { if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!data.loaded) { CircularProgressIndicator(Modifier.padding(32.dp)); return@Column }
-            if(detail !in setOf("archives","archived-reports","archived-export","archived-student-report","archived-records")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
+            if(detail !in setOf("archives","archived-reports","archived-export","archived-student-report","archived-records","archived-attendance-export")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
@@ -161,13 +167,15 @@ private val pages = listOf(
                         }
                         detail == "archived-reports" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived ->
                             Column { Text("Turma arquivada • ${archived.name} • ${archived.year}",Modifier.padding(NoctuaSpace.page));TermSelector(term){term=it}
-                                ReportScreen(data,archived,term) {studentId=it;detail="archived-student-report"} }
+                                ReportScreen(data,archived,term,globalSearch=false) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
-                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,vm::message,ready=!saving){exportBusy=it}}
+                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,vm::message,ready=!saving,attendance={detail="archived-attendance-export"}){exportBusy=it}}
+                        detail == "archived-attendance-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving){exportBusy=it}}
                         detail == "records" && c != null -> LessonRecordsScreen(vm,data,c,recordDraft,::changeRecord,::dismissRecord)
                         detail == "archived-records" -> data.classes.firstOrNull{it.id==managedClassId}?.let { LessonRecordsScreen(vm,data,it,recordDraft,::changeRecord,::dismissRecord,readOnly=true) }
-                        detail == "export" && c != null -> ExportScreen(data,c,term,vm::message,ready=!saving){exportBusy=it}
+                        detail == "attendance-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving){exportBusy=it}
+                        detail == "export" && c != null -> ExportScreen(data,c,term,vm::message,ready=!saving,attendance={detail="attendance-export"}){exportBusy=it}
                         detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,{concludeExport()},{changeExport(null);detail=""},export={concludeExport(true)})
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
@@ -184,6 +192,11 @@ private val pages = listOf(
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
                             edit = { editingClass = c; classForm = true }, roster = { detail = "roster" }, archives={detail="archives"})
+                        page == 3 && c == null -> Column {
+                            Text("Relatórios",Modifier.padding(NoctuaSpace.page),style=MaterialTheme.typography.titleLarge)
+                            TermSelector(term){term=it}
+                            ReportScreen(data,null,term,globalProfile=::openReportStudent) {}
+                        }
                         c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
                         page == 1 && c != null -> frequencyStates.SaveableStateProvider(c.id) {
                             ClassJournalArea(vm,data,c,term,{term=it},{termForm=true},classAreaMode,{next->navigate{classAreaMode=next}},recordDraft,::changeRecord,::dismissRecord,::navigate)
@@ -203,7 +216,7 @@ private val pages = listOf(
                                         FilledTonalButton(onClick={detail="export"},modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("open-export")){Text("Exportar planilha")}
                                     }
                                     reportStates.SaveableStateProvider(c.id) {
-                                    ReportScreen(data, c, term) { studentId = it; returnDetail = ""; detail = "student-report" }
+                                    ReportScreen(data, c, term,globalProfile=::openReportStudent) { studentId = it; returnDetail = ""; detail = "student-report" }
                                     }
                                 }
                             }

@@ -1,3 +1,5 @@
+> **Prompt 2 autorizado — Noctua 0.12.0 / 21:** seleção coletiva na importação, chamada XLSX por período, busca global na própria página Relatórios e segundo toque para NR. Room v7 e backup 8 sem mudança de esquema. [Contrato e validação](PROMPT2.md).
+
 > **Atualização de UX — 0.11.4 / 20:** Cadastrar Turma reúne Nova Turma, Editar Turma e Turmas Arquivadas. Arquivar/Excluir ficam ao final da edição, sem confirmação digitada. Preservação transacional de históricos, Room v7 e backup 8 inalterados. [Contrato](CORRECAO_UX_TURMAS.md).
 
 > **Correção autorizada posterior à 0.11.1 — exclusão com remanejamentos:** origem e intermediárias podem ser excluídas após confirmação, preservando históricos independentes por IDs. Room v7 aditivo e backup 8, compatível com anteriores. O bloqueio genérico descrito na Etapa 5.2 é substituído pela preservação transacional, sem novas regras pedagógicas. [Arquitetura e validação](CORRECAO_EXCLUSAO_REMANEJAMENTOS.md).

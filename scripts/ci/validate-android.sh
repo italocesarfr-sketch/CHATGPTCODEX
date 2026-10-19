@@ -6,6 +6,9 @@ set -euo pipefail
 status=0
 ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true connectedDebugAndroidTest || status=$?
 mkdir -p build
+if adb shell run-as br.com.diariodeclasse test -d files/prompt2-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/prompt2-screenshots > build/prompt2-telas.tar
+fi
 if adb shell run-as br.com.diariodeclasse test -d files/brand-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/brand-screenshots > build/noctua-marca-telas.tar
 fi
@@ -48,6 +51,8 @@ fi
 if (( status != 0 )); then exit "$status"; fi
 python3 - <<'PY'
 import tarfile
+with tarfile.open('build/prompt2-telas.tar') as images:
+    assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 4
 with tarfile.open('build/noctua-marca-telas.tar') as images:
     assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 5
 print('Marca oficial: capturas de máscaras, launcher, tela inicial, configurações e cabeçalho coletadas.')

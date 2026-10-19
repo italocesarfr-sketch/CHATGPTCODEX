@@ -1,6 +1,11 @@
 package br.com.diariodeclasse.ui
 
 import br.com.diariodeclasse.ui.theme.NoctuaSpace
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -57,45 +62,7 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
     ActivityScoreState.RECORDED -> number(entry.applicableScore)
 }
 
-@Composable fun ReportScreen(data: DiarySnapshot, c: SchoolClass, term: Int, profile: (String) -> Unit) {
-    var mode by rememberSaveable { mutableStateOf("Bimestral") }
-    var order by rememberSaveable { mutableStateOf("Chamada") }
-    var showRelocated by rememberSaveable(c.id) { mutableStateOf(false) }
-    var showInformation by rememberSaveable(c.id, term, mode) { mutableStateOf(false) }
-    val reports = remember(data, c, showRelocated) { SchoolReports(data, c, showRelocated) }
-    val report = remember(reports, term) { reports.term(term) }
-    val annual = remember(reports) { reports.year() }
-    val selectedOrder = when (order) {
-        "Mais faltas" -> StudentOrder.ABSENCES
-        "Menor nota" -> StudentOrder.LOWEST_GRADE
-        "Maior nota" -> StudentOrder.HIGHEST_GRADE
-        else -> StudentOrder.CALL
-    }
-    val sorted = remember(report, selectedOrder, c.countJustified) { SchoolReports.ordered(report.students, selectedOrder, c.countJustified) }
-    val ranking = remember(report, c.countJustified) { SchoolReports.rank(report.students, c.countJustified) }
-    val horizontal = rememberScrollState()
-    val listState = rememberLazyListState()
-    if (showInformation) AlertDialog(
-        onDismissRequest = { showInformation = false },
-        title = { Text("Informações do relatório") },
-        text = {
-            Column(Modifier.testTag("report-information").verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
-                if (mode == "Bimestral") Text("Atividades: escala 0 a ${number(c.scale)}. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.")
-                Text("Deslize as colunas para os lados. O nome permanece visível; toque para consultar o histórico. O status identifica a matrícula atual.")
-                Text(justificationPolicy(c))
-                if (mode == "Frequência" || mode == "Mais faltosos") Text("Aulas elegíveis variam conforme a matrícula.")
-                if (mode == "Mais faltosos") Text("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.")
-                if (mode == "Resumo anual") {
-                    Text("Quatro resultados separados; não há média anual ou decisão de aprovação.")
-                    Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula. Não é a média dos percentuais bimestrais.")
-                }
-            }
-        },
-        confirmButton = { TextButton(onClick = { showInformation = false }) { Text("Fechar") } }
-    )
-    // Só mudanças explícitas de contexto reposicionam a leitura, nunca emissões dos dados.
-    LaunchedEffect(c.id, term, mode) { listState.scrollToItem(0); horizontal.scrollTo(0) }
-    @Composable fun TableRow(name: String, tag: String, cells: List<String>, totalIndex: Int? = null,
+@Composable private fun ReportTableRow(c:SchoolClass, horizontal:androidx.compose.foundation.ScrollState, name: String, tag: String, cells: List<String>, totalIndex: Int? = null,
         totalValue: Double? = null, status: String? = null, keys: List<String> = emptyList(), click: (() -> Unit)? = null) {
         Row(Modifier.fillMaxWidth().testTag(tag).then(if (click == null) Modifier else Modifier.clickable(onClick = click)).padding(vertical = 12.dp)) {
             Column(Modifier.width(150.dp).padding(end = 8.dp).testTag("$tag-name")) {
@@ -115,37 +82,40 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
         }
         HorizontalDivider()
     }
-    LazyColumn(Modifier.fillMaxSize().testTag("reports-list"), state = listState, contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
-        item {
-            if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) { Section(when (mode) {
-                    "Frequência" -> "Frequência do ${term}º bimestre"
-                    "Mais faltosos" -> "Mais faltosos do ${term}º bimestre"
-                    "Resumo anual" -> "Resumo anual de ${c.year}"
-                    else -> "Boletim do ${term}º bimestre"
-                }, "${c.name} • ${c.subject} • ${c.year}") }
-                IconButton(onClick = { showInformation = true }, modifier = Modifier.size(48.dp)) {
-                    Icon(painterResource(R.drawable.ic_info), contentDescription = "Informações do relatório", tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            Choice("Relatório", listOf("Bimestral", "Frequência", "Mais faltosos", "Resumo anual"), mode) { mode = it }
-            if (mode == "Bimestral") Choice("Ordenação", listOf("Chamada", "Mais faltas", "Menor nota", "Maior nota"), order) { order = it }
-            if (mode != "Resumo anual") Text(report.period?.let { "${shortDate(it.start)} a ${shortDate(it.end)}" } ?: "Bimestre não configurado", style = MaterialTheme.typography.bodySmall)
-        }
+
+private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:DiarySnapshot,c:SchoolClass,term:Int,
+    mode:String,order:StudentOrder,showRelocated:Boolean,matched:Set<String>?,global:Boolean,
+    horizontal:androidx.compose.foundation.ScrollState,profile:(String)->Unit) {
+    val reports=SchoolReports(data,c,showRelocated)
+    val complete=reports.term(term)
+    val filtered=complete.students.filter{matched==null||it.student.id in matched}
+    val report=if(matched==null)complete else complete.copy(students=filtered,frequency=complete.period?.let{SchoolRules.aggregateFrequency(filtered.mapNotNull{it.frequency},c.countJustified)})
+    val year=reports.year()
+    val yearRows=year.students.filter{matched==null||it.student.id in matched}
+    val annual=if(matched==null)year else year.copy(students=yearRows,frequency=FrequencySummary.from(SchoolRules.aggregateFrequency(yearRows.map{it.frequency},c.countJustified),c.countJustified))
+    val sorted=SchoolReports.ordered(report.students,order,c.countJustified)
+    val ranking=SchoolReports.rank(report.students,c.countJustified)
+    fun rowLabel(student:Student):String? {
+        val status=relocationLabel(data,student)
+        return if(global) "${c.name} • ${c.year}${if(data.classArchives.any{it.classId==c.id})" • Arquivada"else""}\n${status.orEmpty()}" else status
+    }
+    if(global)item(key="school-${c.id}") {
+        Section("${c.name} • ${c.subject} • ${c.year}",if(data.classArchives.any{it.classId==c.id})"Turma arquivada"else null)
+        Text(justificationPolicy(c),style=MaterialTheme.typography.labelSmall)
+    }
         if (report.students.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado nesta turma." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico.") }
         when (mode) {
             "Bimestral" -> {
                 if (report.activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Não há notas originais a totalizar; recomposições já registradas continuam identificadas.") }
                 val fields = listOf("current", "original", "recomposition", "pending", "performed", "present", "absent", "justified", "effective-absences", "percent")
-                item { TableRow("Aluno", "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + data.schoolName(it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
+                item { ReportTableRow(c,horizontal,"Aluno", if(global) "report-header-${c.id}" else "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + data.schoolName(it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
                 items(sorted, key = { it.student.id }) { row ->
                     val f = row.attendance
-                    TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.activities.map(::activityText) + listOf(
+                    ReportTableRow(c,horizontal,"${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.activities.map(::activityText) + listOf(
                         row.total?.let(::number) ?: "Não lançado", row.original?.let(::number) ?: "Não lançado", recompositionScore(row) + if(row.recomposition?.studentId?.let {it!=row.student.id}==true) "\n${row.recompositionSchool?.name ?: "Matrícula de origem"}" else "",
                         "${periodStatus(row)}\n${enrollmentText(row)}", f?.performed?.toString() ?: "—", f?.present?.toString() ?: "—",
                         f?.absent?.toString() ?: "—", f?.justified?.toString() ?: "—", f?.effectiveAbsences?.toString() ?: "—", percent(f?.percent)),
-                        report.activities.size, row.total, relocationLabel(data,row.student), report.activities.map { "activity-${it.id}" } + fields) { profile(row.student.id) }
+                        report.activities.size, row.total, rowLabel(row.student), report.activities.map { "activity-${it.id}" } + fields) { profile(row.student.id) }
                 }
             }
             "Frequência", "Mais faltosos" -> {
@@ -157,27 +127,86 @@ private fun activityText(entry: ActivityResult) = when (entry.state) {
                 }
                 val rows = if (mode == "Mais faltosos") ranking else report.students
                 if (mode == "Mais faltosos" && rows.isEmpty()) item { Info("Nenhum aluno com faltas efetivas no período.") }
-                item { TableRow("Aluno", "report-header", listOf("Aulas elegíveis", "Presenças", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência", "Chamadas válidas", "Não registradas")) }
+                item { ReportTableRow(c,horizontal,"Aluno", if(global) "report-header-${c.id}" else "report-header", listOf("Aulas elegíveis", "Presenças", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência", "Chamadas válidas", "Não registradas")) }
                 items(rows, key = { it.student.id }) { row ->
                     val f = row.attendance
-                    TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", listOf(f?.performed, f?.present, f?.absent, f?.justified, f?.effectiveAbsences).map { it?.toString() ?: "—" } + listOf(percent(f?.percent), f?.valid?.toString() ?: "—", f?.unregistered?.toString() ?: "—"), status = relocationLabel(data,row.student),
+                    ReportTableRow(c,horizontal,"${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", listOf(f?.performed, f?.present, f?.absent, f?.justified, f?.effectiveAbsences).map { it?.toString() ?: "—" } + listOf(percent(f?.percent), f?.valid?.toString() ?: "—", f?.unregistered?.toString() ?: "—"), status = rowLabel(row.student),
                         keys = listOf("performed", "present", "absent", "justified", "effective-absences", "percent", "valid", "unregistered")) { profile(row.student.id) }
                 }
             }
             "Resumo anual" -> {
                 item { Info("${annual.performedLessons} horários realizados no ano. Soma das oportunidades das matrículas:\n${summaryText(annual.frequency)}") }
-                item { TableRow("Aluno", "report-header", (1..4).map { "${it}º bimestre" } + "Frequência anual") }
+                item { ReportTableRow(c,horizontal,"Aluno", if(global) "report-header-${c.id}" else "report-header", (1..4).map { "${it}º bimestre" } + "Frequência anual") }
                 items(annual.students, key = { it.student.id }) { row ->
-                    TableRow("${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.terms.map { termRow ->
+                    ReportTableRow(c,horizontal,"${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.terms.map { termRow ->
                         when {
                             termRow.period == null && !termRow.hasData -> "Bimestre não configurado"
                             !termRow.hasData && termRow.enrollment == EnrollmentCoverage.OUTSIDE -> "Fora da matrícula\n${periodStatus(termRow)}"
                             !termRow.hasData -> "Sem dados"
                             else -> "Resultado vigente: ${termRow.total?.let(::number) ?: "Não lançado"}\n${periodStatus(termRow)}\n${if (termRow.enrollment == EnrollmentCoverage.FULL) "" else enrollmentText(termRow) + "\n"}${termRow.attendance?.let { "Faltas efetivas: ${it.effectiveAbsences}\nF: ${it.absent} • FJ: ${it.justified}\n${percent(it.percent)}" } ?: "Bimestre não configurado"}"
                         }
-                    } + summaryText(row.attendance), status = relocationLabel(data,row.student), keys = (1..4).map { "term-$it" } + "annual-frequency") { profile(row.student.id) }
+                    } + summaryText(row.attendance), status = rowLabel(row.student), keys = (1..4).map { "term-$it" } + "annual-frequency") { profile(row.student.id) }
                 }
             }
+        }
+
+}
+
+@Composable fun ReportScreen(data:DiarySnapshot,c:SchoolClass?,term:Int,
+    globalSearch:Boolean=true,globalProfile:((SchoolClass,Student)->Unit)?=null,profile:(String)->Unit) {
+    val focus=LocalFocusManager.current;val keyboard=LocalSoftwareKeyboardController.current
+    var query by rememberSaveable{mutableStateOf("")}
+    var mode by rememberSaveable{mutableStateOf("Bimestral")}
+    var order by rememberSaveable{mutableStateOf("Chamada")}
+    var showRelocated by rememberSaveable(c?.id){mutableStateOf(false)}
+    var showInformation by rememberSaveable(c?.id,term,mode){mutableStateOf(false)}
+    val searching=globalSearch && query.isNotBlank()
+    val matches=remember(data,query,showRelocated){GlobalStudentSearch.find(data,query,showRelocated)}
+    val selectedOrder=when(order){"Mais faltas"->StudentOrder.ABSENCES;"Menor nota"->StudentOrder.LOWEST_GRADE;"Maior nota"->StudentOrder.HIGHEST_GRADE;else->StudentOrder.CALL}
+    val horizontal=rememberScrollState();val listState=rememberLazyListState()
+    LaunchedEffect(c?.id,term,mode,query){listState.scrollToItem(0);horizontal.scrollTo(0)}
+    if(showInformation)AlertDialog(onDismissRequest={showInformation=false},title={Text("Informações do relatório")},text={
+        Column(Modifier.testTag("report-information").verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.medium)) {
+            if(mode=="Bimestral"&&!searching&&c!=null)Text("Atividades: escala 0 a ${number(c?.scale ?: 10.0)}. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.")
+            Text("Deslize as colunas para os lados. O nome permanece visível; toque para consultar o histórico. O status identifica a matrícula atual.")
+            if(searching)Text("Pesquisa em todas as turmas e anos, inclusive arquivadas. Cada grupo mantém suas atividades, escala e critérios de frequência.")
+            c?.let{Text(justificationPolicy(it))}
+            if(mode=="Frequência"||mode=="Mais faltosos")Text("Aulas elegíveis variam conforme a matrícula.")
+            if(mode=="Mais faltosos")Text("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.")
+            if(mode=="Resumo anual") {
+                Text("Quatro resultados separados; não há média anual ou decisão de aprovação.")
+                Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula. Não é a média dos percentuais bimestrais.")
+            }
+        }
+    },confirmButton={TextButton(onClick={showInformation=false}){Text("Fechar")}})
+    LazyColumn(Modifier.fillMaxSize().testTag("reports-list"),state=listState,contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+        item {
+            if(globalSearch)OutlinedTextField(query,{query=it},label={Text("Buscar aluno em todas as turmas")},singleLine=true,
+                keyboardOptions=KeyboardOptions(imeAction=ImeAction.Search),keyboardActions=KeyboardActions(onSearch={focus.clearFocus();keyboard?.hide()}),
+                modifier=Modifier.fillMaxWidth().testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
+            if(data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)})RelocatedFilter(showRelocated){showRelocated=it}
+            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else when(mode){
+                    "Frequência"->"Frequência do ${term}º bimestre";"Mais faltosos"->"Mais faltosos do ${term}º bimestre";"Resumo anual"->"Resumo anual de ${c?.year ?: "—"}";else->"Boletim do ${term}º bimestre"
+                },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})}
+                IconButton(onClick={showInformation=true},modifier=Modifier.size(48.dp)){Icon(painterResource(R.drawable.ic_info),"Informações do relatório",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
+            }
+            Choice("Relatório",listOf("Bimestral","Frequência","Mais faltosos","Resumo anual"),mode){mode=it}
+            if(mode=="Bimestral")Choice("Ordenação",listOf("Chamada","Mais faltas","Menor nota","Maior nota"),order){order=it}
+            if(!searching && mode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c?.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
+        }
+        when {
+            searching -> {
+                if(matches.isEmpty())item{Info("Nenhum aluno encontrado. Confira o nome ou consulte os remanejados no histórico.")}
+                matches.groupBy{it.school}.forEach{(school,rows)->
+                    reportGroup(data,school,term,mode,selectedOrder,showRelocated,rows.map{it.student.id}.toSet(),true,horizontal) {id->
+                        val student=rows.first{it.student.id==id}.student
+                        if(globalProfile!=null)globalProfile(school,student)else profile(id)
+                    }
+                }
+            }
+            c!=null -> reportGroup(data,c,term,mode,selectedOrder,showRelocated,null,false,horizontal,profile)
+            else -> item{Info("Selecione uma turma ou pesquise um aluno em todas as turmas.")}
         }
     }
 }
