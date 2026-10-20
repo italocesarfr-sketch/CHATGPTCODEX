@@ -155,7 +155,7 @@ private val pages = listOf(
                     .semantics{contentDescription=if(index==1) "Chamada e Diário" else item.title}.padding(vertical=8.dp),
                     horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(4.dp)) {
                     Surface(shape=MaterialTheme.shapes.large,color=if(active)MaterialTheme.colorScheme.secondaryContainer else Color.Transparent) {
-                        Icon(painterResource(item.icon),if(index==1) "Calendário" else null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp).testTag("nav-icon-$index"),
+                        Icon(painterResource(item.icon),null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp).testTag("nav-icon-$index"),
                             tint=if(active)MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Text(item.label,Modifier.fillMaxWidth(),textAlign=TextAlign.Center,maxLines=3,minLines=if(LocalDensity.current.fontScale>1.3f)3 else 2,
@@ -179,14 +179,14 @@ private val pages = listOf(
                                 ReportScreen(data,archived,term,globalSearch=false) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
-                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,vm::message,ready=!saving,attendance={detail="archived-attendance-export"},annual={detail="archived-annual-export"}){exportBusy=it}}
+                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,ready=!saving,attendance={detail="archived-attendance-export"},annual={detail="archived-annual-export"}){exportBusy=it}}
                         detail == "archived-attendance-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving){exportBusy=it}}
                         detail == "archived-annual-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,annual=true){exportBusy=it}}
                         detail == "records" && c != null -> LessonRecordsScreen(vm,data,c,recordDraft,::changeRecord,::dismissRecord)
                         detail == "archived-records" -> data.classes.firstOrNull{it.id==managedClassId}?.let { LessonRecordsScreen(vm,data,it,recordDraft,::changeRecord,::dismissRecord,readOnly=true) }
                         detail == "attendance-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving){exportBusy=it}
                         detail == "annual-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,annual=true){exportBusy=it}
-                        detail == "export" && c != null -> ExportScreen(data,c,term,vm::message,ready=!saving,attendance={detail="attendance-export"},annual={detail="annual-export"}){exportBusy=it}
+                        detail == "export" && c != null -> ExportScreen(data,c,term,ready=!saving,attendance={detail="attendance-export"},annual={detail="annual-export"}){exportBusy=it}
                         detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,{concludeExport()},{changeExport(null);detail=""},export={concludeExport(true)})
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->

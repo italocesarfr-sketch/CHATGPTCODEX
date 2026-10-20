@@ -27,8 +27,10 @@ import kotlinx.coroutines.*
 import java.io.File
 
 @OptIn(ExperimentalLayoutApi::class)
-@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,notify:(String)->Unit,ready:Boolean=true,attendance:(()->Unit)?=null,annual:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
+@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,ready:Boolean=true,attendance:(()->Unit)?=null,annual:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
     val context=LocalContext.current;val scope=rememberCoroutineScope()
+    val feedback=remember { SnackbarHostState() }
+    fun notify(text:String) { scope.launch { feedback.currentSnackbarData?.dismiss(); feedback.showSnackbar(text) } }
     var model by rememberSaveable(c.id){mutableStateOf(ExportModel.NOTES.name)}
     var period by rememberSaveable(c.id){mutableIntStateOf(initialTerm)}
     var format by rememberSaveable(c.id){mutableStateOf(ExportFormat.XLSX.name)}
@@ -56,11 +58,12 @@ import java.io.File
     val csv=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(ExportFormat.CSV.mime),::delivered)
     val scroll=rememberScrollState();val matrix=remember(table,notesPreview,allGrades){table.rows(notesPreview,allGrades)}
     var otherExports by remember { mutableStateOf(false) }
-    Scaffold(contentWindowInsets=WindowInsets(0,0,0,0),bottomBar = {
+    Scaffold(contentWindowInsets=WindowInsets(0,0,0,0),snackbarHost={SnackbarHost(feedback)},bottomBar = {
         Surface(tonalElevation = 3.dp) {
             Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.3f).coerceAtLeast(96f).dp)
                 .verticalScroll(rememberScrollState()).padding(horizontal=NoctuaSpace.page,vertical=NoctuaSpace.small),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-            Button(enabled=ready&&!busy,onClick={
+            FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            Button(enabled=ready&&!busy,contentPadding=PaddingValues(horizontal=12.dp,vertical=8.dp),onClick={
                 val frozen=table;val kind=ExportFormat.valueOf(format);preparing=true;error=null
                 scope.launch {
                     var file:File?=null
@@ -79,8 +82,7 @@ import java.io.File
                     (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Noctua • ${c.name}",text));notify(if(onlyNotes)"Somente notas copiadas."else"Dados copiados.")
                 }catch(_:Exception){error="Não foi possível copiar os dados."}
             }
-            FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                OutlinedButton(enabled=ready&&!busy&&table.records.isNotEmpty(),onClick={copy(false)},modifier=Modifier.testTag("export-copy")){Text("Copiar dados")}
+                OutlinedButton(contentPadding=PaddingValues(horizontal=12.dp,vertical=8.dp),enabled=ready&&!busy&&table.records.isNotEmpty(),onClick={copy(false)},modifier=Modifier.testTag("export-copy")){Text("Copiar dados")}
                 TextButton(enabled=ready&&!busy&&table.records.isNotEmpty()&&table.columns.any{it.grade},onClick={copy(true)},modifier=Modifier.testTag("export-copy-grades")){Text("Copiar somente notas")}
             }
                 error?.let{Text(it,color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("export-error"))}

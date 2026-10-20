@@ -50,7 +50,7 @@ class FinalUxLayoutInstrumentedTest {
                     when(screen) {
                         "entry"->DemoEntryScreen{}
                         "actions"->Box {ReportActions({organized++},{exported++},enabled)}
-                        "export"->ExportScreen(data,c,3,{},attendance={},annual={}){}
+                        "export"->ExportScreen(data,c,3,attendance={},annual={}){}
                         else->ExportLayoutScreen(vm,data,c,ExportEditSession.start(data,c.id,"ORDER"),{},{},{})
                     }
                 }}

@@ -88,9 +88,9 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
 /** Mesmos controles e estilo, sem indicar seleção ou impor novo fluxo. */
 @Composable fun ReportActions(organize: () -> Unit, export: () -> Unit, enabled: Boolean = true) {
     Row(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page),horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
-        OutlinedButton(onClick=organize,enabled=enabled,contentPadding=PaddingValues(horizontal=12.dp,vertical=8.dp),
+        OutlinedButton(onClick=organize,enabled=enabled,contentPadding=PaddingValues(horizontal=4.dp,vertical=8.dp),
             modifier=Modifier.weight(1f).heightIn(min=48.dp).then(Modifier.testTag("export-organize"))) { Text("Organizar",maxLines=1,textAlign=androidx.compose.ui.text.style.TextAlign.Center) }
-        OutlinedButton(onClick=export,enabled=enabled,contentPadding=PaddingValues(horizontal=12.dp,vertical=8.dp),
+        OutlinedButton(onClick=export,enabled=enabled,contentPadding=PaddingValues(horizontal=4.dp,vertical=8.dp),
             modifier=Modifier.weight(1f).heightIn(min=48.dp).then(Modifier.testTag("open-export"))) { Text("Exportar",maxLines=1,textAlign=androidx.compose.ui.text.style.TextAlign.Center) }
     }
 }
