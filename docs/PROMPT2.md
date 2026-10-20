@@ -46,4 +46,73 @@ Testes novos: `PromptTwoProjectionTest`, `PromptTwoRoomInstrumentedTest`, `Promp
 
 107 testes JVM e compilação local debug/instrumentação aprovados. A chamada XLSX foi lida por openpyxl com uma matriz esperada independente: ordem oficial, número numérico, P/F/FJ, NR/vazio, matrícula parcial, transferência, ocultação e dois horários. Projeções com remanejamentos sucessivos continuam iguais após a exclusão de origens. O primeiro compile de testes identificou argumentos invertidos no construtor Java da fixture CSV; foram corrigidos antes da publicação de código.
 
-Testes Android e atualização assinada no CI ainda precisam ser conferidos; esta seção será completada com os resultados efetivos. Não há alegação de novo teste físico nem de abertura manual no Microsoft Excel. Os limites XLSX do escritor existente continuam valendo (16.384 colunas e 1.048.576 linhas); extrapolações produzem erro, sem modificar registros.
+Validação final do código `6ae325015e0b22b03aa84078c2ca3364f63deb7c`, executada em 19/10/2026:
+
+- **107 testes JVM** aprovados, sem falhas/erros/skips.
+- **181 testes Android aprovados**, sem falhas/erros, em emulador API 30. O XML geral tem 185 casos, dos quais quatro sondas são condicionais. Frequência/reinício (duas fases), atualização legada (duas fases) e atualização release permanente (seis fases) foram executadas separadamente. A sonda antiga de continuidade com chaves descartáveis foi substituída pelo ensaio com a chave permanente existente.
+- **40 XLSX reais, 40 CSV e 120 TSV** lidos e conferidos por openpyxl 3.1.5/scripts independentes (30 regulares, seis com histórico, um da nova chamada e três gerados no Android). Conferidos tipos numéricos, zero/vazio, P/F/FJ, dimensões, Unicode, ordem, ocultação e linhas vazias aplicáveis. Não há abertura manual no Microsoft Excel.
+- Fluxos de seleção coletiva/parcial/individual, busca em anos diferentes/sem turma selecionada, limpeza de P/F/FJ, recriação da tela, totais, seletor de arquivos cancelado e compartilhamento aprovados. Os testes Room verificaram rollback, duplicidades, independência de registros, reinício e backup/restauração de NR e conferência.
+- Atualização **release 0.11.4 / 20 → 0.12.0 / 21** instalada com `adb install -r` em emulador novo, com o mesmo certificado. A referência original foi validada pelo hash fixado no repositório. As seis fases passaram: preparar dados, atualizar/conferir, restaurar backup, reabrir, excluir origens preservando histórico e reabrir o histórico. Nenhum aparelho real foi apagado ou usado nesse ensaio.
+- Esquemas Room, backup, entidades e workflow manual de release preservados; CI confirmou esquema idêntico e bloqueio de release sem assinatura configurada. Nenhuma chave/Secret foi criada ou substituída. A marca PNG original também passou na auditoria.
+
+[GitHub Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39343066823) · [APK release assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39343066823/artifacts/12231005533) · [Testes/capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39343066823/artifacts/12229953385) · [Atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39343066823/artifacts/12230421514)
+
+Extraia `app-release.apk` do ZIP da release; o artefato debug não é o instalador de atualização. O APK release foi baixado novamente e sua assinatura, pacote, versão e hash foram conferidos localmente, além dos checks do CI:
+
+- APK SHA-256: `e6335cf7f4d5e508fd349665aaa7482b2871605c71563d1bca0b45304803307c`.
+- Certificado público SHA-256: `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`.
+- Arquivo: 8.486.091 bytes; artefato retido pelo GitHub por 30 dias.
+
+Ainda depende de validação do proprietário o uso no aparelho físico e a abertura no Microsoft Excel. A compatibilidade de atualização foi comprovada para a release 0.11.4 identificada; uma instalação com outro certificado não é coberta por esse resultado. Os limites XLSX do escritor existente continuam valendo (16.384 colunas e 1.048.576 linhas); extrapolações produzem erro, sem modificar registros.
+
+### Ajustes identificados na primeira instrumentação
+
+A primeira execução encontrou sete falhas de interface/automação. Um cenário antigo tocava P depois de marcar todos como presentes; com o comportamento solicitado, isso agora limpa a célula. O cenário continua comprovando P/F em aulas duplas, verificando o P já selecionado, e o novo teste cobre explicitamente o segundo toque. Os demais ajustes tornam os seletores específicos para checkbox individual/menu aberto, aguardam a projeção do ViewModel e rolam até os controles antes do toque. Não foram removidas verificações de notas, backup ou integridade.
+
+O controle coletivo passou a aparecer logo após o título da conferência. A orientação após limpar a pesquisa sem turma selecionada fica no cabeçalho visível, sem filtros de relatório sem contexto. Na sincronização da publicação foi restaurada a permissão executável do script Android. Esses ajustes não alteram entidades nem regras de cálculo.
+
+Testes existentes adaptados: `FrequencyUiInstrumentedTest.kt`, `ReportsUiInstrumentedTest.kt` e `StageTwoUiInstrumentedTest.kt`, em `app/src/androidTest/java/br/com/diariodeclasse/`.
+
+
+### Capturas verificadas (somente dados fictícios)
+
+| Fluxo | Captura |
+|---|---|
+| Última semana visível e dia 28 tocável | [Calendário](capturas/prompt2/00-calendario-final-do-mes.png) |
+| Seleção coletiva em estado parcial | [Conferência](capturas/prompt2/01-conferencia-parcial.png) |
+| Notas e identificação de turma/ano na busca | [Busca global](capturas/prompt2/02-busca-global.png) |
+| P/F desmarcados, NR persistido e total atualizado | [Chamada](capturas/prompt2/03-chamada-sem-marcacao.png) |
+| Período, salvamento e compartilhamento XLSX | [Exportação](capturas/prompt2/04-exportar-chamada.png) |
+
+O último timeout era causado pelo alvo de teste na última semana: trazer o item lazy do grid à vista não assegurava que o dia 28 estivesse visível verticalmente. O teste passou a deslocar o calendário até a legenda, verificar os limites da célula na área tocável e só então executar o toque real. A captura e a execução final confirmaram a abertura, sem mudar o componente do calendário.
+
+### Relação completa de arquivos de implementação
+
+- `.github/workflows/android.yml`
+- `app/build.gradle.kts`
+- `app/src/androidTest/java/br/com/diariodeclasse/FrequencyUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PromptTwoRoomInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/StageTwoUiInstrumentedTest.kt`
+- `app/src/main/AndroidManifest.xml`
+- `app/src/main/java/br/com/diariodeclasse/data/Database.kt`
+- `app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt`
+- `app/src/main/java/br/com/diariodeclasse/export/AttendanceExportProjection.kt`
+- `app/src/main/java/br/com/diariodeclasse/export/SpreadsheetShare.kt`
+- `app/src/main/java/br/com/diariodeclasse/reports/GlobalStudentSearch.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/AttendanceExportScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/DayAttendanceScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/ExportScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/ImportReviewScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/ReportsScreen.kt`
+- `app/src/main/res/xml/export_paths.xml`
+- `app/src/test/java/br/com/diariodeclasse/PromptTwoProjectionTest.kt`
+- `docs/ESPECIFICACAO.md`
+- `docs/PROMPT2.md`
+- `docs/ROADMAP.md`
+- `docs/baseline/noctua-release-0.11.4.json`
+- `scripts/ci/validate-android.sh`
+
+Evidências adicionais: este documento, `docs/PROMPT2_RESULTADOS.json` e as cinco capturas acima. O commit final de documentação não altera os binários validados.

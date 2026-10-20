@@ -1,0 +1,85 @@
+{
+  "versionName": "0.12.0",
+  "versionCode": 21,
+  "codeCommit": "6ae325015e0b22b03aa84078c2ca3364f63deb7c",
+  "applicationId": "br.com.diariodeclasse",
+  "roomVersion": 7,
+  "backupFormat": 8,
+  "schemaChanged": false,
+  "workflowRun": 39343066823,
+  "workflowConclusion": "success",
+  "testCounts": {
+    "jvm": {
+      "tests": 107,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android": {
+      "tests": 185,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 4
+    }
+  },
+  "independentFiles": {
+    "xlsx": 40,
+    "csv": 40,
+    "tsv": 120
+  },
+  "separateProbePhases": {
+    "frequencyProcess": 2,
+    "legacyUpdate": 2,
+    "permanentReleaseUpdate": 6
+  },
+  "supersededProbe": "ReleaseContinuityProbeTest: replaced by StableUpgradeProbeTest using existing owner signature",
+  "baselineReleaseVersion": "0.11.4",
+  "baselineVersionCode": 20,
+  "apkIdentity": {
+    "apkSha256": "e6335cf7f4d5e508fd349665aaa7482b2871605c71563d1bca0b45304803307c",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae"
+  },
+  "apkBytes": 8486091,
+  "artifacts": {
+    "release": 12231005533,
+    "validation": 12229953385,
+    "signedUpgrade": 12230421514
+  },
+  "artifactZipSha256": {
+    "release": "8419da8891873c4043fb6fee2dddf5168a60a7721f3e9668331c5bb10a74be28",
+    "validation": "600822657aa4efc6b9558b4b64c631e88f6bcf1015971181dba990b4b6d10473",
+    "signedUpgrade": "5747bf4942e96611289923dea157a5cc713c95d2b04902708ad8dd47871462f2"
+  },
+  "manualValidationPending": [
+    "Physical Android device",
+    "Microsoft Excel desktop opening"
+  ],
+  "changedImplementationFiles": [
+    ".github/workflows/android.yml",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/FrequencyUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PromptTwoRoomInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StageTwoUiInstrumentedTest.kt",
+    "app/src/main/AndroidManifest.xml",
+    "app/src/main/java/br/com/diariodeclasse/data/Database.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt",
+    "app/src/main/java/br/com/diariodeclasse/export/AttendanceExportProjection.kt",
+    "app/src/main/java/br/com/diariodeclasse/export/SpreadsheetShare.kt",
+    "app/src/main/java/br/com/diariodeclasse/reports/GlobalStudentSearch.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/AttendanceExportScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DayAttendanceScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ExportScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ImportReviewScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ReportsScreen.kt",
+    "app/src/main/res/xml/export_paths.xml",
+    "app/src/test/java/br/com/diariodeclasse/PromptTwoProjectionTest.kt",
+    "docs/ESPECIFICACAO.md",
+    "docs/PROMPT2.md",
+    "docs/ROADMAP.md",
+    "docs/baseline/noctua-release-0.11.4.json",
+    "scripts/ci/validate-android.sh"
+  ]
+}
