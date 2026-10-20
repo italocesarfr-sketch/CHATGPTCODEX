@@ -89,7 +89,19 @@ class FinalUxLayoutInstrumentedTest {
                 val result=mutableListOf<TextLayoutResult>()
                 compose.onNodeWithText(text,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(result)}
                 val layout=result.single()
-                assertFalse("$text fonte=$f botao=${a.width}x${a.height}, texto=${layout.size}, linhas=${layout.lineCount}, largura=${layout.didOverflowWidth}, altura=${layout.didOverflowHeight}, maximo=${layout.layoutInput.constraints}",layout.hasVisualOverflow)
+                val detail="$text fonte=$f botao=${a.width}x${a.height}, texto=${layout.size}, paragrafo=${layout.multiParagraph.width}, maximo=${layout.layoutInput.constraints}"
+                // TextLayoutResult compara largura Float com Int arredondado, gerando
+                // falso overflow por frações de pixel, mesmo com muito espaço livre.
+                // Validar a geometria real com somente a tolerância do arredondamento.
+                assertEquals(detail,1,layout.lineCount)
+                assertFalse(detail,layout.isLineEllipsized(0))
+                assertFalse(detail,layout.multiParagraph.didExceedMaxLines)
+                assertEquals(detail,text.length,layout.getLineEnd(0,visibleEnd=true))
+                assertFalse(detail,layout.didOverflowHeight)
+                assertTrue(detail,layout.multiParagraph.width<=layout.size.width+0.5f)
+                assertTrue(detail,layout.getLineLeft(0)>=-0.5f)
+                assertTrue(detail,layout.getLineRight(0)<=layout.size.width+0.5f)
+                assertTrue(detail,layout.size.width<=layout.layoutInput.constraints.maxWidth)
             }
             val ia=first.captureToImage().asAndroidBitmap();val ib=second.captureToImage().asAndroidBitmap()
             assertEquals(ia.getPixel(ia.width/2,2),ib.getPixel(ib.width/2,2))
