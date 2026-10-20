@@ -99,14 +99,14 @@ import br.com.diariodeclasse.data.*
     pendingCount?.let { n ->
         if (reactivationCount > 0) AlertDialog(onDismissRequest = { pendingCount = null },
             title = { Text("Reativar $reactivationCount ${if (reactivationCount == 1) "horário cancelado" else "horários cancelados"}?") },
-            text = { Text("As chamadas anteriores serão preservadas.") },
+            text = { Column { Text("As chamadas anteriores serão preservadas."); SaveError(vm) } },
             dismissButton = { TextButton(enabled = !saving, onClick = { pendingCount = null }) { Text("Não") } },
             confirmButton = { Button(enabled = !saving, onClick = { saveHours(n, cancellationApproved, true) }) { Text("Reativar") } })
         else Confirm("Cancelar horários excedentes?", "Os horários de número maior que $n serão cancelados. As chamadas serão preservadas.", { pendingCount = null }) { applyHours(n, true) }
     }
     emptyDay?.let { checked -> AlertDialog(onDismissRequest = { emptyDay = null },
         title = { Text("Remover os horários desta data?") },
-        text = { Text("A data voltará a ficar sem aulas cadastradas.") },
+        text = { Column { Text("A data voltará a ficar sem aulas cadastradas."); SaveError(vm) } },
         dismissButton = { TextButton(enabled = !saving, onClick = { emptyDay = null }) { Text("Cancelar") } },
         confirmButton = { Button(enabled = !saving, onClick = {
             vm.act(done = { emptyDay = null }, context = context) { vm.repository.clearEmptyDay(c.id, day, checked) }
