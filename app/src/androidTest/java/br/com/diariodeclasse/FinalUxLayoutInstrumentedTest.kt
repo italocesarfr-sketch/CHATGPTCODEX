@@ -103,15 +103,17 @@ class FinalUxLayoutInstrumentedTest {
                 // Os limites de linha também incluem o espaço da centralização.
                 // Bounding boxes por caractere medem os glifos efetivamente desenhados.
                 val glyphs=text.indices.map{layout.getBoundingBox(it)}
-                val left=bounds.left+glyphs.minOf{it.left}
-                val right=bounds.left+glyphs.maxOf{it.right}
-                val top=bounds.top+glyphs.minOf{it.top}
-                val bottom=bounds.top+glyphs.maxOf{it.bottom}
-                val geometry="$detail no=$bounds glifos=[$left,$top,$right,$bottom] botao=$button"
-                assertTrue(geometry,right-left<=layout.layoutInput.constraints.maxWidth+0.5f)
-                assertTrue(geometry,left>=button.left-0.5f && right<=button.right+0.5f)
-                assertTrue(geometry,top>=button.top-0.5f && bottom<=button.bottom+0.5f)
-                assertEquals(geometry,button.center.x,(left+right)/2f,1f)
+                val glyphWidth=glyphs.maxOf{it.right}-glyphs.minOf{it.left}
+                val glyphHeight=glyphs.maxOf{it.bottom}-glyphs.minOf{it.top}
+                val geometry="$detail no=$bounds glifos=${glyphWidth}x$glyphHeight botao=$button"
+                // A posição da semântica já incorpora o alinhamento do Text no botão.
+                // Não somar novamente o deslocamento do parágrafo centralizado.
+                assertTrue(geometry,glyphWidth<=bounds.width+0.5f)
+                assertTrue(geometry,glyphHeight<=bounds.height+0.5f)
+                assertTrue(geometry,glyphWidth<=layout.layoutInput.constraints.maxWidth+0.5f)
+                assertTrue(geometry,bounds.left>=button.left && bounds.right<=button.right)
+                assertTrue(geometry,bounds.top>=button.top && bounds.bottom<=button.bottom)
+                assertEquals(geometry,button.center.x,bounds.center.x,1f)
             }
             val ia=first.captureToImage().asAndroidBitmap();val ib=second.captureToImage().asAndroidBitmap()
             assertEquals(ia.getPixel(ia.width/2,2),ib.getPixel(ib.width/2,2))
