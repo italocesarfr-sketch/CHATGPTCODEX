@@ -84,10 +84,12 @@ class FinalUxLayoutInstrumentedTest {
             val a=first.fetchSemanticsNode().boundsInRoot;val b=second.fetchSemanticsNode().boundsInRoot
             assertEquals(a.width,b.width,1f);assertEquals(a.height,b.height,1f);assertEquals(a.top,b.top,1f)
             assertTrue(a.right<=b.left)
+            shot("acoes-320-fonte-$f")
             for(text in listOf("Organizar","Exportar")) {
                 val result=mutableListOf<TextLayoutResult>()
                 compose.onNodeWithText(text,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(result)}
-                assertFalse(result.single().hasVisualOverflow)
+                val layout=result.single()
+                assertFalse("$text fonte=$f botao=${a.width}x${a.height}, texto=${layout.size}, linhas=${layout.lineCount}, largura=${layout.didOverflowWidth}, altura=${layout.didOverflowHeight}, maximo=${layout.layoutInput.constraints}",layout.hasVisualOverflow)
             }
             val ia=first.captureToImage().asAndroidBitmap();val ib=second.captureToImage().asAndroidBitmap()
             assertEquals(ia.getPixel(ia.width/2,2),ib.getPixel(ib.width/2,2))

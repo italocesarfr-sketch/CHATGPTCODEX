@@ -6,6 +6,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
+import br.com.diariodeclasse.ui.DiaryViewModel
 import kotlinx.coroutines.runBlocking
 import org.junit.*
 import org.junit.Assert.*
@@ -200,12 +201,17 @@ class ReportsUiInstrumentedTest {
             app.repository.saveRecomposition(Recomposition(a.id,2,2.0,"2026-11-20"))
             app.repository.saveRecomposition(Recomposition(a.id,3,6.0,"2026-11-20"))
         }
+        val model=androidx.lifecycle.ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        compose.waitUntil(10000) {model.data.value.activities.any{it.id==q4.id} && model.data.value.recompositions.count{it.studentId==a.id}==3 && model.data.value.grades.any{it.activityId==q2.id && it.studentId==a.id && it.value==3.0}}
+        compose.waitForIdle()
         row(a);compose.onNodeWithText("1. ${a.name}").performClick();waitText("Original das atividades: 0,00")
+        // Fixture B1: cabeçalho, uma atividade, cabeçalho anual, quatro bimestres.
+        // Endereçar a lista por índice evita percorrer semântica enquanto o Compose a recompõe.
         for((n,total) in listOf(1 to "0,00",2 to "3,00",3 to "6,00",4 to "Não lançado")) {
-            compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-$n"))
+            compose.onNodeWithTag("individual-report").performScrollToIndex(2+n)
             compose.onNodeWithTag("individual-term-$n").assertTextContains(total,substring=true)
         }
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-3"))
+        compose.onNodeWithTag("individual-report").performScrollToIndex(5)
         compose.onNodeWithTag("individual-term-3").assertTextContains("Parcial",substring=true)
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("3º bim.").performClick()

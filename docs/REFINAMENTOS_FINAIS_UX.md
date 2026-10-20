@@ -30,4 +30,41 @@ A referência do teste de atualização passa a ser o APK release 0.13.0 real: r
 
 Regressões antigas atravessam o botão Entrar real via regra JUnit comum, sem bypass no código de produção. Novos testes cobrem entrada livre, aviso futuro, mostrar/ocultar, campos vazios após recriação, dados/preferências idênticos, ausência de permissão de internet, Voltar, nomes/ícone novos, destinos, igualdade visual dos botões, fontes ampliadas, prévia antes da metade da tela e acessibilidade das ações.
 
-A primeira execução (39428315953) encontrou três falhas de interface: descrição acessível duplicada na aba, corte de texto com fonte ampliada e snackbar cobrindo a segunda ação de cópia. Foram corrigidos o rótulo, o padding horizontal e a posição do feedback; as verificações do conteúdo copiado e da integridade não foram relaxadas. As ações de exportação também foram reunidas em FlowRow para ocupar menos linhas no celular. Resultados finais, capturas, artefatos e eventual limitação serão registrados após a nova execução. Não há alegação de teste em aparelhos físicos do proprietário nem no Microsoft Excel instalado. O CI valida os arquivos reais com openpyxl e realiza atualização assinada em emulador com dados exclusivamente fictícios.
+A primeira execução (39428315953) encontrou três falhas de interface: descrição acessível duplicada na aba, corte de texto com fonte ampliada e snackbar cobrindo a segunda ação de cópia. Foram corrigidos o rótulo, o padding horizontal e a posição do feedback; as verificações do conteúdo copiado e da integridade não foram relaxadas. As ações de exportação também foram reunidas em FlowRow para ocupar menos linhas no celular. A segunda execução (39436207411) confirmou a correção da cópia e da acessibilidade, mas ainda apontou corte com fonte ampliada e uma corrida na busca de semântica do teste de relatório individual. O teste agora aguarda a projeção completa e endereça as linhas da fixture por índice, preservando todas as verificações de notas e bimestres. O espaço vertical dos rótulos dos botões foi ampliado sem reduzir a fonte. Resultados finais, capturas, artefatos e eventual limitação serão registrados após a nova execução. Não há alegação de teste em aparelhos físicos do proprietário nem no Microsoft Excel instalado. O CI valida os arquivos reais com openpyxl e realiza atualização assinada em emulador com dados exclusivamente fictícios.
+
+## Arquivos alterados
+
+Inventário da implementação e dos testes (em relação à base 0.13.0; README, resultados e capturas são a documentação de entrega):
+
+- `.github/workflows/android.yml`
+- `app/build.gradle.kts`
+- `app/src/androidTest/java/br/com/diariodeclasse/ActivityChangesUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/BackupDialogInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ExportLayoutUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ExportLifecycleUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/FinalUxEntryInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/FinalUxLayoutInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/FrequencyUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/LessonRecordsUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/NoctuaEntryTestRule.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/NoctuaIdentityInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PostTwelveUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/RecompositionUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/RelocationUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/StageSixUiInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/StageTwoUiInstrumentedTest.kt`
+- `app/src/main/java/br/com/diariodeclasse/MainActivity.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/Components.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/DemoEntryScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/ExportLayoutScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/ExportScreen.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/ReportsScreen.kt`
+- `app/src/main/res/drawable/ic_calendar.xml`
+- `docs/ESPECIFICACAO.md`
+- `docs/REFINAMENTOS_FINAIS_UX.md`
+- `docs/ROADMAP.md`
+- `docs/baseline/noctua-release-0.13.0.json`
+- `scripts/ci/validate-android.sh`
