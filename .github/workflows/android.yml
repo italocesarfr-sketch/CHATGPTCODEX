@@ -113,6 +113,7 @@ jobs:
             app/build/attendance-export-validation/
             app/build/annual-export-validation/
             build/ux14-telas.tar
+            build/ux14-layout-smoke.txt
             build/ux12-telas.tar
             build/prompt2-telas.tar
             build/android-export-fixtures/

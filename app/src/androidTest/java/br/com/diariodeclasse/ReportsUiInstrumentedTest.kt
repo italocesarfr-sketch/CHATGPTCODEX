@@ -167,7 +167,8 @@ class ReportsUiInstrumentedTest {
         val before=runBlocking {app.backupManager.snapshot()}
         row(a);compose.onNodeWithText("1. ${a.name}").performClick();waitText("Nota 0,00 / 10,00")
         for(n in 1..4) {
-            compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-$n"))
+            // Mesma fixture B1: os quatro bimestres ocupam os índices 3 a 6.
+            compose.onNodeWithTag("individual-report").performScrollToIndex(2+n)
             compose.onNodeWithTag("individual-term-$n").assertTextContains(if(n in listOf(2,4))"Sem dados"else if(n==3)"Parcial"else"0,00",substring=true)
         }
         shot("03-anual")

@@ -90,18 +90,22 @@ class FinalUxLayoutInstrumentedTest {
                 compose.onNodeWithText(text,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(result)}
                 val layout=result.single()
                 val detail="$text fonte=$f botao=${a.width}x${a.height}, texto=${layout.size}, paragrafo=${layout.multiParagraph.width}, maximo=${layout.layoutInput.constraints}"
-                // TextLayoutResult compara largura Float com Int arredondado, gerando
-                // falso overflow por frações de pixel, mesmo com muito espaço livre.
-                // Validar a geometria real com somente a tolerância do arredondamento.
+                // Com TextAlign.Center, o parágrafo pode reservar toda a largura disponível,
+                // enquanto size contém a largura intrínseca do texto. Comparar glyphs e nó
+                // visível com o botão, não largura reservada do parágrafo com size.
                 assertEquals(detail,1,layout.lineCount)
                 assertFalse(detail,layout.isLineEllipsized(0))
                 assertFalse(detail,layout.multiParagraph.didExceedMaxLines)
                 assertEquals(detail,text.length,layout.getLineEnd(0,visibleEnd=true))
                 assertFalse(detail,layout.didOverflowHeight)
-                assertTrue(detail,layout.multiParagraph.width<=layout.size.width+0.5f)
-                assertTrue(detail,layout.getLineLeft(0)>=-0.5f)
-                assertTrue(detail,layout.getLineRight(0)<=layout.size.width+0.5f)
-                assertTrue(detail,layout.size.width<=layout.layoutInput.constraints.maxWidth)
+                val bounds=compose.onNodeWithText(text,useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
+                val button=if(text=="Organizar")a else b
+                val glyphWidth=layout.getLineRight(0)-layout.getLineLeft(0)
+                assertTrue(detail,glyphWidth<=bounds.width+0.5f)
+                assertTrue(detail,glyphWidth<=layout.layoutInput.constraints.maxWidth+0.5f)
+                assertTrue(detail,bounds.left>=button.left && bounds.right<=button.right)
+                assertTrue(detail,bounds.top>=button.top && bounds.bottom<=button.bottom)
+                assertEquals(detail,button.center.x,bounds.center.x,1f)
             }
             val ia=first.captureToImage().asAndroidBitmap();val ib=second.captureToImage().asAndroidBitmap()
             assertEquals(ia.getPixel(ia.width/2,2),ib.getPixel(ib.width/2,2))
