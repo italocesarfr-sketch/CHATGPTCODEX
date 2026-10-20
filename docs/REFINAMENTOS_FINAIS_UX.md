@@ -30,7 +30,57 @@ A referência do teste de atualização passa a ser o APK release 0.13.0 real: r
 
 Regressões antigas atravessam o botão Entrar real via regra JUnit comum, sem bypass no código de produção. Novos testes cobrem entrada livre, aviso futuro, mostrar/ocultar, campos vazios após recriação, dados/preferências idênticos, ausência de permissão de internet, Voltar, nomes/ícone novos, destinos, igualdade visual dos botões, fontes ampliadas, prévia antes da metade da tela e acessibilidade das ações.
 
-A primeira execução (39428315953) encontrou duas falhas de interface (descrição acessível duplicada na aba e snackbar cobrindo a segunda ação de cópia), além de uma asserção de overflow que foi investigada nas execuções seguintes. Foram corrigidos o rótulo e a posição do feedback; as verificações do conteúdo copiado e da integridade não foram relaxadas. As ações de exportação também foram reunidas em FlowRow para ocupar menos linhas no celular. A segunda execução (39436207411) confirmou a correção da cópia e da acessibilidade, mas ainda apontou corte com fonte ampliada e uma corrida na busca de semântica do teste de relatório individual. O teste agora aguarda a projeção completa e endereça as linhas da fixture por índice, preservando todas as verificações de notas e bimestres. A terceira execução (39440477064) aprovou a regressão do relatório e isolou a asserção restante: texto com 63 px, botão com 140 px e limite de 132 px, mas `didOverflowWidth=true`. A captura comprova o texto inteiro. A inspeção do getter confirmou comparação entre largura do parágrafo e tamanho intrínseco do texto. A quarta execução (39443022929) detalhou os valores: parágrafo reservado de 116 px, texto de 63 px e botão de 140 px. A hipótese inicial de mero arredondamento não se confirmou. A verificação foi refinada após o smoke da quinta execução (39444913800): os limites da linha também incluem a centralização. A sexta execução (39446084063) revelou uma soma duplicada do deslocamento no próprio teste: o nó já estava centralizado. Usa-se agora a extensão das caixas `getBoundingBox` dos caracteres para verificar que as letras cabem no nó real; a posição e a centralização são verificadas pelas coordenadas reais do nó dentro do botão; também se exige texto completo em uma linha, sem reticências nem linhas omitidas. Nenhuma asserção de dados ou conteúdo de exportação foi retirada. A sétima execução (39448262853) aprovou os 207 testes Android, o smoke e as planilhas, mas a sonda v1→v7 encontrou a leitura do Room adiada pela composição condicional. Restaurada a criação antecipada do ViewModel como na versão anterior, sem editar migrações nem relaxar a sonda. Outra navegação recursiva da mesma fixture anual foi trocada por índices 3–6, com as mesmas asserções de cada período. Mantido o padding original dos botões (12 × 8 dp), sem reduzir fontes nem alargar desnecessariamente a interface. O CI passa a executar primeiro o teste de encaixe dos botões em fontes 1,0/1,6, para interromper cedo em caso de falha, antes de iniciar a regressão completa obrigatória. Resultados finais, capturas, artefatos e eventual limitação serão registrados após a nova execução. Não há alegação de teste em aparelhos físicos do proprietário nem no Microsoft Excel instalado. O CI valida os arquivos reais com openpyxl e realiza atualização assinada em emulador com dados exclusivamente fictícios.
+O smoke verifica primeiro os botões com fontes 1,0 e 1,6; a regressão completa continua obrigatória. O encaixe é validado pelo texto completo em uma linha, ausência de reticências/linhas omitidas, tamanho dos caracteres e posição real do nó dentro do botão. Não se compara a largura reservada ao parágrafo centralizado com a largura intrínseca das letras: essas áreas são diferentes no Compose.
+
+### Problemas encontrados e corrigidos
+
+- Descrição acessível duplicada da aba: o calendário é decorativo e o rótulo acessível fica no controle da aba.
+- Snackbar externo sobrepunha uma ação de cópia: o feedback local fica acima do rodapé; a comparação exata dos textos copiados foi preservada.
+- Métrica inadequada no teste de texto centralizado: substituída pela geometria dos caracteres e do nó, sem reduzir fonte ou remover verificações de texto completo.
+- Busca recursiva de semântica da fixture anual podia ocorrer durante recomposição: os testes aguardam a projeção e navegam por índices conhecidos, mantendo as asserções de todos os resultados.
+- Composição condicional adiava a criação do ViewModel e a abertura do banco até Entrar: a inicialização de leitura foi restaurada no início da Activity, como antes. As migrações existentes e sua sonda rigorosa não foram alteradas.
+
+As execuções intermediárias 39428315953, 39436207411, 39440477064, 39443022929, 39444913800 e 39446084063 registraram os problemas de interface/automação acima. A execução 39448262853 aprovou 113 JVM, 207 Android, o smoke, 41 XLSX, 41 CSV e 123 TSV; a sonda posterior de atualização legada identificou a inicialização adiada, portanto esse workflow não foi aprovado nem gerou release para entrega.
+
+### Resultado final aprovado
+
+[GitHub Actions — execução 39449951397](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39449951397), commit de código `c8b86781c2fe757a8d782efdb588635d53ee91cf`: **ambos os jobs aprovados**. Nesta retomada foram conferidos os relatórios e artefatos da execução concluída, sem repetir testes aprovados nem alterar o aplicativo.
+
+- 113 testes JVM: zero falhas/erros.
+- 207 testes Android aprovados; XML contém 211 casos e quatro sondas condicionais fora da execução genérica, sem falhas/erros.
+- Smoke de encaixe dos botões aprovado, além da execução na suíte completa.
+- Frequência após reinício: sondas `write` e `read` aprovadas.
+- Atualização legada v1→v7: sondas antes/depois aprovadas, preservando as oito tabelas originais da fixture; a inicialização antecipada corrigiu a falha anterior.
+- 41 XLSX reais, 41 CSV e 123 TSV conferidos por leitura independente; inclui notas, chamada e relatório anual.
+- Atualização **release 0.13.0 → 0.14.0** com `adb install -r`: seis fases aprovadas (`before`, `after`, `backup`, `reopened`, `deleted-history`, `reopened-history`). Preservação de registros, preferências, backup/restauração e históricos após exclusão/reinício comprovada com dados fictícios.
+
+[Relatórios da regressão](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39449951397/artifacts/12279525803) · [Evidências da atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39449951397/artifacts/12279591765) · [Resultados estruturados](REFINAMENTOS_FINAIS_UX_RESULTADOS.json).
+
+### APK release verificado
+
+[Baixar Noctua 0.14.0 / código 24 — release assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39449951397/artifacts/12278952603). Baixar o ZIP e extrair `app-release.apk`. O arquivo baixado foi verificado localmente com `apksigner` (assinatura v2 válida), `aapt` e comparação com o hash do APK efetivamente testado no emulador.
+
+- Pacote: `br.com.diariodeclasse`; versão `0.14.0`; código `24`; tamanho: **8.520.424 bytes**.
+- SHA-256 do APK: `798b5fa12cb71eda28356086e5f8177e1e6e1b9240e27d35deb7efe2f22e06d2`.
+- SHA-256 do certificado público: `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae` — idêntico ao da release 0.13.0. Nenhuma chave ou Secret foi criado/substituído.
+- Esquema Room v7 e backup 8 inalterados; hash do esquema: `45e14573bede8c237e55bd2bf21dea38d256e650686bb9b2226f0269ad1f1510`.
+
+A compatibilidade de atualização foi comprovada no emulador com a release 0.13.0 real. O teste da nova versão no aparelho físico do proprietário continua pendente. As planilhas foram lidas com openpyxl; não há alegação de abertura no Microsoft Excel instalado. Provedores Android de outros fabricantes e outras dimensões/escalas de fonte ainda precisam de validação manual.
+
+### Capturas da versão validada
+
+Capturas do emulador, somente com dados fictícios:
+
+| Tela | Captura |
+|---|---|
+| Entrada demonstrativa | [Abrir](images/refinamentos-finais-ux/entrada.png) |
+| Relatórios, Buscar e ações com contorno | [Abrir](images/refinamentos-finais-ux/relatorios.png) |
+| Organizar, ocultação e controles agrupados | [Abrir](images/refinamentos-finais-ux/organizar.png) |
+| Exportar com prévia antecipada | [Abrir](images/refinamentos-finais-ux/exportar.png) |
+| Ações em 320 dp, fonte 1,6 | [Abrir](images/refinamentos-finais-ux/acoes-fonte-ampliada.png) |
+| Navegação em 320 dp, fonte 1,3 | [Abrir](images/refinamentos-finais-ux/navegacao-fonte-ampliada.png) |
+
+A documentação final não modifica o aplicativo testado. O commit acima identifica exatamente o código do APK; os commits posteriores de documentação não exigem nova compilação.
 
 ## Arquivos alterados
 

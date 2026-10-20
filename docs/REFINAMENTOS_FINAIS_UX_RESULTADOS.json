@@ -1,0 +1,92 @@
+{
+  "versionName": "0.14.0",
+  "versionCode": 24,
+  "applicationId": "br.com.diariodeclasse",
+  "database": "diario.db",
+  "roomVersion": 7,
+  "roomTables": 14,
+  "backupFormat": 8,
+  "codeCommit": "c8b86781c2fe757a8d782efdb588635d53ee91cf",
+  "runId": 39449951397,
+  "runUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39449951397",
+  "runConclusion": "success",
+  "jvm": {
+    "tests": 113,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "tests": 211,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "androidPassed": 207,
+  "androidSkippedExplanation": "Quatro sondas condicionais não solicitadas na execução genérica; frequência, atualização legada e atualização estável têm execuções específicas abaixo.",
+  "layoutSmokePassed": true,
+  "frequencyProcessPhasesPassed": [
+    "write",
+    "read"
+  ],
+  "legacyUpgradePhasesPassed": [
+    "before",
+    "after"
+  ],
+  "legacyUpgrade": "v1 → v7, fixture sintética com oito tabelas originais preservadas",
+  "xlsxCases": 41,
+  "csvCases": 41,
+  "tsvCases": 123,
+  "independentSpreadsheetReader": "openpyxl; CSV/TSV conferidos por parser independente",
+  "resultsArtifactId": 12279525803,
+  "resultsZipSha256": "e83f30042e74c03b54e6b455fb9d0ae8060c68be16f35b5807de05121ec3c722",
+  "schemaSha256": "45e14573bede8c237e55bd2bf21dea38d256e650686bb9b2226f0269ad1f1510",
+  "databaseSchemaChanged": false,
+  "backupFormatChanged": false,
+  "apk": {
+    "apkSha256": "798b5fa12cb71eda28356086e5f8177e1e6e1b9240e27d35deb7efe2f22e06d2",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "bytes": 8520424,
+    "manifest": {
+      "package": "br.com.diariodeclasse",
+      "versionCode": 24,
+      "versionName": "0.14.0"
+    },
+    "artifactId": 12278952603,
+    "artifactUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39449951397/artifacts/12278952603",
+    "zipSha256": "f5b199811dff633959107ac1d23e330f3351995b1592a2ab8294215f1d7ad4bb"
+  },
+  "stableUpdate": {
+    "baseline": "0.13.0 / 23",
+    "baselineApkSha256": "83a237ad090321f1b14481dcfa3ab6a7e77c1d3fc2a975158db0f1c09a5ed9d9",
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true,
+    "phasesPassed": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history"
+    ],
+    "artifactId": 12279591765,
+    "zipSha256": "bc0f1d151a77222564eae7bd6d7cdeeb6505924924ef679af12a36a3702147fc",
+    "testedApkSha256": "798b5fa12cb71eda28356086e5f8177e1e6e1b9240e27d35deb7efe2f22e06d2"
+  },
+  "manualPending": [
+    "Instalação e uso no aparelho físico do proprietário",
+    "Abertura no Microsoft Excel instalado e provedores de documentos de outros fabricantes",
+    "Outros tamanhos de aparelho e escalas de fonte superiores às exercitadas no emulador"
+  ],
+  "validationEnvironment": "Emulador Android API 30; cenários compactos 320 dp; fontes 1,0/1,3/1,6 conforme o teste; somente dados fictícios",
+  "intermediateRunsWithFailures": [
+    39428315953,
+    39436207411,
+    39440477064,
+    39443022929,
+    39444913800,
+    39446084063,
+    39448262853
+  ]
+}
