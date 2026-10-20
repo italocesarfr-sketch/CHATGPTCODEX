@@ -121,8 +121,8 @@ class RelocationUiInstrumentedTest {
         compose.onNodeWithTag("show-relocated").performScrollTo().performClick()
         compose.onNodeWithTag("roster-list").performScrollToNode(hasTestTag("roster-student-${a.id}"))
         waitText("Remanejado para ${h.name}");shot("02-origem-historico")
-        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 4º bimestre")
-        compose.onNodeWithText("3º bim.").performClick();waitText("Boletim do 3º bimestre")
+        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim 4º Bim")
+        compose.onNodeWithText("3º bim.").performClick();waitText("Boletim 3º Bim")
         compose.onAllNodesWithTag("report-row-${a.id}").assertCountEquals(0)
         val reportRoot=compose.onNodeWithTag("reports-list").fetchSemanticsNode().id
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(h.name,useUnmergedTree=true).performClick()

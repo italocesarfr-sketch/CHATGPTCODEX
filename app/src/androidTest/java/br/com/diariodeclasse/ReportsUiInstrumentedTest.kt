@@ -35,8 +35,8 @@ class ReportsUiInstrumentedTest {
         app.repository.mark(l1,a.id,"P");app.repository.mark(l2,a.id,"F")
         app.repository.mark(l1,transferred.id,"FJ");app.repository.mark(l2,transferred.id,"P")
         app.selectionStore.write(AppSelection(2026,c.id))
-    };compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 4º bimestre")
-        compose.onNodeWithText("1º bim.").performClick();waitText("Boletim do 1º bimestre")
+    };compose.onNodeWithTag("nav-3").performClick();waitText("Boletim 4º Bim")
+        compose.onNodeWithText("1º bim.").performClick();waitText("Boletim 1º Bim")
     }
     @After fun cleanup() { runBlocking {
         app.database.runInTransaction {
@@ -53,9 +53,7 @@ class ReportsUiInstrumentedTest {
     private fun waitText(text:String) { compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()} }
     private fun mode(value:String,current:String="Geral") {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        if(value in listOf("Resumo anual","Mais faltosos")) {
-            compose.onNodeWithTag("report-consultations").performScrollTo().performClick()
-        } else compose.onNodeWithText("${if(current=="Bimestral")"Geral"else current} ▾").performScrollTo().performClick()
+        compose.onNodeWithText("${if(current=="Bimestral")"Geral"else current} ▾").performScrollTo().performClick()
         compose.onNode(hasText(if(value=="Bimestral")"Geral"else value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
@@ -91,28 +89,19 @@ class ReportsUiInstrumentedTest {
         shot("07-informacoes-do-relatorio")
         compose.onNodeWithText("Fechar").performClick()
         compose.onNodeWithTag("report-information").assertDoesNotExist()
-        compose.onNodeWithText("Chamada ▾").performScrollTo().performClick()
+        compose.onNodeWithTag("report-sort").performScrollTo().performClick()
         compose.onNodeWithText("Maior nota",useUnmergedTree=true).performClick()
         row(a);cell(a,0).assertTextEquals("0,00")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("Maior nota ▾").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Ordenar: Maior nota").performScrollTo().assertIsDisplayed()
         help.performScrollTo().performClick();compose.onNodeWithText("Fechar").performClick()
-        compose.onNodeWithText("Maior nota ▾").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Ordenar: Maior nota").performScrollTo().assertIsDisplayed()
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
-    @Test fun helpPreservesAnnualAndAbsenteeExplanationsAndCurrentClassPolicy() {
-        mode("Resumo anual")
-        compose.onNodeWithText("Quatro resultados separados",substring=true).assertDoesNotExist()
-        compose.onNodeWithText("A frequência anual inclui",substring=true).assertDoesNotExist()
-        compose.onNodeWithContentDescription("Informações do relatório").performClick()
-        compose.onNodeWithText("Quatro resultados separados",substring=true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("A frequência anual inclui",substring=true).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Fechar").performClick()
-        mode("Mais faltosos","Resumo anual")
-        compose.onNodeWithText("Ordem: faltas efetivas",substring=true).assertDoesNotExist()
+    @Test fun helpPreservesCurrentClassJustificationPolicy() {
+        mode("Frequência")
         compose.onNodeWithContentDescription("Informações do relatório").performClick()
         compose.onNodeWithText("Aulas elegíveis variam conforme a matrícula.").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Fechar").performClick()
         runBlocking {app.repository.saveClass(c.copy(countJustified=false),"2026-01-01")}
         compose.waitForIdle()
@@ -137,7 +126,7 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("individual-report").performScrollToIndex(6)
         compose.onNodeWithTag("individual-term-4").assertTextContains("Sem dados",substring=true)
         compose.onNodeWithText("‹ Voltar").performClick();compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Boletim do 3º bimestre")
+        compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Boletim 3º Bim")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
     @Test fun frequencyAndGradesRefreshWhileReportsRemainOpen() {
@@ -150,27 +139,40 @@ class ReportsUiInstrumentedTest {
         compose.waitUntil(10000) {cell(a,0).fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].any {it.text=="6,00"}}
         cell(a,1).assertTextEquals("6,00")
     }
-    @Test fun absenteeRankingFollowsJustificationPolicyAndDoesNotCountNr() {
-        mode("Mais faltosos");row(a);cell(a,4).assertTextEquals("1")
-        row(transferred);cell(transferred,4).assertTextEquals("1")
-        compose.onAllNodesWithText("${late.number}. ${late.name}").assertCountEquals(0)
-        runBlocking {app.repository.saveClass(c.copy(countJustified=false),"2026-01-01")}
-        compose.waitUntil(10000) {compose.onAllNodesWithTag("report-row-${transferred.id}").fetchSemanticsNodes().isEmpty()}
-        row(a);runBlocking {app.repository.mark(l2,a.id,"P")}
-        waitText("Nenhum aluno com faltas efetivas no período.")
-    }
-    @Test fun annualShowsFourTermsNoDataAndGlobalClassIsolation() {
+    @Test fun sortingUsesEffectiveAbsencesAndRestoresOfficialCallOnSecondChoice() {
         val before=runBlocking {app.backupManager.snapshot()}
-        mode("Resumo anual");row(a)
-        cell(a,0).assertTextContains("0,00",substring=true);cell(a,1).assertTextEquals("Sem dados")
-        cell(a,2).assertTextContains("Parcial",substring=true);cell(a,3).assertTextEquals("Sem dados");shot("03-anual")
-        selectClass(other)
-        compose.onNodeWithTag("reports-list").performScrollToNode(hasText("Nenhum aluno cadastrado nesta turma."))
-        waitText("Nenhum aluno cadastrado nesta turma.")
-        selectClass(c)
-        compose.waitUntil(10000) {compose.onAllNodesWithTag("reports-list").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithTag("reports-list").performScrollToIndex(0);waitText("Resumo anual de 2026")
-        compose.activityRule.scenario.recreate();waitText("Resumo anual de 2026")
+        compose.onAllNodesWithText("Consultas").assertCountEquals(0)
+        for(label in listOf("Mais faltas","Menos faltas","Maior nota","Menor nota","Chamada")) {
+            compose.onNodeWithTag("reports-list").performScrollToIndex(0)
+            compose.onNodeWithTag("report-sort").performScrollTo().performClick()
+            compose.onNodeWithText(label,useUnmergedTree=true).performClick()
+            compose.onNodeWithContentDescription("Ordenar: $label").assertExists()
+            if(label!="Chamada") {
+                compose.onNodeWithTag("report-sort").performClick()
+                compose.onNodeWithText(label,useUnmergedTree=true).performClick()
+                compose.onNodeWithContentDescription("Ordenar: Chamada").assertExists()
+            }
+        }
+        mode("Frequência");row(a);cell(a,4).assertTextEquals("1")
+        row(transferred);cell(transferred,4).assertTextEquals("1")
+        runBlocking {app.repository.saveClass(c.copy(countJustified=false),"2026-01-01")}
+        compose.waitUntil(10000) {cell(transferred,4).fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].any {it.text=="0"}}
+        row(a);runBlocking {app.repository.mark(l2,a.id,"P")}
+        compose.waitUntil(10000) {cell(a,4).fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].any {it.text=="0"}}
+        assertEquals(before.grades,runBlocking {app.backupManager.snapshot()}.grades)
+    }
+    @Test fun annualRemainsAccessibleInIndividualAndClassIsolationPersists() {
+        val before=runBlocking {app.backupManager.snapshot()}
+        row(a);compose.onNodeWithText("1. ${a.name}").performClick();waitText("Nota 0,00 / 10,00")
+        for(n in 1..4) {
+            compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-$n"))
+            compose.onNodeWithTag("individual-term-$n").assertTextContains(if(n in listOf(2,4))"Sem dados"else if(n==3)"Parcial"else"0,00",substring=true)
+        }
+        shot("03-anual")
+        compose.onNodeWithText("‹ Voltar").performClick();waitText("Boletim 1º Bim")
+        selectClass(other);waitText("Nenhum aluno cadastrado nesta turma.")
+        selectClass(c);waitText("Boletim 1º Bim")
+        compose.activityRule.scenario.recreate();waitText("Boletim 1º Bim")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
     private fun field(student:Student,key:String)=compose.onNodeWithTag("report-row-${student.id}-$key",useUnmergedTree=true).onChild()
@@ -195,14 +197,13 @@ class ReportsUiInstrumentedTest {
             app.repository.saveRecomposition(Recomposition(a.id,2,2.0,"2026-11-20"))
             app.repository.saveRecomposition(Recomposition(a.id,3,6.0,"2026-11-20"))
         }
-        mode("Resumo anual");row(a)
-        field(a,"term-1").assertTextContains("Resultado vigente: 0,00",substring=true)
-        field(a,"term-2").assertTextContains("Resultado vigente: 3,00",substring=true)
-        field(a,"term-3").assertTextContains("Resultado vigente: 6,00",substring=true)
-        field(a,"term-3").assertTextContains("Parcial",substring=true)
-        field(a,"term-4").assertTextContains("Não lançado",substring=true)
-        field(a,"annual-frequency").assertTextContains("1 faltas efetivas",substring=true)
-        compose.onNodeWithText("1. ${a.name}").performClick();waitText("Original das atividades: 0,00")
+        row(a);compose.onNodeWithText("1. ${a.name}").performClick();waitText("Original das atividades: 0,00")
+        for((n,total) in listOf(1 to "0,00",2 to "3,00",3 to "6,00",4 to "Não lançado")) {
+            compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-$n"))
+            compose.onNodeWithTag("individual-term-$n").assertTextContains(total,substring=true)
+        }
+        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-3"))
+        compose.onNodeWithTag("individual-term-3").assertTextContains("Parcial",substring=true)
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("3º bim.").performClick()
         // O resumo anual também contém 6,00 antes de terminar a troca de período.
@@ -248,7 +249,7 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
         row(otherStudent);field(otherStudent,"current").assertTextEquals("9,00")
         compose.onAllNodesWithTag("report-row-${a.id}").assertCountEquals(0)
-        for(n in listOf(3,2,1)) {compose.onNodeWithText("${n}º bim.").performClick();waitText("Boletim do ${n}º bimestre")}
+        for(n in listOf(3,2,1)) {compose.onNodeWithText("${n}º bim.").performClick();waitText("Boletim ${n}º Bim")}
         row(otherStudent);field(otherStudent,"current").assertTextEquals("9,00")
         compose.onNodeWithTag("year-selector").performClick();compose.onNodeWithText("Ano letivo 2026",useUnmergedTree=true).performClick()
         compose.waitUntil(10000) {compose.onAllNodesWithText("2026 ▾").fetchSemanticsNodes().isNotEmpty()}

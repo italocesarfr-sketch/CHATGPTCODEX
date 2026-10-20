@@ -127,6 +127,8 @@ interface DiaryDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insertLessons(values: List<Lesson>)
     @Query("DELETE FROM lessons WHERE classId = :classId AND date >= :from AND state = 'PREVISTA' AND note = '' AND id NOT IN (SELECT lessonId FROM marks)")
     suspend fun removeUnrecordedPlans(classId: String, from: String)
+    @Query("DELETE FROM lessons WHERE id = :id AND classId = :classId AND date = :day AND note = '' AND NOT EXISTS (SELECT 1 FROM marks WHERE lessonId = :id)")
+    suspend fun removeEmptyLesson(id: String, classId: String, day: String): Int
     @Query("DELETE FROM activities WHERE id = :id") suspend fun deleteActivity(id: String)
     @Query("UPDATE import_drafts SET reviewed = :reviewed WHERE classId = :classId AND id IN (:ids)")
     suspend fun reviewDrafts(classId: String, ids: List<String>, reviewed: Boolean): Int

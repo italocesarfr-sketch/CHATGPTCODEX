@@ -157,21 +157,15 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     val focus=LocalFocusManager.current;val keyboard=LocalSoftwareKeyboardController.current
     var query by rememberSaveable{mutableStateOf("")}
     var mode by rememberSaveable{mutableStateOf("Geral")}
-    var extra by rememberSaveable{mutableStateOf<String?>(null)}
-    var consultations by remember{mutableStateOf(false)}
-    LaunchedEffect(mode) {
-        if(mode !in listOf("Geral","Frequência","Notas")) {
-            if(mode in listOf("Resumo anual","Mais faltosos")) extra=mode
-            mode="Geral"
-        }
-    }
+    var sorting by remember { mutableStateOf(false) }
+    LaunchedEffect(mode) { if(mode !in listOf("Geral","Frequência","Notas")) mode="Geral" }
     var order by rememberSaveable{mutableStateOf("Chamada")}
     var showRelocated by rememberSaveable(c?.id){mutableStateOf(false)}
     var showInformation by rememberSaveable(c?.id,term,mode){mutableStateOf(false)}
     val searching=globalSearch && query.isNotBlank()
-    val displayMode = if(searching) "Geral" else extra ?: mode
+    val displayMode = if(searching) "Geral" else mode
     val matches=remember(data,query,showRelocated){GlobalStudentSearch.find(data,query,showRelocated)}
-    val selectedOrder=when(order){"Mais faltas"->StudentOrder.ABSENCES;"Menor nota"->StudentOrder.LOWEST_GRADE;"Maior nota"->StudentOrder.HIGHEST_GRADE;else->StudentOrder.CALL}
+    val selectedOrder=when(order){"Mais faltas"->StudentOrder.ABSENCES;"Menos faltas"->StudentOrder.LEAST_ABSENCES;"Menor nota"->StudentOrder.LOWEST_GRADE;"Maior nota"->StudentOrder.HIGHEST_GRADE;else->StudentOrder.CALL}
     val horizontal=rememberScrollState();val listState=rememberLazyListState()
     LaunchedEffect(c?.id,term,displayMode,query){listState.scrollToItem(0);horizontal.scrollTo(0)}
     if(showInformation)AlertDialog(onDismissRequest={showInformation=false},title={Text("Informações do relatório")},text={
@@ -190,27 +184,30 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     },confirmButton={TextButton(onClick={showInformation=false}){Text("Fechar")}})
     LazyColumn(Modifier.fillMaxSize().testTag("reports-list"),state=listState,contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
-            if(globalSearch)OutlinedTextField(query,{query=it},label={Text("Buscar aluno em todas as turmas")},singleLine=true,
+            if(globalSearch)OutlinedTextField(query,{query=it},label={Text("Buscar aluno em todas as turmas")},singleLine=true,leadingIcon={Icon(painterResource(R.drawable.ic_search),"Buscar aluno")},
                 keyboardOptions=KeyboardOptions(imeAction=ImeAction.Search),keyboardActions=KeyboardActions(onSearch={focus.clearFocus();keyboard?.hide()}),
                 modifier=Modifier.fillMaxWidth().testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
             if(data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)})RelocatedFilter(showRelocated){showRelocated=it}
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
                 Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(displayMode){
-                    "Frequência"->"Frequência do ${term}º bimestre";"Mais faltosos"->"Mais faltosos do ${term}º bimestre";"Resumo anual"->"Resumo anual de ${c?.year ?: "—"}";else->"Boletim do ${term}º bimestre"
+                    "Frequência"->"Frequência do ${term}º bimestre";"Mais faltosos"->"Mais faltosos do ${term}º bimestre";"Resumo anual"->"Resumo anual de ${c?.year ?: "—"}";else->"Boletim ${term}º Bim"
                 },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})}
                 if(!searching&&c!=null) Box {
-                    TextButton(onClick={consultations=true},modifier=Modifier.testTag("report-consultations")){Text("Consultas")}
-                    DropdownMenu(consultations,{consultations=false}) {
-                        listOf("Resumo anual","Mais faltosos","Voltar ao bimestre").forEach { label ->
-                            DropdownMenuItem(text={Text(label)},onClick={extra=label.takeUnless{it=="Voltar ao bimestre"};consultations=false})
+                    IconButton(onClick={sorting=true},modifier=Modifier.size(48.dp).testTag("report-sort")) {
+                        BadgedBox(badge={if(order!="Chamada")Badge()}) {
+                            Icon(painterResource(R.drawable.ic_filter),"Ordenar: $order",tint=if(order=="Chamada")MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    DropdownMenu(sorting,{sorting=false}) {
+                        listOf("Chamada","Mais faltas","Menos faltas","Maior nota","Menor nota").forEach { label ->
+                            DropdownMenuItem(text={Text(label)},onClick={order=if(order==label)"Chamada"else label;sorting=false})
                         }
                     }
                 }
                 IconButton(onClick={showInformation=true},modifier=Modifier.size(48.dp)){Icon(painterResource(R.drawable.ic_info),"Informações do relatório",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
             if(c!=null && !searching) {
-                Choice("Relatório",listOf("Geral","Frequência","Notas"),mode){mode=it;extra=null}
-                Choice("Ordenação",listOf("Chamada","Mais faltas","Menor nota","Maior nota"),order){order=it}
+                Choice("Relatório",listOf("Geral","Frequência","Notas"),mode){mode=it}
                 if(displayMode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
             } else if(!searching) Text("Selecione uma turma ou pesquise um aluno em todas as turmas.")
         }

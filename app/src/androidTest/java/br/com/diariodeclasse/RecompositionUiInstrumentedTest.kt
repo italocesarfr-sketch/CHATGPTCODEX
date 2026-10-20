@@ -89,7 +89,7 @@ class RecompositionUiInstrumentedTest {
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
         all();compose.onNodeWithText("‹ Voltar").performClick()
         compose.waitUntil(10000) {compose.onAllNodesWithTag("activities-list").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 3º bimestre")
+        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim 3º Bim")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
     @Test fun zeroUnperformedEditAndConfirmedDeletionPreserveActivityGrades() {
@@ -110,7 +110,7 @@ class RecompositionUiInstrumentedTest {
     @Test fun reportsRefreshWithoutAddingRecompositionToActivitiesOrFourthTerm() {
         compose.onNodeWithText("‹ Voltar").performClick()
         compose.waitUntil(10000) {compose.onAllNodesWithTag("activities-list").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 3º bimestre")
+        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim 3º Bim")
         compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${a.id}"))
         val total="report-row-${a.id}-cell-1"
         compose.onNodeWithTag(total,useUnmergedTree=true).assertTextEquals("3,00")
@@ -121,7 +121,7 @@ class RecompositionUiInstrumentedTest {
         waitText("Recomposição: 6,00");waitText("Resultado vigente: 6,00");shot("04-individual")
         compose.onNodeWithTag("individual-report").performScrollToIndex(0)
         compose.onNodeWithText("4º bim.").performClick();waitText("Nota 4,50 / 10,00")
-        compose.onNodeWithText("‹ Voltar").performClick();waitText("Boletim do 4º bimestre")
+        compose.onNodeWithText("‹ Voltar").performClick();waitText("Boletim 4º Bim")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
         compose.onNodeWithTag("report-consultations").performScrollTo().performClick();compose.onNodeWithText("Resumo anual",useUnmergedTree=true).performClick()
         compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${a.id}"))

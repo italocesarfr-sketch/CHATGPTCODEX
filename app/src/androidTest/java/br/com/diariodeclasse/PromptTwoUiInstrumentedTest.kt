@@ -87,7 +87,7 @@ class PromptTwoUiInstrumentedTest {
         compose.onNode(hasText(h.name,substring=true) and hasAnyAncestor(hasTestTag("report-row-${b.id}-name")),useUnmergedTree=true).assertExists()
         shot("02-busca-global")
         tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
-        waitText("Boletim do 3º bimestre");assertGrade(a,"0,00")
+        waitText("Boletim 3º Bim");assertGrade(a,"0,00")
         compose.onAllNodesWithTag("report-row-${b.id}").assertCountEquals(0)
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
@@ -149,4 +149,21 @@ class PromptTwoUiInstrumentedTest {
         tag("attendance-export-share").performScrollTo().performClick();backFromExternalWindow()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
+    @Test fun annualXlsxPreviewSaveCancellationAndShareAreReadOnly() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        report();compose.onNodeWithContentDescription("Buscar aluno").assertExists()
+        tag("open-export").performClick();tag("open-annual-export").performScrollTo().performClick();waitTag("annual-export-screen")
+        tag("attendance-export-start").assertDoesNotExist();tag("attendance-export-end").assertDoesNotExist()
+        compose.onNodeWithText("Prévia do relatório anual").assertExists()
+        fun back() {
+            val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
+            compose.waitUntil(10000){automation.rootInActiveWindow?.packageName?.toString()?.let{it!=app.packageName}==true}
+            automation.executeShellCommand("input keyevent KEYCODE_BACK").close();waitTag("annual-export-screen")
+        }
+        tag("attendance-export-file").performScrollTo().performClick();back();waitText("Exportação cancelada.")
+        compose.onAllNodesWithText("Relatório anual exportado.").assertCountEquals(0)
+        tag("attendance-export-share").performScrollTo().performClick();back()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+
 }

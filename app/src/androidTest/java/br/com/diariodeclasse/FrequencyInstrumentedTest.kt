@@ -58,7 +58,7 @@ class FrequencyInstrumentedTest {
         assertEquals("CANCELADA",repo.dao.lesson(lessons[1].id)!!.state)
         assertEquals(before.marks,snapshot().marks)
         assertEquals(1,repo.snapshot.first {it.lessons.any {l->l.state=="CANCELADA"}}.frequency(s,null,true).absent)
-        repo.setDayHours(c.id,"2026-03-10",2)
+        try {repo.setDayHours(c.id,"2026-03-10",2);fail()}catch(_:IllegalArgumentException){}
         assertEquals("CANCELADA",repo.dao.lesson(lessons[1].id)!!.state)
         repo.lessonState(lessons[1].id,"REALIZADA")
         assertEquals(2,repo.snapshot.first {it.lessons.all {l->l.state=="REALIZADA"}}.frequency(s,null,true).absent)

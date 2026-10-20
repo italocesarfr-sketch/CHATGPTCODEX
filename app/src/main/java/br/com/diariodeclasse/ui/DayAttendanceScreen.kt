@@ -29,14 +29,23 @@ import br.com.diariodeclasse.data.*
     var hoursForm by rememberSaveable { mutableStateOf(false) }
     var hoursText by rememberSaveable { mutableStateOf("") }
     var pendingCount by remember { mutableStateOf<Int?>(null) }
+    var cancellationApproved by remember { mutableStateOf(false) }
+    var reactivationCount by remember { mutableIntStateOf(0) }
+    var emptyDay by remember { mutableStateOf<List<Lesson>?>(null) }
     var allPresent by remember { mutableStateOf(false) }
     var option by remember { mutableStateOf<Lesson?>(null) }
     var action by remember { mutableStateOf("") }
     var note by rememberSaveable { mutableStateOf("") }
     val saving by vm.saving.collectAsState()
     val context = "${c.name} • ${shortDate(day)}"
-    fun saveHours(n: Int, confirmed: Boolean = false) {
-        vm.act(done = { hoursForm = false; pendingCount = null }, context = context) { vm.repository.setDayHours(c.id, day, n, confirmed) }
+    fun saveHours(n: Int, confirmed: Boolean = false, reactivate: Boolean = false) {
+        vm.act(done = { hoursForm = false; pendingCount = null }, context = context) { vm.repository.setDayHours(c.id, day, n, confirmed, reactivate) }
+    }
+    fun applyHours(n: Int, cancellation: Boolean = false) {
+        val cancelled = lessons.count { it.ordinal <= n && it.state == "CANCELADA" }
+        if (cancelled > 0) {
+            pendingCount = n; cancellationApproved = cancellation; reactivationCount = cancelled
+        } else saveHours(n, cancellation)
     }
     Column(Modifier.fillMaxSize().testTag("attendance-day-$day")) {
         Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.small), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -65,7 +74,10 @@ import br.com.diariodeclasse.data.*
                 OutlinedButton(enabled = !saving, onClick = { hoursText = (active.maxOfOrNull { it.ordinal } ?: 0).toString(); hoursForm = true }, modifier = Modifier.weight(1f)) { Text("Horários: ${active.size} • Alterar", style = MaterialTheme.typography.labelSmall) }
                 FilledTonalButton(enabled = !saving && performed > 0, onClick = { allPresent = true }, modifier = Modifier.weight(1f)) { Text("Marcar todos como presentes", style = MaterialTheme.typography.labelSmall) }
             }
-            if (lessons.any { it.state == "PREVISTA" }) TextButton(onClick = { saveHours(active.maxOfOrNull { it.ordinal }?.coerceAtMost(12) ?: 0) }, enabled = !saving) { Text("Confirmar horários ministrados") }
+            if (lessons.any { it.state == "PREVISTA" }) TextButton(onClick = { applyHours(active.maxOfOrNull { it.ordinal }?.coerceAtMost(12) ?: 0) }, enabled = !saving) { Text("Confirmar horários ministrados") }
+            TextButton(enabled = !saving, onClick = {
+                vm.act(context = context) { emptyDay = vm.repository.checkEmptyDay(c.id, day) }
+            }, modifier = Modifier.testTag("clear-day-hours")) { Text("Limpar horários do dia") }
             Box(Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id
@@ -75,16 +87,30 @@ import br.com.diariodeclasse.data.*
     }
     if (hoursForm) Form("Quantidade de horários", { hoursForm = false }) {
         OutlinedTextField(hoursText, { hoursText = it }, label = { Text("Horários ministrados (0 a 12)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())
-        Info("Aumentar reutiliza os horários existentes. Horários cancelados permanecem preservados; reative-os explicitamente nas opções da coluna. Reduzir nunca apaga aulas ou marcações.")
+        Text("Reduzir cancela horários e preserva as chamadas.", style = MaterialTheme.typography.bodyMedium)
         Button(enabled = !saving, onClick = {
             val n = hoursText.toIntOrNull()
             if (n == null || n !in 0..12) vm.message("Informe de 0 a 12 horários.")
-            else if (lessons.any { it.ordinal > n && it.state != "CANCELADA" }) pendingCount = n
-            else saveHours(n)
+            else if (lessons.any { it.ordinal > n && it.state != "CANCELADA" }) { pendingCount = n; cancellationApproved = false; reactivationCount = 0 }
+            else applyHours(n)
         }) { Text("Aplicar horários") }
         SaveError(vm)
     }
-    pendingCount?.let { n -> Confirm("Cancelar horários excedentes?", "Os horários de número maior que $n serão cancelados e sairão dos totais. Todas as aulas e marcações continuarão guardadas. Você poderá reativá-los nas opções da coluna.", { pendingCount = null }) { saveHours(n, true) } }
+    pendingCount?.let { n ->
+        if (reactivationCount > 0) AlertDialog(onDismissRequest = { pendingCount = null },
+            title = { Text("Reativar $reactivationCount ${if (reactivationCount == 1) "horário cancelado" else "horários cancelados"}?") },
+            text = { Text("As chamadas anteriores serão preservadas.") },
+            dismissButton = { TextButton(enabled = !saving, onClick = { pendingCount = null }) { Text("Não") } },
+            confirmButton = { Button(enabled = !saving, onClick = { saveHours(n, cancellationApproved, true) }) { Text("Reativar") } })
+        else Confirm("Cancelar horários excedentes?", "Os horários de número maior que $n serão cancelados. As chamadas serão preservadas.", { pendingCount = null }) { applyHours(n, true) }
+    }
+    emptyDay?.let { checked -> AlertDialog(onDismissRequest = { emptyDay = null },
+        title = { Text("Remover os horários desta data?") },
+        text = { Text("A data voltará a ficar sem aulas cadastradas.") },
+        dismissButton = { TextButton(enabled = !saving, onClick = { emptyDay = null }) { Text("Cancelar") } },
+        confirmButton = { Button(enabled = !saving, onClick = {
+            vm.act(done = { emptyDay = null }, context = context) { vm.repository.clearEmptyDay(c.id, day, checked) }
+        }) { Text("Remover") } }) }
     if (allPresent) Confirm("Marcar todos como presentes?", "Substitui por P as marcações dos horários realizados nesta data. Alunos fora da matrícula e horários cancelados/previstos não serão alterados.", { allPresent = false }) {
         vm.act(done = { allPresent = false }, context = context) { vm.repository.allPresentDay(c.id, day) }
     }

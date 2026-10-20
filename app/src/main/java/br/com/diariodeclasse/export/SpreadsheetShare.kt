@@ -18,7 +18,7 @@ object SpreadsheetShare {
         val uri=FileProvider.getUriForFile(context,"${context.packageName}.exports",file)
         return Intent(Intent.ACTION_SEND).apply {
             type=ExportFormat.XLSX.mime;putExtra(Intent.EXTRA_STREAM,uri)
-            clipData=ClipData.newUri(context.contentResolver,"Chamada • Noctua",uri)
+            clipData=ClipData.newUri(context.contentResolver,"Planilha • Noctua",uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }

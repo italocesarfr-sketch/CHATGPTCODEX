@@ -24,7 +24,7 @@ import br.com.diariodeclasse.export.*
 import kotlinx.coroutines.*
 import java.io.File
 
-@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,notify:(String)->Unit,ready:Boolean=true,attendance:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
+@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,notify:(String)->Unit,ready:Boolean=true,attendance:(()->Unit)?=null,annual:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
     val context=LocalContext.current;val scope=rememberCoroutineScope()
     var model by rememberSaveable(c.id){mutableStateOf(ExportModel.NOTES.name)}
     var period by rememberSaveable(c.id){mutableIntStateOf(initialTerm)}
@@ -56,6 +56,7 @@ import java.io.File
         item {
             Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
             attendance?.let{OutlinedButton(onClick=it,enabled=ready&&!busy,modifier=Modifier.testTag("open-attendance-export")){Text("Exportar chamada (XLSX)")}}
+            annual?.let{OutlinedButton(onClick=it,enabled=ready&&!busy,modifier=Modifier.testTag("open-annual-export")){Text("Exportar relatório anual")}}
             OutlinedButton(onClick={controls=!controls},enabled=ready&&!busy,modifier=Modifier.testTag("export-options")){Text(if(controls)"Recolher opções"else"Opções de exportação")}
             if(controls && !busy) {
                 Choice("Período",listOf("1º bimestre","2º bimestre","3º bimestre","4º bimestre","Resumo anual"),if(period==0)"Resumo anual"else"${period}º bimestre"){period=if(it=="Resumo anual")0 else it.first().digitToInt()}

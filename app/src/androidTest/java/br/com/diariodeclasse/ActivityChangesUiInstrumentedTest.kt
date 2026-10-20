@@ -96,7 +96,7 @@ class ActivityChangesUiInstrumentedTest {
         compose.waitUntil(5000){runBlocking{app.repository.dao.activityGrades(a.id).any {it.studentId==students[0].id&&it.value==0.8}}}
         assertEquals(0.0,app.repository.dao.activityGrades(a.id).single {it.studentId==students[1].id}.value!!,0.0)
         assertNull(app.repository.dao.activityGrades(a.id).single {it.studentId==students[2].id}.value)
-        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 3º bimestre")
+        compose.onNodeWithTag("nav-3").performClick();waitText("Boletim 3º Bim")
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("1. ${students[0].name}"))
         compose.onNodeWithText("1. ${students[0].name}").performClick()
         compose.waitUntil(5000){compose.onAllNodesWithText("Nota 0,80 / 10,00",substring=true).fetchSemanticsNodes().isNotEmpty()}

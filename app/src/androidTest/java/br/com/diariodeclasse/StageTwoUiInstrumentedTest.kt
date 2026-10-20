@@ -65,8 +65,8 @@ class StageTwoUiInstrumentedTest {
         waitText("+ Criar atividade")
         compose.onNodeWithText("+ Criar atividade").assertIsDisplayed();shot("03-atividades")
         compose.onNodeWithTag("nav-3").performClick()
-        waitText("Boletim do 4º bimestre")
-        compose.onNodeWithText("Boletim do 4º bimestre").assertExists();shot("04-relatorios")
+        waitText("Boletim 4º Bim")
+        compose.onNodeWithText("Boletim 4º Bim").assertExists();shot("04-relatorios")
         compose.onNodeWithTag("year-selector").performClick()
         compose.onNodeWithText("Ano letivo 2025").performClick()
         compose.waitUntil(5000) { app.selectionStore.read()==AppSelection(2025,old.id) }

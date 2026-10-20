@@ -8,7 +8,7 @@ import br.com.diariodeclasse.domain.RecompositionRules
 enum class GradeState { OUTSIDE_ENROLLMENT, NO_ACTIVITIES, NO_SCORES, PARTIAL, COMPLETE }
 enum class ActivityScoreState { NOT_APPLICABLE, PENDING, RECORDED }
 enum class EnrollmentCoverage { FULL, PARTIAL, OUTSIDE, UNCONFIGURED }
-enum class StudentOrder { CALL, ABSENCES, LOWEST_GRADE, HIGHEST_GRADE }
+enum class StudentOrder { CALL, ABSENCES, LEAST_ABSENCES, LOWEST_GRADE, HIGHEST_GRADE }
 
 data class ActivityResult(val activity: Activity, val eligible: Boolean, val score: Double?, val enrollmentId: String? = null) {
     val state: ActivityScoreState get() = when {
@@ -129,6 +129,7 @@ class SchoolReports(source: DiarySnapshot, val school: SchoolClass, showRelocate
             val comparator = when (order) {
                 StudentOrder.CALL -> callOrder
                 StudentOrder.ABSENCES -> compareByDescending<StudentPeriodReport> { it.effectiveAbsences(countJustified) }.then(callOrder)
+                StudentOrder.LEAST_ABSENCES -> compareBy<StudentPeriodReport> { it.effectiveAbsences(countJustified) }.then(callOrder)
                 StudentOrder.LOWEST_GRADE -> compareBy<StudentPeriodReport> { it.total == null }.thenBy { it.total }.then(callOrder)
                 StudentOrder.HIGHEST_GRADE -> compareBy<StudentPeriodReport> { it.total == null }.thenByDescending { it.total }.then(callOrder)
             }

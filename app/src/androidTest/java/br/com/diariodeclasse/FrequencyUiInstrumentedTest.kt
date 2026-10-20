@@ -129,7 +129,7 @@ class FrequencyUiInstrumentedTest {
         assertEquals(late,app.repository.dao.student(late.id));waitText("Salvo no aparelho")
         shot("04-matricula-retroativa")
         fun openProfileReport(){
-            compose.onNodeWithTag("nav-3").performClick();waitText("Boletim do 3º bimestre")
+            compose.onNodeWithTag("nav-3").performClick();waitText("Boletim 3º Bim")
             compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("${regular.number}. $name"))
             compose.onNodeWithText("${regular.number}. $name").performClick()
         }
@@ -146,4 +146,49 @@ class FrequencyUiInstrumentedTest {
         compose.onNodeWithText("Presenças: 2 • frequência: 100,00%",substring=true).assertExists()
         Unit
     }
+    private fun changeHours(n:Int) {
+        compose.onNodeWithText("Horários:",substring=true).performClick()
+        compose.onNodeWithText("Horários ministrados (0 a 12)").performTextReplacement(n.toString())
+        compose.onNodeWithText("Aplicar horários").performScrollTo().performClick()
+    }
+    @Test fun cancelledHoursReactivateOnlyAfterConfirmationAndKeepBothMarks()=runBlocking {
+        app.repository.setDayHours(c.id,day,2)
+        val lessons=app.repository.dao.day(c.id,day)
+        app.repository.mark(lessons[0].id,a.id,"P");app.repository.mark(lessons[1].id,a.id,"FJ")
+        openAugust();waitTag("daily-frequency")
+        changeHours(0);waitText("Cancelar horários excedentes?")
+        compose.onNodeWithText("Confirmar").performClick();waitText("Horários: 0 • Alterar")
+        val cancelled=app.backupManager.snapshot()
+        changeHours(2);waitText("Reativar 2 horários cancelados?")
+        compose.onNodeWithText("Não").performClick()
+        assertEquals(cancelled,app.backupManager.snapshot())
+        compose.onNodeWithText("Horários ministrados (0 a 12)").performTextReplacement("1")
+        compose.onNodeWithText("Aplicar horários").performScrollTo().performClick()
+        compose.onNodeWithText("Reativar").performClick();waitText("Horários: 1 • Alterar")
+        changeHours(2);waitText("Reativar 1 horário cancelado?")
+        compose.onNodeWithText("Reativar").performClick();waitText("Horários: 2 • Alterar")
+        assertEquals(lessons,app.repository.dao.day(c.id,day));assertEquals(cancelled.marks,app.backupManager.snapshot().marks)
+        compose.activityRule.scenario.recreate();waitText("Horários: 2 • Alterar")
+        compose.onNodeWithTag("clear-day-hours").performClick()
+        waitText("Existem registros vinculados a esta data. Os horários foram preservados.")
+        assertEquals(cancelled.marks,app.backupManager.snapshot().marks)
+    }
+    @Test fun emptyDayCleaningCancelsSafelyAndRemovesNrAndCancelledCalendarMarkers()=runBlocking {
+        app.repository.setDayHours(c.id,day,2);app.repository.setDayHours(other.id,day,1)
+        openAugust();waitTag("daily-frequency")
+        val before=app.backupManager.snapshot()
+        compose.onNodeWithTag("clear-day-hours").performClick();waitText("Remover os horários desta data?")
+        compose.onNodeWithText("Cancelar").performClick();assertEquals(before,app.backupManager.snapshot())
+        changeHours(0);compose.onNodeWithText("Confirmar").performClick();waitText("Horários: 0 • Alterar")
+        compose.onNodeWithTag("clear-day-hours").performClick();waitText("Remover os horários desta data?")
+        compose.onNodeWithText("Remover").performClick();waitText("Quantos horários foram ministrados?")
+        val after=app.backupManager.snapshot()
+        assertEquals(before.copy(lessons=before.lessons.filterNot{it.classId==c.id&&it.date==day}),after)
+        compose.onNodeWithText("‹ Calendário").performClick();waitTag("attendance-calendar")
+        compose.onNodeWithTag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"))
+        compose.onNodeWithTag("date-$day").assertContentDescriptionEquals("06/08/2026, sem aulas")
+        compose.activityRule.scenario.recreate();waitTag("attendance-calendar")
+        assertTrue(app.repository.dao.day(c.id,day).isEmpty());assertEquals(1,app.repository.dao.day(other.id,day).size)
+    }
+
 }

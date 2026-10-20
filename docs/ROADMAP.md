@@ -1,3 +1,5 @@
+> Refinamento autorizado sobre a 0.12.1: relatórios, exportação anual e reativação/limpeza segura de horários. [Contrato e validação](REFINAMENTO_RELATORIOS_CHAMADA.md). Room v7 e backup 8 sem mudança.
+
 > Refinamentos pós-0.12.0 autorizados: backup, saída segura da conferência, três visões de relatórios e redução de instruções permanentes. Consulte [POS_0120.md](POS_0120.md). Sem nova etapa pedagógica ou alteração de esquema.
 
 > **Prompt 2 autorizado — Noctua 0.12.0 / 21:** seleção coletiva na importação, chamada XLSX por período, busca global na própria página Relatórios e segundo toque para NR. Room v7 e backup 8 sem mudança de esquema. [Contrato e validação](PROMPT2.md).
