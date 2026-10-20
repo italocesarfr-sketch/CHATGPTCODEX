@@ -75,6 +75,7 @@ class PostTwelveLayoutInstrumentedTest {
             compose.runOnIdle{screen="import"}
             compose.onNodeWithTag("import-back").performScrollTo().assertIsDisplayed()
             compose.onNodeWithTag("import-select-all").performScrollTo().assertIsDisplayed();shot("layout-import-$w-$f")
+            compose.onNodeWithTag("import-review-list").performScrollToNode(hasText("Confirmar cadastro de 1 aluno"))
             compose.onNodeWithText("Confirmar cadastro de 1 aluno").performScrollTo().assertIsDisplayed().assertIsNotEnabled()
         }
     }

@@ -108,7 +108,7 @@ class PostTwelveUiInstrumentedTest {
         tag("class-selector").performClick()
         // Trocar ano também usa a mesma proteção, antes de mudar a seleção global.
         pressBack()
-        compose.onNodeWithText("2026 ▾").performClick();compose.onNode(hasText("2025") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        tag("year-selector").performClick();compose.onNode(hasText("Ano letivo 2025") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
         waitText("Deseja manter o rascunho?")
         assertEquals(AppSelection(2026,c.id),app.selectionStore.read())
         pressBack();assertEquals(before,runBlocking{app.backupManager.snapshot()})
