@@ -1,0 +1,61 @@
+{
+  "jvm": {
+    "tests": 113,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "tests": 204,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "versionName": "0.13.0",
+  "versionCode": 23,
+  "applicationId": "br.com.diariodeclasse",
+  "database": "diario.db",
+  "roomVersion": 7,
+  "backupFormat": 8,
+  "codeCommit": "a001de35896e7819040ee56a90df0bef52bc16f7",
+  "runId": 39421673236,
+  "runUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39421673236",
+  "xlsxCases": 41,
+  "csvCases": 41,
+  "tsvCases": 123,
+  "resultsArtifactId": 12265175653,
+  "resultsZipSha256": "d26349064a0b68e61276fe01ade7382d28456fb69eee35abf2249bbf1e411b9e",
+  "schemaSha256": "45e14573bede8c237e55bd2bf21dea38d256e650686bb9b2226f0269ad1f1510",
+  "manualPending": [
+    "Teste da nova versão em aparelho físico do proprietário",
+    "Abertura no Microsoft Excel e provedores Android de outros fabricantes"
+  ],
+  "runConclusion": "success",
+  "apk": {
+    "apkSha256": "83a237ad090321f1b14481dcfa3ab6a7e77c1d3fc2a975158db0f1c09a5ed9d9",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "bytes": 8503484,
+    "artifactId": 12263754040,
+    "artifactUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39421673236/artifacts/12263754040",
+    "zipSha256": "cb7b6dca0b8019ed252edc4f928516780c1ca8e04041b9f5af6783dedc536cbf",
+    "manifest": {
+      "package": "br.com.diariodeclasse",
+      "versionCode": 23,
+      "versionName": "0.13.0"
+    }
+  },
+  "stableUpdate": {
+    "baseline": "0.12.1 / 22",
+    "phasesPassed": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history"
+    ],
+    "artifactId": 12265276769,
+    "zipSha256": "417f988b4d24c92d7f0e53f5a493a125937fd2955697aa2d20ce05976cd5cd82"
+  },
+  "androidPassed": 200
+}
