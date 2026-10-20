@@ -22,6 +22,10 @@ class ReportRefinementsTest {
             activities=listOf(Activity("annual-activity",c.id,"Prova fictícia",date="2026-02-10",term=1,maximum=10.0)),grades=listOf(Grade("annual-activity",a.id,0.0),Grade("annual-activity",p.id,8.0)),
             exportRows=listOf(ExportLayout.studentRow(b,0),ExportRow("annual-blank",c.id,null,1),ExportLayout.studentRow(p,2).copy(manualHidden=true),ExportLayout.studentRow(a,3)))
     }
+    @Test fun updateProbeCanStillCallTheLegacyKotlinDefaultBridgeOnVersion0121() {
+        val bridge=DiaryRepository::class.java.declaredMethods.single { it.name=="setDayHours\$default" && it.parameterTypes.size==8 }
+        assertEquals(listOf(DiaryRepository::class.java.name,"java.lang.String","java.lang.String","int","boolean","kotlin.coroutines.Continuation","int","java.lang.Object"),bridge.parameterTypes.map{it.name})
+    }
     @Test fun allFiveOrdersAreStableAndUseExistingEffectiveAbsencesAndGrades() {
         val rows=SchoolReports(data(),c).term(1).students.reversed()
         fun order(o:StudentOrder)=SchoolReports.ordered(rows,o,true).map{it.student.id}

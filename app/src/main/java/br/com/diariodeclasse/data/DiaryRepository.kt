@@ -332,7 +332,11 @@ class DiaryRepository(val db: DiaryDatabase) {
         dao.save(Lesson("$classId:$day:$n", classId, day, n, note = note.ifBlank { "Aula extraordinária" }))
     }
     /** Única ação de quantidade: reutiliza IDs por ordinal; nunca exclui aulas ou marcas. */
-    suspend fun setDayHours(classId: String, day: String, count: Int, confirmCancellation: Boolean = false, confirmReactivation: Boolean = false) = db.withTransaction {
+    // Mantém também a ponte Kotlin $default da 0.12.1 para a sonda de atualização.
+    suspend fun setDayHours(classId: String, day: String, count: Int, confirmCancellation: Boolean = false) =
+        setDayHours(classId, day, count, confirmCancellation, false)
+
+    suspend fun setDayHours(classId: String, day: String, count: Int, confirmCancellation: Boolean = false, confirmReactivation: Boolean) = db.withTransaction {
         val c = requireNotNull(dao.schoolClass(classId)) { "Turma não encontrada." }
         require(date(day).year == c.year) { "Escolha uma data do ano letivo da turma." }
         require(count in 0..12) { "Informe de 0 a 12 horários." }
