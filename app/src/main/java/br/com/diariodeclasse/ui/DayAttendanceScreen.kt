@@ -75,9 +75,6 @@ import br.com.diariodeclasse.data.*
                 FilledTonalButton(enabled = !saving && performed > 0, onClick = { allPresent = true }, modifier = Modifier.weight(1f)) { Text("Marcar todos como presentes", style = MaterialTheme.typography.labelSmall) }
             }
             if (lessons.any { it.state == "PREVISTA" }) TextButton(onClick = { applyHours(active.maxOfOrNull { it.ordinal }?.coerceAtMost(12) ?: 0) }, enabled = !saving) { Text("Confirmar horários ministrados") }
-            TextButton(enabled = !saving, onClick = {
-                vm.act(context = context) { emptyDay = vm.repository.checkEmptyDay(c.id, day) }
-            }, modifier = Modifier.testTag("clear-day-hours")) { Text("Limpar horários do dia") }
             Box(Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id
@@ -85,7 +82,7 @@ import br.com.diariodeclasse.data.*
                 }, options = { option = it; action = "menu" }, openDay = {}) }
         }
     }
-    if (hoursForm) Form("Quantidade de horários", { hoursForm = false }) {
+    if (hoursForm && pendingCount == null && emptyDay == null) Form("Quantidade de horários", { hoursForm = false }) {
         OutlinedTextField(hoursText, { hoursText = it }, label = { Text("Horários ministrados (0 a 12)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())
         Text("Reduzir cancela horários e preserva as chamadas.", style = MaterialTheme.typography.bodyMedium)
         Button(enabled = !saving, onClick = {
@@ -94,6 +91,9 @@ import br.com.diariodeclasse.data.*
             else if (lessons.any { it.ordinal > n && it.state != "CANCELADA" }) { pendingCount = n; cancellationApproved = false; reactivationCount = 0 }
             else applyHours(n)
         }) { Text("Aplicar horários") }
+        TextButton(enabled = !saving, onClick = {
+            vm.act(context = context) { emptyDay = vm.repository.checkEmptyDay(c.id, day) }
+        }, modifier = Modifier.testTag("clear-day-hours")) { Text("Limpar horários do dia") }
         SaveError(vm)
     }
     pendingCount?.let { n ->
@@ -109,7 +109,7 @@ import br.com.diariodeclasse.data.*
         text = { Column { Text("A data voltará a ficar sem aulas cadastradas."); SaveError(vm) } },
         dismissButton = { TextButton(enabled = !saving, onClick = { emptyDay = null }) { Text("Cancelar") } },
         confirmButton = { Button(enabled = !saving, onClick = {
-            vm.act(done = { emptyDay = null }, context = context) { vm.repository.clearEmptyDay(c.id, day, checked) }
+            vm.act(done = { emptyDay = null; hoursForm = false }, context = context) { vm.repository.clearEmptyDay(c.id, day, checked) }
         }) { Text("Remover") } }) }
     if (allPresent) Confirm("Marcar todos como presentes?", "Substitui por P as marcações dos horários realizados nesta data. Alunos fora da matrícula e horários cancelados/previstos não serão alterados.", { allPresent = false }) {
         vm.act(done = { allPresent = false }, context = context) { vm.repository.allPresentDay(c.id, day) }

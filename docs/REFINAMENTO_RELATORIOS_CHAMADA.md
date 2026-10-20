@@ -20,7 +20,7 @@ A interface pergunta “Reativar N horários cancelados?” e permite Não/Reati
 
 ## Limpar horários do dia
 
-Ação discreta na chamada existente. Conferência somente leitura e confirmação “Remover os horários desta data?”. A confirmação captura turma, data e lista de horários, não a seleção global futura. O Repository repete todas as verificações dentro da transação e recusa se os horários tiverem mudado.
+Ação discreta em Chamada → Alterar horários, preservando o espaço útil da tabela. Confirmações substituem temporariamente o formulário, sem empilhar janelas. Conferência somente leitura e confirmação “Remover os horários desta data?”. A confirmação captura turma, data e lista de horários, não a seleção global futura. O Repository repete todas as verificações dentro da transação e recusa se os horários tiverem mudado.
 
 Por segurança, **qualquer** marca persistida (inclusive NR explícito após desmarcar), observação não vazia, registro do diário, atividade ou recomposição naquela turma/data bloqueia a limpeza. Referências no histórico preservado também bloqueiam. Não exclui alguns horários enquanto outros do mesmo dia têm registros. O aviso curto orienta que os horários foram preservados; cancelamento e reativação continuam disponíveis.
 
