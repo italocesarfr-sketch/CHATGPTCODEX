@@ -8,7 +8,8 @@ import org.junit.Rule
 import org.junit.Test
 
 class NoctuaIdentityInstrumentedTest {
-    @get:Rule val compose = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose = createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     @Test fun displaysNoctuaWithoutChangingApplicationIdentity() {
         val context = compose.activity
         assertEquals("br.com.diariodeclasse", context.packageName)

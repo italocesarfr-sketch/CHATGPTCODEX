@@ -17,7 +17,8 @@ import java.util.Locale
 
 @RunWith(AndroidJUnit4::class)
 class FrequencyUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass(id="freq-ui-a",name="Turma Fictícia Chamada",subject="História",year=2026)

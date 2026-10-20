@@ -6,6 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -82,4 +83,14 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
     AlertDialog(onDismissRequest = dismiss, title = { Text(title) }, text = { Text(text) },
         confirmButton = { TextButton(onClick = confirm) { Text("Confirmar") } },
         dismissButton = { TextButton(onClick = dismiss) { Text("Cancelar") } })
+}
+
+/** Mesmos controles e estilo, sem indicar seleção ou impor novo fluxo. */
+@Composable fun ReportActions(organize: () -> Unit, export: () -> Unit, enabled: Boolean = true) {
+    Row(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page),horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+        OutlinedButton(onClick=organize,enabled=enabled,contentPadding=PaddingValues(horizontal=12.dp,vertical=8.dp),
+            modifier=Modifier.weight(1f).heightIn(min=48.dp).then(Modifier.testTag("export-organize"))) { Text("Organizar",maxLines=1,textAlign=androidx.compose.ui.text.style.TextAlign.Center) }
+        OutlinedButton(onClick=export,enabled=enabled,contentPadding=PaddingValues(horizontal=12.dp,vertical=8.dp),
+            modifier=Modifier.weight(1f).heightIn(min=48.dp).then(Modifier.testTag("open-export"))) { Text("Exportar",maxLines=1,textAlign=androidx.compose.ui.text.style.TextAlign.Center) }
+    }
 }

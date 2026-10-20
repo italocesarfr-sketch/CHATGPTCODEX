@@ -13,7 +13,8 @@ import org.junit.Assert.*
 import java.io.File
 
 class ExportLayoutUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass(id="ui-exp-c",name="Turma Fictícia Disposição",subject="História",year=2026)

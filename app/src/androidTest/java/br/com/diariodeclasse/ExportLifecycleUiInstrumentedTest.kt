@@ -17,7 +17,8 @@ import org.junit.Assert.*
 import java.io.File
 
 class ExportLifecycleUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass(id="ui52-c",name="Turma Fictícia Exportação",subject="História",year=2026)

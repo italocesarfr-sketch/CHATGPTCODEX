@@ -8,6 +8,9 @@ timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pan
 mkdir -p build
 # Somente fixture no emulador descartável; diagnóstico de automação sem tocar no banco.
 adb logcat -d -s TestRunner:V AndroidRuntime:E '*:S' > build/android-runner-diagnostic.txt || true
+if adb shell run-as br.com.diariodeclasse test -d files/ux14-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/ux14-screenshots > build/ux14-telas.tar
+fi
 if adb shell run-as br.com.diariodeclasse test -d files/ux12-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/ux12-screenshots > build/ux12-telas.tar
 fi
@@ -68,6 +71,8 @@ PYFAILURES
 fi
 python3 - <<'PY'
 import tarfile
+with tarfile.open('build/ux14-telas.tar') as images:
+    assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 6
 with tarfile.open('build/ux12-telas.tar') as images:
     assert len([x for x in images.getmembers() if x.name.endswith('.png')]) >= 13
 with tarfile.open('build/prompt2-telas.tar') as images:

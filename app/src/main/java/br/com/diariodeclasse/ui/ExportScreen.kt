@@ -7,6 +7,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +26,7 @@ import br.com.diariodeclasse.export.*
 import kotlinx.coroutines.*
 import java.io.File
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,notify:(String)->Unit,ready:Boolean=true,attendance:(()->Unit)?=null,annual:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
     val context=LocalContext.current;val scope=rememberCoroutineScope()
     var model by rememberSaveable(c.id){mutableStateOf(ExportModel.NOTES.name)}
@@ -52,21 +55,11 @@ import java.io.File
     val xlsx=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(ExportFormat.XLSX.mime),::delivered)
     val csv=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(ExportFormat.CSV.mime),::delivered)
     val scroll=rememberScrollState();val matrix=remember(table,notesPreview,allGrades){table.rows(notesPreview,allGrades)}
-    LazyColumn(Modifier.fillMaxSize().testTag("export-screen"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        item {
-            Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
-            attendance?.let{OutlinedButton(onClick=it,enabled=ready&&!busy,modifier=Modifier.testTag("open-attendance-export")){Text("Exportar chamada (XLSX)")}}
-            annual?.let{OutlinedButton(onClick=it,enabled=ready&&!busy,modifier=Modifier.testTag("open-annual-export")){Text("Exportar relatório anual")}}
-            OutlinedButton(onClick={controls=!controls},enabled=ready&&!busy,modifier=Modifier.testTag("export-options")){Text(if(controls)"Recolher opções"else"Opções de exportação")}
-            if(controls && !busy) {
-                Choice("Período",listOf("1º bimestre","2º bimestre","3º bimestre","4º bimestre","Resumo anual"),if(period==0)"Resumo anual"else"${period}º bimestre"){period=if(it=="Resumo anual")0 else it.first().digitToInt()}
-                Choice("Modelo",ExportModel.entries.map{it.label},ExportModel.valueOf(model).label){value->model=ExportModel.entries.first{it.label==value}.name;notesPreview=false}
-                Choice("Formato",listOf("XLSX","CSV"),format){format=it}
-                if(options.model!=ExportModel.FREQUENCY) Choice("Colunas de Copiar somente notas",listOf("Resultados vigentes","Todas as notas"),if(allGrades)"Todas as notas"else"Resultados vigentes"){allGrades=it=="Todas as notas"}
-                Row {Checkbox(headers,{headers=it},enabled=ready);Text("Incluir cabeçalhos e máximos")}
-                Row {Checkbox(callNumber,{callNumber=it},enabled=ready);Text("Incluir número da chamada")}
-            }
-            Text("${ExportModel.valueOf(model).label} • ${if(period==0)"Resumo anual"else"${period}º bimestre"} • $format • ${table.records.size} linhas",style=MaterialTheme.typography.titleSmall)
+    var otherExports by remember { mutableStateOf(false) }
+    Scaffold(contentWindowInsets=WindowInsets(0,0,0,0),bottomBar = {
+        Surface(tonalElevation = 3.dp) {
+            Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.3f).coerceAtLeast(96f).dp)
+                .verticalScroll(rememberScrollState()).padding(horizontal=NoctuaSpace.page,vertical=NoctuaSpace.small),verticalArrangement=Arrangement.spacedBy(4.dp)) {
             Button(enabled=ready&&!busy,onClick={
                 val frozen=table;val kind=ExportFormat.valueOf(format);preparing=true;error=null
                 scope.launch {
@@ -86,12 +79,40 @@ import java.io.File
                     (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Noctua • ${c.name}",text));notify(if(onlyNotes)"Somente notas copiadas."else"Dados copiados.")
                 }catch(_:Exception){error="Não foi possível copiar os dados."}
             }
-            Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+            FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
                 OutlinedButton(enabled=ready&&!busy&&table.records.isNotEmpty(),onClick={copy(false)},modifier=Modifier.testTag("export-copy")){Text("Copiar dados")}
                 TextButton(enabled=ready&&!busy&&table.records.isNotEmpty()&&table.columns.any{it.grade},onClick={copy(true)},modifier=Modifier.testTag("export-copy-grades")){Text("Copiar somente notas")}
             }
-            error?.let{Text(it,color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("export-error"))}
-            if(table.columns.any{it.grade})FilterChip(notesPreview,{notesPreview=!notesPreview},label={Text("Prévia somente notas")},enabled=ready&&!busy,modifier=Modifier.testTag("export-notes-preview"))
+                error?.let{Text(it,color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("export-error"))}
+            }
+        }
+    }) { padding ->
+    LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("export-screen"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+        item {
+            Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
+            FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                OutlinedButton(onClick={controls=!controls},enabled=ready&&!busy,modifier=Modifier.testTag("export-options")){Text(if(controls)"Recolher opções"else"Opções")}
+                if(attendance!=null || annual!=null) Box {
+                    OutlinedButton(onClick={otherExports=true},enabled=ready&&!busy,modifier=Modifier.testTag("export-other")){Text("Outras planilhas ▾")}
+                    DropdownMenu(otherExports,{otherExports=false}) {
+                        attendance?.let{DropdownMenuItem(text={Text("Exportar chamada (XLSX)")},onClick={otherExports=false;it()},modifier=Modifier.testTag("open-attendance-export"))}
+                        annual?.let{DropdownMenuItem(text={Text("Exportar relatório anual")},onClick={otherExports=false;it()},modifier=Modifier.testTag("open-annual-export"))}
+                    }
+                }
+            }
+            if(controls && !busy) {
+                Choice("Período",listOf("1º bimestre","2º bimestre","3º bimestre","4º bimestre","Resumo anual"),if(period==0)"Resumo anual"else"${period}º bimestre"){period=if(it=="Resumo anual")0 else it.first().digitToInt()}
+                Choice("Modelo",ExportModel.entries.map{it.label},ExportModel.valueOf(model).label){value->model=ExportModel.entries.first{it.label==value}.name;notesPreview=false}
+                Choice("Formato",listOf("XLSX","CSV"),format){format=it}
+                if(options.model!=ExportModel.FREQUENCY) Choice("Colunas de Copiar somente notas",listOf("Resultados vigentes","Todas as notas"),if(allGrades)"Todas as notas"else"Resultados vigentes"){allGrades=it=="Todas as notas"}
+                Row {Checkbox(headers,{headers=it},enabled=ready);Text("Incluir cabeçalhos e máximos")}
+                Row {Checkbox(callNumber,{callNumber=it},enabled=ready);Text("Incluir número da chamada")}
+            }
+            Text("${ExportModel.valueOf(model).label} • ${if(period==0)"Resumo anual"else"${period}º bimestre"} • $format",style=MaterialTheme.typography.titleSmall)
+            FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                Text("Prévia",style=MaterialTheme.typography.titleMedium,modifier=Modifier.padding(vertical=12.dp).testTag("export-preview-heading"))
+                if(table.columns.any{it.grade})FilterChip(notesPreview,{notesPreview=!notesPreview},label={Text("Somente notas")},enabled=ready&&!busy,modifier=Modifier.testTag("export-notes-preview"))
+            }
             Text(if(notesPreview)"Sem nomes ou cabeçalhos. Colunas: ${table.columns.filter{if(allGrades)it.grade else it.key.endsWith(":current")}.joinToString("; "){it.label}}"else"${matrix.size} linhas × ${table.columns.size} colunas",style=MaterialTheme.typography.bodySmall)
         }
         if(matrix.isEmpty())item{Text("Nenhuma linha para exportar.")}
@@ -102,4 +123,5 @@ import java.io.File
             HorizontalDivider()
         }
     }
+}
 }

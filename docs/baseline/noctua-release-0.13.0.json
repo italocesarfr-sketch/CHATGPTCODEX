@@ -1,0 +1,12 @@
+{
+  "apkSha256": "83a237ad090321f1b14481dcfa3ab6a7e77c1d3fc2a975158db0f1c09a5ed9d9",
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "manifest": {
+    "package": "br.com.diariodeclasse",
+    "versionCode": 23,
+    "versionName": "0.13.0"
+  },
+  "runId": 39421673236,
+  "artifactId": 12263754040,
+  "artifactName": "noctua-etapa6-release"
+}

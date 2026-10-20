@@ -16,7 +16,8 @@ import org.junit.Assert.*
 import java.io.File
 
 class RelocationUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val g=SchoolClass(id="ui-rel-g",name="1º G Fictício Remanejamento",subject="História",year=2026)

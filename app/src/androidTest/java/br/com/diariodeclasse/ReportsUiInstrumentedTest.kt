@@ -12,7 +12,8 @@ import org.junit.Assert.*
 import java.io.File
 
 class ReportsUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app: DiaryApplication
     private var previous: AppSelection?=null
     private val c=SchoolClass(id="ui-reports-c",name="Turma Fictícia Relatórios",subject="História",year=2026)

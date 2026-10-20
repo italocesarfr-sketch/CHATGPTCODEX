@@ -26,7 +26,8 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 class PostTwelveUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass("ux12-ui-c",name="Turma Fictícia Atual",subject="História",year=2026)

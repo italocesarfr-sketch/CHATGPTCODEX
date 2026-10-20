@@ -2,6 +2,10 @@ package br.com.diariodeclasse.ui
 
 import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -49,9 +53,9 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
 }
 
 @Composable fun ExportSaveControls(saving: Boolean, conclude: () -> Unit, cancel: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
-        Button(enabled = !saving, onClick = conclude, modifier = Modifier.testTag("export-conclude")) { Text(if (saving) "Salvando…" else "Concluir") }
-        OutlinedButton(enabled = !saving, onClick = cancel, modifier = Modifier.testTag("export-cancel")) { Text("Cancelar") }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
+        Button(enabled = !saving, onClick = conclude, modifier = Modifier.weight(1f).heightIn(min=48.dp).testTag("export-conclude")) { Text(if (saving) "Salvando…" else "Concluir") }
+        OutlinedButton(enabled = !saving, onClick = cancel, modifier = Modifier.weight(1f).heightIn(min=48.dp).testTag("export-cancel")) { Text("Cancelar") }
     }
 }
 
@@ -71,16 +75,23 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
     var preview by rememberSaveable(c.id) { mutableStateOf(false) }
     val slots = ExportLayout.project(data, session.rows)
     val included = slots.filter { it.included }; val excluded = slots.filterNot { it.included }
-    LazyColumn(Modifier.fillMaxSize().testTag("export-layout-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Scaffold(contentWindowInsets=WindowInsets(0,0,0,0),bottomBar = {
+        Surface(tonalElevation=3.dp) {
+            Column(Modifier.fillMaxWidth().heightIn(max=(LocalConfiguration.current.screenHeightDp*0.3f).coerceAtLeast(96f).dp)
+                .verticalScroll(rememberScrollState()).padding(horizontal=NoctuaSpace.page,vertical=NoctuaSpace.small)) {
+                ExportSaveControls(saving, conclude, cancel)
+                TextButton(enabled=!saving,onClick=export,modifier=Modifier.fillMaxWidth().testTag("export-conclude-and-export")){Text("Concluir e exportar planilha")}
+                SaveError(vm)
+            }
+        }
+    }) { padding ->
+    LazyColumn(Modifier.fillMaxSize().padding(padding).testTag("export-layout-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
             Section("Organizar exportação", "${c.name} • ${c.year}")
             FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
                 FilterChip(session.mode=="ORDER",{change(session.copy(mode="ORDER"))},label={Text("Disposição")},modifier=Modifier.testTag("export-order"))
                 FilterChip(session.mode=="HIDE",{change(session.copy(mode="HIDE"))},label={Text("Ocultar alunos")},modifier=Modifier.testTag("export-hide"))
             }
-            ExportSaveControls(saving, conclude, cancel)
-            TextButton(enabled=!saving,onClick=export,modifier=Modifier.testTag("export-conclude-and-export")){Text("Concluir e exportar planilha")}
-            SaveError(vm)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
             FilterChip(selected = preview, onClick = { preview = !preview }, label = { Text(if (preview) "Voltar à organização" else "Ver prévia") }, modifier = Modifier.testTag("export-preview"))
             if (!preview && session.mode=="ORDER") OutlinedButton(enabled = !saving, onClick = { change(session.addBlank()) }, modifier = Modifier.testTag("export-add-blank")) { Text("Adicionar linha vazia") }
@@ -90,8 +101,8 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
         if (slots.isEmpty()) item { Text("Nenhum aluno cadastrado.") }
         itemsIndexed(if (preview) included else slots, key = { _, slot -> slot.row.id }) { index, slot ->
             Card(Modifier.fillMaxWidth().testTag("export-row-${slot.row.id}")) {
-                Column(Modifier.padding(NoctuaSpace.medium), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.tiny)) {
-                    Row {
+                Column(Modifier.padding(NoctuaSpace.small), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.tiny)) {
+                    Row(verticalAlignment=Alignment.CenterVertically) {
                         if (!preview && slot.student != null) Checkbox(slot.row.manualHidden, { change(session.hide(slot.student.id, it)) }, enabled = !saving,
                             modifier = Modifier.testTag(if(session.mode=="HIDE") "export-hide-toggle-${slot.student.id}" else "export-order-hide-${slot.student.id}").semantics { contentDescription = "Ocultar manualmente ${slot.student.number}. ${slot.student.name}" })
                         Column(Modifier.weight(1f)) {
@@ -101,8 +112,8 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
                     }
                     if (!preview && session.mode=="ORDER") {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            TextButton(enabled = !saving && index > 0, onClick = { change(session.move(slot.row.id, -1)) }, modifier = Modifier.testTag("export-up-${slot.row.id}")) { Text("↑ Subir") }
-                            TextButton(enabled = !saving && index < slots.lastIndex, onClick = { change(session.move(slot.row.id, 1)) }, modifier = Modifier.testTag("export-down-${slot.row.id}")) { Text("↓ Descer") }
+                            IconButton(enabled = !saving && index > 0, onClick = { change(session.move(slot.row.id, -1)) }, modifier = Modifier.size(48.dp).testTag("export-up-${slot.row.id}").semantics { contentDescription="Subir posição ${index+1}" }) { Text("↑",style=MaterialTheme.typography.titleLarge) }
+                            IconButton(enabled = !saving && index < slots.lastIndex, onClick = { change(session.move(slot.row.id, 1)) }, modifier = Modifier.size(48.dp).testTag("export-down-${slot.row.id}").semantics { contentDescription="Descer posição ${index+1}" }) { Text("↓",style=MaterialTheme.typography.titleLarge) }
                             TextButton(enabled = !saving, onClick = { change(session.addBlank(slot.row.id)) }, modifier = Modifier.testTag("export-blank-after-${slot.row.id}")) { Text("Linha abaixo") }
                         }
                         if (slot.blank) TextButton(enabled = !saving, onClick = { change(session.removeBlank(slot.row.id)) }, modifier = Modifier.testTag("export-remove-${slot.row.id}")) { Text("Remover linha vazia") }
@@ -120,4 +131,5 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
             }
         }
     }
+}
 }

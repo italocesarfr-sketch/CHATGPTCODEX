@@ -184,7 +184,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     },confirmButton={TextButton(onClick={showInformation=false}){Text("Fechar")}})
     LazyColumn(Modifier.fillMaxSize().testTag("reports-list"),state=listState,contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
-            if(globalSearch)OutlinedTextField(query,{query=it},label={Text("Buscar aluno em todas as turmas")},singleLine=true,leadingIcon={Icon(painterResource(R.drawable.ic_search),"Buscar aluno")},
+            if(globalSearch)OutlinedTextField(query,{query=it},label={Text("Buscar")},singleLine=true,leadingIcon={Icon(painterResource(R.drawable.ic_search),"Buscar aluno")},
                 keyboardOptions=KeyboardOptions(imeAction=ImeAction.Search),keyboardActions=KeyboardActions(onSearch={focus.clearFocus();keyboard?.hide()}),
                 modifier=Modifier.fillMaxWidth().testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
             if(data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)})RelocatedFilter(showRelocated){showRelocated=it}

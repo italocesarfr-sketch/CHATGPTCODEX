@@ -26,7 +26,8 @@ import java.time.LocalDate
 import java.time.format.TextStyle
 
 class StageSixUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass(id="ui6-c",name="1º X Fictício",subject="História",year=2026)
@@ -128,7 +129,7 @@ class StageSixUiInstrumentedTest {
         }}
         waitTag("nav-1");tag("nav-1").performClick();tag("class-mode-Chamada").assertHeightIsAtLeast(48.dp);tag("class-mode-Diário").assertHeightIsAtLeast(48.dp)
         for(i in 0..3)tag("nav-$i").assertIsDisplayed()
-        for(label in listOf("Cadastrar\nTurma","Chamada/\nDiário","Atividades\ne Notas","Relatórios")) {
+        for(label in listOf("Cadastrar\nTurma","Chamada e Diário","Atividades\ne Notas","Relatórios")) {
             val layouts=mutableListOf<TextLayoutResult>()
             compose.onNodeWithText(label,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
             assertTrue(layouts.isNotEmpty());assertFalse("Rótulo truncado: $label",layouts.first().hasVisualOverflow)

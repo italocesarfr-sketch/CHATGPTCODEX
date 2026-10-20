@@ -11,7 +11,8 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class BackupDialogInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     @Test fun openingAndCancellingBackupDoesNotModifyRecords() = runBlocking {
         val manager=(compose.activity.application as DiaryApplication).backupManager
         compose.waitUntil(5000) { (compose.activity.application as DiaryApplication).selectionStore.read() != null }

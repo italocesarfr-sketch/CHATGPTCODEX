@@ -1,3 +1,5 @@
+> Sete refinamentos finais autorizados sobre a 0.13.0: interface compacta, calendário no rodapé e entrada **somente demonstrativa**, sem contas, credenciais persistidas ou autenticação. [Contrato e validação](REFINAMENTOS_FINAIS_UX.md). Room v7, backup 8 e regras escolares inalterados.
+
 > Refinamento autorizado sobre a 0.12.1: relatórios, exportação anual e reativação/limpeza segura de horários. [Contrato e validação](REFINAMENTO_RELATORIOS_CHAMADA.md). Room v7 e backup 8 sem mudança.
 
 > Refinamentos pós-0.12.0 autorizados: backup, saída segura da conferência, três visões de relatórios e redução de instruções permanentes. Consulte [POS_0120.md](POS_0120.md). Sem nova etapa pedagógica ou alteração de esquema.

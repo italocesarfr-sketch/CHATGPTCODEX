@@ -14,7 +14,8 @@ import java.io.File
 
 @RunWith(AndroidJUnit4::class)
 class ActivityChangesUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass(id="ui-s4-class",name="Turma Fictícia Atividades",subject="História",year=2026)

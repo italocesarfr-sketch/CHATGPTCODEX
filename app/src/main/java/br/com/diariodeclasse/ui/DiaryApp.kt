@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,7 @@ import br.com.diariodeclasse.backup.BackupCodec
 private data class MainPage(val title: String, val label: String, val icon: Int)
 private val pages = listOf(
     MainPage("Cadastrar Turma", "Cadastrar\nTurma", R.drawable.ic_classes),
-    MainPage("Fazer Chamada / Diário de Classe", "Chamada/\nDiário", R.drawable.noctua_logo),
+    MainPage("Fazer Chamada / Diário de Classe", "Chamada e Diário", R.drawable.ic_calendar),
     MainPage("Atividades e Notas", "Atividades\ne Notas", R.drawable.ic_grades),
     MainPage("Relatórios", "Relatórios", R.drawable.ic_reports))
 
@@ -151,13 +152,13 @@ private val pages = listOf(
                 Column(Modifier.weight(1f).heightIn(min=80.dp).testTag("nav-$index")
                     .selectable(selected=active,enabled=!navigating&&!exportBusy,role=Role.Tab,
                         onClick={if(page!=index||detail.isNotEmpty())navigate{page=index;detail=""}})
-                    .semantics{contentDescription=item.title}.padding(vertical=8.dp),
+                    .semantics{contentDescription=if(index==1) "Chamada e Diário" else item.title}.padding(vertical=8.dp),
                     horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(4.dp)) {
                     Surface(shape=MaterialTheme.shapes.large,color=if(active)MaterialTheme.colorScheme.secondaryContainer else Color.Transparent) {
-                        Icon(painterResource(item.icon),null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp),
-                            tint=if(item.icon==R.drawable.noctua_logo) Color.Unspecified else if(active)MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(painterResource(item.icon),if(index==1) "Calendário" else null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp).testTag("nav-icon-$index"),
+                            tint=if(active)MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text(item.label,Modifier.fillMaxWidth(),textAlign=TextAlign.Center,maxLines=2,
+                    Text(item.label,Modifier.fillMaxWidth(),textAlign=TextAlign.Center,maxLines=3,minLines=if(LocalDensity.current.fontScale>1.3f)3 else 2,
                         style=MaterialTheme.typography.labelSmall,color=if(active)MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -221,10 +222,7 @@ private val pages = listOf(
                                 2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true }, recomposition = { detail = "recomposition" },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> Column {
-                                    Row(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page), horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
-                                        OutlinedButton(onClick={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("export-organize")){Text("Organizar exportação")}
-                                        FilledTonalButton(onClick={detail="export"},modifier=Modifier.weight(1f).heightIn(min=48.dp).testTag("open-export")){Text("Exportar planilha")}
-                                    }
+                                    ReportActions(organize={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},export={detail="export"})
                                     reportStates.SaveableStateProvider(c.id) {
                                     ReportScreen(data, c, term,globalProfile=::openReportStudent) { studentId = it; returnDetail = ""; detail = "student-report" }
                                     }

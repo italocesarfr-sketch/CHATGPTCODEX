@@ -22,7 +22,8 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 class PromptTwoUiInstrumentedTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private lateinit var app:DiaryApplication
     private var previous:AppSelection?=null
     private val c=SchoolClass("p2-ui-c",name="Turma Fictícia Atual",subject="História",year=2026)
@@ -141,7 +142,7 @@ class PromptTwoUiInstrumentedTest {
     }
     @Test fun attendanceXlsxPreviewPickerCancelAndShareLeaveAllSchoolDataUnchanged() {
         runBlocking{app.repository.mark("${c.id}:$day:1",a.id,"P");app.repository.mark("${c.id}:$day:2",a.id,"F")}
-        val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("open-attendance-export").performScrollTo().performClick();waitTag("attendance-export-screen")
+        val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("export-other").performScrollTo().performClick();tag("open-attendance-export").performClick();waitTag("attendance-export-screen")
         tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard()
         shot("04-exportar-chamada")
         tag("attendance-export-file").performScrollTo().performClick();backFromExternalWindow();waitText("Exportação cancelada.")
@@ -152,7 +153,7 @@ class PromptTwoUiInstrumentedTest {
     @Test fun annualXlsxPreviewSaveCancellationAndShareAreReadOnly() {
         val before=runBlocking{app.backupManager.snapshot()}
         report();compose.onNodeWithContentDescription("Buscar aluno").assertExists()
-        tag("open-export").performClick();tag("open-annual-export").performScrollTo().performClick();waitTag("annual-export-screen")
+        tag("open-export").performClick();tag("export-other").performScrollTo().performClick();tag("open-annual-export").performClick();waitTag("annual-export-screen")
         tag("attendance-export-start").assertDoesNotExist();tag("attendance-export-end").assertDoesNotExist()
         compose.onNodeWithText("Prévia do relatório anual").assertExists()
         fun back() {
