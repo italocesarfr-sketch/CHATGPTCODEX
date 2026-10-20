@@ -141,7 +141,9 @@ private val pages = listOf(
             }
         }, navigationIcon = {
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy,contentPadding=PaddingValues(8.dp)) { Text("‹ Voltar") }
-        }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = { navigate { showBackup = true } }) { Text("Backup") } }) },
+        }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = {
+            if(importGuard != null || exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true
+        }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item ->
                 val active=page==index
