@@ -41,21 +41,19 @@ import java.time.LocalDate
         item {
             backToCalendar?.let { TextButton(onClick=it,modifier=Modifier.testTag("journal-back")){Text("‹ Calendário")} }
             Section(if(day==null) "Registros de Aula" else "Diário • ${shortDate(day)}", "${school.name} • ${school.subject} • ${school.year}")
-            Text("Espaço livre e facultativo. Registre quando quiser, mesmo sem chamada.", style = MaterialTheme.typography.bodySmall)
             if (!readOnly) Button(enabled = !saving, onClick = {
                 val now = LocalDate.now(); val initialDay = day ?: if (now.year == school.year) now.toString() else "${school.year}-01-01"
                 change(LessonRecordDraft(null, LessonRecord(classId = school.id, date = initialDay, title = "", description = "")))
             }, modifier = Modifier.fillMaxWidth().testTag("new-lesson-record")) { Text(if(day==null) "+ Criar registro" else if(rows.getOrDefault(emptyList()).isEmpty()) "Criar registro de aula" else "Adicionar outro registro") }
-            else Info("Turma arquivada: consulta e cópia disponíveis. Reative a turma para editar; você também pode duplicar para uma turma ativa.")
+            else Info("Turma arquivada: somente consulta e cópia.")
             if(day==null) TextButton(onClick = { filters = !filters }, modifier = Modifier.testTag("record-filters")) { Text(if (filters) "Recolher período" else "Filtrar período") }
             if (filters) {
-                Text(if (readOnly) "Histórico desta turma arquivada. Deixe as datas vazias para consultar todo o período." else "A turma é escolhida no seletor acima. Deixe as datas vazias para consultar todo o histórico.", style = MaterialTheme.typography.bodySmall)
                 Field("De (dd/mm/aaaa)", from, { from = it }, Modifier.testTag("records-from"))
                 Field("Até (dd/mm/aaaa)", until, { until = it }, Modifier.testTag("records-until"))
             }
             if (rows.isFailure) Text("Confira o período: use dd/mm/aaaa e início anterior ou igual ao fim.", color = MaterialTheme.colorScheme.error)
         }
-        if (rows.isSuccess && rows.getOrThrow().isEmpty()) item { Info("Nenhum registro neste período. Preencher é opcional e não interfere nas outras funções.") }
+        if (rows.isSuccess && rows.getOrThrow().isEmpty()) item { Text("Nenhum registro neste período.") }
         items(rows.getOrDefault(emptyList()), key = { it.id }) { record ->
             OutlinedCard(Modifier.fillMaxWidth().testTag("record-${record.id}")) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
@@ -103,7 +101,6 @@ import java.time.LocalDate
     val school = data.classes.firstOrNull { it.id == value.classId }
     fun update(record: LessonRecord) { change(draft.copy(value = record)); error = null }
     Form(if (draft.expected == null) "Novo registro de aula" else "Editar registro de aula", { if (!saving) dismiss() }) {
-        Text("Somente turma, data e seu texto. Sem ligação com a chamada.", style = MaterialTheme.typography.bodySmall)
         Box {
             OutlinedButton(enabled = !saving, onClick = { menu = true }, modifier = Modifier.fillMaxWidth().testTag("record-class")) { Text("${school?.name ?: "Selecionar turma"} • ${school?.year ?: ""} ▾") }
             DropdownMenu(menu, { menu = false }) { choices.forEach { c ->

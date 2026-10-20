@@ -32,7 +32,6 @@ import java.time.LocalDate
         else Text("Ano letivo ${c.year} • preservado com o histórico", style = MaterialTheme.typography.bodyMedium)
         Choice("Etapa", listOf("Fundamental", "Médio"), stage) { stage = it }
         Choice("Turno", listOf("Matutino", "Vespertino", "Noturno"), shift) { shift = it }
-        Info("Nenhum horário semanal é obrigatório. A turma fica disponível durante todo o ano letivo. Cadastre os alunos depois de salvar.")
         TextButton(onClick = { advanced = !advanced }) { Text(if (advanced) "Ocultar configurações adicionais" else "Configurações adicionais (opcional)") }
         if (advanced) {
             Field("Duração de cada aula (min)", duration, { duration = it })
@@ -42,7 +41,7 @@ import java.time.LocalDate
             Row { Checkbox(present, { present = it }); Text("Iniciar novas chamadas com todos presentes", Modifier.padding(top = 12.dp)) }
             TextButton(onClick = { weekly = !weekly }) { Text("Horários semanais legados (informação)") }
             if (weekly) {
-                Info("Configuração anterior preservada. Os valores são somente informação legada. Aulas são registradas por data na página Fazer Chamada; esta configuração não gera nem apaga aulas.")
+                Info("Horários informativos; não geram aulas.")
                 listOf("Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo").forEachIndexed { i, day -> Field(day, schedule[i], { schedule[i] = it }) }
                 if (original != null) Field("Referência do horário legado (dd/mm/aaaa)", effective, { effective = it })
             }
@@ -68,7 +67,6 @@ import java.time.LocalDate
     val ends = remember { mutableStateListOf(*terms.sortedBy { it.number }.map { shortDate(it.end) }.toTypedArray()) }
     var preview by remember { mutableStateOf<List<Term>?>(null) }
     Form("Configurar bimestres", dismiss) {
-        Info("Datas iniciais são sugestões. Ajuste ao calendário da sua rede. Períodos não podem se sobrepor.")
         if (starts.size == 4) for (i in 0..3) {
             Text("${i + 1}º bimestre", style = MaterialTheme.typography.titleMedium)
             Field("Início (dd/mm/aaaa)", starts[i], { starts[i] = it })
@@ -137,7 +135,7 @@ import java.time.LocalDate
             Row {RadioButton(target=="@external",{if(!saving) target="@external"},enabled=!saving,modifier=Modifier.testTag("relocation-external"));Text("Outra turma",Modifier.padding(top=12.dp))}
             if(target=="@external") Field("Nome da turma de destino",external,{if(!saving)external=it},Modifier.testTag("relocation-external-name"))
             Info("A origem será encerrada no dia anterior. Notas e chamadas permanecem nos registros originais e serão consultadas por vínculo no destino cadastrado. Nenhum dado muda antes da confirmação da prévia.")
-        } else Info("Por padrão, a matrícula começa em 01/01 do ano letivo. Datas reais de ingresso/saída limitam a frequência. Matrículas vinculadas conservam os limites confirmados.")
+        } else Info("Datas de ingresso e saída limitam a frequência.")
         if (duplicate) {
             Info("Há um nome semelhante nesta turma. Confira se já está cadastrado.")
             Row { Checkbox(homonym, { homonym = it }); Text("Confirmo que é outra pessoa (homônimo)", Modifier.padding(top = 12.dp)) }

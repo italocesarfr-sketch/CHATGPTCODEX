@@ -26,7 +26,7 @@ data class CalendarMarker(val text:String="",val description:String)
     LazyColumn(Modifier.fillMaxSize().testTag(tag),contentPadding=PaddingValues(NoctuaSpace.medium),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
             Choice("Mês do ano letivo $year",(1..12).map{"$it • ${YearMonth.of(year,it).month.getDisplayName(TextStyle.FULL,brLocale)}"},"$month • ${ym.month.getDisplayName(TextStyle.FULL,brLocale)}"){changeMonth(it.substringBefore(" •").toInt())}
-            Text(instruction,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
+            if(instruction.isNotBlank()) Text(instruction,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         }
         item {
             BoxWithConstraints {

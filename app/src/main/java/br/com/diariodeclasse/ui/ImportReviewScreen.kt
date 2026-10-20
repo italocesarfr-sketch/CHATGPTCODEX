@@ -16,7 +16,7 @@ import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.domain.RosterParser
 
 /** Também recupera rascunhos de versões com fotografia, sem câmera nem OCR. */
-@Composable fun ImportReviewScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, close: () -> Unit) {
+@Composable fun ImportReviewScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, guardNavigation: (((() -> Unit) -> Unit)?) -> Unit = {}, close: () -> Unit) {
     val rows = data.drafts.filter { it.classId == c.id }.sortedBy { it.position }
     val roster = data.roster(c.id)
     var joined by rememberSaveable(c.id) { mutableStateOf(shortDate(defaultEnrollment(c.year))) }
@@ -25,7 +25,19 @@ import br.com.diariodeclasse.domain.RosterParser
     var confirming by remember { mutableStateOf(false) }
     val saving by vm.saving.collectAsState()
     val error by vm.error.collectAsState()
-    BackHandler { close() }
+    var exitAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var exitIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    val exitRequest by rememberUpdatedState<(()->Unit)->Unit> { action ->
+        if (!saving) {
+            if (rows.isEmpty()) action() else { exitIds = rows.map { it.id }.toSet(); exitAction = action }
+        }
+    }
+    val installGuard by rememberUpdatedState(guardNavigation)
+    DisposableEffect(c.id) {
+        installGuard { action -> exitRequest(action) }
+        onDispose { installGuard(null) }
+    }
+    BackHandler { exitRequest(close) }
     fun issues(row: ImportDraft): String {
         val others = rows.filter { it.id != row.id }
         val duplicate = roster.any { RosterParser.possibleDuplicate(it.name, row.name) } || others.any { RosterParser.possibleDuplicate(it.name, row.name) }
@@ -39,7 +51,12 @@ import br.com.diariodeclasse.domain.RosterParser
     val blocked = rows.isEmpty() || rows.any { issues(it).isNotEmpty() }
     LazyColumn(Modifier.fillMaxSize().testTag("import-review-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item {
-            Section("Conferir importação", "${c.name} • ${counted(rows.size, "nome", "nomes")} em rascunho")
+            Section("Conferir importação", counted(rows.size, "aluno", "alunos"))
+            Field("Ingresso dos novos alunos (dd/mm/aaaa)", joined, { joined = it })
+            OutlinedButton(enabled = !saving, onClick = {
+                editing = ImportDraft(classId = c.id, name = "", number = null, position = (rows.maxOfOrNull { it.position } ?: -1) + 1, page = 0)
+            }, modifier = Modifier.fillMaxWidth()) { Text("+ Adicionar aluno") }
+            TextButton(enabled = !saving, onClick = { exitRequest(close) }, modifier = Modifier.testTag("import-back")) { Text("Voltar") }
             val state = when { rows.isNotEmpty() && rows.all { it.reviewed } -> ToggleableState.On
                 rows.any { it.reviewed } -> ToggleableState.Indeterminate
                 else -> ToggleableState.Off }
@@ -51,20 +68,12 @@ import br.com.diariodeclasse.domain.RosterParser
                     })
                 Text("Selecionar todos")
             }
-            Info("Confira nomes, números e ingresso. Nenhum rascunho gera frequência ou notas antes da confirmação. Rascunhos antigos permanecem disponíveis aqui.")
-            Field("Ingresso dos novos alunos (dd/mm/aaaa)", joined, { joined = it })
-            Text("Números em branco serão atribuídos após os utilizados. O ingresso padrão é 01/01 do ano letivo, independentemente da data de cadastro no app. Altere somente para uma matrícula real posterior; nesse caso, chamadas anteriores ficam fora do período.", style = MaterialTheme.typography.bodySmall)
-            OutlinedButton(onClick = {
-                editing = ImportDraft(classId = c.id, name = "", number = null, position = (rows.maxOfOrNull { it.position } ?: -1) + 1, page = 0)
-            }, modifier = Modifier.fillMaxWidth()) { Text("+ Adicionar nome ao rascunho") }
-            TextButton(onClick = close) { Text("Voltar e manter rascunhos") }
         }
         items(rows, key = { it.id }) { row ->
             val issue = issues(row)
             OutlinedCard(Modifier.fillMaxWidth(), colors = CardDefaults.outlinedCardColors(containerColor = if (issue.isNotBlank()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface)) {
                 Column(Modifier.padding(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${row.number?.toString() ?: "Sem nº"} • ${row.name.ifBlank { "Nome não preenchido" }}", style = MaterialTheme.typography.titleMedium)
-                    Text("Posição ${row.position + 1}${if (row.page > 0) " • lote/página ${row.page}" else ""}", style = MaterialTheme.typography.labelSmall)
                     if (issue.isNotBlank()) Text(issue, style = MaterialTheme.typography.bodySmall)
                     Row {
                         TextButton(onClick = { editing = row }) { Text("Conferir / corrigir") }
@@ -81,6 +90,18 @@ import br.com.diariodeclasse.domain.RosterParser
             if (blocked) Text("Confira todas as linhas e resolva os avisos para cadastrar.", color = MaterialTheme.colorScheme.error)
             Button(enabled = !blocked && !saving, onClick = { confirming = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Confirmar cadastro de ${counted(rows.size, "aluno", "alunos")}") }
         }
+    }
+    exitAction?.let { action ->
+        AlertDialog(onDismissRequest = { if (!saving) exitAction = null },
+            title = { Text("Deseja manter o rascunho?") },
+            text = { error?.let { Text(it, color = MaterialTheme.colorScheme.error) } },
+            confirmButton = { TextButton(enabled = !saving, onClick = {
+                exitAction = null; action()
+            }, modifier = Modifier.testTag("import-keep")) { Text("Sim") } },
+            dismissButton = { TextButton(enabled = !saving, onClick = {
+                val ids = exitIds
+                vm.act(done = { exitAction = null; action() }) { vm.repository.discardDrafts(c.id, ids) }
+            }, modifier = Modifier.testTag("import-discard")) { Text("Não") } })
     }
     editing?.let { row ->
         var name by rememberSaveable(row.id) { mutableStateOf(row.name) }

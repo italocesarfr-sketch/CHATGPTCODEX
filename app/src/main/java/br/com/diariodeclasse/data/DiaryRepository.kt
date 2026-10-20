@@ -481,6 +481,12 @@ class DiaryRepository(val db: DiaryDatabase) {
         // SQLite do Android 8 limita a quantidade de parâmetros por comando.
         ids.toList().chunked(900).forEach{chunk->check(dao.reviewDrafts(classId,chunk,reviewed)==chunk.size)}
     }
+    /** Remove exclusivamente as linhas capturadas na saída desta conferência. */
+    suspend fun discardDrafts(classId: String, ids: Set<String>) = db.withTransaction {
+        val current = dao.draftRows(classId).map { it.id }.toSet()
+        require(current.containsAll(ids)) { "A importação mudou. Confira a lista novamente." }
+        ids.forEach { dao.deleteDraft(it) }
+    }
     suspend fun confirmImport(classId: String, joined: String): Int = db.withTransaction {
         val klass = requireNotNull(dao.schoolClass(classId))
         require(date(joined).year == klass.year) { "A data de ingresso deve pertencer ao ano da turma." }

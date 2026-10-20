@@ -63,9 +63,8 @@ import java.io.File
             Section("Exportar chamada", "${c.name} • ${c.subject} • ${c.year}")
             Field("Data inicial (dd/mm/aaaa)",start,{start=it},modifier=Modifier.testTag("attendance-export-start"),enabled=!busy)
             Field("Data final (dd/mm/aaaa)",end,{end=it},modifier=Modifier.testTag("attendance-export-end"),enabled=!busy)
-            Text("Ordem oficial da chamada; ocultação de exportação respeitada. Cada horário realizado tem sua coluna, com a origem histórica identificada. NR e registros fora da matrícula ficam vazios.",style=MaterialTheme.typography.bodySmall)
             if(table==null)Text("Informe datas válidas, em ordem, dentro de ${c.year}.",color=MaterialTheme.colorScheme.error)
-            else if(table.columns.size<=2||table.records.isEmpty())Info("Nenhum horário realizado elegível para exportar neste período.")
+            else if(table.columns.size<=2||table.records.isEmpty())Text("Nenhum horário realizado elegível para exportar neste período.")
             Button(enabled=canExport,onClick={export(false)},modifier=Modifier.testTag("attendance-export-file")){Text(if(busy)"Aguardando…"else"Salvar XLSX")}
             OutlinedButton(enabled=canExport,onClick={export(true)},modifier=Modifier.testTag("attendance-export-share")){Text("Compartilhar XLSX")}
             error?.let{Text(it,color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("attendance-export-error"))}

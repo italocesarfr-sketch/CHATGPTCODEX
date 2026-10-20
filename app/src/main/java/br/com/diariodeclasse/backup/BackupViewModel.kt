@@ -9,31 +9,33 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class BackupUiState(val busy: Boolean = false, val message: String = "", val prepared: PreparedRestore? = null, val hasSafetyCopy: Boolean = false)
+data class BackupUiState(val busy: Boolean = false, val message: String = "", val prepared: PreparedRestore? = null, val hasSafetyCopy: Boolean = false, val exportSucceeded: Boolean = false)
 class BackupViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as DiaryApplication
     private val manager = app.backupManager
     private val _state = MutableStateFlow(BackupUiState(hasSafetyCopy = manager.hasSafetyCopy()))
     val state = _state.asStateFlow()
-    private fun operation(action: suspend () -> BackupUiState) {
+    private fun operation(failureMessage: String? = null, action: suspend () -> BackupUiState) {
         if (_state.value.busy) return
-        _state.value = _state.value.copy(busy = true, message = "Processando no aparelho…")
+        _state.value = _state.value.copy(busy = true, message = "Processando no aparelho…", exportSucceeded = false)
         viewModelScope.launch {
             try { _state.value = withContext(Dispatchers.IO) { action() } }
             catch (error: CancellationException) { throw error }
             catch (error: Exception) {
-                _state.value = _state.value.copy(busy = false, message = if (error is BackupFailure) error.message.orEmpty()
-                    else "Operação não concluída. Os dados do aplicativo foram preservados. Confira o arquivo e o espaço disponível.", hasSafetyCopy = manager.hasSafetyCopy())
+                _state.value = _state.value.copy(busy = false, exportSucceeded = false, message = if (error is BackupFailure) error.message.orEmpty()
+                    else failureMessage ?: "Operação não concluída. Os dados do aplicativo foram preservados. Confira o arquivo e o espaço disponível.", hasSafetyCopy = manager.hasSafetyCopy())
             }
         }
     }
-    fun cancelled() { if (!_state.value.busy) _state.value = _state.value.copy(message = "Operação cancelada. Nenhum dado foi restaurado.") }
+    fun cancelled() { if (!_state.value.busy) _state.value = _state.value.copy(message = "Operação cancelada.", exportSucceeded = false) }
+    fun acknowledgeExport() { if (!_state.value.busy) _state.value = _state.value.copy(message = "", exportSucceeded = false) }
     fun discardPreview() { if (!_state.value.busy) _state.value = _state.value.copy(prepared = null, message = "Prévia cancelada. O banco permanece igual.") }
-    fun export(uri: Uri, safety: Boolean) = operation {
-        requireNotNull(app.contentResolver.openOutputStream(uri, "wt")) { "Destino indisponível." }.use {
+    fun export(uri: Uri, safety: Boolean) = exportTo({ app.contentResolver.openOutputStream(uri, "wt") }, safety)
+    internal fun exportTo(open: () -> java.io.OutputStream?, safety: Boolean = false) = operation("Não foi possível salvar o backup. Confira o destino e o espaço disponível.") {
+        requireNotNull(open()) { "Destino indisponível." }.use {
             if (safety) manager.writeLatestSafetyCopy(it) else manager.writeBackup(it)
         }
-        BackupUiState(message = "Backup salvo no destino escolhido.", hasSafetyCopy = manager.hasSafetyCopy())
+        BackupUiState(message = "Backup salvo com sucesso!", hasSafetyCopy = manager.hasSafetyCopy(), exportSucceeded = true)
     }
     fun prepare(uri: Uri) = operation {
         val prepared = requireNotNull(app.contentResolver.openInputStream(uri)) { "Arquivo indisponível." }.use { manager.prepare(it) }

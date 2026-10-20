@@ -51,9 +51,12 @@ class ReportsUiInstrumentedTest {
         };app.selectionStore.write(previous)
     } }
     private fun waitText(text:String) { compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()} }
-    private fun mode(value:String,current:String="Bimestral") {
+    private fun mode(value:String,current:String="Geral") {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("$current ▾").performScrollTo().performClick();compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        if(value in listOf("Resumo anual","Mais faltosos")) {
+            compose.onNodeWithTag("report-consultations").performScrollTo().performClick()
+        } else compose.onNodeWithText("${if(current=="Bimestral")"Geral"else current} ▾").performScrollTo().performClick()
+        compose.onNode(hasText(if(value=="Bimestral")"Geral"else value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
     private fun selectClass(school:SchoolClass) {

@@ -88,8 +88,9 @@ private val pages = listOf(
     LaunchedEffect(data.loaded, data.classes, savedSelection) {
         if (data.loaded && savedSelection == null) vm.initializeSelection()
     }
+    var importGuard by remember { mutableStateOf<((() -> Unit) -> Unit)?>(null) }
     // A fila já captura os IDs de origem. A navegação só é liberada depois das gravações.
-    fun navigate(action: () -> Unit) {
+    fun navigateUnchecked(action: () -> Unit) {
         if(exportBusy || (exportDraft != null || recordDraft != null) && saving) return
         val safe = {
             navigating = true
@@ -98,6 +99,10 @@ private val pages = listOf(
         if(recordDraft?.dirty == true) pendingRecordNavigation = safe
         else if(exportDraft?.dirty == true) pendingExportNavigation = safe
         else if (invalidGrade) pendingNavigation = safe else safe()
+    }
+    fun navigate(action: () -> Unit) {
+        val guard = importGuard
+        if (guard != null) guard { navigateUnchecked(action) } else navigateUnchecked(action)
     }
     fun concludeExport(openFile: Boolean = false) {
         val draft = exportDraft ?: return
@@ -136,7 +141,7 @@ private val pages = listOf(
             }
         }, navigationIcon = {
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy,contentPadding=PaddingValues(8.dp)) { Text("‹ Voltar") }
-        }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = { if(exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true }) { Text("Backup") } }) },
+        }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = { navigate { showBackup = true } }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item ->
                 val active=page==index
@@ -188,7 +193,7 @@ private val pages = listOf(
                         detail == "student-report" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
                             IndividualReportScreen(data, c, it, term) { term = it }
                         }
-                        detail == "roster" && c != null -> RosterScreen(vm, data, c) { studentId = it; returnDetail = "roster"; detail = "profile" }
+                        detail == "roster" && c != null -> RosterScreen(vm, data, c, importGuard = { importGuard = it }) { studentId = it; returnDetail = "roster"; detail = "profile" }
                         page == 0 -> ClassManagementScreen(data, c, selected.year,
                             create = { editingClass = null; classForm = true },
                             edit = { editingClass = c; classForm = true }, roster = { detail = "roster" }, archives={detail="archives"})
@@ -312,7 +317,7 @@ private val pages = listOf(
             OutlinedButton(edit, enabled = c != null, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("edit-class")) { Text("Editar Turma") }
         }
         item { TextButton(onClick=archives,modifier=Modifier.testTag("open-archives")){Text("Turmas Arquivadas")} }
-        if (c == null) item { Info("Nenhuma turma selecionada em $year. Comece em Nova Turma ou escolha outro ano no seletor acima.") }
+        if (c == null) item { Text("Nenhuma turma selecionada em $year.") }
         else {
             item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(c.name, style = MaterialTheme.typography.titleLarge)
@@ -320,11 +325,9 @@ private val pages = listOf(
                 HorizontalDivider()
                 Text("${counted(data.roster(c.id).count { it.status == "Ativo" }, "aluno ativo", "alunos ativos")} • ${counted(data.roster(c.id).size, "matrícula", "matrículas")}", style = MaterialTheme.typography.titleMedium)
                 Button(roster, Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("Gerenciar alunos") }
-                Text("Cadastro, lista, CSV e situações de matrícula.", style = MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             } } }
             val drafts = data.drafts.count { it.classId == c.id }
-            if (drafts > 0) item { OutlinedCard(onClick = roster, modifier = Modifier.fillMaxWidth()) { Text("${counted(drafts, "nome em rascunho aguarda", "nomes em rascunho aguardam")} conferência. Toque para continuar.", Modifier.padding(18.dp)) } }
-            item { Text("Disponível de janeiro a dezembro de ${c.year}. A data de cadastro não limita o calendário.", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
+            if (drafts > 0) item { OutlinedCard(onClick = roster, modifier = Modifier.fillMaxWidth()) { Text("${counted(drafts, "aluno para conferir", "alunos para conferir")}", Modifier.padding(18.dp)) } }
         }
     }
 }
@@ -332,7 +335,7 @@ private val pages = listOf(
 @Composable private fun EmptyClassPage(title: String, create: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(NoctuaSpace.section), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.page)) {
         Section(title, "Escolha uma turma para continuar")
-        Info("Selecione o ano e a turma acima. Se ainda não houver turmas, faça seu primeiro cadastro.")
+        Info("Selecione ou cadastre uma turma.")
         Button(create, Modifier.fillMaxWidth()) { Text("Nova Turma") }
     }
 }
@@ -343,7 +346,7 @@ private val pages = listOf(
     LazyColumn(Modifier.testTag("activities-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item { Button(create, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("+ Criar atividade") } }
         item { OutlinedButton(recomposition, Modifier.fillMaxWidth().testTag("open-recomposition")) { Text("Recomposição de Notas") } }
-        if (activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Crie uma atividade para lançar notas.") }
+        if (activities.isEmpty()) item { Text("Nenhuma atividade registrada neste bimestre.") }
         items(activities, key = { it.id }) { a -> Card(Modifier.fillMaxWidth().testTag("activity-${a.id}")) {
             Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(a.name, Modifier.clickable { grades(a.id) }, style = MaterialTheme.typography.titleMedium)

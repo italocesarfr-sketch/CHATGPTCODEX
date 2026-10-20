@@ -74,7 +74,6 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
     LazyColumn(Modifier.fillMaxSize().testTag("export-layout-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Section("Organizar exportação", "${c.name} • ${c.year}")
-            Text("Ordem e visibilidade só para planilhas. A chamada permanece igual.",style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
                 FilterChip(session.mode=="ORDER",{change(session.copy(mode="ORDER"))},label={Text("Disposição")},modifier=Modifier.testTag("export-order"))
                 FilterChip(session.mode=="HIDE",{change(session.copy(mode="HIDE"))},label={Text("Ocultar alunos")},modifier=Modifier.testTag("export-hide"))
@@ -87,9 +86,8 @@ data class ExportEditSession(val classId: String, val mode: String, val expected
             if (!preview && session.mode=="ORDER") OutlinedButton(enabled = !saving, onClick = { change(session.addBlank()) }, modifier = Modifier.testTag("export-add-blank")) { Text("Adicionar linha vazia") }
             }
             Text(if (preview) "Prévia da sequência • ${included.size} linhas" else "Sequência de organização • ${slots.size} posições", style = MaterialTheme.typography.titleSmall)
-            if (preview) Text("Ocultos não ocupam linha na saída. Somente linhas vazias adicionadas explicitamente preservam espaços.", style = MaterialTheme.typography.bodySmall)
         }
-        if (slots.isEmpty()) item { Info("Nenhum aluno cadastrado. Você pode preparar linhas vazias e acrescentar alunos depois.") }
+        if (slots.isEmpty()) item { Text("Nenhum aluno cadastrado.") }
         itemsIndexed(if (preview) included else slots, key = { _, slot -> slot.row.id }) { index, slot ->
             Card(Modifier.fillMaxWidth().testTag("export-row-${slot.row.id}")) {
                 Column(Modifier.padding(NoctuaSpace.medium), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.tiny)) {

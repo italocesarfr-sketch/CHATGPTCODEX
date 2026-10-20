@@ -63,7 +63,7 @@ class PromptTwoUiInstrumentedTest {
             app.repository.appendDrafts(h.id,listOf(CsvRoster.Row("Estudante Fictício Outra Importação",2)))
         }
         val before=runBlocking{app.backupManager.snapshot()};val rows=before.drafts.filter{it.classId==c.id}
-        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();compose.onNodeWithText("Conferir 2 nomes em rascunho").performScrollTo().performClick();waitTag("import-select-all")
+        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();compose.onNodeWithTag("import-review-open").performScrollTo().performClick();waitTag("import-select-all")
         tag("import-select-all").performScrollTo().performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).all{it.reviewed}}}
         tag("import-select-all").assertIsOn()
@@ -74,8 +74,8 @@ class PromptTwoUiInstrumentedTest {
         compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).count{it.reviewed}==1}}
         tag("import-review-list").performScrollToNode(hasTestTag("import-select-all"))
         tag("import-select-all").assert(SemanticsMatcher.expectValue(SemanticsProperties.ToggleableState,ToggleableState.Indeterminate));shot("01-conferencia-parcial")
-        tag("import-select-all").performClick();compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).all{it.reviewed}}}
-        tag("import-select-all").performClick();compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).none{it.reviewed}}}
+        tag("import-select-all").performScrollTo().performClick();compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).all{it.reviewed}}}
+        tag("import-select-all").performScrollTo().performClick();compose.waitUntil(10000){runBlocking{app.repository.dao.draftRows(c.id).none{it.reviewed}}}
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         compose.activityRule.scenario.recreate();waitTag("import-select-all");tag("import-select-all").performScrollTo().assertIsOff()
     }

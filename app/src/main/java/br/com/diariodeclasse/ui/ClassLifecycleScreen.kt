@@ -16,7 +16,7 @@ import br.com.diariodeclasse.data.*
     val classes=data.classes.filter{it.id in ids}.sortedWith(compareByDescending<SchoolClass>{it.year}.thenBy{it.name}.thenBy{it.id})
     LazyColumn(Modifier.testTag("archived-classes"),contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.medium)) {
         item{Section("Turmas arquivadas","Histórico preservado; consultar não reativa a turma")}
-        if(classes.isEmpty())item{Info("Nenhuma turma arquivada.")}
+        if(classes.isEmpty())item{Text("Nenhuma turma arquivada.")}
         items(classes,key={it.id}){c->OutlinedButton(onClick={open(c.id)},modifier=Modifier.fillMaxWidth().testTag("archived-${c.id}")){Text("${c.name} • ${c.subject} • ${c.year}")}}
     }
 }

@@ -123,7 +123,7 @@ class RecompositionUiInstrumentedTest {
         compose.onNodeWithText("4º bim.").performClick();waitText("Nota 4,50 / 10,00")
         compose.onNodeWithText("‹ Voltar").performClick();waitText("Boletim do 4º bimestre")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("Bimestral ▾").performClick();compose.onNodeWithText("Resumo anual",useUnmergedTree=true).performClick()
+        compose.onNodeWithTag("report-consultations").performScrollTo().performClick();compose.onNodeWithText("Resumo anual",useUnmergedTree=true).performClick()
         compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${a.id}"))
         compose.onNodeWithTag("report-row-${a.id}-cell-2",useUnmergedTree=true).assertTextContains("Resultado vigente: 6,00",substring=true)
         compose.onNodeWithTag("report-row-${a.id}-cell-3",useUnmergedTree=true).assertTextContains("4,50",substring=true)

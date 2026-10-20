@@ -27,7 +27,7 @@ import br.com.diariodeclasse.data.*
         item {
             if(data.roster(a.classId).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
             Section(a.name, "${a.term}º bimestre • ${shortDate(a.date)} • máximo ${number(a.maximum)}")
-            Info("Notas válidas são salvas automaticamente. Deixe vazio para pendente; digite 0 para nota zero.")
+            Text("Vazio: pendente • 0: nota zero")
             TextButton(onClick = edit) { Text("Editar atividade") }
             TextButton(onClick = { confirm = true }) { Text("Excluir atividade") }
         }

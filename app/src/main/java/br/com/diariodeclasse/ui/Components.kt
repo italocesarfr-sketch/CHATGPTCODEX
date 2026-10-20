@@ -45,6 +45,16 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
         Text(text, Modifier.padding(br.com.diariodeclasse.ui.theme.NoctuaSpace.medium), style = MaterialTheme.typography.bodyMedium)
     }
 }
+/** Orientação sob demanda; avisos de risco e resultados continuam junto da ação. */
+@Composable fun ContextHelp(title: String, text: String) {
+    var opened by remember { mutableStateOf(false) }
+    IconButton(onClick = { opened = true }, modifier = Modifier.size(48.dp)) {
+        Icon(androidx.compose.ui.res.painterResource(br.com.diariodeclasse.R.drawable.ic_info), title)
+    }
+    if (opened) AlertDialog(onDismissRequest = { opened = false }, title = { Text(title) },
+        text = { Text(text, Modifier.verticalScroll(rememberScrollState())) },
+        confirmButton = { TextButton(onClick = { opened = false }) { Text("Fechar") } })
+}
 @Composable fun Choice(label: String, options: List<String>, value: String, select: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Column {

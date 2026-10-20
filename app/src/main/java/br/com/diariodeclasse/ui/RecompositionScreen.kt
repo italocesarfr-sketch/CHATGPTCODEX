@@ -29,12 +29,11 @@ import br.com.diariodeclasse.reports.*
                 Section("Recomposição de Notas", "${c.name} • ${c.subject} • ${c.year}")
                 Text("Bimestre de origem: ${term}º. A data da avaliação pode pertencer a outro bimestre.")
                 TermSelector(term, changeTerm)
-                Text("Vale de 0 a 10. O resultado vigente é o maior entre o original e a recomposição, limitado a 10. Não soma pontos às atividades.", style = MaterialTheme.typography.bodySmall)
+                ContextHelp("Ajuda da recomposição", "Vale de 0 a 10. O resultado vigente é o maior entre o original e a recomposição, limitado a 10. Não soma pontos às atividades. Alunos sem notas originais ficam Pendentes e não entram no filtro abaixo de 5,00.")
                 Choice("Mostrar", listOf("Abaixo de 5,00", "Todos os alunos"), if (all) "Todos os alunos" else "Abaixo de 5,00") { all = it == "Todos os alunos" }
-                Text("Sem qualquer nota original lançada: Pendente, fora do filtro abaixo de 5. Notas originais parciais continuam identificadas.", style = MaterialTheme.typography.bodySmall)
                 if (c.scale != 10.0) Info("A escala original da turma é ${number(c.scale)}. A recomposição usa 0 a 10 e seu resultado é limitado a 10; a soma das atividades não será alterada.")
             }
-            if (rows.isEmpty()) item { Info(if (all) "Nenhum aluno cadastrado nesta turma." else "Nenhum aluno com resultado conhecido abaixo de 5,00. Consulte Todos os alunos para pendências e históricos.") }
+            if (rows.isEmpty()) item { Text(if (all) "Nenhum aluno cadastrado nesta turma." else "Nenhum resultado conhecido abaixo de 5,00.") }
             items(rows, key = { it.student.id }) { row ->
                 OutlinedCard(Modifier.fillMaxWidth().testTag("recomposition-row-${row.student.id}")) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {

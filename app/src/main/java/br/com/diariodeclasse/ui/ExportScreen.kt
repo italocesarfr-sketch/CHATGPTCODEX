@@ -56,7 +56,6 @@ import java.io.File
         item {
             Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
             attendance?.let{OutlinedButton(onClick=it,enabled=ready&&!busy,modifier=Modifier.testTag("open-attendance-export")){Text("Exportar chamada (XLSX)")}}
-            Text("Ordem, ocultação e linhas vazias seguem Organizar exportação. A prévia abaixo é a mesma matriz usada nos arquivos e na cópia.",style=MaterialTheme.typography.bodySmall)
             OutlinedButton(onClick={controls=!controls},enabled=ready&&!busy,modifier=Modifier.testTag("export-options")){Text(if(controls)"Recolher opções"else"Opções de exportação")}
             if(controls && !busy) {
                 Choice("Período",listOf("1º bimestre","2º bimestre","3º bimestre","4º bimestre","Resumo anual"),if(period==0)"Resumo anual"else"${period}º bimestre"){period=if(it=="Resumo anual")0 else it.first().digitToInt()}
@@ -92,10 +91,9 @@ import java.io.File
             }
             error?.let{Text(it,color=MaterialTheme.colorScheme.error,modifier=Modifier.testTag("export-error"))}
             if(table.columns.any{it.grade})FilterChip(notesPreview,{notesPreview=!notesPreview},label={Text("Prévia somente notas")},enabled=ready&&!busy,modifier=Modifier.testTag("export-notes-preview"))
-            Text(if(notesPreview)"Sem nomes ou cabeçalhos. Colunas: ${table.columns.filter{if(allGrades)it.grade else it.key.endsWith(":current")}.joinToString("; "){it.label}}"else"Prévia completa • ${matrix.size} linhas × ${table.columns.size} colunas. Zero é numérico; notas não lançadas/não aplicáveis ficam vazias.",style=MaterialTheme.typography.bodySmall)
-            if(!headers&&!notesPreview)Text("Sem cabeçalhos, o arquivo contém somente as linhas de dados, sem títulos nem linha de máximos.",style=MaterialTheme.typography.bodySmall)
+            Text(if(notesPreview)"Sem nomes ou cabeçalhos. Colunas: ${table.columns.filter{if(allGrades)it.grade else it.key.endsWith(":current")}.joinToString("; "){it.label}}"else"${matrix.size} linhas × ${table.columns.size} colunas",style=MaterialTheme.typography.bodySmall)
         }
-        if(matrix.isEmpty())item{Info("Não há linhas para exportar. Confira a lista de alunos e a disposição de exportação.")}
+        if(matrix.isEmpty())item{Text("Nenhuma linha para exportar.")}
         itemsIndexed(matrix,key={index,_->index}){index,row->
             Row(Modifier.horizontalScroll(scroll).testTag("export-preview-$index")){
                 row.forEach{cell->Text(SpreadsheetWriter.plain(cell).ifEmpty{"—"},Modifier.width(160.dp).padding(6.dp),style=MaterialTheme.typography.bodySmall)}

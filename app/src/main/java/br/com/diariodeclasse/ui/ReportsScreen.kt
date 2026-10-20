@@ -101,19 +101,19 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     }
     if(global)item(key="school-${c.id}") {
         Section("${c.name} • ${c.subject} • ${c.year}",if(data.classArchives.any{it.classId==c.id})"Turma arquivada"else null)
-        Text(justificationPolicy(c),style=MaterialTheme.typography.labelSmall)
+
     }
-        if (report.students.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado nesta turma." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico.") }
+        if (report.students.isEmpty()) item { Text(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado nesta turma." else "Nenhum aluno nesta visualização.") }
         when (mode) {
-            "Bimestral" -> {
-                if (report.activities.isEmpty()) item { Info("Nenhuma atividade neste bimestre. Não há notas originais a totalizar; recomposições já registradas continuam identificadas.") }
-                val fields = listOf("current", "original", "recomposition", "pending", "performed", "present", "absent", "justified", "effective-absences", "percent")
-                item { ReportTableRow(c,horizontal,"Aluno", if(global) "report-header-${c.id}" else "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + data.schoolName(it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências", "Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
+            "Geral", "Notas", "Bimestral" -> {
+                if (report.activities.isEmpty()) item { Text("Nenhuma atividade registrada neste bimestre.") }
+                val fields = listOf("current", "original", "recomposition", "pending") + if(mode=="Notas") emptyList() else listOf("performed", "present", "absent", "justified", "effective-absences", "percent")
+                item { ReportTableRow(c,horizontal,"Aluno", if(global) "report-header-${c.id}" else "report-header", report.activities.map { "${it.name}${if(it.classId!=c.id) " • " + data.schoolName(it.classId) else ""}\nMáx. ${number(it.maximum)}" } + listOf("Resultado vigente", "Original atividades", "Recomposição", "Situação / pendências") + if(mode=="Notas") emptyList() else listOf("Aulas elegíveis", "Presenças (P)", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência")) }
                 items(sorted, key = { it.student.id }) { row ->
                     val f = row.attendance
                     ReportTableRow(c,horizontal,"${row.student.number}. ${row.student.name}", "report-row-${row.student.id}", row.activities.map(::activityText) + listOf(
                         row.total?.let(::number) ?: "Não lançado", row.original?.let(::number) ?: "Não lançado", recompositionScore(row) + if(row.recomposition?.studentId?.let {it!=row.student.id}==true) "\n${row.recompositionSchool?.name ?: "Matrícula de origem"}" else "",
-                        "${periodStatus(row)}\n${enrollmentText(row)}", f?.performed?.toString() ?: "—", f?.present?.toString() ?: "—",
+                        "${periodStatus(row)}\n${enrollmentText(row)}") + if(mode=="Notas") emptyList() else listOf(f?.performed?.toString() ?: "—", f?.present?.toString() ?: "—",
                         f?.absent?.toString() ?: "—", f?.justified?.toString() ?: "—", f?.effectiveAbsences?.toString() ?: "—", percent(f?.percent)),
                         report.activities.size, row.total, rowLabel(row.student), report.activities.map { "activity-${it.id}" } + fields) { profile(row.student.id) }
                 }
@@ -125,8 +125,8 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
                     if (report.frequency?.performed == 0) Text("Nenhuma aula realizada elegível no período.")
                     else if (report.frequency?.valid == 0) Text("Há aulas realizadas, mas nenhuma chamada válida foi preenchida.")
                 }
-                val rows = if (mode == "Mais faltosos") ranking else report.students
-                if (mode == "Mais faltosos" && rows.isEmpty()) item { Info("Nenhum aluno com faltas efetivas no período.") }
+                val rows = if (mode == "Mais faltosos") ranking else sorted
+                if (mode == "Mais faltosos" && rows.isEmpty()) item { Text("Nenhum aluno com faltas efetivas no período.") }
                 item { ReportTableRow(c,horizontal,"Aluno", if(global) "report-header-${c.id}" else "report-header", listOf("Aulas elegíveis", "Presenças", "Faltas (F)", "Justificadas (FJ)", "Faltas efetivas", "Frequência", "Chamadas válidas", "Não registradas")) }
                 items(rows, key = { it.student.id }) { row ->
                     val f = row.attendance
@@ -156,24 +156,33 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     globalSearch:Boolean=true,globalProfile:((SchoolClass,Student)->Unit)?=null,profile:(String)->Unit) {
     val focus=LocalFocusManager.current;val keyboard=LocalSoftwareKeyboardController.current
     var query by rememberSaveable{mutableStateOf("")}
-    var mode by rememberSaveable{mutableStateOf("Bimestral")}
+    var mode by rememberSaveable{mutableStateOf("Geral")}
+    var extra by rememberSaveable{mutableStateOf<String?>(null)}
+    var consultations by remember{mutableStateOf(false)}
+    LaunchedEffect(mode) {
+        if(mode !in listOf("Geral","Frequência","Notas")) {
+            if(mode in listOf("Resumo anual","Mais faltosos")) extra=mode
+            mode="Geral"
+        }
+    }
     var order by rememberSaveable{mutableStateOf("Chamada")}
     var showRelocated by rememberSaveable(c?.id){mutableStateOf(false)}
     var showInformation by rememberSaveable(c?.id,term,mode){mutableStateOf(false)}
     val searching=globalSearch && query.isNotBlank()
+    val displayMode = if(searching) "Geral" else extra ?: mode
     val matches=remember(data,query,showRelocated){GlobalStudentSearch.find(data,query,showRelocated)}
     val selectedOrder=when(order){"Mais faltas"->StudentOrder.ABSENCES;"Menor nota"->StudentOrder.LOWEST_GRADE;"Maior nota"->StudentOrder.HIGHEST_GRADE;else->StudentOrder.CALL}
     val horizontal=rememberScrollState();val listState=rememberLazyListState()
-    LaunchedEffect(c?.id,term,mode,query){listState.scrollToItem(0);horizontal.scrollTo(0)}
+    LaunchedEffect(c?.id,term,displayMode,query){listState.scrollToItem(0);horizontal.scrollTo(0)}
     if(showInformation)AlertDialog(onDismissRequest={showInformation=false},title={Text("Informações do relatório")},text={
         Column(Modifier.testTag("report-information").verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.medium)) {
-            if(mode=="Bimestral"&&!searching&&c!=null)Text("Atividades: escala 0 a ${number(c?.scale ?: 10.0)}. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.")
+            if(displayMode in listOf("Geral","Notas")&&!searching&&c!=null)Text("Atividades: escala 0 a ${number(c?.scale ?: 10.0)}. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.")
             Text("Deslize as colunas para os lados. O nome permanece visível; toque para consultar o histórico. O status identifica a matrícula atual.")
             if(searching)Text("Pesquisa em todas as turmas e anos, inclusive arquivadas. Cada grupo mantém suas atividades, escala e critérios de frequência.")
-            c?.let{Text(justificationPolicy(it))}
-            if(mode=="Frequência"||mode=="Mais faltosos")Text("Aulas elegíveis variam conforme a matrícula.")
-            if(mode=="Mais faltosos")Text("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.")
-            if(mode=="Resumo anual") {
+            if(searching) matches.map{it.school}.distinctBy{it.id}.forEach { Text("${it.name} • ${it.year}: ${justificationPolicy(it)}") } else c?.let{Text(justificationPolicy(it))}
+            if(displayMode=="Frequência"||displayMode=="Mais faltosos")Text("Aulas elegíveis variam conforme a matrícula.")
+            if(displayMode=="Mais faltosos")Text("Ordem: faltas efetivas decrescentes; desempate pela chamada, nome e ID.")
+            if(displayMode=="Resumo anual") {
                 Text("Quatro resultados separados; não há média anual ou decisão de aprovação.")
                 Text("A frequência anual inclui também aulas do ano fora dos intervalos bimestrais, respeitando a matrícula. Não é a média dos percentuais bimestrais.")
             }
@@ -186,28 +195,36 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
                 modifier=Modifier.fillMaxWidth().testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
             if(data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)})RelocatedFilter(showRelocated){showRelocated=it}
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(mode){
+                Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(displayMode){
                     "Frequência"->"Frequência do ${term}º bimestre";"Mais faltosos"->"Mais faltosos do ${term}º bimestre";"Resumo anual"->"Resumo anual de ${c?.year ?: "—"}";else->"Boletim do ${term}º bimestre"
                 },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})}
+                if(!searching&&c!=null) Box {
+                    TextButton(onClick={consultations=true},modifier=Modifier.testTag("report-consultations")){Text("Consultas")}
+                    DropdownMenu(consultations,{consultations=false}) {
+                        listOf("Resumo anual","Mais faltosos","Voltar ao bimestre").forEach { label ->
+                            DropdownMenuItem(text={Text(label)},onClick={extra=label.takeUnless{it=="Voltar ao bimestre"};consultations=false})
+                        }
+                    }
+                }
                 IconButton(onClick={showInformation=true},modifier=Modifier.size(48.dp)){Icon(painterResource(R.drawable.ic_info),"Informações do relatório",tint=MaterialTheme.colorScheme.onSurfaceVariant)}
             }
-            if(c!=null||searching) {
-            Choice("Relatório",listOf("Bimestral","Frequência","Mais faltosos","Resumo anual"),mode){mode=it}
-            if(mode=="Bimestral")Choice("Ordenação",listOf("Chamada","Mais faltas","Menor nota","Maior nota"),order){order=it}
-            if(!searching && mode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c?.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
-            } else Info("Selecione uma turma ou pesquise um aluno em todas as turmas.")
+            if(c!=null && !searching) {
+                Choice("Relatório",listOf("Geral","Frequência","Notas"),mode){mode=it;extra=null}
+                Choice("Ordenação",listOf("Chamada","Mais faltas","Menor nota","Maior nota"),order){order=it}
+                if(displayMode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
+            } else if(!searching) Text("Selecione uma turma ou pesquise um aluno em todas as turmas.")
         }
         when {
             searching -> {
-                if(matches.isEmpty())item{Info("Nenhum aluno encontrado. Confira o nome ou consulte os remanejados no histórico.")}
+                if(matches.isEmpty())item{Text("Nenhum aluno encontrado.")}
                 matches.groupBy{it.school}.forEach{(school,rows)->
-                    reportGroup(data,school,term,mode,selectedOrder,showRelocated,rows.map{it.student.id}.toSet(),true,horizontal) {id->
+                    reportGroup(data,school,term,displayMode,selectedOrder,showRelocated,rows.map{it.student.id}.toSet(),true,horizontal) {id->
                         val student=rows.first{it.student.id==id}.student
                         if(globalProfile!=null)globalProfile(school,student)else profile(id)
                     }
                 }
             }
-            c!=null -> reportGroup(data,c,term,mode,selectedOrder,showRelocated,null,false,horizontal,profile)
+            c!=null -> reportGroup(data,c,term,displayMode,selectedOrder,showRelocated,null,false,horizontal,profile)
             else -> Unit
         }
     }

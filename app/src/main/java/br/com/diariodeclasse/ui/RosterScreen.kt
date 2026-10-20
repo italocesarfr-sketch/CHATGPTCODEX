@@ -21,7 +21,7 @@ import br.com.diariodeclasse.domain.CsvRoster
 import java.text.Collator
 
 @Composable fun RosterScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass,
-    profile: (String) -> Unit) {
+    importGuard: (((() -> Unit) -> Unit)?) -> Unit = {}, profile: (String) -> Unit) {
     val saving by vm.saving.collectAsState()
     var form by remember { mutableStateOf(false) }; var editing by remember { mutableStateOf<Student?>(null) }
     var bulk by rememberSaveable { mutableStateOf(false) }; var review by rememberSaveable { mutableStateOf(false) }
@@ -45,7 +45,7 @@ import java.text.Collator
     var showRelocated by rememberSaveable(c.id) { mutableStateOf(false) }
     val roster = data.currentRoster(c.id, showRelocated).let { if (alphabetical) it.sortedWith { a, b -> collator.compare(a.name, b.name) } else it.sortedBy { s -> s.number } }
     if (review) {
-        ImportReviewScreen(vm, data, c) { review = false }
+        ImportReviewScreen(vm, data, c, importGuard) { review = false }
         return
     }
     LazyColumn(Modifier.fillMaxSize().testTag("roster-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
@@ -58,11 +58,10 @@ import java.text.Collator
                     OutlinedButton(onClick = { csvTarget = c.id; csv.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Importar CSV") }
                 }
                 val drafts = data.drafts.count { it.classId == c.id }
-                if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth()) { Text("Conferir ${counted(drafts, "nome", "nomes")} em rascunho") }
+                if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth().testTag("import-review-open")) { Text("Conferir ${counted(drafts, "aluno", "alunos")}") }
                 Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada") { alphabetical = it == "Ordem alfabética" }
-                Text("A ordenação alfabética não altera os números. Na ordem da chamada, use Subir/Descer ou edite o aluno.", style = MaterialTheme.typography.bodySmall)
         }
-        if (roster.isEmpty()) item { Info(if(data.roster(c.id).isEmpty()) "Sua turma ainda não tem alunos. Adicione individualmente ou importe uma lista para conferir." else "Nenhum aluno nesta visualização. Use Mostrar remanejados para consultar o histórico preservado.") }
+        if (roster.isEmpty()) item { Text(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado." else "Nenhum aluno nesta visualização.") }
         items(roster, key = { it.id }) { student ->
             Card(Modifier.fillMaxWidth().testTag("roster-student-${student.id}").clickable { profile(student.id) }) { Column(Modifier.padding(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row {
@@ -84,7 +83,6 @@ import java.text.Collator
     if (form) StudentForm(vm, c, editing) { form = false }
     if (bulk) Form("Colar lista de alunos", { bulk = false }) {
         Field("Um nome por linha (número opcional)", names, { names = it }, lines = 6)
-        Info("Exemplo: 12 Estudante Fictício Alfa. Os números existentes serão preservados. Nada será matriculado antes da próxima conferência.")
         Button(onClick = {
             val text = names; val target = c.id
             vm.act(done = { bulk = false; review = true }) { vm.repository.appendDrafts(target, CsvRoster.parse(text)) }

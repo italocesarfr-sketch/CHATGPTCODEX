@@ -43,6 +43,7 @@ import br.com.diariodeclasse.data.*
             TextButton(onClick = calendar) { Text("‹ Calendário") }
             Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically), style = MaterialTheme.typography.titleSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             TextButton(onClick = termView) { Text("Bimestre") }
+            ContextHelp("Ajuda da chamada", "Toque novamente em P, F ou FJ para limpar. NR não conta como presença nem falta. Use o menu da célula para justificar.")
         }
         Text(period?.let { "${it.number}º bimestre • ${counted(performed, "horário", "horários")} • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = NoctuaSpace.medium), style = MaterialTheme.typography.labelSmall)
         AttendanceSaveStatus(vm)
@@ -56,7 +57,6 @@ import br.com.diariodeclasse.data.*
                         DropdownMenu(more, { more = false }) { (4..12).forEach { n -> DropdownMenuItem(text = { Text("$n horários") }, onClick = { count = n; more = false }) } }
                     }
                 }
-                Text(if (c.startPresent) "A preferência da turma inicia novas chamadas com P." else "As células começam em NR. Nada será contado como falta sem marcar F ou FJ.", style = MaterialTheme.typography.bodySmall)
                 Button(enabled = !saving, onClick = { saveHours(count) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Registrar horários") }
                 SaveError(vm)
             }
@@ -66,7 +66,6 @@ import br.com.diariodeclasse.data.*
                 FilledTonalButton(enabled = !saving && performed > 0, onClick = { allPresent = true }, modifier = Modifier.weight(1f)) { Text("Marcar todos como presentes", style = MaterialTheme.typography.labelSmall) }
             }
             if (lessons.any { it.state == "PREVISTA" }) TextButton(onClick = { saveHours(active.maxOfOrNull { it.ordinal }?.coerceAtMost(12) ?: 0) }, enabled = !saving) { Text("Confirmar horários ministrados") }
-            Text("P / F: toque novamente para limpar • NR ▾: justificar • deslize →", Modifier.padding(horizontal = 12.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall)
             Box(Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id

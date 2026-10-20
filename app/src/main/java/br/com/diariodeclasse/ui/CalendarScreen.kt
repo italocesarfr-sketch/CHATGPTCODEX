@@ -44,7 +44,6 @@ import java.time.format.TextStyle
                 TermSelector(term, changeTerm)
                 val period = data.terms.firstOrNull { it.classId == c.id && it.number == term }
                 Text(period?.let { "${shortDate(it.start)} a ${shortDate(it.end)} • total F / FJ" } ?: "Configure os bimestres.", Modifier.padding(horizontal = NoctuaSpace.medium), style = MaterialTheme.typography.labelSmall)
-                Text("Toque em uma célula para corrigir a data. Deslize horários →", Modifier.padding(NoctuaSpace.medium), style = MaterialTheme.typography.labelSmall)
                 val lessons = remember(data.lessons, c.id, period) { data.lessons.filter { it.classId == c.id && period != null && it.date in period.start..period.end }.sortedWith(compareBy({ it.date }, { it.ordinal })) }
                 if (lessons.isEmpty()) Text("Nenhuma aula registrada neste bimestre.", Modifier.padding(NoctuaSpace.medium))
                 Box(Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, false, { _, _, _ -> }, {}, ::open) }
@@ -59,8 +58,8 @@ import java.time.format.TextStyle
                     val expected=data.currentRoster(c.id).count{it.enrolled(day)}*performed.size
                     val marker=when{valid>0->if(valid==expected)"✓"else"•";daily.isNotEmpty()&&daily.all{it.state=="CANCELADA"}->"×";performed.isNotEmpty()->"NR";daily.isNotEmpty()->"◇";else->""}
                     CalendarMarker(marker,when(marker){"✓"->"chamada preenchida";"•"->"chamada parcial";"×"->"horários cancelados";"NR"->"sem frequência registrada";"◇"->"aulas previstas legadas";else->"sem aulas"})
-                },instruction="Toque em qualquer data para informar os horários ministrados.",
-                    legend="✓ preenchida • • parcial • NR sem registros\n× cancelada • ◇ prevista legada\nDeslize os dias → em telas menores. Navegar não altera aulas.",tag="attendance-calendar")
+                },instruction="",
+                    legend="✓ completa • • parcial • NR sem registros\n× cancelada • ◇ prevista",tag="attendance-calendar")
             }
         }
     }

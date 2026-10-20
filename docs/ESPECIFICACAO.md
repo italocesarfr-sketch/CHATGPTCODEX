@@ -1,3 +1,5 @@
+> Refinamentos pós-0.12.0 autorizados: backup, saída segura da conferência, três visões de relatórios e redução de instruções permanentes. Consulte [POS_0120.md](POS_0120.md). Sem nova etapa pedagógica ou alteração de esquema.
+
 > **Prompt 2 autorizado — Noctua 0.12.0 / 21:** seleção coletiva na importação, chamada XLSX por período, busca global na própria página Relatórios e segundo toque para NR. Room v7 e backup 8 sem mudança de esquema. [Contrato e validação](PROMPT2.md).
 
 > **Atualização de UX — 0.11.4 / 20:** Cadastrar Turma reúne Nova Turma, Editar Turma e Turmas Arquivadas. Arquivar/Excluir ficam ao final da edição, sem confirmação digitada. Preservação transacional de históricos, Room v7 e backup 8 inalterados. [Contrato](CORRECAO_UX_TURMAS.md).

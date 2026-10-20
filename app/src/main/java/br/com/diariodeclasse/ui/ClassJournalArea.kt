@@ -40,8 +40,8 @@ import java.time.LocalDate
             SchoolCalendar(c.year,month,"",{month=it},{day=it},marker={date->
                 val count=records[date].orEmpty().size
                 CalendarMarker(if(count>0)"•"else"",if(count>0)counted(count,"registro de aula","registros de aula")else"sem registro de aula")
-            },instruction="Escolha uma data para escrever ou consultar o diário. Preenchimento facultativo.",
-                legend="• dia com registro de aula. Deslize os dias → em telas menores. O diário não altera a chamada.",tag="journal-calendar") {
+            },instruction="",
+                legend="• dia com registro de aula",tag="journal-calendar") {
                 OutlinedButton(onClick={allRecords=true},modifier=Modifier.fillMaxWidth().testTag("journal-all-records")){Text("Consultar todos os registros")}
             }
         }
