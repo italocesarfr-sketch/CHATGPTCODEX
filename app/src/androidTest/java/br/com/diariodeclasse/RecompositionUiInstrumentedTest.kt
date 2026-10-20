@@ -123,9 +123,11 @@ class RecompositionUiInstrumentedTest {
         compose.onNodeWithText("4º bim.").performClick();waitText("Nota 4,50 / 10,00")
         compose.onNodeWithText("‹ Voltar").performClick();waitText("Boletim 4º Bim")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithTag("report-consultations").performScrollTo().performClick();compose.onNodeWithText("Resumo anual",useUnmergedTree=true).performClick()
         compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${a.id}"))
-        compose.onNodeWithTag("report-row-${a.id}-cell-2",useUnmergedTree=true).assertTextContains("Resultado vigente: 6,00",substring=true)
-        compose.onNodeWithTag("report-row-${a.id}-cell-3",useUnmergedTree=true).assertTextContains("4,50",substring=true)
+        compose.onNodeWithText("1. ${a.name}").performClick();waitText("Nota 4,50 / 10,00")
+        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-3"))
+        compose.onNodeWithTag("individual-term-3").assertTextContains("Resultado vigente: 6,00",substring=true)
+        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
+        compose.onNodeWithTag("individual-term-4").assertTextContains("4,50",substring=true)
     }
 }

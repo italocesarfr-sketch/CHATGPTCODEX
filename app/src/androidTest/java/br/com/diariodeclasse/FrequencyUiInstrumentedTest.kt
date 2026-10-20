@@ -172,6 +172,8 @@ class FrequencyUiInstrumentedTest {
         compose.onNodeWithText("Horários:",substring=true).performClick()
         compose.onNodeWithTag("clear-day-hours").performScrollTo().performClick()
         waitText("Existem registros vinculados a esta data. Os horários foram preservados.")
+        assertNull(app.commands.attendanceError.value)
+        assertNull(app.commands.error.value)
         assertEquals(cancelled.marks,app.backupManager.snapshot().marks)
     }
     @Test fun emptyDayCleaningCancelsSafelyAndRemovesNrAndCancelledCalendarMarkers()=runBlocking {

@@ -130,6 +130,7 @@ jobs:
             build/etapa4a-telas.tar
             build/frequency-process-write.txt
             build/frequency-process-read.txt
+            build/android-runner-diagnostic.txt
           if-no-files-found: ignore
   stable-update:
     name: Release — atualização da Noctua 0.12.1 com a assinatura existente

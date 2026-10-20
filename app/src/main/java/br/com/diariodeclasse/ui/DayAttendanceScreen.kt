@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
+import kotlinx.coroutines.*
 
 @Composable fun DayAttendanceScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, day: String, calendar: () -> Unit, termView: () -> Unit) {
     val lessons = data.lessons.filter { it.classId == c.id && it.date == day }.sortedBy { it.ordinal }
@@ -31,6 +32,9 @@ import br.com.diariodeclasse.data.*
     var pendingCount by remember { mutableStateOf<Int?>(null) }
     var cancellationApproved by remember { mutableStateOf(false) }
     var reactivationCount by remember { mutableIntStateOf(0) }
+    val scope = rememberCoroutineScope()
+    var checkingDay by remember { mutableStateOf(false) }
+    var clearError by remember { mutableStateOf<String?>(null) }
     var emptyDay by remember { mutableStateOf<List<Lesson>?>(null) }
     var allPresent by remember { mutableStateOf(false) }
     var option by remember { mutableStateOf<Lesson?>(null) }
@@ -91,9 +95,16 @@ import br.com.diariodeclasse.data.*
             else if (lessons.any { it.ordinal > n && it.state != "CANCELADA" }) { pendingCount = n; cancellationApproved = false; reactivationCount = 0 }
             else applyHours(n)
         }) { Text("Aplicar horários") }
-        TextButton(enabled = !saving, onClick = {
-            vm.act(context = context) { emptyDay = vm.repository.checkEmptyDay(c.id, day) }
+        TextButton(enabled = !saving && !checkingDay, onClick = {
+            checkingDay = true; clearError = null
+            scope.launch {
+                try { emptyDay = withContext(Dispatchers.IO) { vm.repository.checkEmptyDay(c.id, day) } }
+                catch (e: CancellationException) { throw e }
+                catch (e: Exception) { clearError = if(e is IllegalArgumentException) e.message else "Não foi possível conferir os horários. Tente novamente." }
+                finally { checkingDay = false }
+            }
         }, modifier = Modifier.testTag("clear-day-hours")) { Text("Limpar horários do dia") }
+        clearError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("clear-day-error")) }
         SaveError(vm)
     }
     pendingCount?.let { n ->
@@ -109,7 +120,7 @@ import br.com.diariodeclasse.data.*
         text = { Column { Text("A data voltará a ficar sem aulas cadastradas."); SaveError(vm) } },
         dismissButton = { TextButton(enabled = !saving, onClick = { emptyDay = null }) { Text("Cancelar") } },
         confirmButton = { Button(enabled = !saving, onClick = {
-            vm.act(done = { emptyDay = null; hoursForm = false }, context = context) { vm.repository.clearEmptyDay(c.id, day, checked) }
+            vm.act(done = { emptyDay = null; hoursForm = false }) { vm.repository.clearEmptyDay(c.id, day, checked) }
         }) { Text("Remover") } }) }
     if (allPresent) Confirm("Marcar todos como presentes?", "Substitui por P as marcações dos horários realizados nesta data. Alunos fora da matrícula e horários cancelados/previstos não serão alterados.", { allPresent = false }) {
         vm.act(done = { allPresent = false }, context = context) { vm.repository.allPresentDay(c.id, day) }

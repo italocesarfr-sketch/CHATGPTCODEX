@@ -4,8 +4,10 @@ set -euo pipefail
 [[ "${GITHUB_ACTIONS:-}" == true && "${CI:-}" == true ]] || { echo 'Somente no CI.' >&2; exit 1; }
 [[ "$(adb get-serialno)" == emulator-* ]] || { echo 'Somente em emulador descartável.' >&2; exit 1; }
 status=0
-./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true connectedDebugAndroidTest || status=$?
+timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
 mkdir -p build
+# Somente fixture no emulador descartável; diagnóstico de automação sem tocar no banco.
+adb logcat -d -s TestRunner:V AndroidRuntime:E '*:S' > build/android-runner-diagnostic.txt || true
 if adb shell run-as br.com.diariodeclasse test -d files/ux12-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/ux12-screenshots > build/ux12-telas.tar
 fi

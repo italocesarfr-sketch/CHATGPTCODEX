@@ -170,7 +170,9 @@ class ReportsUiInstrumentedTest {
         }
         shot("03-anual")
         compose.onNodeWithText("‹ Voltar").performClick();waitText("Boletim 1º Bim")
-        selectClass(other);waitText("Nenhum aluno cadastrado nesta turma.")
+        selectClass(other)
+        compose.onNodeWithTag("reports-list").performScrollToNode(hasText("Nenhum aluno cadastrado nesta turma."))
+        compose.onNodeWithText("Nenhum aluno cadastrado nesta turma.").assertIsDisplayed()
         selectClass(c);waitText("Boletim 1º Bim")
         compose.activityRule.scenario.recreate();waitText("Boletim 1º Bim")
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
