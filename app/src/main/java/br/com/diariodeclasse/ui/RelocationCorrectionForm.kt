@@ -6,10 +6,14 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import br.com.diariodeclasse.data.*
 
 /** A confirmação usa uma prévia congelada e revalidada pelo repositório. */
 @Composable fun RelocationCorrectionForm(vm: DiaryViewModel, student: Student, dismiss: () -> Unit) {
+    val focus=LocalFocusManager.current
+    val keyboard=LocalSoftwareKeyboardController.current
     val data by vm.data.collectAsState()
     val saving by vm.saving.collectAsState()
     val link = data.relocations.firstOrNull { it.sourceStudentId == student.id }
@@ -30,6 +34,7 @@ import br.com.diariodeclasse.data.*
             Field("Data efetiva (dd/mm/aaaa)", day, { day = it; preview = null; selected = emptySet() }, Modifier.testTag("correction-date"), enabled = !saving)
             Field("Destino externo", target, { target = it; preview = null }, Modifier.testTag("correction-target"), enabled = !saving)
             OutlinedButton(enabled = !saving, onClick = {
+                focus.clearFocus();keyboard?.hide()
                 val d = day; val t = target; val remove = selected
                 vm.act { val checked = vm.repository.previewRelocationCorrection(student.id, iso(d), t, remove)
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { preview = checked } }

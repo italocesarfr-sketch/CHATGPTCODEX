@@ -37,7 +37,7 @@ import java.io.File
     val busy=preparing||pending!=null
     LaunchedEffect(busy){busyChanged(busy)};DisposableEffect(Unit){onDispose{busyChanged(false)}}
     val result=remember(data,c,start,end,annual,plans,planStart,planEnd){runCatching{if(plans)LessonPlanExportProjection.build(data,c,requireNotNull(planStart),requireNotNull(planEnd))else if(annual)AnnualExportProjection.build(data,c)else AttendanceExportProjection.build(data,c,iso(start),iso(end))}}
-    val table=result.getOrNull();val matrix=remember(table){table?.rows().orEmpty()}
+    val table=result.getOrNull();val matrix=remember(table,plans){table?.rows().orEmpty().let{if(plans)it.drop(1)else it}}
     val canExport=ready&&!busy&&table!=null&&table.columns.size>2&&table.records.isNotEmpty()
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(ExportFormat.XLSX.mime)){uri:Uri?->
         val path=pending

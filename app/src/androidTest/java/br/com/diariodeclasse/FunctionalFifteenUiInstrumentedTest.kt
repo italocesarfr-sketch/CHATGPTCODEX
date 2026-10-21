@@ -70,7 +70,7 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.onNodeWithTag("correction-date").performScrollTo().performTextReplacement("17/10/2026")
         click("preview-correction")
         compose.waitUntil(10000){compose.onAllNodesWithTag("remove-correction-${l.id}").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithText("20/10/2026 • 1º horário • FJ").performScrollTo().assertExists()
+        compose.onNodeWithText("20/10/2026 • 1º horário • FJ").performScrollTo().assertIsDisplayed()
         shot("01-previa-correção")
         click("remove-correction-${l.id}");click("preview-correction")
         compose.waitUntil(10000){compose.onNodeWithTag("save-correction").fetchSemanticsNode().config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled).not()}
@@ -85,7 +85,7 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.onNodeWithText("Horários: 1 • Alterar").performClick();click("clear-day-hours")
         compose.waitUntil(10000){compose.onAllNodesWithTag("confirm-clear-day").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("1º horário: 1 NR").assertExists();shot("02-diagnostico-nr")
-        compose.onNodeWithText("Cancelar",useUnmergedTree=true).performClick();assertEquals(1,runBlocking{app.repository.dao.day(c.id,l.date).size})
+        compose.onNodeWithText("Cancelar",useUnmergedTree=true).performClick();assertEquals(1,runBlocking{app.repository.dao.day(c.id,l.date).size});assertEquals("NR",runBlocking{app.repository.dao.attendance(l.id).single().mark})
         click("clear-day-hours");compose.waitUntil(10000){compose.onAllNodesWithTag("confirm-clear-day").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("confirm-clear-day").performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.day(c.id,l.date).isEmpty()}}
