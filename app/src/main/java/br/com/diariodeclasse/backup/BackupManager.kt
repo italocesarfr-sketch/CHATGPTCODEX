@@ -57,7 +57,7 @@ class BackupManager(
         private set
     private fun verifySchema() {
         db.openHelper.writableDatabase.query("PRAGMA user_version").use {
-            check(it.moveToFirst() && it.getInt(0) == 7) { "Versão do banco incompatível." }
+            check(it.moveToFirst() && it.getInt(0) == 8) { "Versão do banco incompatível." }
         }
         db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use {
             check(it.moveToFirst() && it.getString(0) == BackupCodec.IDENTITY) { "Esquema do banco incompatível." }

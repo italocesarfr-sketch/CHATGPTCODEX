@@ -124,10 +124,10 @@ private val pages = listOf(
         } else vm.select(AppSelection(school.year,school.id)) {studentId=student.id;detail="student-report"}
     }
     fun back() = navigate { detail = when(detail) {
-        "attendance-export", "annual-export" -> "export"
+        "attendance-export", "annual-export", "plans-export" -> "export"
         "profile" -> returnDetail
         "archived-student-report" -> "archived-reports"
-        "archived-annual-export" -> "archived-export"
+        "archived-plans-export", "archived-annual-export" -> "archived-export"
         "archived-reports", "archived-export", "archived-records", "archived-attendance-export" -> {
             editingClass=data.classes.firstOrNull{it.id==managedClassId};classForm=editingClass!=null;"archives"
         }
@@ -167,7 +167,7 @@ private val pages = listOf(
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             Box(Modifier.fillMaxWidth().height(4.dp)) { if (saving || navigating) LinearProgressIndicator(Modifier.fillMaxWidth()) }
             if (!data.loaded) { CircularProgressIndicator(Modifier.padding(32.dp)); return@Column }
-            if(detail !in setOf("archives","archived-reports","archived-export","archived-student-report","archived-records","archived-attendance-export","archived-annual-export")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
+            if(detail !in setOf("archives","archived-reports","archived-export","archived-student-report","archived-records","archived-attendance-export","archived-annual-export","archived-plans-export")) GlobalClassSelector(activeClasses, selected, !navigating && !saving && !exportBusy, ::changeSelection)
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 key(c?.id, page) {
                     when {
@@ -179,14 +179,16 @@ private val pages = listOf(
                                 ReportScreen(data,archived,term,globalSearch=false) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
-                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,ready=!saving,attendance={detail="archived-attendance-export"},annual={detail="archived-annual-export"}){exportBusy=it}}
+                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,ready=!saving,attendance={detail="archived-attendance-export"},annual={detail="archived-annual-export"},plans={detail="archived-plans-export"}){exportBusy=it}}
                         detail == "archived-attendance-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving){exportBusy=it}}
+                        detail == "archived-plans-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,plans=true){exportBusy=it}}
                         detail == "archived-annual-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,annual=true){exportBusy=it}}
                         detail == "records" && c != null -> LessonRecordsScreen(vm,data,c,recordDraft,::changeRecord,::dismissRecord)
                         detail == "archived-records" -> data.classes.firstOrNull{it.id==managedClassId}?.let { LessonRecordsScreen(vm,data,it,recordDraft,::changeRecord,::dismissRecord,readOnly=true) }
                         detail == "attendance-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving){exportBusy=it}
+                        detail == "plans-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,plans=true){exportBusy=it}
                         detail == "annual-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,annual=true){exportBusy=it}
-                        detail == "export" && c != null -> ExportScreen(data,c,term,ready=!saving,attendance={detail="attendance-export"},annual={detail="annual-export"}){exportBusy=it}
+                        detail == "export" && c != null -> ExportScreen(data,c,term,ready=!saving,attendance={detail="attendance-export"},annual={detail="annual-export"},plans={detail="plans-export"}){exportBusy=it}
                         detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,{concludeExport()},{changeExport(null);detail=""},export={concludeExport(true)})
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->

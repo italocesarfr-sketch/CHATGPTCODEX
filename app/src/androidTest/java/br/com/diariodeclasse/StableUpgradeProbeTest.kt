@@ -182,7 +182,7 @@ class StableUpgradeProbeTest {
         val rows=ExportLayout.normalize(listOf(ExportLayout.blank("classe-alfa"))+ExportLayout.rows(data,"classe-alfa").reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
         repo.saveExportLayout("classe-alfa",before.exportRows.filter{it.classId=="classe-alfa"},rows)
         val configured=manager.snapshot();assertEquals(before,configured.copy(exportRows=before.exportRows))
-        val bytes=manager.backupBytes();assertEquals(8,BackupCodec.decode(bytes).envelope.formatVersion)
+        val bytes=manager.backupBytes();assertEquals(9,BackupCodec.decode(bytes).envelope.formatVersion)
         repo.saveExportLayout("classe-alfa",rows,rows.map{it.copy(manualHidden=false)})
         manager.restore(manager.prepare(oldBytes.inputStream()),"RESTAURAR")
         assertEquals(original,manager.snapshot());assertEquals(original.exportRows,manager.snapshot().exportRows)

@@ -27,7 +27,7 @@ import kotlinx.coroutines.*
 import java.io.File
 
 @OptIn(ExperimentalLayoutApi::class)
-@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,ready:Boolean=true,attendance:(()->Unit)?=null,annual:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
+@Composable fun ExportScreen(data:DiarySnapshot,c:SchoolClass,initialTerm:Int,ready:Boolean=true,attendance:(()->Unit)?=null,annual:(()->Unit)?=null,plans:(()->Unit)?=null,busyChanged:(Boolean)->Unit) {
     val context=LocalContext.current;val scope=rememberCoroutineScope()
     val feedback=remember { SnackbarHostState() }
     fun notify(text:String) { scope.launch { feedback.currentSnackbarData?.dismiss(); feedback.showSnackbar(text) } }
@@ -94,10 +94,11 @@ import java.io.File
             Section("Exportar", "${c.name} • ${c.subject} • ${c.year}")
             FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small),verticalArrangement=Arrangement.spacedBy(4.dp)) {
                 OutlinedButton(onClick={controls=!controls},enabled=ready&&!busy,modifier=Modifier.testTag("export-options")){Text(if(controls)"Recolher opções"else"Opções")}
-                if(attendance!=null || annual!=null) Box {
+                if(attendance!=null || annual!=null || plans!=null) Box {
                     OutlinedButton(onClick={otherExports=true},enabled=ready&&!busy,modifier=Modifier.testTag("export-other")){Text("Outras planilhas ▾")}
                     DropdownMenu(otherExports,{otherExports=false}) {
                         attendance?.let{DropdownMenuItem(text={Text("Exportar chamada (XLSX)")},onClick={otherExports=false;it()},modifier=Modifier.testTag("open-attendance-export"))}
+                        plans?.let{DropdownMenuItem(text={Text("Exportar planos de aula (XLSX)")},onClick={otherExports=false;it()},modifier=Modifier.testTag("open-plans-export"))}
                         annual?.let{DropdownMenuItem(text={Text("Exportar relatório anual")},onClick={otherExports=false;it()},modifier=Modifier.testTag("open-annual-export"))}
                     }
                 }

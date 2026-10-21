@@ -90,7 +90,7 @@ class ExportLayoutTest {
         val rows=ExportEditSession.start(base,c.id,"ORDER").hide(a.id,true).addBlank("student:${a.id}").rows
         val original=backup(base.copy(exportRows=rows)).canonical()
         val decoded=BackupCodec.decode(BackupCodec.encode(original,13,null))
-        assertEquals(8,decoded.envelope.formatVersion);assertEquals(7,decoded.envelope.databaseVersion);assertEquals(original,decoded.snapshot)
+        assertEquals(9,decoded.envelope.formatVersion);assertEquals(8,decoded.envelope.databaseVersion);assertEquals(original,decoded.snapshot)
         val old=backup(base).canonical()
         val payload=JsonObject(BackupCodec.json.parseToJsonElement(BackupCodec.json.encodeToString(old)).jsonObject.filterKeys{it!="exportRows"}).toString()
         val envelope=BackupEnvelope("diario-de-classe-backup",4,"br.com.diariodeclasse",3,BackupCodec.V3_IDENTITY,"2026-10-17T00:00:00Z",12,null,BackupCodec.hash(payload.toByteArray()),payload)

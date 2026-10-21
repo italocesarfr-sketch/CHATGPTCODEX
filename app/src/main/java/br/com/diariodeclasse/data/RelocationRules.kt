@@ -23,6 +23,24 @@ object RelocationRules {
             val day=LocalDate.parse(link.effectiveDate)
             require(day.toString()==link.effectiveDate && day.year==classes[source.classId]?.year && link.effectiveDate>source.joined) {"Data de remanejamento inválida."}
             require(source.status=="Remanejado" && source.left==day.minusDays(1).toString()) {"Encerramento da origem não confere com o vínculo."}
+            require(link.corrections.map { it.id }.distinct().size == link.corrections.size)
+            link.corrections.forEachIndexed { index, correction ->
+                require(link.targetStudentId == null && correction.id.isNotBlank())
+                java.time.Instant.parse(correction.confirmedAt)
+                listOf(correction.previousDate, correction.effectiveDate).forEach { value ->
+                    val parsed = LocalDate.parse(value)
+                    require(parsed.toString() == value && parsed.year == day.year && value > source.joined)
+                }
+                require(correction.previousTarget.isNotBlank() && correction.externalTarget.length in 2..160)
+                if (index > 0) require(correction.previousDate == link.corrections[index-1].effectiveDate && correction.previousTarget == link.corrections[index-1].externalTarget)
+                require(correction.removed.map { it.attendance.lessonId }.distinct().size == correction.removed.size)
+                correction.removed.forEach { removed ->
+                    require(removed.attendance.studentId == source.id && removed.attendance.lessonId == removed.lesson.id && removed.lesson.classId == source.classId)
+                    require(removed.attendance.mark in listOf("P", "F", "FJ", "NR") && removed.lesson.date >= correction.effectiveDate)
+                    require(LocalDate.parse(removed.lesson.date).toString() == removed.lesson.date && removed.lesson.ordinal > 0)
+                }
+            }
+            link.corrections.lastOrNull()?.let { require(it.effectiveDate == link.effectiveDate && it.externalTarget == link.externalTarget) }
             if(link.targetStudentId==null) require(!link.externalTarget.isNullOrBlank()) {"Informe o destino externo."}
             else {
                 require(link.externalTarget==null) {"Destino interno e externo não podem coexistir."}

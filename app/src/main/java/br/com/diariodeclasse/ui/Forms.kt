@@ -104,6 +104,8 @@ import java.time.LocalDate
     var preview by remember { mutableStateOf<RelocationPreview?>(null) }
     var discard by remember { mutableStateOf(false) }
     var confirmReactivation by remember { mutableStateOf(false) }
+    var correcting by remember { mutableStateOf(false) }
+    if (correcting) { RelocationCorrectionForm(vm, student) { correcting = false; dismiss() }; return }
     val linked=data.academic().relocations.any {it.sourceStudentId==student.id||it.targetStudentId==student.id}
     val relocating=status=="Remanejado" && student.status=="Ativo" && original!=null
     val reactivating=student.status=="Transferido" && status=="Ativo"
@@ -119,6 +121,7 @@ import java.time.LocalDate
         Field("Nome completo", name, { if(!saving) name = it }); Field("Número na chamada", num, { if(!saving) num = it })
         Field("Ingresso (dd/mm/aaaa)", joined, { joined = it }, enabled=!linked&&!saving&&!relocating&&!reactivating)
         if(!relocating) Field("Saída (opcional, dd/mm/aaaa)", left, { left = it }, enabled=!linked&&!saving&&!reactivating)
+        if (student.status == "Remanejado" && linked) OutlinedButton(enabled = !saving && !dirty, onClick = { correcting = true }, modifier = Modifier.testTag("correct-relocation")) { Text("Corrigir remanejamento") }
         if(student.status=="Remanejado" && linked) Info("Matrícula remanejada: situação e datas preservadas. Consulte o destino e o histórico; este formulário não reativa a matrícula.")
         else Choice("Situação", if(linked&&student.status=="Ativo") listOf("Ativo", "Remanejado") else if(original!=null&&student.status=="Ativo") listOf("Ativo", "Transferido", "Remanejado") else listOf("Ativo", "Transferido",student.status).distinct(), status) { if(!saving) status = it }
         Field("Observações pedagógicas", notes, { if(!saving) notes = it }, lines = 3)

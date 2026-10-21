@@ -352,3 +352,7 @@ Falha de migração/restauração/assinatura é bloqueadora. Erro deve ser corri
 Decisões técnicas a fechar no incremento correspondente: continuidade da chave de assinatura/resgate legado (1.1), formato/validação do backup (1.2), política anual/recuperação (4.3–4.4), armazenamento da disposição (5.1) e viabilidade XLSX (5.4). Não são razões para bloquear a documentação nem autorização para implementar antecipadamente.
 
 **Situação atual:** etapas anteriores até a correção 0.7.1 aprovadas pelo proprietário; assinatura permanente existente reutilizada, sem troca de chave. Etapa 5.1 autorizada e implementada na 0.8.0, com validação registrada em [ETAPA51.md](ETAPA51.md). Aguardar autorização para 5.2. O plano original da Etapa 0 permanece como referência histórica; PDF está fora da versão 1.0.
+
+## Atualização funcional após a 0.14.0
+
+Incremento autorizado de correção administrativa de remanejamentos externos, diagnóstico de vínculos e limpeza explícita de NR, e exportação independente de planos em XLSX. Escopo e critérios de validação em [Noctua 0.15.0](ATUALIZACAO_FUNCIONAL_015.md). Nenhuma etapa posterior é iniciada por este incremento.

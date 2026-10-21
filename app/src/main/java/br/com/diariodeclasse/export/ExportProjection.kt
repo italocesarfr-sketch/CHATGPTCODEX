@@ -7,14 +7,15 @@ import br.com.diariodeclasse.reports.*
 enum class ExportModel(val label:String) { NOTES("Notas"), FREQUENCY("Frequência"), CONSOLIDATED("Consolidado") }
 enum class ExportFormat(val extension:String,val mime:String) { XLSX("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), CSV("csv","text/csv") }
 data class ExportOptions(val model:ExportModel=ExportModel.NOTES,val term:Int?=1,val headers:Boolean=true,val callNumber:Boolean=true)
-enum class NumberStyle { DECIMAL, INTEGER, PERCENT }
+enum class NumberStyle { DECIMAL, INTEGER, PERCENT, DATE }
+enum class SheetLayout { STANDARD, LESSON_PLANS }
 data class ExportCell(val text:String?=null,val number:Double?=null,val style:NumberStyle=NumberStyle.DECIMAL) {
     init {require(text==null||number==null);require(number==null||number.isFinite())}
     companion object {val EMPTY=ExportCell();fun text(v:String)=ExportCell(text=v);fun number(v:Number?,style:NumberStyle=NumberStyle.DECIMAL)=ExportCell(number=v?.toDouble(),style=style)}
 }
 data class ExportColumn(val key:String,val label:String,val grade:Boolean=false,val maximum:Double?=null)
 data class ExportRecord(val enrollmentId:String?,val cells:List<ExportCell>)
-data class ExportTable(val title:String,val options:ExportOptions,val columns:List<ExportColumn>,val records:List<ExportRecord>) {
+data class ExportTable(val title:String,val options:ExportOptions,val columns:List<ExportColumn>,val records:List<ExportRecord>,val layout:SheetLayout=SheetLayout.STANDARD) {
     fun rows(onlyGrades:Boolean=false,allGrades:Boolean=false):List<List<ExportCell>> {
         val indices=columns.indices.filter{!onlyGrades||(if(allGrades)columns[it].grade else columns[it].key.endsWith(":current"))}
         if(indices.isEmpty())return emptyList()

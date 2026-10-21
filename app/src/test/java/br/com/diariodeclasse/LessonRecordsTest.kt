@@ -35,7 +35,7 @@ class LessonRecordsTest {
     }
     @Test fun newBackupContainsExactTextAndRejectsMissingTableWrongReferenceAndDuplicateId() {
         val value=backup();val bytes=BackupCodec.encode(value,15,null);val decoded=BackupCodec.decode(bytes)
-        assertEquals(8,decoded.envelope.formatVersion);assertEquals(7,decoded.envelope.databaseVersion);assertEquals(value,decoded.snapshot)
+        assertEquals(9,decoded.envelope.formatVersion);assertEquals(8,decoded.envelope.databaseVersion);assertEquals(value,decoded.snapshot)
         assertThrows(BackupFailure::class.java){BackupCodec.validate(value.copy(lessonRecords=listOf(note,note)))}
         assertThrows(BackupFailure::class.java){BackupCodec.validate(value.copy(lessonRecords=listOf(note.copy(classId="missing"))))}
         val payload=JsonObject(BackupCodec.json.parseToJsonElement(decoded.envelope.payload).jsonObject.filterKeys{it!="lessonRecords"}).toString()

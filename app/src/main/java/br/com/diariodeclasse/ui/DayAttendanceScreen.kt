@@ -35,7 +35,7 @@ import kotlinx.coroutines.*
     val scope = rememberCoroutineScope()
     var checkingDay by remember { mutableStateOf(false) }
     var clearError by remember { mutableStateOf<String?>(null) }
-    var emptyDay by remember { mutableStateOf<List<Lesson>?>(null) }
+    var emptyDay by remember { mutableStateOf<DayHoursDiagnosis?>(null) }
     var allPresent by remember { mutableStateOf(false) }
     var option by remember { mutableStateOf<Lesson?>(null) }
     var action by remember { mutableStateOf("") }
@@ -98,7 +98,7 @@ import kotlinx.coroutines.*
         TextButton(enabled = !saving && !checkingDay, onClick = {
             checkingDay = true; clearError = null
             scope.launch {
-                try { emptyDay = withContext(Dispatchers.IO) { vm.repository.checkEmptyDay(c.id, day) } }
+                try { emptyDay = withContext(Dispatchers.IO) { vm.repository.diagnoseDayHours(c.id, day) } }
                 catch (e: CancellationException) { throw e }
                 catch (e: Exception) { clearError = if(e is IllegalArgumentException) e.message else "Não foi possível conferir os horários. Tente novamente." }
                 finally { checkingDay = false }
@@ -115,13 +115,20 @@ import kotlinx.coroutines.*
             confirmButton = { Button(enabled = !saving, onClick = { saveHours(n, cancellationApproved, true) }) { Text("Reativar") } })
         else Confirm("Cancelar horários excedentes?", "Os horários de número maior que $n serão cancelados. As chamadas serão preservadas.", { pendingCount = null }) { applyHours(n, true) }
     }
-    emptyDay?.let { checked -> AlertDialog(onDismissRequest = { emptyDay = null },
-        title = { Text("Remover os horários desta data?") },
-        text = { Column { Text("A data voltará a ficar sem aulas cadastradas."); SaveError(vm) } },
-        dismissButton = { TextButton(enabled = !saving, onClick = { emptyDay = null }) { Text("Cancelar") } },
-        confirmButton = { Button(enabled = !saving, onClick = {
-            vm.act(done = { emptyDay = null; hoursForm = false }) { vm.repository.clearEmptyDay(c.id, day, checked) }
-        }) { Text("Remover") } }) }
+    emptyDay?.let { checked -> AlertDialog(onDismissRequest = { if (!saving) emptyDay = null },
+        title = { Text(if (checked.canRemove) "Remover os horários desta data?" else "Horários preservados") },
+        text = { Column(Modifier.verticalScroll(rememberScrollState())) {
+            Text("${c.name} • ${shortDate(day)}")
+            if (checked.lessons.isEmpty()) Text("Esta data já está sem horários.")
+            checked.details.forEach { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            if (checked.canRemove) Text(if (checked.nrCount > 0) "Existem somente registros sem lançamento. A data voltará a ficar sem aulas cadastradas." else "A data voltará a ficar sem aulas cadastradas.")
+            else if (checked.lessons.isNotEmpty()) Text("Os vínculos acima impedem a remoção. Cancelar horários continua disponível.")
+            SaveError(vm)
+        } },
+        dismissButton = { TextButton(enabled = !saving, onClick = { emptyDay = null }) { Text(if (checked.canRemove) "Cancelar" else "Fechar") } },
+        confirmButton = { if (checked.canRemove) Button(enabled = !saving, onClick = {
+            vm.act(done = { emptyDay = null; hoursForm = false }) { vm.repository.clearDiagnosedDay(checked, confirmedNR = checked.nrCount > 0) }
+        }, modifier = Modifier.testTag("confirm-clear-day")) { Text(if (checked.nrCount > 0) "Remover horários e registros NR" else "Remover") } }) }
     if (allPresent) Confirm("Marcar todos como presentes?", "Substitui por P as marcações dos horários realizados nesta data. Alunos fora da matrícula e horários cancelados/previstos não serão alterados.", { allPresent = false }) {
         vm.act(done = { allPresent = false }, context = context) { vm.repository.allPresentDay(c.id, day) }
     }

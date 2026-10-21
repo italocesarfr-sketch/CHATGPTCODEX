@@ -68,6 +68,9 @@ fi
 if adb shell run-as br.com.diariodeclasse test -d files/etapa52-planilhas; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/etapa52-planilhas > build/etapa52-planilhas.tar
 fi
+if adb shell run-as br.com.diariodeclasse test -d files/functional15-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/functional15-screenshots > build/functional15-telas.tar
+fi
 if (( status != 0 )); then
     python3 - <<'PYFAILURES'
 from pathlib import Path

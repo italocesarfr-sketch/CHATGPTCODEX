@@ -46,7 +46,8 @@ object BackupCodec {
     const val V4_IDENTITY = "924bea88bcff9fe88f85edf884f4ab65"
     const val V5_IDENTITY = "4fb9b076fb8a111f68f23ad0863c5f5c"
     const val V6_IDENTITY = "0bb463bface3e8d6c547f9424574818b"
-    const val IDENTITY = "0c0a542f53b49d5f6d895515d1b9ec49"
+    const val V7_IDENTITY = "0c0a542f53b49d5f6d895515d1b9ec49"
+    const val IDENTITY = "5e6a8d2ba79a933d48be69059702f9f6"
     const val MAX_BYTES = 32 * 1024 * 1024
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false }
     fun hash(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
@@ -54,7 +55,7 @@ object BackupCodec {
     fun encode(value: BackupSnapshot, version: Int, certificate: String?): ByteArray {
         validate(value)
         val payload = json.encodeToString(value.canonical())
-        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 8, applicationId = "br.com.diariodeclasse", databaseVersion = 7, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
+        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 9, applicationId = "br.com.diariodeclasse", databaseVersion = 8, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
             sourceCertificateSha256 = certificate, payloadSha256 = hash(payload.toByteArray(Charsets.UTF_8)), payload = payload)
         val bytes = json.encodeToString(envelope).toByteArray(Charsets.UTF_8)
         if (bytes.size > MAX_BYTES) throw BackupFailure("O backup excede o limite seguro de 32 MB.")
@@ -81,23 +82,25 @@ object BackupCodec {
             val organized = envelope.formatVersion == 5 && envelope.databaseVersion == 4 && envelope.schemaIdentityHash == V4_IDENTITY
             val archived = envelope.formatVersion == 6 && envelope.databaseVersion == 5 && envelope.schemaIdentityHash == V5_IDENTITY
             val recorded = envelope.formatVersion == 7 && envelope.databaseVersion == 6 && envelope.schemaIdentityHash == V6_IDENTITY
-            val current = envelope.formatVersion == 8 && envelope.databaseVersion == 7 && envelope.schemaIdentityHash == IDENTITY
-            if (!legacy && !previous && !linked && !organized && !archived && !recorded && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
+            val preserved = envelope.formatVersion == 8 && envelope.databaseVersion == 7 && envelope.schemaIdentityHash == V7_IDENTITY
+            val current = envelope.formatVersion == 9 && envelope.databaseVersion == 8 && envelope.schemaIdentityHash == IDENTITY
+            if (!legacy && !previous && !linked && !organized && !archived && !recorded && !preserved && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
-            if ((previous || linked || organized || archived || recorded || current) && "recompositions" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de recomposição.")
-            if ((linked || organized || archived || recorded || current) && "relocations" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os vínculos de remanejamento.")
-            if ((organized || archived || recorded || current) && "exportRows" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as preferências de exportação.")
-            if ((archived || recorded || current) && "classArchives" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as turmas arquivadas.")
-            if ((recorded || current) && "lessonRecords" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de aula.")
-            if (current && "histories" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os históricos preservados.")
+            if ((previous || linked || organized || archived || recorded || preserved || current) && "recompositions" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de recomposição.")
+            if ((linked || organized || archived || recorded || preserved || current) && "relocations" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os vínculos de remanejamento.")
+            if ((organized || archived || recorded || preserved || current) && "exportRows" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as preferências de exportação.")
+            if ((archived || recorded || preserved || current) && "classArchives" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam as turmas arquivadas.")
+            if ((recorded || preserved || current) && "lessonRecords" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os registros de aula.")
+            if ((preserved || current) && "histories" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os históricos preservados.")
             val snapshot = json.decodeFromString<BackupSnapshot>(envelope.payload).canonical()
             if (legacy && snapshot.recompositions.isNotEmpty()) throw BackupFailure("Backup antigo não pode conter recomposições.")
-            if (!linked && !organized && !archived && !recorded && !current && snapshot.relocations.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter remanejamentos vinculados.")
-            if (!organized && !archived && !recorded && !current && snapshot.exportRows.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter preferências de exportação.")
-            if (!archived && !recorded && !current && snapshot.classArchives.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter arquivamento.")
-            if (!recorded && !current && snapshot.lessonRecords.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter registros de aula.")
-            if (!current && snapshot.histories.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter históricos de turmas excluídas.")
+            if (!linked && !organized && !archived && !recorded && !preserved && !current && snapshot.relocations.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter remanejamentos vinculados.")
+            if (!organized && !archived && !recorded && !preserved && !current && snapshot.exportRows.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter preferências de exportação.")
+            if (!archived && !recorded && !preserved && !current && snapshot.classArchives.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter arquivamento.")
+            if (!recorded && !preserved && !current && snapshot.lessonRecords.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter registros de aula.")
+            if (!preserved && !current && snapshot.histories.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter históricos de turmas excluídas.")
+            if (!current && snapshot.diarySnapshot().academic().relocations.any { it.corrections.isNotEmpty() }) throw BackupFailure("Backup anterior não pode conter correções administrativas.")
             validate(snapshot)
             return DecodedBackup(envelope, snapshot)
         } catch (error: BackupFailure) { throw error }

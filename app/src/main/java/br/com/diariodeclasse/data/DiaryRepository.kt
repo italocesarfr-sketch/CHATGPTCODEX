@@ -355,6 +355,38 @@ class DiaryRepository(val db: DiaryDatabase) {
             }
         }
     }
+    suspend fun diagnoseDayHours(classId: String, day: String): DayHoursDiagnosis = db.withTransaction {
+        EmptyDayHours.diagnose(readSnapshot(), classId, day)
+    }
+    suspend fun clearDiagnosedDay(expected: DayHoursDiagnosis, confirmedNR: Boolean) = db.withTransaction {
+        val current = EmptyDayHours.diagnose(readSnapshot(), expected.classId, expected.day)
+        require(current == expected) { "Os registros mudaram. Confira os vínculos novamente; nada foi removido." }
+        require(current.canRemove) { current.blockers.joinToString("\n").ifEmpty { "Esta data já está sem horários." } }
+        require(current.nrCount == 0 || confirmedNR) { "Confirme a remoção dos horários e registros NR." }
+        current.marks.forEach { check(it.mark == "NR" && dao.removeMark(it.lessonId, it.studentId, "NR") == 1) }
+        current.lessons.forEach { check(dao.removeEmptyLesson(it.id, current.classId, current.day) == 1) }
+    }
+
+    suspend fun previewRelocationCorrection(studentId: String, day: String, destination: String,
+        remove: Set<String> = emptySet()): RelocationCorrectionPreview = db.withTransaction {
+        RelocationCorrections.preview(readSnapshot(), studentId, day, destination, remove)
+    }
+    suspend fun confirmRelocationCorrection(expected: RelocationCorrectionPreview) = db.withTransaction {
+        val current = readSnapshot()
+        require(current == expected.before) { "Os registros mudaram. Confira a correção novamente; nada foi alterado." }
+        val preview = RelocationCorrections.preview(current, expected.source.id, expected.effectiveDate, expected.externalTarget, expected.remove)
+        require(preview.canConfirm) { preview.blockers.joinToString("\n") }
+        val removed = current.marks.filter { it.studentId == preview.source.id && it.lessonId in preview.remove }
+            .map { RemovedAttendance(current.lessons.first { l -> l.id == it.lessonId }, it) }.sortedBy { it.lesson.id }
+        val audit = RelocationCorrection(newId(), java.time.Instant.now().toString(), preview.link.effectiveDate,
+            preview.effectiveDate, requireNotNull(preview.link.externalTarget), preview.externalTarget, removed)
+        removed.forEach { check(dao.removeMark(it.attendance.lessonId, preview.source.id, it.attendance.mark) == 1) }
+        dao.save(preview.source.copy(left = date(preview.effectiveDate).minusDays(1).toString()))
+        check(dao.updateRelocation(preview.link.copy(effectiveDate = preview.effectiveDate,
+            externalTarget = preview.externalTarget, corrections = preview.link.corrections + audit)) == 1)
+        br.com.diariodeclasse.backup.BackupCodec.validate(ClassLifecycle.snapshot(readSnapshot()))
+    }
+
     suspend fun checkEmptyDay(classId: String, day: String): List<Lesson> = db.withTransaction {
         EmptyDayHours.validate(readSnapshot(), classId, day)
     }
