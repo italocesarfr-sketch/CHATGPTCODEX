@@ -126,9 +126,9 @@ class RecompositionUiInstrumentedTest {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
         compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${a.id}"))
         compose.onNodeWithText("1. ${a.name}").performClick();waitText("Nota 4,50 / 10,00")
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-3"))
+        compose.onNodeWithTag("individual-report").performScrollToKey(3)
         compose.onNodeWithTag("individual-term-3").assertTextContains("Resultado vigente: 6,00",substring=true)
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-term-4"))
+        compose.onNodeWithTag("individual-report").performScrollToKey(4)
         compose.onNodeWithTag("individual-term-4").assertTextContains("4,50",substring=true)
     }
 }

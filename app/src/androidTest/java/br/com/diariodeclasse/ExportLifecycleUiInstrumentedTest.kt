@@ -187,7 +187,7 @@ class ExportLifecycleUiInstrumentedTest {
             throw AssertionError("Não abriu o perfil após toque no nome visível. ${compose.onRoot().printToString(maxDepth=5)}",e)
         }
         shot("08-perfil-historico")
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("history-enrollment-${a.id}"))
+        compose.onNodeWithTag("individual-report").performScrollToKey("enrollment-${a.id}")
         compose.onNodeWithTag("history-enrollment-${a.id}").assertTextContains("${c.name} (turma excluída)",substring=true)
         compose.activityRule.scenario.recreate();waitTag("individual-report")
         assertEquals(before.students.first {it.id==target.id},runBlocking {app.repository.dao.student(target.id)})
