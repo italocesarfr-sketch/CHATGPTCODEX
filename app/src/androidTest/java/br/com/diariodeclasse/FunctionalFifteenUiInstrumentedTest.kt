@@ -30,6 +30,7 @@ class FunctionalFifteenUiInstrumentedTest {
     private val c=SchoolClass("ui-fifteen-${newId()}",name="Turma Fictícia Quinze",subject="História",year=2026)
     private val s=Student("ui-fifteen-student-${newId()}","ui-fifteen-person",c.id,"Estudante Fictícia Quinze",1,"2026-01-01")
     private val l=Lesson("ui-fifteen-lesson-${newId()}",c.id,"2026-10-20",1,"REALIZADA")
+    private val destination=c.copy(id="ui-correction-target-${newId()}",name="Turma Fictícia Destino")
     private var screen by mutableStateOf("student")
     private var closed by mutableStateOf(false)
     private var font by mutableStateOf(1f)
@@ -56,9 +57,16 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.waitUntil(10000){vm.data.value.loaded}
     }
     @After fun cleanup()=runBlocking {
-        store.clear();val preview=app.repository.previewClassDeletion(c.id);app.repository.deleteClass(preview,preview.confirmation)
+        store.clear();if(app.repository.dao.schoolClass(destination.id)!=null) {val extra=app.repository.previewClassDeletion(destination.id);app.repository.deleteClass(extra,extra.confirmation)};val preview=app.repository.previewClassDeletion(c.id);app.repository.deleteClass(preview,preview.confirmation)
     }
     private fun click(tag:String){compose.onNodeWithTag(tag).performScrollTo().performClick()}
+    private fun pressBack() {
+        val automation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().uiAutomation
+        val now=android.os.SystemClock.uptimeMillis()
+        automation.injectInputEvent(android.view.KeyEvent(now,now,android.view.KeyEvent.ACTION_DOWN,android.view.KeyEvent.KEYCODE_BACK,0),true)
+        automation.injectInputEvent(android.view.KeyEvent(now,now,android.view.KeyEvent.ACTION_UP,android.view.KeyEvent.KEYCODE_BACK,0),true)
+        compose.waitForIdle()
+    }
     private fun shot(name:String){
         val folder=File(app.filesDir,"functional15-screenshots").apply{mkdirs()}
         val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog()) else compose.onRoot()
@@ -68,17 +76,116 @@ class FunctionalFifteenUiInstrumentedTest {
         val before=runBlocking{app.backupManager.snapshot()}
         click("correct-relocation")
         compose.onNodeWithTag("correction-date").performScrollTo().performTextReplacement("17/10/2026")
+        compose.onNodeWithText("Corrigir").assertExists()
         click("preview-correction")
         compose.waitUntil(10000){compose.onAllNodesWithTag("remove-correction-${l.id}").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("20/10/2026 • 1º horário • FJ").performScrollTo().assertIsDisplayed()
         shot("01-previa-correção")
-        click("remove-correction-${l.id}");click("preview-correction")
+        click("remove-correction-${l.id}")
+        compose.onNodeWithText("Conferir correção").assertDoesNotExist()
         compose.waitUntil(10000){compose.onNodeWithTag("save-correction").fetchSemanticsNode().config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled).not()}
-        click("save-correction");compose.onNodeWithText("Confirmar correção administrativa?").assertExists()
+        compose.onNodeWithText("Editar data e destino").assertDoesNotExist()
+        compose.onNodeWithText("Destino: foi pro noturno").assertExists()
+        click("save-correction");compose.onNodeWithText("Confirmar correção?").assertExists()
+        compose.onNodeWithText("Retirar: 1 FJ.",substring=true).assertExists()
         compose.onNodeWithText("Cancelar",useUnmergedTree=true).performClick();assertEquals(before,runBlocking{app.backupManager.snapshot()})
         click("save-correction");compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
         compose.waitUntil(10000){closed}
         val after=runBlocking{app.backupManager.snapshot()};assertTrue(after.marks.none{it.lessonId==l.id&&it.studentId==s.id});assertEquals("Remanejado",after.students.first{it.id==s.id}.status)
+    }
+
+    private fun waitReviewReady() {
+        compose.waitUntil(10000) { compose.onAllNodesWithTag("correction-checking").fetchSemanticsNodes().isEmpty() &&
+            compose.onAllNodesWithTag("save-correction").fetchSemanticsNodes().isNotEmpty() }
+    }
+    @Test fun backKeepsDateDestinationAndExplicitSelectionWithLargeFont() {
+        compose.runOnIdle {font=1.3f}
+        val before=runBlocking{app.backupManager.snapshot()}
+        click("correct-relocation")
+        compose.onNodeWithTag("correction-date").performScrollTo().performTextReplacement("17/10/2026")
+        compose.onNodeWithTag("correction-target").performScrollTo().performTextReplacement("Destino externo corrigido")
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithText("20/10/2026 • 1º horário • FJ").performScrollTo().assertIsDisplayed()
+        click("remove-correction-${l.id}");waitReviewReady()
+        compose.onNodeWithTag("save-correction").performScrollTo().assertIsEnabled()
+        click("save-correction")
+        compose.onNodeWithText("Confirmar",useUnmergedTree=true).assertIsDisplayed()
+        compose.onNodeWithText("Cancelar",useUnmergedTree=true).assertIsDisplayed().performClick()
+        compose.onNodeWithText("Voltar").performScrollTo().performClick()
+        compose.onNodeWithTag("correction-date").assertTextContains("17/10/2026")
+        compose.onNodeWithTag("correction-target").assertTextContains("Destino externo corrigido")
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithTag("remove-correction-${l.id}").performScrollTo().assertIsOn()
+        compose.onNodeWithTag("save-correction").performScrollTo().assertIsEnabled()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        shot("04-previa-fonte-ampliada")
+        compose.onNodeWithText("Voltar").performScrollTo().performClick()
+        runBlocking{app.repository.dao.save(Attendance(l.id,s.id,"F"))}
+        compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==l.id&&it.studentId==s.id&&it.mark=="F"}}
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithTag("remove-correction-${l.id}").performScrollTo().assertIsOff()
+        compose.onNodeWithTag("save-correction").performScrollTo().assertIsNotEnabled()
+        assertEquals("F",runBlocking{app.repository.dao.attendance(l.id).first{it.studentId==s.id}.mark})
+    }
+    @Test fun registeredDestinationIsExplicitlyBlockedAndExternalDraftIsRetained() {
+        runBlocking{app.repository.saveClass(destination,"2026-01-01")}
+        compose.waitUntil(10000){vm.data.value.classes.any{it.id==destination.id}}
+        val before=runBlocking{app.backupManager.snapshot()}
+        click("correct-relocation")
+        compose.onNodeWithTag("correction-target").performScrollTo().performTextReplacement("Texto externo não confirmado")
+        click("correction-internal");click("correction-class");compose.onNodeWithTag("correction-class-${destination.id}").performClick()
+        compose.onNodeWithText("${destination.name} • ${destination.subject} • ${destination.year} • ${destination.shift}").assertExists()
+        compose.onNodeWithText(CorrectionDestinations.INTERNAL_BLOCK).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("preview-correction").performScrollTo().assertIsNotEnabled()
+        click("correction-external")
+        compose.onNodeWithTag("correction-target").assertTextContains("Texto externo não confirmado")
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun leavingReviewReturnsToEditAndDiscardHasOneConfirmationWithoutWrites() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        click("correct-relocation")
+        compose.onNodeWithTag("correction-date").performScrollTo().performTextReplacement("17/10/2026")
+        click("preview-correction");waitReviewReady()
+        pressBack()
+        compose.onNodeWithTag("correction-date").assertExists()
+        compose.onNodeWithText("Voltar").performScrollTo().performClick()
+        compose.onNodeWithText("Descartar a correção não confirmada?").assertExists()
+        pressBack()
+        compose.onNodeWithTag("correction-date").assertTextContains("17/10/2026")
+        compose.onNodeWithText("Voltar").performScrollTo().performClick()
+        compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
+        compose.waitUntil(10000){closed}
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun concurrentMarkChangeRefreshesReviewClearsSelectionAndClosesStaleConfirmation() {
+        click("correct-relocation")
+        compose.onNodeWithTag("correction-date").performScrollTo().performTextReplacement("17/10/2026")
+        click("preview-correction");waitReviewReady();click("remove-correction-${l.id}");waitReviewReady()
+        click("save-correction");compose.onNodeWithText("Confirmar correção?").assertExists()
+        runBlocking{app.repository.dao.save(Attendance(l.id,s.id,"P"))}
+        val changed=runBlocking{app.backupManager.snapshot()}
+        compose.waitUntil(10000){compose.onAllNodesWithText("Confirmar correção?").fetchSemanticsNodes().isEmpty()}
+        waitReviewReady()
+        compose.onNodeWithText("Os registros mudaram.",substring=true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("remove-correction-${l.id}").performScrollTo().assertIsOff()
+        compose.onNodeWithText("20/10/2026 • 1º horário • P").assertExists()
+        compose.onNodeWithTag("save-correction").performScrollTo().assertIsNotEnabled()
+        assertEquals(changed,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun destinationOnlyCorrectionUsesOneFinalConfirmationAndKeepsAttendance() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        click("correct-relocation")
+        compose.onNodeWithTag("correction-target").performScrollTo().performTextReplacement("Noturno corrigido")
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithText("Destino: foi pro noturno → Noturno corrigido").assertExists()
+        click("save-correction");compose.onNodeWithText("Nenhuma marcação será retirada.",substring=true).assertExists()
+        shot("05-confirmacao-unica")
+        compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
+        compose.waitUntil(10000){closed}
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(before.marks,after.marks);assertEquals(before.students,after.students)
+        assertEquals("Noturno corrigido",after.relocations.first{it.sourceStudentId==s.id}.externalTarget)
+        assertEquals(1,after.relocations.first{it.sourceStudentId==s.id}.corrections.size)
     }
     @Test fun nrCleanupDiagnosesHourCancelsAndRemovesOnlyAfterConfirmation(){
         runBlocking{app.repository.dao.save(Attendance(l.id,s.id,"NR"))};compose.runOnIdle{screen="day";font=1.3f}

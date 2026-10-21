@@ -24,6 +24,29 @@ data class RelocationCorrectionPreview internal constructor(
     val remove: Set<String>, val blockers: List<String>
 ) { val canConfirm get() = blockers.isEmpty() }
 
+/** O snapshot da prévia precisa continuar idêntico até o commit. */
+class RelocationCorrectionChanged : IllegalArgumentException("Os registros mudaram. A prévia precisa ser atualizada; nada foi alterado.")
+
+/** Seleção por ID. Uma turma cadastrada nunca pode ser salva como descrição externa. */
+object CorrectionDestinations {
+    const val INTERNAL_BLOCK = "A conversão para uma turma cadastrada ainda não está disponível. O vínculo e as matrículas não serão alterados."
+    fun eligible(data: DiarySnapshot, source: Student): List<SchoolClass> {
+        val origin = data.classes.first { it.id == source.classId }
+        return data.classes.filter { candidate ->
+            data.classArchives.none { it.classId == candidate.id } &&
+                RelocationRules.compatible(origin, candidate, data.terms)
+        }.sortedWith(compareBy({ it.year }, { it.name }, { it.subject }, { it.shift }, { it.id }))
+    }
+    fun requireExternal(data: DiarySnapshot, studentId: String, targetClassId: String?) {
+        if (targetClassId == null) return
+        val source = requireNotNull(data.students.firstOrNull { it.id == studentId }) { "Matrícula não encontrada." }
+        require(eligible(data, source).any { it.id == targetClassId }) {
+            "Destino indisponível: confira ano, disciplina, calendário, escala, política de FJ e arquivamento."
+        }
+        throw IllegalArgumentException(INTERNAL_BLOCK)
+    }
+}
+
 object RelocationCorrections {
     fun preview(data: DiarySnapshot, studentId: String, day: String, destination: String,
         remove: Set<String> = emptySet()): RelocationCorrectionPreview {
@@ -51,9 +74,9 @@ object RelocationCorrections {
         val blockers = buildList {
             if(day == link.effectiveDate && target == link.externalTarget && remove.isEmpty()) add("Nenhuma correção informada.")
             marks.filter { it.mark != "NR" && it.lessonId !in remove }.forEach { m -> val l = lessons.getValue(m.lessonId)
-                add("${l.date} • ${l.ordinal}º horário: ${m.mark}. Preserve a data ou selecione explicitamente a retirada da marcação indevida.") }
-            if (grades.isNotEmpty()) add("${grades.size} lançamento(s) de nota na data proposta ou depois. As notas serão preservadas; confira a data efetiva.")
-            if (recompositions.isNotEmpty()) add("${recompositions.size} recomposição(ões) na data proposta ou depois. Confira a data efetiva; nenhum resultado será excluído.")
+                add("${java.time.LocalDate.parse(l.date).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))} • ${l.ordinal}º horário • ${m.mark}: confirme a retirada ou reveja a data.") }
+            if (grades.isNotEmpty()) add("${grades.size} nota(s) na data proposta ou depois. Reveja a data; as notas serão preservadas.")
+            if (recompositions.isNotEmpty()) add("${recompositions.size} recomposição(ões) na data proposta ou depois. Reveja a data; os resultados serão preservados.")
         }
         return RelocationCorrectionPreview(data, source, link, day, target,
             records.sortedWith(compareBy({ it.date }, { it.type }, { it.value })), remove.toSet(), blockers)

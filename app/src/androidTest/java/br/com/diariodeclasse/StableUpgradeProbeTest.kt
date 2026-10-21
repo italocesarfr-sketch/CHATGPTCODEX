@@ -69,6 +69,13 @@ class StableUpgradeProbeTest {
                 repo.saveLessonRecord(LessonRecord("stable-existing-record",origin.id,"2026-08-12","Título Fictício Legado","Descrição da 0.10.0\nMantida na atualização visual."))
                 repo.saveLessonRecord(LessonRecord("stable-existing-second",target.id,"2026-08-12","Registro Fictício Arquivado","Também preservado no novo calendário."))
                 repo.archiveClass("stable-history-target",true)
+                // A semente roda na release 0.15.0 real e inclui a auditoria já distribuída.
+                val external=Student("stable-external-corrected","stable-external-person",origin.id,"Estudante Fictícia Correção",7,"2026-01-01")
+                repo.saveStudent(external)
+                val externalLesson=Lesson("stable-external-lesson",origin.id,"2026-10-20",1,"REALIZADA")
+                repo.dao.save(externalLesson);repo.dao.save(Attendance(externalLesson.id,external.id,"FJ"))
+                repo.confirmRelocation(repo.previewRelocation(external.id,null,"Destino externo fictício","2026-10-25"))
+                repo.confirmRelocationCorrection(repo.previewRelocationCorrection(external.id,"2026-10-17","Destino externo corrigido",setOf(externalLesson.id)))
                 file.writeBytes(manager.backupBytes())
             }
             val bytes=file.readBytes();val expected=BackupCodec.decode(bytes).snapshot
@@ -91,7 +98,7 @@ class StableUpgradeProbeTest {
                 val destination=data.classes.first {it.id==archivedTarget.classId}
                 assertEquals(6.0,SchoolReports(data,destination).student(archivedTarget,3).total!!,0.0)
                 assertEquals(2,data.lineage(archivedTarget).size)
-                if(expected.relocations.size==1) {
+                if(expected.relocations.none {it.sourceStudentId=="stable-stale"}) {
                     assertEquals("Ativo",repo.dao.student("stable-stale")!!.status)
                     assertEquals("2026-10-16",repo.dao.student("stable-stale")!!.left)
                 } else {
@@ -116,7 +123,7 @@ class StableUpgradeProbeTest {
                 repo.confirmRelocation(preview)
                 val complete=manager.snapshot();val upgradedBackup=manager.backupBytes()
                 assertEquals(expected.copy(students=complete.students,relocations=complete.relocations,classArchives=emptyList()),complete)
-                assertEquals(2,complete.relocations.size)
+                assertEquals(expected.relocations.size+1,complete.relocations.size)
                 assertEquals(expected.students.size+1,complete.students.size)
                 assertEquals(expected.students.first {it.id=="stable-archived"},complete.students.first {it.id=="stable-archived"})
                 assertEquals(expected.students.first {it.id=="stable-closed"},complete.students.first {it.id=="stable-closed"})

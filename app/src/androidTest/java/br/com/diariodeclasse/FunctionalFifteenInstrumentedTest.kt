@@ -67,6 +67,33 @@ class FunctionalFifteenInstrumentedTest {
         db.dao().save(Attendance(l.id,other.id,"P"));val changed=snapshot()
         fails{repo.confirmRelocationCorrection(preview)};assertEquals(ClassLifecycle.fingerprint(changed),ClassLifecycle.fingerprint(snapshot()))
     }
+    @Test fun successiveDateAndDestinationCorrectionsPreserveAuditAcrossRestartAndRestore()=runBlocking {
+        db.dao().save(Attendance(l.id,s.id,"FJ"));relocate()
+        val before=snapshot()
+        for((date,destination) in listOf("2026-10-23" to "foi pro noturno", "2026-10-23" to "Noturno corrigido", "2026-10-22" to "Destino externo confirmado")) {
+            repo.confirmRelocationCorrection(repo.previewCorrectionDestination(s.id,date,destination,null))
+        }
+        val after=snapshot();val link=after.relocations.single()
+        assertEquals(3,link.corrections.size);assertEquals(before.marks,after.marks)
+        assertEquals(before.students.first{it.id==other.id},after.students.first{it.id==other.id})
+        assertEquals(before.students.first{it.id==s.id}.copy(left="2026-10-21"),after.students.first{it.id==s.id})
+        assertEquals(listOf("2026-10-25","2026-10-23","2026-10-23"),link.corrections.map{it.previousDate})
+        assertTrue(link.corrections.all{it.removed.isEmpty()})
+        val bytes=backup.backupBytes();db.close();open();assertEquals(ClassLifecycle.fingerprint(after),ClassLifecycle.fingerprint(snapshot()))
+        repo.saveStudent(other.copy(name="Outro nome fictício"));backup.restore(backup.prepare(bytes.inputStream()),"RESTAURAR")
+        assertEquals(ClassLifecycle.fingerprint(after),ClassLifecycle.fingerprint(snapshot()))
+        db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
+    }
+    @Test fun registeredDestinationCannotBecomeExternalTextOrDuplicateExistingEnrollment()=runBlocking {
+        val target=c.copy(id="correction-target",name="Turma Fictícia Destino")
+        repo.saveClass(target,"2026-01-01")
+        repo.saveStudent(s.copy(id="existing-target",classId=target.id,joined="2026-10-25"))
+        relocate();val before=snapshot()
+        for(id in listOf(target.id,c.id,"missing")) fails {repo.previewCorrectionDestination(s.id,"2026-10-17","Não salvar como texto",id)}
+        assertEquals(ClassLifecycle.fingerprint(before),ClassLifecycle.fingerprint(snapshot()))
+        assertEquals(1,snapshot().students.count{it.classId==target.id&&it.personId==s.personId})
+        assertEquals("foi pro noturno",snapshot().relocations.single().externalTarget)
+    }
     @Test fun nrOnlyCleanupIsExplicitAtomicAndLimitedToSelectedClassAndDay()=runBlocking {
         val next=l.copy(id="next-day",date="2026-10-21");db.dao().save(next);db.dao().save(Attendance(next.id,s.id,"FJ"))
         db.dao().save(Attendance(l.id,s.id,"NR"));val p=repo.diagnoseDayHours(c.id,day)

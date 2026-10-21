@@ -371,9 +371,15 @@ class DiaryRepository(val db: DiaryDatabase) {
         remove: Set<String> = emptySet()): RelocationCorrectionPreview = db.withTransaction {
         RelocationCorrections.preview(readSnapshot(), studentId, day, destination, remove)
     }
+    suspend fun previewCorrectionDestination(studentId: String, day: String, externalTarget: String,
+        targetClassId: String?, remove: Set<String> = emptySet()): RelocationCorrectionPreview = db.withTransaction {
+        val current = readSnapshot()
+        CorrectionDestinations.requireExternal(current, studentId, targetClassId)
+        RelocationCorrections.preview(current, studentId, day, externalTarget, remove)
+    }
     suspend fun confirmRelocationCorrection(expected: RelocationCorrectionPreview) = db.withTransaction {
         val current = readSnapshot()
-        require(current == expected.before) { "Os registros mudaram. Confira a correção novamente; nada foi alterado." }
+        if (current != expected.before) throw RelocationCorrectionChanged()
         val preview = RelocationCorrections.preview(current, expected.source.id, expected.effectiveDate, expected.externalTarget, expected.remove)
         require(preview.canConfirm) { preview.blockers.joinToString("\n") }
         val removed = current.marks.filter { it.studentId == preview.source.id && it.lessonId in preview.remove }
