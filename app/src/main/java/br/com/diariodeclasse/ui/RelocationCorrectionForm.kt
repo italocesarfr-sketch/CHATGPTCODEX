@@ -65,7 +65,7 @@ import kotlinx.coroutines.*
                 vm.repository.previewCorrectionDestination(student.id, parsed, target, targetClass.takeIf { internal }, removals)
             }
             if (prior != null && prior != checked.before) {
-                checked = RelocationCorrections.preview(checked.before, student.id, parsed, target)
+                checked = RelocationCorrections.preview(checked.before, student.id, parsed, target, targetClassId = targetClass.takeIf { internal })
                 confirm = false
                 notice = "Os registros mudaram. Confira a prévia atualizada e selecione novamente as marcações. Nada foi alterado."
             }
@@ -114,15 +114,20 @@ import kotlinx.coroutines.*
                 }
                 Text(if (protectedInternal) "Remanejamento interno: a correção precisa ajustar as duas matrículas em conjunto. Nenhum vínculo foi alterado."
                     else if (eligible.isEmpty()) "Nenhuma turma com ano, disciplina, calendário, escala e política de FJ compatíveis."
-                    else CorrectionDestinations.INTERNAL_BLOCK, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    else "O histórico acompanhará a matrícula de destino.", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else Field("Destino externo", target, { target = it }, Modifier.testTag("correction-target"), enabled = !saving)
-            if (!protectedInternal) OutlinedButton(enabled = !saving && !internal, onClick = {
+            if (!protectedInternal) OutlinedButton(enabled = !saving && (!internal || targetClass.isNotBlank()), onClick = {
                 focus.clearFocus(); keyboard?.hide(); issue = null; notice = null; preview = null; checking = true; reviewing = true
             }, modifier = Modifier.testTag("preview-correction")) { Text("Corrigir") }
         } else {
             preview?.let { checked ->
                 Text(if (checked.link.effectiveDate == checked.effectiveDate) "Data: ${shortDate(checked.effectiveDate)}" else "Data: ${shortDate(checked.link.effectiveDate)} → ${shortDate(checked.effectiveDate)}", style = MaterialTheme.typography.titleSmall)
-                Text(if (checked.link.externalTarget == checked.externalTarget) "Destino: ${checked.externalTarget}"
+                if (checked.target != null) {
+                    Text("Origem: ${checked.before.classes.first { it.id == checked.source.classId }.name} • Remanejada")
+                    Text("Destino anterior: ${checked.link.externalTarget}")
+                    Text("Novo destino: ${checked.destinationLabel}")
+                    Text(if (checked.linkedExisting) "Vincular matrícula já cadastrada." else "Criar matrícula na turma de destino.")
+                } else Text(if (checked.link.externalTarget == checked.externalTarget) "Destino: ${checked.externalTarget}"
                     else "Destino: ${checked.link.externalTarget} → ${checked.externalTarget}")
                 if (checked.records.isEmpty()) Text("Nenhum lançamento no período afetado.")
                 checked.records.forEach { record ->
@@ -154,7 +159,9 @@ import kotlinx.coroutines.*
         }
         if (!reviewing) link?.corrections?.asReversed()?.forEach { audit ->
             Text(if (audit.previousDate == audit.effectiveDate) "Correção confirmada: ${shortDate(audit.effectiveDate)}" else "Correção confirmada: ${shortDate(audit.previousDate)} → ${shortDate(audit.effectiveDate)}")
-            Text(if (audit.previousTarget == audit.externalTarget) "Destino: ${audit.externalTarget}" else "Destino: ${audit.previousTarget} → ${audit.externalTarget}")
+            val destination = audit.targetLabel ?: audit.externalTarget.orEmpty()
+            Text(if (audit.operation == "CONVERSAO_INTERNA") "Conversão para turma cadastrada" else "Correção de destino externo")
+            Text(if (audit.previousTarget == destination) "Destino: $destination" else "Destino: ${audit.previousTarget} → $destination")
             audit.removed.forEach { removed -> Text("Retirado: ${shortDate(removed.lesson.date)} • ${removed.lesson.ordinal}º horário • ${removed.attendance.mark}") }
         }
         SaveError(vm)
@@ -164,8 +171,8 @@ import kotlinx.coroutines.*
             .groupingBy { it.mark }.eachCount().toSortedMap().entries.joinToString(" • ") { "${it.value} ${it.key}" }
         val dates = if (checked.link.effectiveDate == checked.effectiveDate) shortDate(checked.effectiveDate)
             else "${shortDate(checked.link.effectiveDate)} → ${shortDate(checked.effectiveDate)}"
-        val summary = "${student.name}\nData: $dates\nDestino: ${checked.externalTarget}\n" +
-            (if (counts.isEmpty()) "Nenhuma marcação será retirada." else "Retirar: $counts. Sem atribuir presença ou falta.") + "\nA matrícula continuará Remanejada."
+        val summary = "${student.name}\nData: $dates\nDestino: ${checked.destinationLabel}\n" +
+            (if (counts.isEmpty()) "Nenhuma marcação será retirada." else "Retirar: $counts. Sem atribuir presença ou falta.") + (if (checked.target == null) "" else if (checked.linkedExisting) "\nA matrícula existente será vinculada, preservando seus registros." else "\nUma matrícula ativa será criada no destino, sem lançamentos automáticos.") + "\nA matrícula de origem continuará Remanejada."
         AlertDialog(onDismissRequest = { if (!saving) confirm = false }, title = { Text("Confirmar correção?") },
             text = { Text(summary, Modifier.verticalScroll(rememberScrollState())) },
             dismissButton = { TextButton(onClick = { confirm = false }, enabled = !saving) { Text("Cancelar") } },

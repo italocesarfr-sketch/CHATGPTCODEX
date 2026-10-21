@@ -38,14 +38,17 @@ class CorrectionRefinementTest {
             classArchives=listOf(ClassArchive(archived.id)))
         assertEquals(listOf(target),CorrectionDestinations.eligible(all,source))
     }
-    @Test fun internalSelectionNeverFallsBackToExternalTextEvenWithExistingIdentity() {
-        val d=data().copy(students=listOf(source,source.copy(id="destination",classId=target.id,status="Ativo",left=null,joined="2026-10-25")))
-        try {CorrectionDestinations.requireExternal(d,source.id,target.id);fail("Não pode simular conversão")}catch(e:IllegalArgumentException){assertEquals(CorrectionDestinations.INTERNAL_BLOCK,e.message)}
+    @Test fun internalSelectionLinksExistingIdentityWithoutSavingExternalText() {
+        val enrolled=source.copy(id="destination",classId=target.id,status="Ativo",left=null,joined="2026-10-25")
+        val d=data().copy(students=listOf(source,enrolled))
+        val preview=RelocationCorrections.preview(d,source.id,"2026-10-25","Texto não utilizado",targetClassId=target.id)
+        assertTrue(preview.canConfirm);assertTrue(preview.linkedExisting);assertEquals(enrolled,preview.target)
+        val after=RelocationCorrections.proposed(preview,RelocationCorrections.audit(preview))
+        assertNull(after.relocations.single().externalTarget);assertEquals(enrolled.id,after.relocations.single().targetStudentId)
+        assertEquals(d.marks,after.marks);assertEquals(d.students,after.students)
         for(id in listOf(origin.id,"missing")) {
-            try{CorrectionDestinations.requireExternal(d,source.id,id);fail()}catch(e:IllegalArgumentException){assertTrue(e.message!!.startsWith("Destino indisponível"))}
+            try{RelocationCorrections.preview(d,source.id,"2026-10-25","",targetClassId=id);fail()}catch(_:IllegalArgumentException){}
         }
-        CorrectionDestinations.requireExternal(d,source.id,null)
-        assertEquals(2,d.students.size);assertEquals(link,d.relocations.single())
     }
     @Test fun dateOnlyDestinationOnlyAndCombinedKeepOriginalRowsAndPendingValues() {
         val noMarks=data().copy(marks=emptyList())

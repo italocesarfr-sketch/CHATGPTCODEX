@@ -271,20 +271,8 @@ class DiaryRepository(val db: DiaryDatabase) {
             target=null;targetName=external.trim()
         } else {
             require(external==null) {"Selecione apenas um destino."}
-            require(before.classArchives.none { it.classId == targetClassId }) {"A turma de destino está arquivada. Reative-a antes de remanejar."}
-            val school=requireNotNull(before.classes.firstOrNull {it.id==targetClassId}) {"Turma de destino não encontrada."}
-            require(RelocationRules.compatible(origin,school,before.terms)) {"Destino incompatível: use mesmo ano, disciplina, etapa, escala, bimestres e política de FJ. Não há conversão automática."}
-            require(before.lineage(source).none {it.classId==targetClassId}) {"O destino já faz parte deste histórico. Retorno/ciclo não permitido."}
-            val roster=before.roster(targetClassId);val existing=roster.filter {it.personId==source.personId}
-            require(existing.size<=1) {"Há identidades repetidas no destino. Confira as matrículas."}
-            target=existing.singleOrNull()?.also {
-                require(it.status=="Ativo"&&it.left==null&&it.joined==day && before.academic().relocations.none {l->l.targetStudentId==it.id||l.sourceStudentId==it.id}) {"A matrícula existente no destino deve estar ativa, sem outro vínculo e com ingresso exatamente na data efetiva. Seus dados não serão ajustados silenciosamente."}
-                require(before.marks.none {m->m.studentId==it.id&&m.mark!="NR"&&before.lessons.any {l->l.id==m.lessonId&&l.date<day}} && before.grades.none {g->g.studentId==it.id&&g.value!=null&&before.activities.any {a->a.id==g.activityId&&a.date<day}}) {"A matrícula de destino tem lançamentos anteriores ao ingresso. Confira-os antes de vincular."}
-            } ?: run {
-                require(roster.none {RosterParser.possibleDuplicate(it.name,edited.name)}) {"Há nome semelhante no destino com outra identidade. Não será feita fusão automática; confira a matrícula."}
-                edited.copy(id=newId(),classId=targetClassId,number=(roster.maxOfOrNull {it.number}?:0)+1,joined=day,left=null,status="Ativo")
-            }
-            targetName=school.name
+            target=RelocationRules.internalTarget(before,source,targetClassId,day,edited)
+            targetName=before.classes.first {it.id==targetClassId}.name
         }
         val link=Relocation(source.id,target?.id,day,if(target==null) targetName else null)
         val ended=edited.copy(status="Remanejado",left=date(day).minusDays(1).toString())
@@ -374,23 +362,25 @@ class DiaryRepository(val db: DiaryDatabase) {
     suspend fun previewCorrectionDestination(studentId: String, day: String, externalTarget: String,
         targetClassId: String?, remove: Set<String> = emptySet()): RelocationCorrectionPreview = db.withTransaction {
         val current = readSnapshot()
-        CorrectionDestinations.requireExternal(current, studentId, targetClassId)
-        RelocationCorrections.preview(current, studentId, day, externalTarget, remove)
+        RelocationCorrections.preview(current, studentId, day, externalTarget, remove, targetClassId)
     }
     suspend fun confirmRelocationCorrection(expected: RelocationCorrectionPreview) = db.withTransaction {
         val current = readSnapshot()
         if (current != expected.before) throw RelocationCorrectionChanged()
-        val preview = RelocationCorrections.preview(current, expected.source.id, expected.effectiveDate, expected.externalTarget, expected.remove)
+        val preview = RelocationCorrections.preview(current, expected.source.id, expected.effectiveDate,
+            expected.externalTarget, expected.remove, expected.destinationClass?.id, expected.target?.id)
         require(preview.canConfirm) { preview.blockers.joinToString("\n") }
-        val removed = current.marks.filter { it.studentId == preview.source.id && it.lessonId in preview.remove }
-            .map { RemovedAttendance(current.lessons.first { l -> l.id == it.lessonId }, it) }.sortedBy { it.lesson.id }
-        val audit = RelocationCorrection(newId(), java.time.Instant.now().toString(), preview.link.effectiveDate,
-            preview.effectiveDate, requireNotNull(preview.link.externalTarget), preview.externalTarget, removed)
-        removed.forEach { check(dao.removeMark(it.attendance.lessonId, preview.source.id, it.attendance.mark) == 1) }
+        require(preview.target == expected.target && preview.destinationClass == expected.destinationClass) { "A matrícula de destino mudou. Refaça a prévia; nada foi alterado." }
+        preview.target?.let { validateStudent(it) }
+        val audit = RelocationCorrections.audit(preview)
+        audit.removed.forEach { check(dao.removeMark(it.attendance.lessonId, preview.source.id, it.attendance.mark) == 1) }
         dao.save(preview.source.copy(left = date(preview.effectiveDate).minusDays(1).toString()))
-        check(dao.updateRelocation(preview.link.copy(effectiveDate = preview.effectiveDate,
-            externalTarget = preview.externalTarget, corrections = preview.link.corrections + audit)) == 1)
-        br.com.diariodeclasse.backup.BackupCodec.validate(ClassLifecycle.snapshot(readSnapshot()))
+        preview.target?.takeIf { !preview.linkedExisting }?.let { dao.save(it) }
+        check(dao.updateRelocation(preview.link.copy(effectiveDate = preview.effectiveDate, targetStudentId = preview.target?.id,
+            externalTarget = audit.externalTarget, corrections = preview.link.corrections + audit)) == 1)
+        val after = readSnapshot()
+        RelocationRules.validateLinks(after)
+        br.com.diariodeclasse.backup.BackupCodec.validate(ClassLifecycle.snapshot(after))
     }
 
     suspend fun checkEmptyDay(classId: String, day: String): List<Lesson> = db.withTransaction {

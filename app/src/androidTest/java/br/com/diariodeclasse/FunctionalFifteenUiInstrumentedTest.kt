@@ -127,7 +127,7 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.onNodeWithTag("save-correction").performScrollTo().assertIsNotEnabled()
         assertEquals("F",runBlocking{app.repository.dao.attendance(l.id).first{it.studentId==s.id}.mark})
     }
-    @Test fun registeredDestinationIsExplicitlyBlockedAndExternalDraftIsRetained() {
+    @Test fun registeredDestinationPreviewsConversionAndExternalDraftIsRetained() {
         runBlocking{app.repository.saveClass(destination,"2026-01-01")}
         compose.waitUntil(10000){vm.data.value.classes.any{it.id==destination.id}}
         val before=runBlocking{app.backupManager.snapshot()}
@@ -135,8 +135,12 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.onNodeWithTag("correction-target").performScrollTo().performTextReplacement("Texto externo não confirmado")
         click("correction-internal");click("correction-class");compose.onNodeWithTag("correction-class-${destination.id}").performClick()
         compose.onNodeWithText("${destination.name} • ${destination.subject} • ${destination.year} • ${destination.shift}").assertExists()
-        compose.onNodeWithText(CorrectionDestinations.INTERNAL_BLOCK).performScrollTo().assertIsDisplayed()
-        compose.onNodeWithTag("preview-correction").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("preview-correction").performScrollTo().assertIsEnabled()
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithText("Criar matrícula na turma de destino.").performScrollTo().assertIsDisplayed()
+        click("save-correction");compose.onNodeWithText("Uma matrícula ativa será criada no destino",substring=true).assertExists()
+        compose.onNodeWithText("Cancelar",useUnmergedTree=true).performClick()
+        compose.onNodeWithText("Voltar").performScrollTo().performClick()
         click("correction-external")
         compose.onNodeWithTag("correction-target").assertTextContains("Texto externo não confirmado")
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
@@ -186,6 +190,53 @@ class FunctionalFifteenUiInstrumentedTest {
         assertEquals(before.marks,after.marks);assertEquals(before.students,after.students)
         assertEquals("Noturno corrigido",after.relocations.first{it.sourceStudentId==s.id}.externalTarget)
         assertEquals(1,after.relocations.first{it.sourceStudentId==s.id}.corrections.size)
+    }
+    @Test fun internalConversionKeepsAuditAndWithdrawsOnlySelectedFJAfterOneConfirmation() {
+        runBlocking {
+            app.repository.saveClass(destination,"2026-01-01")
+            app.repository.confirmRelocationCorrection(app.repository.previewRelocationCorrection(s.id,"2026-10-23","Destino externo revisado"))
+        }
+        compose.waitUntil(10000){vm.data.value.relocations.any{it.sourceStudentId==s.id&&it.effectiveDate=="2026-10-23"}&&vm.data.value.classes.any{it.id==destination.id}}
+        val before=runBlocking{app.backupManager.snapshot()};compose.runOnIdle{font=1.3f}
+        click("correct-relocation")
+        compose.onNodeWithTag("correction-date").performScrollTo().performTextReplacement("17/10/2026")
+        click("correction-internal");click("correction-class");compose.onNodeWithTag("correction-class-${destination.id}").performClick()
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithText("Destino anterior: Destino externo revisado").assertExists()
+        compose.onNodeWithText("Novo destino: ${destination.name}",substring=true).assertExists()
+        compose.onNodeWithText("Criar matrícula na turma de destino.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("save-correction").performScrollTo().assertIsNotEnabled()
+        click("remove-correction-${l.id}");waitReviewReady()
+        shot("06-previa-conversao")
+        click("save-correction");compose.onNodeWithText("Confirmar",useUnmergedTree=true).assertIsDisplayed()
+        compose.onNodeWithText("Cancelar",useUnmergedTree=true).performClick()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        click("save-correction");shot("07-confirmar-conversao","Confirmar correção?")
+        compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick();compose.waitUntil(10000){closed}
+        val after=runBlocking{app.backupManager.snapshot()};val link=after.relocations.first{it.sourceStudentId==s.id}
+        assertNull(link.externalTarget);assertNotNull(link.targetStudentId)
+        val enrolled=after.students.first{it.id==link.targetStudentId}
+        assertEquals(s.personId,enrolled.personId);assertEquals(destination.id,enrolled.classId);assertEquals("2026-10-17",enrolled.joined);assertEquals("Ativo",enrolled.status)
+        assertEquals(before.relocations.first{it.sourceStudentId==s.id}.corrections,link.corrections.dropLast(1))
+        assertEquals("CONVERSAO_INTERNA",link.corrections.last().operation)
+        assertEquals("FJ",link.corrections.last().removed.single().attendance.mark)
+        assertTrue(after.marks.none{it.studentId==s.id&&it.lessonId==l.id});assertTrue(after.marks.none{it.studentId==enrolled.id})
+    }
+    @Test fun conversionCanLinkExistingEnrollmentWithoutCreatingAnotherStudent() {
+        val target=s.copy(id="ui-existing-${newId()}",classId=destination.id,joined="2026-10-25")
+        runBlocking{app.repository.saveClass(destination,"2026-01-01");app.repository.saveStudent(target)}
+        compose.waitUntil(10000){vm.data.value.students.any{it.id==target.id}}
+        val before=runBlocking{app.backupManager.snapshot()}
+        click("correct-relocation");click("correction-internal");click("correction-class")
+        compose.onNodeWithTag("correction-class-${destination.id}").performClick()
+        click("preview-correction");waitReviewReady()
+        compose.onNodeWithText("Vincular matrícula já cadastrada.").performScrollTo().assertIsDisplayed()
+        click("save-correction");compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
+        compose.waitUntil(10000){closed}
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(before.students,after.students);assertEquals(before.marks,after.marks)
+        assertEquals(target.id,after.relocations.first{it.sourceStudentId==s.id}.targetStudentId)
+        assertEquals(1,after.students.count{it.personId==s.personId&&it.classId==destination.id})
     }
     @Test fun nrCleanupDiagnosesHourCancelsAndRemovesOnlyAfterConfirmation(){
         runBlocking{app.repository.dao.save(Attendance(l.id,s.id,"NR"))};compose.runOnIdle{screen="day";font=1.3f}

@@ -130,7 +130,17 @@ class StableUpgradeProbeTest {
                 val rec=complete.recompositions.first {it.studentId==stale.id}
                 repo.deleteRecomposition(rec,preview.target!!.id)
                 manager.restore(manager.prepare(upgradedBackup.inputStream()),"RESTAURAR")
-                assertEquals(complete,manager.snapshot());file.writeBytes(roundTripExportPreferences(app,expected,bytes))
+                assertEquals(complete,manager.snapshot());roundTripExportPreferences(app,expected,bytes)
+                repo.archiveClass("stable-history-target",false)
+                val conversion=repo.previewCorrectionDestination("stable-external-corrected","2026-10-17","","stable-history-target")
+                repo.confirmRelocationCorrection(conversion)
+                val converted=manager.snapshot().relocations.first{it.sourceStudentId=="stable-external-corrected"}
+                assertEquals(2,converted.corrections.size)
+                assertEquals("CORRECAO_EXTERNA",converted.corrections.first().operation)
+                assertEquals("CONVERSAO_INTERNA",converted.corrections.last().operation)
+                assertEquals("FJ",converted.corrections.first().removed.single().attendance.mark)
+                assertNotNull(converted.targetStudentId);assertNull(converted.externalTarget)
+                file.writeBytes(manager.backupBytes())
             }
         }
     }
@@ -189,7 +199,7 @@ class StableUpgradeProbeTest {
         val rows=ExportLayout.normalize(listOf(ExportLayout.blank("classe-alfa"))+ExportLayout.rows(data,"classe-alfa").reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
         repo.saveExportLayout("classe-alfa",before.exportRows.filter{it.classId=="classe-alfa"},rows)
         val configured=manager.snapshot();assertEquals(before,configured.copy(exportRows=before.exportRows))
-        val bytes=manager.backupBytes();assertEquals(9,BackupCodec.decode(bytes).envelope.formatVersion)
+        val bytes=manager.backupBytes();assertEquals(10,BackupCodec.decode(bytes).envelope.formatVersion)
         repo.saveExportLayout("classe-alfa",rows,rows.map{it.copy(manualHidden=false)})
         manager.restore(manager.prepare(oldBytes.inputStream()),"RESTAURAR")
         assertEquals(original,manager.snapshot());assertEquals(original.exportRows,manager.snapshot().exportRows)

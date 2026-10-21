@@ -84,15 +84,21 @@ class FunctionalFifteenInstrumentedTest {
         assertEquals(ClassLifecycle.fingerprint(after),ClassLifecycle.fingerprint(snapshot()))
         db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
     }
-    @Test fun registeredDestinationCannotBecomeExternalTextOrDuplicateExistingEnrollment()=runBlocking {
+    @Test fun registeredDestinationLinksExistingEnrollmentWithoutExternalTextOrDuplication()=runBlocking {
         val target=c.copy(id="correction-target",name="Turma Fictícia Destino")
         repo.saveClass(target,"2026-01-01")
         repo.saveStudent(s.copy(id="existing-target",classId=target.id,joined="2026-10-25"))
         relocate();val before=snapshot()
-        for(id in listOf(target.id,c.id,"missing")) fails {repo.previewCorrectionDestination(s.id,"2026-10-17","Não salvar como texto",id)}
+        for(id in listOf(c.id,"missing")) fails {repo.previewCorrectionDestination(s.id,"2026-10-17","Não salvar como texto",id)}
         assertEquals(ClassLifecycle.fingerprint(before),ClassLifecycle.fingerprint(snapshot()))
         assertEquals(1,snapshot().students.count{it.classId==target.id&&it.personId==s.personId})
         assertEquals("foi pro noturno",snapshot().relocations.single().externalTarget)
+        val p=repo.previewCorrectionDestination(s.id,"2026-10-25","Não salvar como texto",target.id)
+        assertEquals("existing-target",p.target!!.id);assertTrue(p.linkedExisting)
+        repo.confirmRelocationCorrection(p)
+        assertNull(snapshot().relocations.single().externalTarget)
+        assertEquals("existing-target",snapshot().relocations.single().targetStudentId)
+        assertEquals(1,snapshot().students.count{it.classId==target.id&&it.personId==s.personId})
     }
     @Test fun nrOnlyCleanupIsExplicitAtomicAndLimitedToSelectedClassAndDay()=runBlocking {
         val next=l.copy(id="next-day",date="2026-10-21");db.dao().save(next);db.dao().save(Attendance(next.id,s.id,"FJ"))
