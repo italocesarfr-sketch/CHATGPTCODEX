@@ -1,3 +1,5 @@
+> **Noctua 0.15.1 / 26 validada:** correção administrativa com revisão automática, confirmação única e seleção de destino por tipo. Conversões internas permanecem bloqueadas; Room v8 e backup 9 inalterados. [Contrato, testes e APK assinado](REFINAMENTO_REMANEJAMENTOS_0151.md).
+
 > Atualização funcional **Noctua 0.15.0 / 25** aprovada: correção de remanejamentos externos, limpeza confirmada de NR com diagnóstico e planos de aula XLSX independentes. Room v8 aditivo, backup 9 lendo anteriores, mesma assinatura da 0.14.0. [Contrato, testes e entrega](ATUALIZACAO_FUNCIONAL_015.md).
 
 > Sete refinamentos finais autorizados sobre a 0.13.0: interface compacta, calendário no rodapé e entrada **somente demonstrativa**, sem contas, credenciais persistidas ou autenticação. [Contrato e validação](REFINAMENTOS_FINAIS_UX.md). Room v7, backup 8 e regras escolares inalterados.

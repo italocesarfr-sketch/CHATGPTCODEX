@@ -1,0 +1,76 @@
+{
+  "versionName": "0.15.1",
+  "versionCode": 26,
+  "applicationId": "br.com.diariodeclasse",
+  "database": "diario.db",
+  "codeCommit": "dbfde9848a912950336c1b0d937ca87f47953b50",
+  "runId": 39678619659,
+  "conclusion": "success",
+  "runUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39678619659",
+  "releaseArtifactId": 12383402953,
+  "releaseArtifactZipSha256": "63f85e4e9026d54cf22df043eb8ca8fb3d1e92643b714a96c7efc3eac0ffd6fc",
+  "apkSha256": "9629a2bc5313dbb5acd357d1281ab79e130978b24688923e795aa556e931dcd7",
+  "apkBytes": 8569572,
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "apkVerifiedLocally": true,
+  "sameCertificateAs015": true,
+  "baseline": {
+    "versionName": "0.15.0",
+    "versionCode": 25,
+    "runId": 39629368679,
+    "apkSha256": "52c7b47e148c06b69c1a45e06fbac00b576ed958109165f85c580729a04e76b3"
+  },
+  "signedUpdatePhases": {
+    "before": "OK (1 test)",
+    "after": "OK (1 test)",
+    "backup": "OK (1 test)",
+    "reopened": "OK (1 test)",
+    "deleted-history": "OK (1 test)",
+    "reopened-history": "OK (1 test)"
+  },
+  "jvm": {
+    "tests": 129,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "tests": 230,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 226,
+    "conditionalProbes": [
+      "br.com.diariodeclasse.FrequencyProcessProbeTest.committedLastCellSurvivesProcessRestart",
+      "br.com.diariodeclasse.ReleaseContinuityProbeTest.releasePreservesSnapshotPreferencesAndBackupRoundTrip",
+      "br.com.diariodeclasse.StableUpgradeProbeTest.sameOwnerSignaturePreservesEveryRowPreferencesAndBackup",
+      "br.com.diariodeclasse.UpgradeProbeTest.allSyntheticRowsSurviveInInstalledApp"
+    ]
+  },
+  "focusedAndroid": {
+    "tests": 23,
+    "failures": 0
+  },
+  "resultsArtifactId": 12382274501,
+  "resultsZipSha256": "eee759feb007f3a138ecb3859f0d141b5ceb3c13452863229c3a8e29076ba79e",
+  "stableResultsArtifactId": 12383462849,
+  "stableResultsZipSha256": "e49a6a38a2b8e91dc1836325b9f80299f38ccc373f6649f020c73a9bc28b6d63",
+  "schema": {
+    "version": 8,
+    "tables": 14,
+    "changed": false,
+    "sha256": "a161e29da72d1673e329d84339357ebf244f54bd1b14e4161b1919c298dfe62d"
+  },
+  "backup": {
+    "format": 9,
+    "changed": false
+  },
+  "internalConversionSupported": false,
+  "impeccable": "File missing at supplied path; user-authorized Material 3/Compose fallback applied",
+  "limitations": [
+    "Internal conversion and unilateral internal correction remain blocked",
+    "Physical-device and additional screen/font combinations require owner review",
+    "ReleaseContinuityProbeTest belongs to legacy workflow and was not invoked"
+  ],
+  "scope": "Only synthetic data on disposable emulators; no real student data accessed"
+}
