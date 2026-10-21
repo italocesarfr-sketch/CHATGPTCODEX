@@ -1,0 +1,94 @@
+{
+  "versionName": "0.15.0",
+  "versionCode": 25,
+  "applicationId": "br.com.diariodeclasse",
+  "database": "diario.db",
+  "codeCommit": "84025a31094af2c7d7da480d67aaddb9792ede3c",
+  "runId": 39629368679,
+  "conclusion": "success",
+  "runUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39629368679",
+  "releaseArtifactId": 12359971428,
+  "releaseArtifactZipSha256": "9ee636f8e21b34366d09db41222c26b32587f6e57b2e3315f26c4967d9ccc651",
+  "apkSha256": "52c7b47e148c06b69c1a45e06fbac00b576ed958109165f85c580729a04e76b3",
+  "apkBytes": 8553192,
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "apkVerifiedLocally": true,
+  "sameCertificateAs014": true,
+  "signedUpdatePhases": {
+    "before": "OK (1 test)",
+    "after": "OK (1 test)",
+    "backup": "OK (1 test)",
+    "reopened": "OK (1 test)",
+    "deleted-history": "OK (1 test)",
+    "reopened-history": "OK (1 test)"
+  },
+  "jvm": {
+    "tests": 125,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "xmlCases": 223,
+    "passed": 219,
+    "failures": 0,
+    "errors": 0,
+    "conditionalProbesSkippedInFullInvocation": 4
+  },
+  "focusedAndroid": {
+    "tests": 16,
+    "failures": 0
+  },
+  "layoutSmoke": "OK (1 test)",
+  "legacyUpgrade": [
+    "before: OK (1 test)",
+    "after: OK (1 test)"
+  ],
+  "frequencyProcess": [
+    "write: OK (1 test)",
+    "read: OK (1 test)"
+  ],
+  "schema": {
+    "version": 8,
+    "tables": 14,
+    "identityHash": "5e6a8d2ba79a933d48be69059702f9f6",
+    "sha256": "a161e29da72d1673e329d84339357ebf244f54bd1b14e4161b1919c298dfe62d",
+    "migration": "ALTER TABLE relocations ADD COLUMN corrections TEXT NOT NULL DEFAULT '[]'"
+  },
+  "backup": {
+    "format": 9,
+    "readsEarlierFormats": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  "spreadsheets": {
+    "legacyJvmXlsx": 38,
+    "legacyJvmCsv": 38,
+    "legacyJvmTsv": 114,
+    "legacyAndroidXlsx": 3,
+    "plansXlsx": 2,
+    "readers": [
+      "openpyxl 3.1.5",
+      "artifact-tool import and render"
+    ],
+    "exactTextVerified": true
+  },
+  "skills": {
+    "impeccable": "Missing at supplied path; user-authorized Material 3/Compose fallback",
+    "spreadsheets": "Read SKILL.md, API_QUICK_START, style_guidelines and read-only workflow; inspected and rendered native XLSX",
+    "documents": "Read SKILL.md and writing_quality; edited Markdown without DOCX/PDF"
+  },
+  "scope": "Synthetic data on disposable API 30 emulators; no real student database accessed",
+  "limitations": [
+    "Internal relocation corrections remain blocked",
+    "Physical phone and Microsoft Excel desktop review remains with owner",
+    "Excel per-cell text and row-height limits apply without truncating stored content"
+  ]
+}

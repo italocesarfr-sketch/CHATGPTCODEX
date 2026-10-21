@@ -1,3 +1,5 @@
+> Atualização funcional **Noctua 0.15.0 / 25** aprovada: correção de remanejamentos externos, limpeza confirmada de NR com diagnóstico e planos de aula XLSX independentes. Room v8 aditivo, backup 9 lendo anteriores, mesma assinatura da 0.14.0. [Contrato, testes e entrega](ATUALIZACAO_FUNCIONAL_015.md).
+
 > Sete refinamentos finais autorizados sobre a 0.13.0: interface compacta, calendário no rodapé e entrada **somente demonstrativa**, sem contas, credenciais persistidas ou autenticação. [Contrato e validação](REFINAMENTOS_FINAIS_UX.md). Room v7, backup 8 e regras escolares inalterados.
 
 > Refinamento autorizado sobre a 0.12.1: relatórios, exportação anual e reativação/limpeza segura de horários. [Contrato e validação](REFINAMENTO_RELATORIOS_CHAMADA.md). Room v7 e backup 8 sem mudança.
