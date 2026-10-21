@@ -30,15 +30,18 @@ import br.com.diariodeclasse.data.*
         if (link == null) Text("Remanejamento não encontrado.")
         else if (link.targetStudentId != null) Text("Remanejamento interno: a correção precisa ajustar as duas matrículas em conjunto. Nenhum vínculo foi alterado.")
         else {
-            Text("Registrado: ${shortDate(link.effectiveDate)} • ${link.externalTarget}")
-            Field("Data efetiva (dd/mm/aaaa)", day, { day = it; preview = null; selected = emptySet() }, Modifier.testTag("correction-date"), enabled = !saving)
-            Field("Destino externo", target, { target = it; preview = null }, Modifier.testTag("correction-target"), enabled = !saving)
-            OutlinedButton(enabled = !saving, onClick = {
+            fun checkPreview() {
                 focus.clearFocus();keyboard?.hide()
                 val d = day; val t = target; val remove = selected
                 vm.act { val checked = vm.repository.previewRelocationCorrection(student.id, iso(d), t, remove)
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { preview = checked } }
-            }, modifier = Modifier.testTag("preview-correction")) { Text("Conferir correção") }
+            }
+            if (preview == null) {
+                Text("Registrado: ${shortDate(link.effectiveDate)} • ${link.externalTarget}")
+                Field("Data efetiva (dd/mm/aaaa)", day, { day = it; selected = emptySet() }, Modifier.testTag("correction-date"), enabled = !saving)
+                Field("Destino externo", target, { target = it }, Modifier.testTag("correction-target"), enabled = !saving)
+                OutlinedButton(enabled = !saving, onClick = { checkPreview() }, modifier = Modifier.testTag("preview-correction")) { Text("Conferir correção") }
+            }
             preview?.let { checked ->
                 Text("${shortDate(checked.link.effectiveDate)} → ${shortDate(checked.effectiveDate)}", style = MaterialTheme.typography.titleSmall)
                 Text("${checked.link.externalTarget} → ${checked.externalTarget}")
@@ -58,6 +61,8 @@ import br.com.diariodeclasse.data.*
                 }
                 if (selected != checked.remove) Text("Toque em Conferir correção para atualizar a prévia.")
                 checked.blockers.forEach { Text(it, color = MaterialTheme.colorScheme.error) }
+                OutlinedButton(enabled = !saving, onClick = { checkPreview() }, modifier = Modifier.testTag("preview-correction")) { Text("Conferir correção") }
+                TextButton(enabled = !saving, onClick = { preview = null }) { Text("Editar data e destino") }
                 Button(enabled = !saving && checked.canConfirm && selected == checked.remove, onClick = { confirm = true }, modifier = Modifier.testTag("save-correction")) { Text("Confirmar correção") }
             }
         }
