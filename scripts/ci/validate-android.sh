@@ -16,6 +16,15 @@ text=Path('build/ux14-layout-smoke.txt').read_text()
 assert 'OK (1 test)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
 PYSMOKE
 if (( status == 0 )); then
+    timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FunctionalFifteenInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenUiInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/functional15-focused.txt || status=$?
+    cat build/functional15-focused.txt
+    python3 - <<'PYFOCUSED' || status=1
+from pathlib import Path
+text=Path('build/functional15-focused.txt').read_text()
+assert 'OK (12 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
+PYFOCUSED
+fi
+if (( status == 0 )); then
     timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
 fi
 # Somente fixture no emulador descartável; diagnóstico de automação sem tocar no banco.

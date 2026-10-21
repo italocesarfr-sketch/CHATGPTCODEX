@@ -16,6 +16,8 @@ import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.ui.*
 import br.com.diariodeclasse.ui.theme.NoctuaTheme
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
 import org.junit.*
 import org.junit.Assert.*
 import java.io.File
@@ -36,6 +38,7 @@ class FunctionalFifteenUiInstrumentedTest {
         app.repository.saveClass(c,"2026-01-01");app.repository.saveStudent(s);app.repository.dao.save(l)
         app.repository.mark(l.id,s.id,"FJ")
         app.repository.confirmRelocation(app.repository.previewRelocation(s.id,null,"foi pro noturno","2026-10-25"))
+        withTimeout(10000) { vm.data.first { it.loaded && it.relocations.any { link -> link.sourceStudentId == s.id } } }
         compose.setContent {
             val d by vm.data.collectAsState();val density=LocalDensity.current.density
             CompositionLocalProvider(LocalDensity provides Density(density,font)) {
@@ -79,7 +82,7 @@ class FunctionalFifteenUiInstrumentedTest {
     }
     @Test fun nrCleanupDiagnosesHourCancelsAndRemovesOnlyAfterConfirmation(){
         runBlocking{app.repository.dao.save(Attendance(l.id,s.id,"NR"))};compose.runOnIdle{screen="day";font=1.3f}
-        compose.onNodeWithText("Horários: 1 • Alterar").performScrollTo().performClick();click("clear-day-hours")
+        compose.onNodeWithText("Horários: 1 • Alterar").performClick();click("clear-day-hours")
         compose.waitUntil(10000){compose.onAllNodesWithTag("confirm-clear-day").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithText("1º horário: 1 NR").assertExists();shot("02-diagnostico-nr")
         compose.onNodeWithText("Cancelar",useUnmergedTree=true).performClick();assertEquals(1,runBlocking{app.repository.dao.day(c.id,l.date).size})
