@@ -114,6 +114,8 @@ jobs:
             app/build/attendance-export-validation/
             app/build/annual-export-validation/
             app/build/plans-export-validation/
+            build/functional15-telas.tar
+            build/functional15-focused.txt
             build/ux14-telas.tar
             build/ux14-layout-smoke.txt
             build/ux12-telas.tar

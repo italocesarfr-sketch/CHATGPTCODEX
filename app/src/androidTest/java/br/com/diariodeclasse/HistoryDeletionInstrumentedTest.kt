@@ -127,7 +127,10 @@ class HistoryDeletionInstrumentedTest {
             for(field in listOf("classes","students","terms","lessons","activities","marks","grades","drafts","recompositions","relocations","exportRows","classArchives","lessonRecords")) {
                 val rows=json.getJSONArray(field)
                 for(i in 0 until rows.length()) {
-                    val row=rows.getJSONObject(i);val values=ContentValues()
+                    val row=rows.getJSONObject(i)
+                    // A fixture é do esquema antigo: a auditoria só passa a existir na v8.
+                    if(field=="relocations") { assertEquals(0,row.getJSONArray("corrections").length());row.remove("corrections") }
+                    val values=ContentValues()
                     row.keys().forEach {key -> when(val v=row.get(key)) {JSONObject.NULL->values.putNull(key);is Boolean->values.put(key,if(v)1 else 0);else->values.put(key,v.toString())}}
                     sql.insert(when(field) {"drafts"->"import_drafts";"exportRows"->"export_rows";"classArchives"->"class_archives";"lessonRecords"->"lesson_records";else->field},0,values)
                 }

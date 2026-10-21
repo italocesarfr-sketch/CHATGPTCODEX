@@ -135,9 +135,9 @@ class RelocationUiInstrumentedTest {
         runBlocking{app.repository.saveGrade(next.id,target.id,3.0)}
         compose.waitUntil(10000){value().fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.Text].any {it.text=="5,00"}}
         compose.onNodeWithText("${target.number}. ${target.name}").performClick();waitText("Histórico consolidado:")
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("individual-activity-${old.id}"))
+        compose.onNodeWithTag("individual-report").performScrollToKey(old.id)
         compose.onNodeWithTag("individual-activity-${old.id}").assertTextContains(g.name,substring=true)
-        compose.onNodeWithTag("individual-report").performScrollToNode(hasTestTag("history-attendance-${g.id}:2026-08-10:2"))
+        compose.onNodeWithTag("individual-report").performScrollToKey("history-${a.id}-${g.id}:2026-08-10:2")
         compose.onNodeWithTag("history-attendance-${g.id}:2026-08-10:2").assertTextContains("F • REALIZADA",substring=true);shot("03-historico-destino")
         compose.activityRule.scenario.recreate()
         compose.onNodeWithTag("individual-report").performScrollToIndex(0);waitText("Nota 5,00 / 10,00")
