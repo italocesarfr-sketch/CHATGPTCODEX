@@ -52,6 +52,7 @@ class FunctionalFifteenInstrumentedTest {
         assertFalse(after.marks.any{it.studentId==s.id&&it.lessonId==l.id})
         assertEquals("FJ",after.relocations.single().corrections.single().removed.single().attendance.mark)
         assertEquals(0,after.frequency(corrected,null,true).justified)
+        assertTrue(repo.diagnoseDayHours(c.id,day).blockers.any{it.contains("referência histórica")})
         db.close();open();assertEquals(ClassLifecycle.fingerprint(after),ClassLifecycle.fingerprint(snapshot()))
         val bytes=backup.backupBytes();repo.saveStudent(other.copy(name="Nome fictício corrigido"));backup.restore(backup.prepare(bytes.inputStream()),"RESTAURAR")
         assertEquals(ClassLifecycle.fingerprint(after),ClassLifecycle.fingerprint(snapshot()))

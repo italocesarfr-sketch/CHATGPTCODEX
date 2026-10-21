@@ -42,11 +42,12 @@ object RelocationCorrections {
         val activities = data.activities.associateBy { it.id }
         val grades = data.grades.filter { it.studentId == source.id && activities.getValue(it.activityId).date >= day }
         val recompositions = data.recompositions.filter { it.studentId == source.id && it.date >= day }
-        val records = marks.map { mark -> val lesson = lessons.getValue(mark.lessonId)
-            AffectedAcademicRecord(lesson.date, "${lesson.ordinal}º horário", mark.mark, mark)
-        } + grades.map { g -> val a = activities.getValue(g.activityId)
+        val affectedFrom = minOf(day, link.effectiveDate)
+        val records = data.marks.filter { it.studentId == source.id && lessons.getValue(it.lessonId).date >= affectedFrom }.map { mark -> val lesson = lessons.getValue(mark.lessonId)
+            AffectedAcademicRecord(lesson.date, "${lesson.ordinal}º horário", mark.mark, mark.takeIf { lesson.date >= day })
+        } + data.grades.filter { it.studentId == source.id && activities.getValue(it.activityId).date >= affectedFrom }.map { g -> val a = activities.getValue(g.activityId)
             AffectedAcademicRecord(a.date, "Nota • ${a.name}", g.value?.toString() ?: "Pendente")
-        } + recompositions.map { AffectedAcademicRecord(it.date, "Recomposição • ${it.term}º bimestre", it.value?.toString() ?: "Pendente") }
+        } + data.recompositions.filter { it.studentId == source.id && it.date >= affectedFrom }.map { AffectedAcademicRecord(it.date, "Recomposição • ${it.term}º bimestre", it.value?.toString() ?: "Pendente") }
         val blockers = buildList {
             if(day == link.effectiveDate && target == link.externalTarget && remove.isEmpty()) add("Nenhuma correção informada.")
             marks.filter { it.mark != "NR" && it.lessonId !in remove }.forEach { m -> val l = lessons.getValue(m.lessonId)

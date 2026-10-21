@@ -67,6 +67,13 @@ class FunctionalFifteenTest {
             val p=EmptyDayHours.diagnose(d,c.id,l.date);assertFalse(p.canRemove);assertTrue(p.blockers.joinToString().contains(word))
         }
     }
+    @Test fun movingDateLaterShowsNewlyEligibleRecordsAndDoesNotOfferToEraseThem() {
+        val later=l.copy(date="2026-09-12")
+        val d=data().copy(lessons=listOf(later),marks=listOf(Attendance(l.id,s.id,"FJ")))
+        val p=RelocationCorrections.preview(d,s.id,"2026-09-15","Noturno")
+        assertTrue(p.canConfirm);assertEquals("FJ",p.records.single().value);assertNull(p.records.single().attendance)
+        fails { RelocationCorrections.preview(d,s.id,"2026-09-15","Noturno",setOf(l.id)) }
+    }
     @Test fun previousFormatEightWithDeletedOriginStillRestoresWithoutAudit() {
         val source=BackupCodec.json.decodeFromString<BackupSnapshot>(javaClass.classLoader!!.getResourceAsStream("history-deletion.json")!!.bufferedReader().readText()).diarySnapshot()
         val historical=ClassLifecycle.snapshot(ClassLifecycle.without(source,"history-x")).canonical()

@@ -42,7 +42,8 @@ import br.com.diariodeclasse.data.*
                 checked.records.forEach { record ->
                     Column {
                         Text("${shortDate(record.date)} • ${record.type} • ${record.value}")
-                        record.attendance?.let { mark -> Row {
+                        if (record.date < checked.effectiveDate) Text("Preservado no período corrigido", style = MaterialTheme.typography.labelMedium)
+                        record.attendance?.let { mark -> Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                             Checkbox(mark.lessonId in selected, enabled = !saving, onCheckedChange = { value ->
                                 selected = if (value) selected + mark.lessonId else selected - mark.lessonId
                             }, modifier = Modifier.testTag("remove-correction-${mark.lessonId}"))
