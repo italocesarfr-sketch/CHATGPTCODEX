@@ -1,3 +1,5 @@
+> **Noctua 0.15.2 / 27 validada:** conversão externa → interna com identidade e auditorias preservadas, matrícula nova ou vínculo seguro à existente. Room v8 inalterado; backup 10 lendo formatos 1–9. [Contrato, testes e release](CONVERSAO_REMANEJAMENTO_0152.md).
+
 > **Noctua 0.15.1 / 26 validada:** correção administrativa com revisão automática, confirmação única e seleção de destino por tipo. Conversões internas permanecem bloqueadas; Room v8 e backup 9 inalterados. [Contrato, testes e APK assinado](REFINAMENTO_REMANEJAMENTOS_0151.md).
 
 > Atualização funcional **Noctua 0.15.0 / 25** aprovada: correção de remanejamentos externos, limpeza confirmada de NR com diagnóstico e planos de aula XLSX independentes. Room v8 aditivo, backup 9 lendo anteriores, mesma assinatura da 0.14.0. [Contrato, testes e entrega](ATUALIZACAO_FUNCIONAL_015.md).
