@@ -139,10 +139,11 @@ import kotlinx.coroutines.*
                                 })
                                 Text("Retirar marcação indevida", Modifier.weight(1f))
                             }
+                            if (!checking && mark.lessonId in checked.attendanceBlockers) Text("Confirme a retirada ou reveja a data.", color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
-                if (!checking && issue == null) checked.blockers.forEach { Text(it, color = MaterialTheme.colorScheme.error) }
+                if (!checking && issue == null) checked.blockers.filterNot { it in checked.attendanceBlockers.values }.forEach { Text(it, color = MaterialTheme.colorScheme.error) }
             }
             if (checking) LinearProgressIndicator(Modifier.fillMaxWidth().testTag("correction-checking").semantics { contentDescription = "Atualizando prévia" })
             notice?.let { Text(it, Modifier.semantics { liveRegion = LiveRegionMode.Polite }) }
@@ -152,7 +153,7 @@ import kotlinx.coroutines.*
                 onClick = { confirm = true }, modifier = Modifier.testTag("save-correction")) { Text("Confirmar correção") }
         }
         if (!reviewing) link?.corrections?.asReversed()?.forEach { audit ->
-            Text("Correção confirmada: ${shortDate(audit.previousDate)} → ${shortDate(audit.effectiveDate)}")
+            Text(if (audit.previousDate == audit.effectiveDate) "Correção confirmada: ${shortDate(audit.effectiveDate)}" else "Correção confirmada: ${shortDate(audit.previousDate)} → ${shortDate(audit.effectiveDate)}")
             Text(if (audit.previousTarget == audit.externalTarget) "Destino: ${audit.externalTarget}" else "Destino: ${audit.previousTarget} → ${audit.externalTarget}")
             audit.removed.forEach { removed -> Text("Retirado: ${shortDate(removed.lesson.date)} • ${removed.lesson.ordinal}º horário • ${removed.attendance.mark}") }
         }
@@ -161,7 +162,9 @@ import kotlinx.coroutines.*
     if (confirm && !checking) preview?.let { checked ->
         val counts = checked.records.mapNotNull { it.attendance }.filter { it.lessonId in checked.remove }
             .groupingBy { it.mark }.eachCount().toSortedMap().entries.joinToString(" • ") { "${it.value} ${it.key}" }
-        val summary = "${student.name}\nData: ${shortDate(checked.link.effectiveDate)} → ${shortDate(checked.effectiveDate)}\nDestino: ${checked.externalTarget}\n" +
+        val dates = if (checked.link.effectiveDate == checked.effectiveDate) shortDate(checked.effectiveDate)
+            else "${shortDate(checked.link.effectiveDate)} → ${shortDate(checked.effectiveDate)}"
+        val summary = "${student.name}\nData: $dates\nDestino: ${checked.externalTarget}\n" +
             (if (counts.isEmpty()) "Nenhuma marcação será retirada." else "Retirar: $counts. Sem atribuir presença ou falta.") + "\nA matrícula continuará Remanejada."
         AlertDialog(onDismissRequest = { if (!saving) confirm = false }, title = { Text("Confirmar correção?") },
             text = { Text(summary, Modifier.verticalScroll(rememberScrollState())) },

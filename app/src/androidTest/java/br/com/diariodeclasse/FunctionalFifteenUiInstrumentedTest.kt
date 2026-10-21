@@ -67,9 +67,9 @@ class FunctionalFifteenUiInstrumentedTest {
         automation.injectInputEvent(android.view.KeyEvent(now,now,android.view.KeyEvent.ACTION_UP,android.view.KeyEvent.KEYCODE_BACK,0),true)
         compose.waitForIdle()
     }
-    private fun shot(name:String){
+    private fun shot(name:String, dialogTitle:String?=null){
         val folder=File(app.filesDir,"functional15-screenshots").apply{mkdirs()}
-        val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog()) else compose.onRoot()
+        val root=if(dialogTitle!=null) compose.onNode(isDialog() and hasAnyDescendant(hasText(dialogTitle))) else if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog()) else compose.onRoot()
         File(folder,"$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun correctionShowsAffectedFJAndRequiresExplicitConfirmation(){
@@ -179,7 +179,7 @@ class FunctionalFifteenUiInstrumentedTest {
         click("preview-correction");waitReviewReady()
         compose.onNodeWithText("Destino: foi pro noturno → Noturno corrigido").assertExists()
         click("save-correction");compose.onNodeWithText("Nenhuma marcação será retirada.",substring=true).assertExists()
-        shot("05-confirmacao-unica")
+        shot("05-confirmacao-unica","Confirmar correção?")
         compose.onNodeWithText("Confirmar",useUnmergedTree=true).performClick()
         compose.waitUntil(10000){closed}
         val after=runBlocking{app.backupManager.snapshot()}

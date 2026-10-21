@@ -21,7 +21,7 @@ data class AffectedAcademicRecord(val date: String, val type: String, val value:
 data class RelocationCorrectionPreview internal constructor(
     internal val before: DiarySnapshot, val source: Student, val link: Relocation,
     val effectiveDate: String, val externalTarget: String, val records: List<AffectedAcademicRecord>,
-    val remove: Set<String>, val blockers: List<String>
+    val remove: Set<String>, val blockers: List<String>, val attendanceBlockers: Map<String, String> = emptyMap()
 ) { val canConfirm get() = blockers.isEmpty() }
 
 /** O snapshot da prévia precisa continuar idêntico até o commit. */
@@ -71,14 +71,17 @@ object RelocationCorrections {
         } + data.grades.filter { it.studentId == source.id && activities.getValue(it.activityId).date >= affectedFrom }.map { g -> val a = activities.getValue(g.activityId)
             AffectedAcademicRecord(a.date, "Nota • ${a.name}", g.value?.toString() ?: "Pendente")
         } + data.recompositions.filter { it.studentId == source.id && it.date >= affectedFrom }.map { AffectedAcademicRecord(it.date, "Recomposição • ${it.term}º bimestre", it.value?.toString() ?: "Pendente") }
+        val attendanceBlockers = marks.filter { it.mark != "NR" && it.lessonId !in remove }.associate { m ->
+            val l = lessons.getValue(m.lessonId)
+            m.lessonId to "${LocalDate.parse(l.date).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))} • ${l.ordinal}º horário • ${m.mark}: confirme a retirada ou reveja a data."
+        }
         val blockers = buildList {
             if(day == link.effectiveDate && target == link.externalTarget && remove.isEmpty()) add("Nenhuma correção informada.")
-            marks.filter { it.mark != "NR" && it.lessonId !in remove }.forEach { m -> val l = lessons.getValue(m.lessonId)
-                add("${java.time.LocalDate.parse(l.date).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))} • ${l.ordinal}º horário • ${m.mark}: confirme a retirada ou reveja a data.") }
+            addAll(attendanceBlockers.values)
             if (grades.isNotEmpty()) add("${grades.size} nota(s) na data proposta ou depois. Reveja a data; as notas serão preservadas.")
             if (recompositions.isNotEmpty()) add("${recompositions.size} recomposição(ões) na data proposta ou depois. Reveja a data; os resultados serão preservados.")
         }
         return RelocationCorrectionPreview(data, source, link, day, target,
-            records.sortedWith(compareBy({ it.date }, { it.type }, { it.value })), remove.toSet(), blockers)
+            records.sortedWith(compareBy({ it.date }, { it.type }, { it.value })), remove.toSet(), blockers, attendanceBlockers)
     }
 }
