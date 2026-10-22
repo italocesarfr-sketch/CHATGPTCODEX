@@ -22,6 +22,9 @@ class TimetablesTest {
         val slots=(1..7).flatMap{listOf(slot(it,1),slot(it,2,h))}
         val p=Timetables.preview(data(),2026,"2026-01-01",slots)
         assertEquals(14,p.proposed.slots.size)
+        assertEquals(2,Timetables.preview(data(),2026,"2026-01-01",listOf(slot(),slot(school=h.copy(shift="Noturno")))) .proposed.slots.size)
+        assertTrue(Timetables.shiftOrder("Matutino")<Timetables.shiftOrder("Vespertino"))
+        assertTrue(Timetables.shiftOrder("Vespertino")<Timetables.shiftOrder("Noturno"))
         fail{Timetables.preview(data(),2026,"2026-01-01",listOf(slot(),slot(school=h)))}
     }
     @Test fun futureValidityPreservesEarlierDaysAndYearBoundaries() {

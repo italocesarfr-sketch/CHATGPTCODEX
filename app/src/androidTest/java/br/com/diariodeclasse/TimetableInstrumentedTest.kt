@@ -78,6 +78,8 @@ class TimetableInstrumentedTest {
         assertEquals(expected,backup.snapshot().timetables)
         assertEquals(c.name,backup.snapshot().timetables.single().slots.single().className)
         BackupCodec.decode(backup.backupBytes())
+        try{repo.saveClass(c.copy(year=2027),"2027-01-01");fail("Identidade histórica não pode ser reutilizada")}catch(_:IllegalArgumentException){}
+        assertEquals(expected,backup.snapshot().timetables)
     }
     @Test fun migrationEightToNineLeavesEveryExistingTableAndRowUnchanged()=runBlocking {
         // Freeze all fourteen existing tables with real rows, then execute only the additive migration.

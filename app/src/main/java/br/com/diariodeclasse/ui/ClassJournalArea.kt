@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 import java.time.LocalDate
 
-/** Quatro páginas mantidas; os dois modos compartilham apenas contexto e calendário visual. */
+/** Quatro páginas mantidas; grade única e dois calendários compartilham contexto. */
 @Composable fun ClassJournalArea(vm:DiaryViewModel,data:DiarySnapshot,c:SchoolClass?,term:Int,
     changeTerm:(Int)->Unit,configureTerms:()->Unit,mode:String,changeMode:(String)->Unit,
     draft:LessonRecordDraft?,changeDraft:(LessonRecordDraft?)->Unit,dismissDraft:()->Unit,

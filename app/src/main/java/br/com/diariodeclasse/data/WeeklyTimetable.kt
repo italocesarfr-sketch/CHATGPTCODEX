@@ -28,6 +28,9 @@ data class TimetablePreview(val expected: List<WeeklyTimetable>, val proposed: W
     val through: String, val affected: List<String>)
 
 object Timetables {
+    fun shiftOrder(shift:String): Int = when(shift.trim().lowercase(java.util.Locale.ROOT)) {
+        "matutino" -> 0; "vespertino" -> 1; "noturno" -> 2; else -> 3
+    }
     fun current(rows: List<WeeklyTimetable>, day: String): WeeklyTimetable? = rows
         .filter { it.year == LocalDate.parse(day).year && it.effective <= day }
         .maxWithOrNull(compareBy<WeeklyTimetable> { it.effective }.thenBy { it.revision })
@@ -45,8 +48,14 @@ object Timetables {
             require(row.id.isNotBlank() && row.year in 2000..2100 && row.revision > 0 && LocalDate.parse(row.effective).year == row.year) { "Confira a vigência da grade." }
             Instant.parse(row.createdAt)
             require(row.slots.map { it.id }.distinct().size == row.slots.size) { "Horários repetidos." }
-            require(row.slots.map { it.weekday to it.ordinal }.distinct().size == row.slots.size) { "Duas turmas ocupam o mesmo período. Revise os horários." }
-            require(row.slots.all { it.id.isNotBlank() && it.classId.isNotBlank() && it.weekday in 1..7 && it.ordinal in 1..12 && it.className.isNotBlank() && it.subject.isNotBlank() }) { "Confira os períodos da grade." }
+            val conflict=row.slots.groupBy { Triple(it.weekday,it.shift.trim().lowercase(java.util.Locale.ROOT),it.ordinal) }.values.firstOrNull { it.size>1 }
+            require(conflict==null) {
+                val slot=conflict!!.first()
+                val day=java.time.DayOfWeek.of(slot.weekday).getDisplayName(java.time.format.TextStyle.FULL,java.util.Locale.forLanguageTag("pt-BR"))
+                "Conflito: $day, ${slot.shift}, ${slot.ordinal}º horário. Escolha outro período."
+            }
+            require(row.slots.map { Triple(it.classId,it.weekday,it.ordinal) }.distinct().size == row.slots.size) { "Um período da turma está repetido." }
+            require(row.slots.all { it.id.isNotBlank() && it.classId.isNotBlank() && it.weekday in 1..7 && it.ordinal in 1..12 && it.className.isNotBlank() && it.subject.isNotBlank() && it.shift.isNotBlank() }) { "Confira os períodos da grade." }
         }
     }
     fun preview(data: DiarySnapshot, year: Int, effective: String, slots: List<WeeklySlot>): TimetablePreview {

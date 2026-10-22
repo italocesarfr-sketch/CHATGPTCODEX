@@ -13,7 +13,7 @@ cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
 from pathlib import Path
 text=Path('build/weekly-focused.txt').read_text()
-assert 'OK (12 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (13 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYWEEKLY
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
 cat build/ux14-layout-smoke.txt

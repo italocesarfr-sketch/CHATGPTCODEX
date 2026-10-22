@@ -6,13 +6,13 @@ Base: 0.16.0 / código 28. Incremento: 0.17.0 / código 29. Escopo exclusivament
 
 A segunda área reúne **Horários / Chamada / Diário**. No rodapé, os três nomes ocupam linhas separadas para permanecerem legíveis em celulares compactos. A Chamada continua sendo o modo inicial para preservar os caminhos anteriores.
 
-Em **Horários**, consulte segunda a domingo; o dia atual é selecionado inicialmente. A grade independe da seleção de turma. **Adicionar horários** permite escolher uma turma ativa do ano, dia, períodos de 1º a 12º e vigência. A quantidade deriva dos períodos escolhidos. O mesmo período não pode ser ocupado por duas turmas no mesmo dia. A posição é comum à rotina do professor: não se presumem turnos com numerações independentes.
+Em **Horários**, consulte segunda a domingo; o dia atual é selecionado inicialmente. A grade independe da seleção de turma. **+ Horários** permite escolher uma turma ativa do ano, dia, períodos de 1º a 12º e vigência. A quantidade deriva dos períodos escolhidos. O mesmo período não pode ser ocupado por duas turmas no mesmo dia e turno. O turno é reaproveitado do cadastro da turma, permitindo, por exemplo, 1º horário matutino e 1º horário noturno sem conflito. A lista ordena turnos e períodos.
 
 O botão **Abrir chamada** seleciona a turma sem criar aulas. Para mudar a rotina, edite os períodos e informe a nova vigência. A revisão mostra o intervalo atingido e datas que já possuem chamadas ou conteúdos. Retirar horários da grade cria outra revisão, sem apagar aulas. **Vigências** permite consultar outras datas e as revisões anteriores, inclusive suas turmas e períodos.
 
 Os dois calendários usam a mesma grade: pontos menores indicam uma ou duas aulas previstas; quantidades maiores aparecem numericamente. Leitores de tela recebem a quantidade em texto. Os indicadores atuais de frequência, cancelamento e diário continuam independentes.
 
-Na chamada de uma data sem horários, a quantidade prevista vem selecionada; apenas **Registrar horários** grava aulas. Aulas existentes, inclusive canceladas, nunca são substituídas pela sugestão. É possível registrar aulas excepcionais fora da grade. Um único conteúdo do Diário pode corresponder a várias aulas e o preenchimento continua facultativo.
+Na chamada de uma data sem horários, a quantidade prevista vem selecionada; apenas **Registrar horários** grava aulas. Aulas existentes, inclusive canceladas, nunca são substituídas pela sugestão. As posições da grade pertencem à rotina do professor; os horários já utilizados pela chamada permanecem sequenciais por turma/data e não são renumerados pela grade. É possível registrar aulas excepcionais fora da grade. Um único conteúdo do Diário pode corresponder a várias aulas e o preenchimento continua facultativo.
 
 ## Persistência e vigência
 

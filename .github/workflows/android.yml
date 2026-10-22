@@ -117,6 +117,8 @@ jobs:
             build/functional15-telas.tar
             build/functional15-focused.txt
             build/minimal-export-focused.txt
+            build/weekly-focused.txt
+            build/weekly-telas.tar
             build/ux14-telas.tar
             build/ux14-layout-smoke.txt
             build/ux12-telas.tar

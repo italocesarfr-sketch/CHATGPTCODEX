@@ -68,7 +68,7 @@ data class DiarySnapshot(
 
 class DiaryRepository(val db: DiaryDatabase) {
     val dao = db.dao()
-    // Cada emissão lê as quatorze tabelas no mesmo snapshot SQLite confirmado.
+    // Cada emissão lê as quinze tabelas no mesmo snapshot SQLite confirmado.
     // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
     val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
         "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows", "class_archives", "lesson_records", "preserved_histories", "weekly_timetables").map {
@@ -181,6 +181,9 @@ class DiaryRepository(val db: DiaryDatabase) {
         require(previous == null || previous.year == value.year) { "Crie outra turma para mudar o ano e preservar o histórico." }
         require(date(effective).year == value.year) { "A vigência deve estar no ano letivo." }
         val linked=readSnapshot()
+        require(previous != null || linked.timetables.none { row -> row.slots.any { it.classId == value.id } }) {
+            "O identificador pertence a uma turma excluída com grade histórica. Crie uma nova turma."
+        }
         RelocationRules.validateLinks(linked.copy(classes=linked.classes.map {if(it.id==value.id) value else it}))
         dao.save(value)
         if (previous == null) {

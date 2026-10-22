@@ -49,10 +49,18 @@ class TimetableUiInstrumentedTest {
         tag(calendar).performScrollToNode(hasTestTag("date-$day"));tag("date-$day").performScrollTo()
     }
     private fun shot(name:String){val dir=File(app.filesDir,"weekly-screenshots");dir.mkdirs();val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog())else compose.onRoot();File(dir,"$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
+    @Test fun timetableCanBeOpenedWithNoClassInTheSelectedYearAndDoesNotInsertAnything() {
+        runBlocking{app.selectionStore.write(AppSelection(2099,null))}
+        compose.waitUntil(10000){vm.selection.value?.year==2099}
+        val before=runBlocking{app.backupManager.snapshot()}
+        weekly();tag("add-weekly-hours").assertIsNotEnabled()
+        tag("weekday-${LocalDate.now().dayOfWeek.value}").assertIsSelected()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
     @Test fun todayAndEveryWeekdayAreAccessibleAndWeeklyShortcutOpensAttendance() {
         seed();weekly();tag("weekday-${LocalDate.now().dayOfWeek.value}").assertIsSelected()
         for(d in 1..7){tag("weekday-$d").performClick().assertIsSelected()}
-        tag("weekday-4").performClick();tag("weekly-class-${c.id}").assertExists();shot("01-grade-semanal")
+        tag("weekday-4").performClick();tag("weekly-timetable").performScrollToNode(hasTestTag("weekly-class-${c.id}"));tag("weekly-class-${c.id}").assertExists();shot("01-grade-semanal")
         tag("open-weekly-${c.id}").performScrollTo().performClick();waitTag("attendance-calendar")
         assertEquals(c.id,app.selectionStore.read()?.classId)
     }
