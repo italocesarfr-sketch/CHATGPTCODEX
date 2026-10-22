@@ -119,7 +119,7 @@ class ExportLayoutUiInstrumentedTest {
         val p=runBlocking{app.repository.previewRelocation(a.id,h.id,null,"2026-09-01").also{app.repository.confirmRelocation(it)}}
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.relocations.any{it.sourceStudentId==a.id}}
-        reports();compose.onNodeWithTag("show-relocated").performScrollTo().performClick();hideMode()
+        reports();compose.onNodeWithTag("report-sort").performScrollTo().performClick();compose.onNodeWithTag("show-relocated").performScrollTo().performClick();hideMode()
         compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOff()
         compose.onNodeWithTag("export-auto-${a.id}",useUnmergedTree=true).assertTextContains("Exclusão automática",substring=true);shot("03-remanejado")
         top();compose.onNodeWithTag("export-cancel").performClick()

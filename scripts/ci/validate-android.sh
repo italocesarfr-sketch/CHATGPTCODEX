@@ -25,6 +25,15 @@ assert 'OK (35 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_F
 PYFOCUSED
 fi
 if (( status == 0 )); then
+    timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.ExportLifecycleUiInstrumentedTest,br.com.diariodeclasse.ReportsUiInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/minimal-export-focused.txt || status=$?
+    cat build/minimal-export-focused.txt
+    python3 - <<'PYMINIMAL' || status=1
+from pathlib import Path
+text=Path('build/minimal-export-focused.txt').read_text()
+assert 'OK (21 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYMINIMAL
+fi
+if (( status == 0 )); then
     timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
 fi
 # Somente fixture no emulador descartável; diagnóstico de automação sem tocar no banco.

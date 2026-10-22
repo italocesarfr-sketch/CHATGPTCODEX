@@ -53,7 +53,7 @@ class FinalUxEntryInstrumentedTest {
         compose.onNodeWithTag("nav-3").performClick()
         compose.onNodeWithText("Buscar").assertExists()
         compose.onNodeWithTag("open-export").performClick();compose.onNodeWithTag("export-screen").assertExists()
-        compose.onNodeWithTag("export-preview-0").assertIsDisplayed()
+        compose.onNodeWithTag("export-preview-0").assertDoesNotExist();compose.onNodeWithTag("export-show-preview").assertIsDisplayed()
         compose.onNodeWithText("‹ Voltar").performClick()
         compose.onNodeWithTag("export-organize").performClick();compose.onNodeWithTag("export-layout-list").assertExists()
         compose.onNodeWithTag("export-cancel").performScrollTo().performClick()

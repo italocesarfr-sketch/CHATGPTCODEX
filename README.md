@@ -1,3 +1,5 @@
+> Noctua 0.16.0: [Relatórios e exportação minimalistas](docs/RELATORIOS_EXPORTACAO_0160.md). Candidato em validação; APK definitivo e evidências serão publicados após aprovação do CI.
+
 # Noctua
 
 Atualização atual: **Noctua 0.15.2 / código 27**. Conversão segura de remanejamento externo para interno, preservando auditoria, identidade e histórico acadêmico. **139 JVM, 238 Android e atualização assinada sobre a 0.15.1 aprovados**. Room v8 inalterado e backup 10 lendo formatos 1–9. [Contrato, arquivos e capturas](docs/CONVERSAO_REMANEJAMENTO_0152.md) · [APK release assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39690176006/artifacts/12389310277) · [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39690176006). Validação física permanece com o proprietário.

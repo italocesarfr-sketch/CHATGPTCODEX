@@ -48,7 +48,7 @@ class FunctionalFifteenUiInstrumentedTest {
                         closed -> androidx.compose.material3.Text("Concluído")
                         screen=="student" -> if(d.loaded)StudentForm(vm,c,d.students.first{it.id==s.id}){closed=true}
                         screen=="day" -> DayAttendanceScreen(vm,d,c,l.date,{}, {})
-                        screen=="export" -> ExportScreen(d,c,4,plans={screen="plans"}){}
+                        screen=="export" -> ExportScreen(d,c,4){}
                         screen=="plans" -> AttendanceExportScreen(d,c,4,{},true,plans=true){}
                     }
                 } }
@@ -252,11 +252,19 @@ class FunctionalFifteenUiInstrumentedTest {
     @Test fun independentPlanExportNavigationPeriodAndEmptyState(){
         runBlocking{app.repository.saveLessonRecord(LessonRecord("ui-fifteen-plan-${newId()}",c.id,"2026-10-17","Título fictício","Descrição exata\nCom acentuação."))}
         compose.runOnIdle{screen="export"}
-        click("export-other");compose.onNodeWithTag("open-plans-export").performClick()
+        click("export-type");compose.onNodeWithTag("export-type-PLANS").performClick()
         compose.onNodeWithTag("plans-export-screen").assertExists()
+        click("export-show-preview")
         compose.onNodeWithText("Descrição exata\nCom acentuação.").performScrollTo().assertExists();shot("03-planos-xlsx")
-        compose.onNodeWithText("4 ▾").performScrollTo().performClick();compose.onNodeWithText("1",useUnmergedTree=true).performClick()
+        compose.onNodeWithTag("export-preview-close").performClick()
+        click("export-options")
+        compose.onNodeWithText("Bimestre selecionado ▾").performScrollTo().performClick()
+        compose.onNode(hasText("Intervalo de datas") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        compose.onNodeWithTag("attendance-export-start").performTextReplacement("01/01/2026")
+        compose.onNodeWithTag("attendance-export-end").performTextReplacement("31/03/2026")
+        click("export-settings-done")
         compose.onNodeWithText("Nenhum plano de aula neste período.").performScrollTo().assertExists()
-        compose.onNodeWithTag("attendance-export-file").performScrollTo().assertIsNotEnabled()
+        compose.onNodeWithTag("export-file").assertIsNotEnabled()
+
     }
 }

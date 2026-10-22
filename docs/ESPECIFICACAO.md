@@ -1,3 +1,5 @@
+> **Refinamento autorizado 0.16.0 / 28:** relatórios com filtros unificados e exportação direta, bimestre herdado, ajustes e prévia sob demanda. Sem alteração de Room v8, backup 10 ou regras acadêmicas. [Contrato e validação](RELATORIOS_EXPORTACAO_0160.md).
+
 > **Noctua 0.15.2 / 27 validada:** conversão externa → interna com identidade e auditorias preservadas, matrícula nova ou vínculo seguro à existente. Room v8 inalterado; backup 10 lendo formatos 1–9. [Contrato, testes e release](CONVERSAO_REMANEJAMENTO_0152.md).
 
 > **Noctua 0.15.1 / 26 validada:** correção administrativa com revisão automática, confirmação única e seleção de destino por tipo. Conversões internas permanecem bloqueadas; Room v8 e backup 9 inalterados. [Contrato, testes e APK assinado](REFINAMENTO_REMANEJAMENTOS_0151.md).

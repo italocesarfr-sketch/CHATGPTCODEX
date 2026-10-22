@@ -5,7 +5,7 @@ import br.com.diariodeclasse.reports.*
 
 /** Uma matriz tipada e imutável alimenta prévia, arquivos e área de transferência. */
 enum class ExportModel(val label:String) { NOTES("Notas"), FREQUENCY("Frequência"), CONSOLIDATED("Consolidado") }
-enum class ExportFormat(val extension:String,val mime:String) { XLSX("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), CSV("csv","text/csv") }
+enum class ExportFormat(val extension:String,val mime:String) { XLSX("xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"), CSV("csv","text/csv"), TSV("tsv","text/tab-separated-values") }
 data class ExportOptions(val model:ExportModel=ExportModel.NOTES,val term:Int?=1,val headers:Boolean=true,val callNumber:Boolean=true)
 enum class NumberStyle { DECIMAL, INTEGER, PERCENT, DATE }
 enum class SheetLayout { STANDARD, LESSON_PLANS }

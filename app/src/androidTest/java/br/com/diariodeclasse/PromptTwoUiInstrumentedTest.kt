@@ -134,6 +134,14 @@ class PromptTwoUiInstrumentedTest {
         val after=runBlocking{app.backupManager.snapshot()}
         assertEquals(before,after.copy(marks=after.marks.filterNot{it.lessonId==id&&it.studentId==a.id}))
     }
+    private fun chooseExport(current:String,value:String) {
+        compose.onNodeWithText("$current ▾").performScrollTo().performClick()
+        compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+    }
+    private fun shareExport() {
+        tag("export-options").performScrollTo().performClick();chooseExport("Salvar arquivo","Compartilhar")
+        tag("export-settings-done").performScrollTo().performClick();tag("export-file").performClick()
+    }
     private fun backFromExternalWindow() {
         val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
         compose.waitUntil(10000){automation.rootInActiveWindow?.packageName?.toString()?.let{it!=app.packageName}==true}
@@ -142,28 +150,30 @@ class PromptTwoUiInstrumentedTest {
     }
     @Test fun attendanceXlsxPreviewPickerCancelAndShareLeaveAllSchoolDataUnchanged() {
         runBlocking{app.repository.mark("${c.id}:$day:1",a.id,"P");app.repository.mark("${c.id}:$day:2",a.id,"F")}
-        val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("export-other").performScrollTo().performClick();tag("open-attendance-export").performClick();waitTag("attendance-export-screen")
-        tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard()
+        val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ATTENDANCE").performClick();waitTag("attendance-export-screen")
+        tag("export-options").performScrollTo().performClick()
+        chooseExport("Bimestre selecionado","Intervalo de datas")
+        tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard();tag("export-settings-done").performScrollTo().performClick()
         shot("04-exportar-chamada")
-        tag("attendance-export-file").performScrollTo().performClick();backFromExternalWindow();waitText("Exportação cancelada.")
+        tag("export-file").performScrollTo().performClick();backFromExternalWindow();waitText("Exportação cancelada.")
         compose.onAllNodesWithText("Chamada exportada.").assertCountEquals(0)
-        tag("attendance-export-share").performScrollTo().performClick();backFromExternalWindow()
+        shareExport();backFromExternalWindow()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun annualXlsxPreviewSaveCancellationAndShareAreReadOnly() {
         val before=runBlocking{app.backupManager.snapshot()}
         report();compose.onNodeWithContentDescription("Buscar aluno").assertExists()
-        tag("open-export").performClick();tag("export-other").performScrollTo().performClick();tag("open-annual-export").performClick();waitTag("annual-export-screen")
+        tag("open-export").performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ANNUAL").performClick();waitTag("annual-export-screen")
         tag("attendance-export-start").assertDoesNotExist();tag("attendance-export-end").assertDoesNotExist()
-        compose.onNodeWithText("Prévia do relatório anual").assertExists()
+        tag("export-show-preview").performClick();tag("export-preview-0").assertIsDisplayed();tag("export-preview-close").performClick()
         fun back() {
             val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
             compose.waitUntil(10000){automation.rootInActiveWindow?.packageName?.toString()?.let{it!=app.packageName}==true}
             automation.executeShellCommand("input keyevent KEYCODE_BACK").close();waitTag("annual-export-screen")
         }
-        tag("attendance-export-file").performScrollTo().performClick();back();waitText("Exportação cancelada.")
+        tag("export-file").performScrollTo().performClick();back();waitText("Exportação cancelada.")
         compose.onAllNodesWithText("Relatório anual exportado.").assertCountEquals(0)
-        tag("attendance-export-share").performScrollTo().performClick();back()
+        shareExport();back()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
 

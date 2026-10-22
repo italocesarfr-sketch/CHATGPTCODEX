@@ -68,8 +68,7 @@ class PostTwelveLayoutInstrumentedTest {
     @Test fun reportAndImportActionsStayReachableAtSmallWidthsAndLargeFonts() {
         for((w,f) in listOf(320 to 1f,320 to 1.6f,360 to 1.3f)) {
             compose.runOnIdle{width=w;scale=f;screen="report"}
-            compose.onNodeWithText("Geral ▾").performScrollTo().assertIsDisplayed()
-            compose.onNodeWithTag("report-sort").performScrollTo().assertIsDisplayed()
+            compose.onNodeWithTag("report-sort").performScrollTo().assertIsDisplayed().assertWidthIsAtLeast(48.dp)
             compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-ux12-layout-student"))
             compose.onNodeWithTag("report-row-ux12-layout-student").assertIsDisplayed();shot("layout-report-$w-$f")
             compose.runOnIdle{screen="import"}

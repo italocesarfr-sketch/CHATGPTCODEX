@@ -55,7 +55,7 @@ class ReportsUiInstrumentedTest {
     private fun waitText(text:String) { compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()} }
     private fun mode(value:String,current:String="Geral") {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("${if(current=="Bimestral")"Geral"else current} ▾").performScrollTo().performClick()
+        compose.onNodeWithTag("report-sort").performScrollTo().performClick()
         compose.onNode(hasText(if(value=="Bimestral")"Geral"else value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
@@ -92,12 +92,12 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithText("Fechar").performClick()
         compose.onNodeWithTag("report-information").assertDoesNotExist()
         compose.onNodeWithTag("report-sort").performScrollTo().performClick()
-        compose.onNodeWithText("Maior nota",useUnmergedTree=true).performClick()
+        compose.onNodeWithText("Maior nota",useUnmergedTree=true).performScrollTo().performClick()
         row(a);cell(a,0).assertTextEquals("0,00")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithContentDescription("Ordenar: Maior nota").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem Maior nota").performScrollTo().assertIsDisplayed()
         help.performScrollTo().performClick();compose.onNodeWithText("Fechar").performClick()
-        compose.onNodeWithContentDescription("Ordenar: Maior nota").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem Maior nota").performScrollTo().assertIsDisplayed()
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
     @Test fun helpPreservesCurrentClassJustificationPolicy() {
@@ -147,12 +147,12 @@ class ReportsUiInstrumentedTest {
         for(label in listOf("Mais faltas","Menos faltas","Maior nota","Menor nota","Chamada")) {
             compose.onNodeWithTag("reports-list").performScrollToIndex(0)
             compose.onNodeWithTag("report-sort").performScrollTo().performClick()
-            compose.onNodeWithText(label,useUnmergedTree=true).performClick()
-            compose.onNodeWithContentDescription("Ordenar: $label").assertExists()
+            compose.onNodeWithText(label,useUnmergedTree=true).performScrollTo().performClick()
+            compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem $label").assertExists()
             if(label!="Chamada") {
                 compose.onNodeWithTag("report-sort").performClick()
-                compose.onNodeWithText(label,useUnmergedTree=true).performClick()
-                compose.onNodeWithContentDescription("Ordenar: Chamada").assertExists()
+                compose.onNodeWithText(label,useUnmergedTree=true).performScrollTo().performClick()
+                compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem Chamada").assertExists()
             }
         }
         mode("Frequência");row(a);cell(a,4).assertTextEquals("1")

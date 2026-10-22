@@ -64,6 +64,7 @@ private val pages = listOf(
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
     val frequencyStates = rememberSaveableStateHolder()
     val reportStates = rememberSaveableStateHolder()
+    val exportStates = rememberSaveableStateHolder()
     var activityId by rememberSaveable { mutableStateOf("") }
     var studentId by rememberSaveable { mutableStateOf("") }
     var classForm by remember { mutableStateOf(false) }
@@ -179,7 +180,7 @@ private val pages = listOf(
                                 ReportScreen(data,archived,term,globalSearch=false) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
-                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{ExportScreen(data,it,term,ready=!saving,attendance={detail="archived-attendance-export"},annual={detail="archived-annual-export"},plans={detail="archived-plans-export"}){exportBusy=it}}
+                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{archived -> exportStates.SaveableStateProvider(archived.id) { ExportScreen(data,archived,term,ready=!saving){exportBusy=it} }}
                         detail == "archived-attendance-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving){exportBusy=it}}
                         detail == "archived-plans-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,plans=true){exportBusy=it}}
                         detail == "archived-annual-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,annual=true){exportBusy=it}}
@@ -188,7 +189,7 @@ private val pages = listOf(
                         detail == "attendance-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving){exportBusy=it}
                         detail == "plans-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,plans=true){exportBusy=it}
                         detail == "annual-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,annual=true){exportBusy=it}
-                        detail == "export" && c != null -> ExportScreen(data,c,term,ready=!saving,attendance={detail="attendance-export"},annual={detail="annual-export"},plans={detail="plans-export"}){exportBusy=it}
+                        detail == "export" && c != null -> exportStates.SaveableStateProvider(c.id) { ExportScreen(data,c,term,ready=!saving){exportBusy=it} }
                         detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,{concludeExport()},{changeExport(null);detail=""},export={concludeExport(true)})
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->

@@ -117,7 +117,7 @@ class PostTwelveUiInstrumentedTest {
     }
     private fun chooseReport(value:String,current:String) {
         tag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithText("$current ▾").performScrollTo().performClick()
+        tag("report-sort").performScrollTo().performClick()
         compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
     }
     @Test fun threeReportViewsAndGlobalSearchKeepGradesAndRestoreNormalFilters() {
@@ -128,7 +128,7 @@ class PostTwelveUiInstrumentedTest {
         compose.onAllNodesWithText("Relatório").assertCountEquals(0);compose.onAllNodesWithTag("report-sort").assertCountEquals(0)
         assertGrade(a,"0,00");assertGrade(b,"7,50");shot("03-busca-sem-filtros")
         tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
-        compose.onNodeWithText("Frequência ▾").assertExists();compose.onNodeWithTag("report-sort").assertExists()
+        compose.onNodeWithContentDescription("Filtros do relatório: Frequência; ordem Chamada").assertExists();compose.onNodeWithTag("report-sort").assertExists()
         chooseReport("Notas","Frequência");assertGrade(a,"0,00")
         compose.onAllNodesWithTag("report-row-${a.id}-performed",useUnmergedTree=true).assertCountEquals(0)
         chooseReport("Geral","Notas");assertGrade(a,"0,00")

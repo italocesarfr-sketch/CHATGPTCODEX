@@ -50,7 +50,7 @@ class FinalUxLayoutInstrumentedTest {
                     when(screen) {
                         "entry"->DemoEntryScreen{}
                         "actions"->Box {ReportActions({organized++},{exported++},enabled)}
-                        "export"->ExportScreen(data,c,3,attendance={},annual={}){}
+                        "export"->ExportScreen(data,c,3){}
                         else->ExportLayoutScreen(vm,data,c,ExportEditSession.start(data,c.id,"ORDER"),{},{},{})
                     }
                 }}
@@ -128,12 +128,15 @@ class FinalUxLayoutInstrumentedTest {
         val before=runBlocking{app.backupManager.snapshot()}
         compose.runOnIdle{screen="export"}
         val host=tag("ux14-host").fetchSemanticsNode().boundsInRoot
-        val preview=tag("export-preview-heading").fetchSemanticsNode().boundsInRoot
-        assertTrue("Prévia deve começar antes da metade da área útil",preview.top<host.top+host.height*0.5f)
-        tag("export-preview-0").assertIsDisplayed();shot("02-exportar-compacto")
+        tag("export-preview-0").assertDoesNotExist()
+        tag("export-show-preview").performScrollTo().assertIsDisplayed();shot("02-exportar-compacto")
         for(f in listOf(1f,1.6f)) {
             compose.runOnIdle{scale=f}
-            for(id in listOf("export-file","export-copy","export-copy-grades"))tag(id).performScrollTo().assertIsDisplayed()
+            for(id in listOf("export-file","export-copy"))tag(id).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            tag("export-options").performScrollTo().assertIsDisplayed()
+            tag("export-show-preview").performScrollTo().performClick()
+            tag("export-preview-0").assertIsDisplayed()
+            tag("export-preview-close").assertIsDisplayed().performClick()
         }
         compose.runOnIdle{scale=1f;screen="organize"}
         for(id in listOf("export-conclude","export-cancel","export-conclude-and-export"))tag(id).performScrollTo().assertIsDisplayed()
