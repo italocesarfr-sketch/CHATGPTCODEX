@@ -76,6 +76,11 @@ class ExportLifecycleUiInstrumentedTest {
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         val table=ExportProjection.build(vm.data.value,c,ExportOptions(term=3))
         assertEquals(SpreadsheetWriter.clipboard(table),clip());assertFalse(clip().contains(b.name));assertTrue(clip().contains(a.name))
+        waitText("Dados copiados.")
+        val notice=compose.onNodeWithTag("export-feedback").fetchSemanticsNode().boundsInRoot
+        val action=compose.onNodeWithTag("export-copy").fetchSemanticsNode().boundsInRoot
+        assertTrue("A confirmação de cópia não pode cobrir a ação",notice.bottom<=action.top)
+        shot("07-copia-sem-sobreposicao")
         compose.onNodeWithTag("export-options").performScrollTo().performClick();choose("Dados completos","Somente notas vigentes")
         compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick();compose.onNodeWithTag("export-copy").performClick();assertEquals(SpreadsheetWriter.clipboard(table,true),clip());assertFalse(clip().contains(a.name))
         waitText("Somente notas copiadas.")

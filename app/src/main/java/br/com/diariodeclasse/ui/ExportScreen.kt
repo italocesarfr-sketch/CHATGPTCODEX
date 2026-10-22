@@ -115,7 +115,31 @@ import java.io.File
     }
     val format = if (kind.regular) p.format else ExportFormat.XLSX
     val modelTag = when (kind) { SpreadsheetKind.ATTENDANCE -> "attendance-export-screen"; SpreadsheetKind.PLANS -> "plans-export-screen"; SpreadsheetKind.ANNUAL -> "annual-export-screen"; else -> "export-content" }
-    Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0), snackbarHost = { SnackbarHost(feedback) }) { padding ->
+    val actionBar: @Composable () -> Unit = {
+        // Em fontes ampliadas as duas ações passam a uma coluna, sem comprimir os rótulos.
+        val actions: @Composable (Modifier) -> Unit = { actionModifier ->
+            OutlinedButton(onClick = {
+                try {
+                    val text = ExportPresentation.copy(requireNotNull(table), p); require(text.isNotEmpty())
+                    (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Noctua • ${c.name}", text))
+                    notify(if (p.copyMode == "Dados completos") "Dados copiados." else "Somente notas copiadas.")
+                } catch (_: Exception) { error = "Não foi possível copiar os dados." }
+            }, enabled = canExport, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), modifier = actionModifier.heightIn(min = 48.dp).testTag("export-copy")) { Text("Copiar") }
+            Button(onClick = ::export, enabled = canExport, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), modifier = actionModifier.heightIn(min = 48.dp).testTag("export-file")) {
+                Text(if (busy) "Aguardando…" else if (!ready) "Aguardando salvamento…" else "${if (p.share) "Compartilhar" else "Exportar"} ${format.name}")
+            }
+        }
+        Surface(tonalElevation = 3.dp) {
+            BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.page, vertical = NoctuaSpace.small)) {
+                val actionWidth = (maxWidth - NoctuaSpace.small) / 2
+                if (LocalDensity.current.fontScale >= 1.3f || maxWidth < 260.dp || p.share) Column(verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) { actions(Modifier.fillMaxWidth()) }
+                else Row(horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
+                    actions(Modifier.width(actionWidth))
+                }
+            }
+        }
+    }
+    Scaffold(contentWindowInsets = WindowInsets(0, 0, 0, 0), snackbarHost = { SnackbarHost(feedback, Modifier.testTag("export-feedback")) }, bottomBar = actionBar) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).testTag("export-screen")) {
             LazyColumn(Modifier.weight(1f).fillMaxWidth().testTag(modelTag), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
                 item { Section("Exportar", "${c.name} • ${c.subject} • ${c.year} • $periodLabel") }
@@ -151,28 +175,7 @@ import java.io.File
                     error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.testTag("export-error")) }
                 }
             }
-            // Em fontes ampliadas as duas ações passam a uma coluna, sem comprimir os rótulos.
-            val actions: @Composable (Modifier) -> Unit = { actionModifier ->
-                OutlinedButton(onClick = {
-                    try {
-                        val text = ExportPresentation.copy(requireNotNull(table), p); require(text.isNotEmpty())
-                        (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Noctua • ${c.name}", text))
-                        notify(if (p.copyMode == "Dados completos") "Dados copiados." else "Somente notas copiadas.")
-                    } catch (_: Exception) { error = "Não foi possível copiar os dados." }
-                }, enabled = canExport, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), modifier = actionModifier.heightIn(min = 48.dp).testTag("export-copy")) { Text("Copiar") }
-                Button(onClick = ::export, enabled = canExport, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), modifier = actionModifier.heightIn(min = 48.dp).testTag("export-file")) {
-                    Text(if (busy) "Aguardando…" else if (!ready) "Aguardando salvamento…" else "${if (p.share) "Compartilhar" else "Exportar"} ${format.name}")
-                }
-            }
-            Surface(tonalElevation = 3.dp) {
-                BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.page, vertical = NoctuaSpace.small)) {
-                    val actionWidth = (maxWidth - NoctuaSpace.small) / 2
-                    if (LocalDensity.current.fontScale >= 1.3f || maxWidth < 260.dp || p.share) Column(verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) { actions(Modifier.fillMaxWidth()) }
-                    else Row(horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
-                        actions(Modifier.width(actionWidth))
-                    }
-                }
-            }
+
         }
     }
     if (settings) ModalBottomSheet(onDismissRequest = { settings = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), modifier = Modifier.testTag("export-settings")) {
