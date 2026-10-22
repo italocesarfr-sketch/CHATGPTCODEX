@@ -133,11 +133,30 @@ class FinalUxLayoutInstrumentedTest {
         for(f in listOf(1f,1.6f)) {
             compose.runOnIdle{scale=f}
             for(id in listOf("export-file","export-copy"))tag(id).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            shot("exportar-320-fonte-$f")
             for(text in listOf("Copiar","Exportar XLSX")) {
                 val layouts=mutableListOf<TextLayoutResult>()
                 compose.onNodeWithText(text,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
-                assertEquals("$text fonte=$f",1,layouts.single().lineCount)
-                assertFalse(layouts.single().didOverflowHeight);assertFalse(layouts.single().didOverflowWidth)
+                val layout=layouts.single()
+                val bounds=compose.onNodeWithText(text,useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
+                val button=tag(if(text=="Copiar")"export-copy"else"export-file").fetchSemanticsNode().boundsInRoot
+                val glyphs=text.indices.map{layout.getBoundingBox(it)}
+                val glyphWidth=glyphs.maxOf{it.right}-glyphs.minOf{it.left}
+                val glyphHeight=glyphs.maxOf{it.bottom}-glyphs.minOf{it.top}
+                val detail="$text fonte=$f size=${layout.size} paragraph=${layout.multiParagraph.width}x${layout.multiParagraph.height} constraints=${layout.layoutInput.constraints} overflowWidth=${layout.didOverflowWidth} overflowHeight=${layout.didOverflowHeight} text=$bounds glyphs=${glyphWidth}x$glyphHeight button=$button"
+                val measurements=File(app.filesDir,"ux14-screenshots/export-layout-measurements.txt")
+                measurements.parentFile!!.mkdirs();measurements.appendText(detail+"\n")
+                assertEquals(detail,1,layout.lineCount)
+                assertFalse(detail,layout.isLineEllipsized(0))
+                assertFalse(detail,layout.multiParagraph.didExceedMaxLines)
+                assertEquals(detail,text.length,layout.getLineEnd(0,visibleEnd=true))
+                // Como em ReportActions, testar os glifos e os limites efetivamente visíveis.
+                // O parágrafo reservado pode exceder a largura intrínseca do Text centralizado.
+                assertTrue(detail,glyphWidth<=bounds.width+0.5f)
+                assertTrue(detail,glyphHeight<=bounds.height+0.5f)
+                assertTrue(detail,glyphWidth<=layout.layoutInput.constraints.maxWidth+0.5f)
+                assertTrue(detail,bounds.left>=button.left && bounds.right<=button.right)
+                assertTrue(detail,bounds.top>=button.top && bounds.bottom<=button.bottom)
             }
             tag("export-options").performScrollTo().assertIsDisplayed().performClick()
             for(id in listOf("export-headers","export-number"))tag(id).performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)

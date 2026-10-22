@@ -8,12 +8,12 @@ mkdir -p build
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
 cat build/ux14-layout-smoke.txt
 python3 - <<'PYSMOKE' || status=1
 from pathlib import Path
 text=Path('build/ux14-layout-smoke.txt').read_text()
-assert 'OK (1 test)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
+assert 'OK (2 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
 PYSMOKE
 if (( status == 0 )); then
     timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RelocationConversionInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenUiInstrumentedTest,br.com.diariodeclasse.ExportLayoutInstrumentedTest#migrationFromDistributedV3PreservesEverySchoolTableAndMovement,br.com.diariodeclasse.HistoryDeletionInstrumentedTest#distributedSchemaSixMigratesAdditivelyWithoutChangingAnyOfItsThirteenTables,br.com.diariodeclasse.RelocationUiInstrumentedTest#confirmedMoveHidesSourceAndRefreshesDestinationReportsAcrossRecreation,br.com.diariodeclasse.RecompositionUiInstrumentedTest#reportsRefreshWithoutAddingRecompositionToActivitiesOrFourthTerm br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/functional15-focused.txt || status=$?
