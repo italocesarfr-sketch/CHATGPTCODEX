@@ -164,6 +164,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     var showInformation by rememberSaveable(c?.id,term,mode){mutableStateOf(false)}
     val searching=globalSearch && query.isNotBlank()
     val displayMode = if(searching) "Geral" else mode
+    val hasRelocated = data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)}
     val matches=remember(data,query,showRelocated){GlobalStudentSearch.find(data,query,showRelocated)}
     val selectedOrder=when(order){"Ordem alfabética"->StudentOrder.ALPHABETICAL;"Mais faltas"->StudentOrder.ABSENCES;"Menos faltas"->StudentOrder.LEAST_ABSENCES;"Menor nota"->StudentOrder.LOWEST_GRADE;"Maior nota"->StudentOrder.HIGHEST_GRADE;else->StudentOrder.CALL}
     val horizontal=rememberScrollState();val listState=rememberLazyListState()
@@ -191,7 +192,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
                 Box(Modifier.weight(1f)){Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(displayMode){
                     "Frequência"->"Frequência do ${term}º bimestre";"Mais faltosos"->"Mais faltosos do ${term}º bimestre";"Resumo anual"->"Resumo anual de ${c?.year ?: "—"}";else->"Boletim ${term}º Bim"
                 },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})}
-                if(c!=null||searching) Box {
+                if(!searching&&c!=null || hasRelocated) Box {
                     IconButton(onClick={sorting=true},modifier=Modifier.size(48.dp).testTag(if(searching)"report-search-filter"else"report-sort")) {
                         BadgedBox(badge={if(order!="Chamada"||showRelocated||mode!="Geral")Badge()}) {
                             Icon(painterResource(R.drawable.ic_filter),"Filtros do relatório: $mode; ordem $order",tint=if(order=="Chamada")MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary)
@@ -208,7 +209,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
                             DropdownMenuItem(text={Text(label)},leadingIcon={RadioButton(order==label,null)},onClick={order=if(order==label)"Chamada"else label;sorting=false})
                         }
                         }
-                        if(data.students.any{it.status=="Remanejado"&&(searching||it.classId==c?.id)}) {
+                        if(hasRelocated) {
                             HorizontalDivider()
                             DropdownMenuItem(text={Text("Mostrar remanejados (histórico)")},
                                 leadingIcon={Checkbox(showRelocated,null)},modifier=Modifier.testTag("show-relocated"),

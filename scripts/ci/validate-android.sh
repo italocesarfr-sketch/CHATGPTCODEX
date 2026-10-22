@@ -30,7 +30,7 @@ if (( status == 0 )); then
     python3 - <<'PYMINIMAL' || status=1
 from pathlib import Path
 text=Path('build/minimal-export-focused.txt').read_text()
-assert 'OK (21 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (22 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYMINIMAL
 fi
 if (( status == 0 )); then

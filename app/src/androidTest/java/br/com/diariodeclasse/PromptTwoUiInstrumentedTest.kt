@@ -140,7 +140,7 @@ class PromptTwoUiInstrumentedTest {
     }
     private fun shareExport() {
         tag("export-options").performScrollTo().performClick();chooseExport("Salvar arquivo","Compartilhar")
-        tag("export-settings-done").performScrollTo().performClick();tag("export-file").performClick()
+        tag("export-settings-done").assertIsDisplayed().performClick();tag("export-file").performClick()
     }
     private fun backFromExternalWindow() {
         val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
@@ -153,9 +153,9 @@ class PromptTwoUiInstrumentedTest {
         val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ATTENDANCE").performClick();waitTag("attendance-export-screen")
         tag("export-options").performScrollTo().performClick()
         chooseExport("Bimestre selecionado","Intervalo de datas")
-        tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard();tag("export-settings-done").performScrollTo().performClick()
+        tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard();tag("export-settings-done").assertIsDisplayed().performClick()
         shot("04-exportar-chamada")
-        tag("export-file").performScrollTo().performClick();backFromExternalWindow();waitText("Exportação cancelada.")
+        tag("export-file").assertIsDisplayed().performClick();backFromExternalWindow();waitText("Exportação cancelada.")
         compose.onAllNodesWithText("Chamada exportada.").assertCountEquals(0)
         shareExport();backFromExternalWindow()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
@@ -171,7 +171,7 @@ class PromptTwoUiInstrumentedTest {
             compose.waitUntil(10000){automation.rootInActiveWindow?.packageName?.toString()?.let{it!=app.packageName}==true}
             automation.executeShellCommand("input keyevent KEYCODE_BACK").close();waitTag("annual-export-screen")
         }
-        tag("export-file").performScrollTo().performClick();back();waitText("Exportação cancelada.")
+        tag("export-file").assertIsDisplayed().performClick();back();waitText("Exportação cancelada.")
         compose.onAllNodesWithText("Relatório anual exportado.").assertCountEquals(0)
         shareExport();back()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})

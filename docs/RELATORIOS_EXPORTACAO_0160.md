@@ -19,7 +19,7 @@ O ícone de ajustes abre uma folha inferior Material 3. Cada modelo oferece some
 - Chamada/Planos: bimestre herdado ou intervalo personalizado. O resumo anual utiliza o ano da turma.
 - Chamada/Resumo anual: cabeçalhos e número da chamada. Planos preserva o formato próprio, incluindo Data/Título/Descrição e sua formatação aprovada.
 
-Concluído apenas fecha a folha; alterações simples não exigem salvamento. Preferências ficam no estado restaurável da interface, separadas por turma e modelo; sobrevivem à rotação e à ida e volta na navegação. Não são novas preferências Room nem integram o backup. A disposição personalizada existente continua persistente no banco e nos backups, sem alterações.
+Concluído fica fixo no rodapé da folha e apenas a fecha; alterações simples não exigem salvamento. Preferências ficam no estado restaurável da interface, separadas por turma e modelo; sobrevivem à rotação e à ida e volta na navegação. Não são novas preferências Room nem integram o backup. A disposição personalizada existente continua persistente no banco e nos backups, sem alterações.
 
 Ver prévia abre uma visualização rolável da mesma matriz usada no arquivo. Fechar retorna sem perder opções. Não existe bloco permanente Prévia — Somente notas.
 
@@ -35,7 +35,7 @@ Sem alteração de Room v8, suas 14 tabelas, migrações, banco `diario.db`, bac
 
 ## Design e acessibilidade
 
-Impeccable 4.7.0 foi lido do diretório instalado no projeto `.agents/skills/impeccable/`. Foram aplicadas as referências `distill`, Android e `craft-floor`: divulgação progressiva, ações diretas, controles Material 3, alvos de pelo menos 48 dp, hierarquia existente e preservação da identidade noturna. Não há nova identidade visual. Ações se empilham em fontes maiores ou larguras menores, em vez de comprimir os textos. Ajustes e prévia respeitam Voltar do Android.
+Impeccable 4.7.0 foi lido do diretório instalado no projeto `.agents/skills/impeccable/`. Foram aplicadas as referências `distill`, Android e `craft-floor`: divulgação progressiva, ações diretas, controles Material 3, alvos de pelo menos 48 dp, hierarquia existente e preservação da identidade noturna. Não há nova identidade visual. As duas ações ficam lado a lado nas larguras normais e se empilham em fontes maiores ou larguras menores, em vez de comprimir os textos. A folha abre expandida quando há muitas opções e mantém Concluído sempre acessível. Ajustes e prévia respeitam Voltar do Android.
 
 ## Validação
 
@@ -46,3 +46,9 @@ Cobertura acrescentada: equivalência das seis projeções padrão, combinaçõe
 A instrumentação anterior foi adaptada somente onde os caminhos de acesso mudaram, mantendo as verificações de integridade, histórico, compartilhamento, cancelamento e conteúdo. A atualização assinada usa o APK real 0.15.2 e a chave permanente já configurada, sem criação ou troca de chave.
 
 Limitação do ambiente local: não há `/dev/kvm`; capturas e testes de navegação rodam no emulador descartável do GitHub Actions. Validação física do professor continua recomendada após a entrega, especialmente com teclado e escala de fonte próprios.
+
+### Primeira execução de instrumentação
+
+A execução [39860766408](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39860766408) passou por 148 testes JVM, validadores independentes e 35 cenários Android focados anteriores. Nos 21 cenários focados de relatórios/exportação, duas automações ainda chamavam `performScrollTo()` para as ações Copiar/Exportar, agora fixas fora da lista. Falharam antes de executar a ação por ausência de ancestral rolável. Foram atualizadas para exigir visibilidade e clicar diretamente; as verificações de cancelamento, área de transferência e igualdade do backup continuam presentes. Essa execução não aprovou uma release.
+
+A revisão das capturas reais também levou a reduzir espaçamentos, manter ações lado a lado em 320 dp na fonte normal e fixar o fechamento da folha de ajustes. A troca entre turmas ganhou um cenário explícito; filtros vazios durante a busca global não são exibidos. A aprovação final depende da nova execução integral.

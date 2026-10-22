@@ -72,12 +72,12 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-preview-0").assertDoesNotExist()
         compose.onNodeWithTag("export-show-preview").performScrollTo().performClick();compose.onNodeWithTag("export-preview-0").assertIsDisplayed();shot("01-notas-previa")
         compose.onNodeWithTag("export-preview-close").performClick()
-        compose.onNodeWithTag("export-copy").performScrollTo().performClick()
+        compose.onNodeWithTag("export-copy").assertIsDisplayed().performClick()
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
         val table=ExportProjection.build(vm.data.value,c,ExportOptions(term=3))
         assertEquals(SpreadsheetWriter.clipboard(table),clip());assertFalse(clip().contains(b.name));assertTrue(clip().contains(a.name))
         compose.onNodeWithTag("export-options").performScrollTo().performClick();choose("Dados completos","Somente notas vigentes")
-        compose.onNodeWithTag("export-settings-done").performScrollTo().performClick();compose.onNodeWithTag("export-copy").performClick();assertEquals(SpreadsheetWriter.clipboard(table,true),clip());assertFalse(clip().contains(a.name))
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick();compose.onNodeWithTag("export-copy").performClick();assertEquals(SpreadsheetWriter.clipboard(table,true),clip());assertFalse(clip().contains(a.name))
         waitText("Somente notas copiadas.")
         compose.waitUntil(12000){compose.onAllNodesWithText("Somente notas copiadas.").fetchSemanticsNodes().isEmpty()}
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
@@ -87,13 +87,13 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-options").performScrollTo().performClick()
         choose("Bimestre selecionado","Quatro bimestres")
         choose("XLSX","CSV")
-        compose.onNodeWithTag("export-settings-done").performScrollTo().performClick()
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         waitText("Resumo anual");compose.onNodeWithText("Exportar CSV").assertIsDisplayed();shot("02-consolidado")
         compose.activityRule.scenario.recreate();waitText("Resumo anual");compose.onNodeWithText("Exportar CSV").assertIsDisplayed()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun realAndroidDocumentPickerCancellationHasNoSuccessAndDoesNotChangeDatabase() {
-        val before=runBlocking{app.backupManager.snapshot()};openExport();compose.onNodeWithTag("export-file").performScrollTo().performClick()
+        val before=runBlocking{app.backupManager.snapshot()};openExport();compose.onNodeWithTag("export-file").assertIsDisplayed().performClick()
         // UI do seletor é externa ao Compose. Aguarda seu pacote, sem sleeps arbitrários.
         val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
         compose.waitUntil(10000){val root=automation.rootInActiveWindow;root?.packageName?.toString()?.let{it!="br.com.diariodeclasse"}==true}
@@ -122,7 +122,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-headers").performScrollTo().performClick()
         compose.onNodeWithTag("export-number").performScrollTo().performClick()
         choose("XLSX","TSV");choose("Dados completos","Todas as notas")
-        compose.onNodeWithTag("export-settings-done").performScrollTo().performClick()
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         compose.onNodeWithText("Exportar TSV").assertIsDisplayed()
         compose.onNodeWithTag("export-copy").performClick()
         val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
@@ -133,7 +133,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-headers").performScrollTo().assertIsOn()
         compose.onNodeWithTag("export-number").performScrollTo().assertIsOn()
         compose.onNodeWithText("Conteúdo da cópia").assertDoesNotExist()
-        compose.onNodeWithTag("export-settings-done").performScrollTo().performClick()
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         choose("Frequência","Notas");compose.onNodeWithText("Exportar TSV").assertIsDisplayed()
         compose.activityRule.scenario.recreate();waitTag("export-screen")
         compose.onNodeWithText("Exportar TSV").assertIsDisplayed()
@@ -141,7 +141,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-headers").performScrollTo().assertIsOff()
         compose.onNodeWithTag("export-number").performScrollTo().assertIsOff()
         shot("05-ajustes-minimalistas")
-        compose.onNodeWithTag("export-settings-done").performScrollTo().performClick()
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun everyExistingModelHasDirectActionsAndPreviewIsOptionalAndReadOnly() {
@@ -177,6 +177,23 @@ class ExportLifecycleUiInstrumentedTest {
         shot("06-boletim-minimalista")
         compose.onNodeWithTag("export-organize").performClick();waitTag("export-layout-list")
         compose.onNodeWithTag("export-cancel").performScrollTo().performClick()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun changingClassNeverReusesAnotherClassExportSettings() {
+        val before=runBlocking{app.backupManager.snapshot()};openExport()
+        compose.onNodeWithTag("export-options").performScrollTo().performClick();choose("XLSX","CSV")
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("class-selector").performClick()
+        compose.onNode(hasText(h.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        waitTag("open-export");compose.onNodeWithTag("open-export").performClick()
+        compose.onNodeWithText("Exportar XLSX").assertIsDisplayed()
+        compose.onNodeWithText("${h.name} • ${h.subject} • ${h.year} • 3º bimestre").assertExists()
+        compose.onNodeWithTag("export-file").assertIsNotEnabled()
+        compose.onNodeWithTag("class-selector").performClick()
+        compose.onNode(hasText(c.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        waitTag("open-export");compose.onNodeWithTag("open-export").performClick()
+        compose.onNodeWithText("Exportar CSV").assertIsDisplayed()
+        compose.onNodeWithTag("export-file").assertIsEnabled()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     private fun openArchived() {

@@ -133,7 +133,16 @@ class FinalUxLayoutInstrumentedTest {
         for(f in listOf(1f,1.6f)) {
             compose.runOnIdle{scale=f}
             for(id in listOf("export-file","export-copy"))tag(id).assertIsDisplayed().assertHeightIsAtLeast(48.dp)
-            tag("export-options").performScrollTo().assertIsDisplayed()
+            for(text in listOf("Copiar","Exportar XLSX")) {
+                val layouts=mutableListOf<TextLayoutResult>()
+                compose.onNodeWithText(text,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
+                assertEquals("$text fonte=$f",1,layouts.single().lineCount)
+                assertFalse(layouts.single().didOverflowHeight);assertFalse(layouts.single().didOverflowWidth)
+            }
+            tag("export-options").performScrollTo().assertIsDisplayed().performClick()
+            for(id in listOf("export-headers","export-number"))tag(id).performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            tag("export-settings-done").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            tag("export-settings-done").performClick()
             tag("export-show-preview").performScrollTo().performClick()
             tag("export-preview-0").assertIsDisplayed()
             tag("export-preview-close").assertIsDisplayed().performClick()

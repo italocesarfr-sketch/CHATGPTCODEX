@@ -262,7 +262,7 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.onNode(hasText("Intervalo de datas") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
         compose.onNodeWithTag("attendance-export-start").performTextReplacement("01/01/2026")
         compose.onNodeWithTag("attendance-export-end").performTextReplacement("31/03/2026")
-        click("export-settings-done")
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         compose.onNodeWithText("Nenhum plano de aula neste período.").performScrollTo().assertExists()
         compose.onNodeWithTag("export-file").assertIsNotEnabled()
 

@@ -144,7 +144,7 @@ class ReportsUiInstrumentedTest {
     @Test fun sortingUsesEffectiveAbsencesAndRestoresOfficialCallOnSecondChoice() {
         val before=runBlocking {app.backupManager.snapshot()}
         compose.onAllNodesWithText("Consultas").assertCountEquals(0)
-        for(label in listOf("Mais faltas","Menos faltas","Maior nota","Menor nota","Chamada")) {
+        for(label in listOf("Ordem alfabética","Mais faltas","Menos faltas","Maior nota","Menor nota","Chamada")) {
             compose.onNodeWithTag("reports-list").performScrollToIndex(0)
             compose.onNodeWithTag("report-sort").performScrollTo().performClick()
             compose.onNodeWithText(label,useUnmergedTree=true).performScrollTo().performClick()
