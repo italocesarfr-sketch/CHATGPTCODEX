@@ -55,3 +55,11 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
         db.execSQL("ALTER TABLE `relocations` ADD COLUMN `corrections` TEXT NOT NULL DEFAULT '[]'")
     }
 }
+
+/** Aditiva: previsões versionadas, sem alterar nenhuma das quatorze tabelas escolares. */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS `weekly_timetables` (`id` TEXT NOT NULL, `year` INTEGER NOT NULL, `effective` TEXT NOT NULL, `revision` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `slots` TEXT NOT NULL, PRIMARY KEY(`id`))")
+        db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_weekly_timetables_year_effective_revision` ON `weekly_timetables` (`year`, `effective`, `revision`)")
+    }
+}

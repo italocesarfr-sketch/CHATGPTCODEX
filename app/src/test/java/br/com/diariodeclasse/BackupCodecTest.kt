@@ -36,7 +36,7 @@ class BackupCodecTest {
     }
     @Test fun rejectsCorruptionWrongVersionsAndWrongApplication() {
         val original = BackupCodec.json.decodeFromString<BackupEnvelope>(BackupCodec.encode(fixture(),2,null).toString(Charsets.UTF_8))
-        listOf(original.copy(payloadSha256="0".repeat(64)), original.copy(formatVersion=11), original.copy(databaseVersion=9),
+        listOf(original.copy(payloadSha256="0".repeat(64)), original.copy(formatVersion=12), original.copy(databaseVersion=10),
             original.copy(applicationId="outro.app"), original.copy(schemaIdentityHash="outro-esquema")).forEach { changed ->
             expectFailure { BackupCodec.decode(BackupCodec.json.encodeToString(changed).toByteArray()) }
         }

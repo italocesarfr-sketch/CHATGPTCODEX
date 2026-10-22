@@ -13,15 +13,15 @@ import java.time.LocalDate
 data class BackupSnapshot(
     val classes: List<SchoolClass>, val students: List<Student>, val terms: List<Term>,
     val lessons: List<Lesson>, val marks: List<Attendance>, val activities: List<Activity>,
-    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList(), val lessonRecords: List<LessonRecord> = emptyList(), val histories: List<PreservedHistory> = emptyList()
+    val grades: List<Grade>, val drafts: List<ImportDraft>, val selection: AppSelection? = null, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList(), val lessonRecords: List<LessonRecord> = emptyList(), val histories: List<PreservedHistory> = emptyList(), val timetables: List<WeeklyTimetable> = emptyList()
 ) {
     fun canonical(): BackupSnapshot = copy(
         classes = classes.sortedBy { it.id }, students = students.sortedBy { it.id },
         terms = terms.sortedWith(compareBy({ it.classId }, { it.number })), lessons = lessons.sortedBy { it.id },
         marks = marks.sortedWith(compareBy({ it.lessonId }, { it.studentId })), activities = activities.sortedBy { it.id },
         grades = grades.sortedWith(compareBy({ it.activityId }, { it.studentId })), drafts = drafts.sortedBy { it.id },
-        recompositions = recompositions.sortedWith(compareBy({ it.studentId }, { it.term })), relocations = relocations.sortedBy {it.sourceStudentId}, exportRows = exportRows.sortedWith(compareBy({it.classId}, {it.position})), classArchives = classArchives.sortedBy { it.classId }, lessonRecords = lessonRecords.sortedBy { it.id }, histories=histories.map {it.copy(content=it.content.canonical())}.sortedBy {it.classId})
-    fun summary(): String = "${classes.size} turmas • ${students.size} matrículas\n${terms.size} bimestres • ${lessons.size} aulas\n${marks.size} frequências • ${activities.size} atividades\n${grades.size} notas • ${drafts.size} linhas de rascunho\n${recompositions.size} recomposições • ${relocations.size} remanejamentos\n${exportRows.size} linhas de disposição de exportação\n${classArchives.size} turmas arquivadas\n${lessonRecords.size} registros de aula\n${histories.size} origens históricas de turmas excluídas"
+        recompositions = recompositions.sortedWith(compareBy({ it.studentId }, { it.term })), relocations = relocations.sortedBy {it.sourceStudentId}, exportRows = exportRows.sortedWith(compareBy({it.classId}, {it.position})), classArchives = classArchives.sortedBy { it.classId }, lessonRecords = lessonRecords.sortedBy { it.id }, timetables=timetables.sortedBy {it.id}, histories=histories.map {it.copy(content=it.content.canonical())}.sortedBy {it.classId})
+    fun summary(): String = "${classes.size} turmas • ${students.size} matrículas\n${terms.size} bimestres • ${lessons.size} aulas\n${marks.size} frequências • ${activities.size} atividades\n${grades.size} notas • ${drafts.size} linhas de rascunho\n${recompositions.size} recomposições • ${relocations.size} remanejamentos\n${exportRows.size} linhas de disposição de exportação\n${classArchives.size} turmas arquivadas\n${lessonRecords.size} registros de aula\n${histories.size} origens históricas de turmas excluídas\n${timetables.size} revisões de horários"
 }
 @Serializable
 data class BackupEnvelope(
@@ -36,7 +36,7 @@ class BackupFailure(message: String) : IllegalArgumentException(message)
 
 fun BackupSnapshot.diarySnapshot() = DiarySnapshot(classes=classes,students=students,terms=terms,lessons=lessons,marks=marks,
     activities=activities,grades=grades,drafts=drafts,recompositions=recompositions,relocations=relocations,
-    exportRows=exportRows,classArchives=classArchives,lessonRecords=lessonRecords,histories=histories,loaded=true)
+    exportRows=exportRows,classArchives=classArchives,lessonRecords=lessonRecords,histories=histories,timetables=timetables,loaded=true)
 
 /** Formato JSON local, completo e estrito. O checksum detecta corrupção, não autentica o autor. */
 object BackupCodec {
@@ -47,7 +47,8 @@ object BackupCodec {
     const val V5_IDENTITY = "4fb9b076fb8a111f68f23ad0863c5f5c"
     const val V6_IDENTITY = "0bb463bface3e8d6c547f9424574818b"
     const val V7_IDENTITY = "0c0a542f53b49d5f6d895515d1b9ec49"
-    const val IDENTITY = "5e6a8d2ba79a933d48be69059702f9f6"
+    const val V8_IDENTITY = "5e6a8d2ba79a933d48be69059702f9f6"
+    const val IDENTITY = "28e0646355ca4f7088b43bbe8de33141"
     const val MAX_BYTES = 32 * 1024 * 1024
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false }
     fun hash(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
@@ -55,7 +56,7 @@ object BackupCodec {
     fun encode(value: BackupSnapshot, version: Int, certificate: String?): ByteArray {
         validate(value)
         val payload = json.encodeToString(value.canonical())
-        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 10, applicationId = "br.com.diariodeclasse", databaseVersion = 8, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
+        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 11, applicationId = "br.com.diariodeclasse", databaseVersion = 9, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
             sourceCertificateSha256 = certificate, payloadSha256 = hash(payload.toByteArray(Charsets.UTF_8)), payload = payload)
         val bytes = json.encodeToString(envelope).toByteArray(Charsets.UTF_8)
         if (bytes.size > MAX_BYTES) throw BackupFailure("O backup excede o limite seguro de 32 MB.")
@@ -83,7 +84,8 @@ object BackupCodec {
             val archived = envelope.formatVersion == 6 && envelope.databaseVersion == 5 && envelope.schemaIdentityHash == V5_IDENTITY
             val recorded = envelope.formatVersion == 7 && envelope.databaseVersion == 6 && envelope.schemaIdentityHash == V6_IDENTITY
             val preserved = envelope.formatVersion == 8 && envelope.databaseVersion == 7 && envelope.schemaIdentityHash == V7_IDENTITY
-            val current = envelope.formatVersion in 9..10 && envelope.databaseVersion == 8 && envelope.schemaIdentityHash == IDENTITY
+            val corrected = envelope.formatVersion in 9..10 && envelope.databaseVersion == 8 && envelope.schemaIdentityHash == V8_IDENTITY
+            val current = corrected || (envelope.formatVersion == 11 && envelope.databaseVersion == 9 && envelope.schemaIdentityHash == IDENTITY)
             if (!legacy && !previous && !linked && !organized && !archived && !recorded && !preserved && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
@@ -104,12 +106,17 @@ object BackupCodec {
             if (envelope.formatVersion < 10 && snapshot.diarySnapshot().academic().relocations.any { link -> link.corrections.any {
                 it.operation != "CORRECAO_EXTERNA" || it.sourceStudentId != null || it.targetStudentId != null || it.targetClassId != null || it.targetLabel != null
             } }) throw BackupFailure("Backup anterior não pode conter conversões administrativas.")
+            if (envelope.formatVersion == 11 && "timetables" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os horários.")
+            if (envelope.formatVersion < 11 && snapshot.timetables.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter grade semanal.")
             validate(snapshot)
             return DecodedBackup(envelope, snapshot)
         } catch (error: BackupFailure) { throw error }
         catch (_: Exception) { throw BackupFailure("Backup inválido, incompleto ou com campos não reconhecidos.") }
     }
     fun validate(s: BackupSnapshot) {
+        try { Timetables.validate(s.timetables) }
+        catch (_: Exception) { throw BackupFailure("Backup contém grade semanal inválida.") }
+        if (s.timetables.any { row -> row.slots.any { slot -> s.classes.any { it.id == slot.classId && it.year != row.year } } }) throw BackupFailure("Grade vinculada a outro ano letivo.")
         if(s.histories.isNotEmpty()) {
             val local=DiarySnapshot(classes=s.classes,students=s.students,terms=s.terms,lessons=s.lessons,marks=s.marks,
                 activities=s.activities,grades=s.grades,recompositions=s.recompositions,relocations=s.relocations,histories=s.histories)

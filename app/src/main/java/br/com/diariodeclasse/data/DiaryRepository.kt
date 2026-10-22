@@ -19,7 +19,7 @@ data class DiarySnapshot(
     val classes: List<SchoolClass> = emptyList(), val students: List<Student> = emptyList(),
     val terms: List<Term> = emptyList(), val lessons: List<Lesson> = emptyList(),
     val marks: List<Attendance> = emptyList(), val activities: List<Activity> = emptyList(),
-    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList(), val lessonRecords: List<LessonRecord> = emptyList(), val histories: List<PreservedHistory> = emptyList()
+    val grades: List<Grade> = emptyList(), val drafts: List<ImportDraft> = emptyList(), val loaded: Boolean = false, val recompositions: List<Recomposition> = emptyList(), val relocations: List<Relocation> = emptyList(), val exportRows: List<ExportRow> = emptyList(), val classArchives: List<ClassArchive> = emptyList(), val lessonRecords: List<LessonRecord> = emptyList(), val histories: List<PreservedHistory> = emptyList(), val timetables: List<WeeklyTimetable> = emptyList()
 ) {
     private val academicData by lazy { PreservedHistories.merge(this) }
     fun academic(): DiarySnapshot = academicData
@@ -71,7 +71,7 @@ class DiaryRepository(val db: DiaryDatabase) {
     // Cada emissão lê as quatorze tabelas no mesmo snapshot SQLite confirmado.
     // Evita combinar, por exemplo, máximo novo de atividade com notas ainda antigas.
     val snapshot = db.invalidationTrackerFlow("classes", "students", "terms", "lessons", "marks",
-        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows", "class_archives", "lesson_records", "preserved_histories").map {
+        "activities", "grades", "import_drafts", "recompositions", "relocations", "export_rows", "class_archives", "lesson_records", "preserved_histories", "weekly_timetables").map {
         readSnapshot()
     }.distinctUntilChanged()
     internal suspend fun readSnapshot(): DiarySnapshot = db.withTransaction {
@@ -84,7 +84,24 @@ class DiaryRepository(val db: DiaryDatabase) {
                 marks = read.marks(),
                 activities = read.activities().sortedWith(compareBy<Activity> { it.date }.thenBy { it.name }.thenBy { it.id }),
                 grades = read.grades(), drafts = read.drafts().sortedWith(compareBy<ImportDraft> { it.position }.thenBy { it.id }),
-                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), classArchives = read.classArchives(), lessonRecords = read.lessonRecords(), histories = read.histories(), loaded = true)
+                recompositions = read.recompositions(), relocations = read.relocations(), exportRows = read.exportRows(), classArchives = read.classArchives(), lessonRecords = read.lessonRecords(), histories = read.histories(), timetables = read.timetables(), loaded = true)
+    }
+
+    suspend fun previewTimetable(year: Int, effective: String, slots: List<WeeklySlot>) =
+        Timetables.preview(readSnapshot(), year, effective, slots)
+
+    suspend fun confirmTimetable(preview: TimetablePreview) = db.withTransaction {
+        val data = readSnapshot()
+        require(data.timetables.filter { it.year == preview.proposed.year }.sortedBy { it.id } == preview.expected) {
+            "A grade mudou após a edição. Reabra os horários; nada foi alterado."
+        }
+        val checked = Timetables.preview(data, preview.proposed.year, preview.proposed.effective, preview.proposed.slots)
+        require(checked.affected == preview.affected && checked.through == preview.through) {
+            "Há novos registros nas datas afetadas. Confira novamente a prévia."
+        }
+        require(checked.proposed.revision == preview.proposed.revision) { "A revisão mudou. Confira a grade novamente." }
+        Timetables.validate(data.timetables + preview.proposed)
+        dao.insertTimetable(preview.proposed)
     }
 
     /** Comparação otimista impede sobrescrever/excluir uma edição confirmada por outra tela. */

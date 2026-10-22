@@ -1,3 +1,5 @@
+> **0.17.0 / 29 em validação:** grade semanal versionada por vigência, compartilhada por Horários, Chamada e Diário. Somente previsões; sem lançamentos automáticos. Room v9 aditivo e backup 11, lendo anteriores. [Contrato e validação](HORARIOS_0170.md).
+
 > **Refinamento 0.16.0 / 28 validado:** relatórios com filtros unificados e exportação direta, bimestre herdado, ajustes e prévia sob demanda. Sem alteração de Room v8, backup 10 ou regras acadêmicas. [Contrato e validação](RELATORIOS_EXPORTACAO_0160.md). **148 JVM, 243 Android e atualização assinada sobre a 0.15.2 aprovados.**
 
 > **Noctua 0.15.2 / 27 validada:** conversão externa → interna com identidade e auditorias preservadas, matrícula nova ou vínculo seguro à existente. Room v8 inalterado; backup 10 lendo formatos 1–9. [Contrato, testes e release](CONVERSAO_REMANEJAMENTO_0152.md).

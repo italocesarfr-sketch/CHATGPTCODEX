@@ -48,7 +48,7 @@ class FinalUxEntryInstrumentedTest {
         compose.onNodeWithText("2025 ▾").assertExists();tag("demo-entry").assertDoesNotExist()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         compose.onNodeWithTag("nav-1").performClick()
-        compose.onNodeWithTag("nav-1").assertContentDescriptionEquals("Chamada e Diário")
+        compose.onNodeWithTag("nav-1").assertContentDescriptionEquals("Horários / Chamada / Diário")
         compose.onNodeWithTag("nav-icon-1",useUnmergedTree=true).assertIsDisplayed()
         compose.onNodeWithTag("nav-3").performClick()
         compose.onNodeWithText("Buscar").assertExists()

@@ -196,7 +196,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 39690176006
+          run-id: 39864960677
           name: noctua-etapa6-release
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
@@ -209,7 +209,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.15.2.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.16.0.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk

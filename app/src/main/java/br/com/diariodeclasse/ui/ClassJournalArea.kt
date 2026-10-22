@@ -14,24 +14,28 @@ import br.com.diariodeclasse.data.*
 import java.time.LocalDate
 
 /** Quatro páginas mantidas; os dois modos compartilham apenas contexto e calendário visual. */
-@Composable fun ClassJournalArea(vm:DiaryViewModel,data:DiarySnapshot,c:SchoolClass,term:Int,
+@Composable fun ClassJournalArea(vm:DiaryViewModel,data:DiarySnapshot,c:SchoolClass?,term:Int,
     changeTerm:(Int)->Unit,configureTerms:()->Unit,mode:String,changeMode:(String)->Unit,
     draft:LessonRecordDraft?,changeDraft:(LessonRecordDraft?)->Unit,dismissDraft:()->Unit,
-    navigate:(()->Unit)->Unit) {
-    var month by rememberSaveable(c.id){mutableIntStateOf(LocalDate.now().monthValue)}
-    var day by rememberSaveable(c.id){mutableStateOf<String?>(null)}
-    var allRecords by rememberSaveable(c.id){mutableStateOf(false)}
+    navigate:(()->Unit)->Unit,year:Int=c?.year?:LocalDate.now().year,openClass:(String)->Unit={},guard: (((() -> Unit) -> Unit)?) -> Unit = {}) {
+    var month by rememberSaveable(c?.id){mutableIntStateOf(LocalDate.now().monthValue)}
+    var day by rememberSaveable(c?.id){mutableStateOf<String?>(null)}
+    var allRecords by rememberSaveable(c?.id){mutableStateOf(false)}
     val states=rememberSaveableStateHolder()
     fun back(){navigate{day=null;allRecords=false}}
     BackHandler(mode=="Diário"&&(day!=null||allRecords)){back()}
     Column(Modifier.fillMaxSize().testTag("class-journal-area")) {
-        Text("Fazer Chamada / Diário de Classe",Modifier.padding(horizontal=16.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium)
+        Text("Horários / Chamada / Diário",Modifier.padding(horizontal=16.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium)
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page).testTag("class-area-modes")) {
-            listOf("Chamada","Diário").forEachIndexed{index,label->SegmentedButton(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
-                shape=SegmentedButtonDefaults.itemShape(index,2),modifier=Modifier.heightIn(min=48.dp).testTag("class-mode-$label")){Text(label)}}
+            listOf("Horários","Chamada","Diário").forEachIndexed{index,label->SegmentedButton(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
+                shape=SegmentedButtonDefaults.itemShape(index,3),icon={},modifier=Modifier.heightIn(min=48.dp).testTag("class-mode-$label")){Text(label,style=MaterialTheme.typography.labelLarge)}}
         }
         Spacer(Modifier.height(8.dp))
-        if(mode=="Chamada") states.SaveableStateProvider("attendance") {
+        if(mode=="Horários") {
+            states.SaveableStateProvider("timetable") { TimetableScreen(vm,data,year,openClass,guard,preferredClassId=c?.id) }
+        } else if(c==null) {
+            Text("Selecione uma turma para ${if(mode=="Chamada") "fazer a chamada" else "consultar o diário"}.",Modifier.padding(16.dp))
+        } else if(mode=="Chamada") states.SaveableStateProvider("attendance") {
             CalendarScreen(vm,data,c,term,changeTerm,configureTerms,month){month=it}
         } else if(day!=null||allRecords) {
             key(day,allRecords){LessonRecordsScreen(vm,data,c,draft,changeDraft,dismissDraft,day=day,backToCalendar=::back)}
@@ -39,9 +43,9 @@ import java.time.LocalDate
             val records=data.lessonRecords.filter{it.classId==c.id}.groupBy{it.date}
             SchoolCalendar(c.year,month,"",{month=it},{day=it},marker={date->
                 val count=records[date].orEmpty().size
-                CalendarMarker(if(count>0)"•"else"",if(count>0)counted(count,"registro de aula","registros de aula")else"sem registro de aula")
+                CalendarMarker(if(count>0)"•"else"",if(count>0)counted(count,"registro de aula","registros de aula")else"sem registro de aula",Timetables.planned(data,c.id,date).size)
             },instruction="",
-                legend="• dia com registro de aula",tag="journal-calendar") {
+                legend="• registro de aula • pontos menores: aulas previstas",tag="journal-calendar") {
                 OutlinedButton(onClick={allRecords=true},modifier=Modifier.fillMaxWidth().testTag("journal-all-records")){Text("Consultar todos os registros")}
             }
         }

@@ -16,7 +16,7 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import br.com.diariodeclasse.ui.theme.NoctuaSpace
 
-data class CalendarMarker(val text:String="",val description:String)
+data class CalendarMarker(val text:String="",val description:String,val planned:Int=0)
 
 /** Mesmo calendário nativo nos dois modos. Só callbacks explícitos abrem uma data. */
 @Composable fun SchoolCalendar(year:Int,month:Int,selected:String,changeMonth:(Int)->Unit,
@@ -41,13 +41,17 @@ data class CalendarMarker(val text:String="",val description:String)
                                     val n=week*7+weekday-offset+1
                                     if(n !in 1..ym.lengthOfMonth()){Spacer(Modifier.weight(1f).height(NoctuaSpace.touch));continue}
                                     val day=ym.atDay(n).toString();val mark=marker(day)
-                                    Surface(onClick={open(day)},modifier=Modifier.weight(1f).height(NoctuaSpace.touch).testTag("date-$day").semantics{
-                                        contentDescription="${shortDate(day)}, ${mark.description}"; this.selected=day==selected
+                                    Surface(onClick={open(day)},modifier=Modifier.weight(1f).heightIn(min=NoctuaSpace.touch).testTag("date-$day").semantics{
+                                        contentDescription="${shortDate(day)}, ${mark.description}" + if(mark.planned>0) ", ${counted(mark.planned,"aula prevista","aulas previstas")}" else ""; this.selected=day==selected
                                     },shape=MaterialTheme.shapes.small,color=if(day==selected)MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
                                         contentColor=if(day==selected)MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface) {
                                         Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center){
                                             Text("$n",style=MaterialTheme.typography.bodyMedium)
                                             if(mark.text.isNotEmpty())Text(mark.text,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.primary)
+                                            if(mark.planned in 1..2) Row(Modifier.padding(vertical=2.dp),horizontalArrangement=Arrangement.spacedBy(3.dp)) {
+                                                val pointColor=MaterialTheme.colorScheme.onSurfaceVariant
+                                                repeat(mark.planned) { androidx.compose.foundation.Canvas(Modifier.size(3.dp)) { drawCircle(color=pointColor) } }
+                                            } else if(mark.planned>2) Text("${mark.planned} prev.",style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     }
                                 }

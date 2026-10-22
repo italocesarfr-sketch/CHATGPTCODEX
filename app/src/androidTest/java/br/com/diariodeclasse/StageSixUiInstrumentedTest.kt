@@ -129,7 +129,7 @@ class StageSixUiInstrumentedTest {
         }}
         waitTag("nav-1");tag("nav-1").performClick();tag("class-mode-Chamada").assertHeightIsAtLeast(48.dp);tag("class-mode-Diário").assertHeightIsAtLeast(48.dp)
         for(i in 0..3)tag("nav-$i").assertIsDisplayed()
-        for(label in listOf("Cadastrar\nTurma","Chamada e Diário","Atividades\ne Notas","Relatórios")) {
+        for(label in listOf("Cadastrar\nTurma","Horários\nChamada\nDiário","Atividades\ne Notas","Relatórios")) {
             val layouts=mutableListOf<TextLayoutResult>()
             compose.onNodeWithText(label,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
             assertTrue(layouts.isNotEmpty());assertFalse("Rótulo truncado: $label",layouts.first().hasVisualOverflow)

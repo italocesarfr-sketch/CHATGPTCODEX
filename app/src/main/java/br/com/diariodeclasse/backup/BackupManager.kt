@@ -57,14 +57,14 @@ class BackupManager(
         private set
     private fun verifySchema() {
         db.openHelper.writableDatabase.query("PRAGMA user_version").use {
-            check(it.moveToFirst() && it.getInt(0) == 8) { "Versão do banco incompatível." }
+            check(it.moveToFirst() && it.getInt(0) == 9) { "Versão do banco incompatível." }
         }
         db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use {
             check(it.moveToFirst() && it.getString(0) == BackupCodec.IDENTITY) { "Esquema do banco incompatível." }
         }
     }
     private suspend fun readRows(): BackupSnapshot = BackupSnapshot(dao.classes(), dao.students(), dao.terms(), dao.lessons(),
-        dao.marks(), dao.activities(), dao.grades(), dao.drafts(), recompositions = dao.recompositions(), relocations = dao.relocations(), exportRows = dao.exportRows(), classArchives = dao.classArchives(), lessonRecords = dao.lessonRecords(), histories = dao.histories())
+        dao.marks(), dao.activities(), dao.grades(), dao.drafts(), recompositions = dao.recompositions(), relocations = dao.relocations(), exportRows = dao.exportRows(), classArchives = dao.classArchives(), lessonRecords = dao.lessonRecords(), histories = dao.histories(), timetables = dao.timetables())
     private fun withContext(rows: BackupSnapshot): BackupSnapshot = rows.copy(selection = selection?.read()?.let { resolveSelection(it, rows.classes) })
     suspend fun snapshot(): BackupSnapshot = db.withTransaction { verifySchema(); withContext(readRows()) }
     suspend fun backupBytes(): ByteArray = BackupCodec.encode(snapshot(), appVersionCode, certificate)
@@ -93,11 +93,11 @@ class BackupManager(
             val safeguarded = copy.inputStream().use { BackupCodec.decode(BackupCodec.read(it)).snapshot }
             check(BackupCodec.fingerprint(safeguarded) == BackupCodec.fingerprint(current)) { "Cópia de segurança não validada." }
             // Chaves estrangeiras continuam ligadas; qualquer erro causa rollback integral.
-            dao.removeHistories(); dao.removeLessonRecords(); dao.removeClassArchives(); dao.removeExportRows(); dao.removeRelocations(); dao.removeRecompositions(); dao.removeMarks(); dao.removeGrades(); dao.removeDrafts(); dao.removeActivities()
+            dao.removeTimetables(); dao.removeHistories(); dao.removeLessonRecords(); dao.removeClassArchives(); dao.removeExportRows(); dao.removeRelocations(); dao.removeRecompositions(); dao.removeMarks(); dao.removeGrades(); dao.removeDrafts(); dao.removeActivities()
             dao.removeLessons(); dao.removeTerms(); dao.removeStudents(); dao.removeClasses()
             dao.insertClasses(incoming.classes); dao.insertStudents(incoming.students); dao.insertTerms(incoming.terms)
             dao.insertLessons(incoming.lessons); dao.insertActivities(incoming.activities)
-            dao.insertMarks(incoming.marks); dao.insertGrades(incoming.grades); dao.insertDrafts(incoming.drafts); dao.insertRecompositions(incoming.recompositions); dao.insertRelocations(incoming.relocations); dao.insertExportRows(incoming.exportRows); dao.insertClassArchives(incoming.classArchives); dao.insertLessonRecords(incoming.lessonRecords); dao.insertHistories(incoming.histories)
+            dao.insertMarks(incoming.marks); dao.insertGrades(incoming.grades); dao.insertDrafts(incoming.drafts); dao.insertRecompositions(incoming.recompositions); dao.insertRelocations(incoming.relocations); dao.insertExportRows(incoming.exportRows); dao.insertClassArchives(incoming.classArchives); dao.insertLessonRecords(incoming.lessonRecords); dao.insertHistories(incoming.histories); dao.insertTimetables(incoming.timetables)
             db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use {
                 check(!it.moveToFirst()) { "Vínculos inconsistentes." }
             }

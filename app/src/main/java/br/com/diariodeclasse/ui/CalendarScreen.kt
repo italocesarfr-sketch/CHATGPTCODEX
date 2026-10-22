@@ -57,9 +57,9 @@ import java.time.format.TextStyle
                     val valid=performed.sumOf{l->validMarks[l.id].orEmpty().count{students[it.studentId]?.enrolled(day)==true}}
                     val expected=data.currentRoster(c.id).count{it.enrolled(day)}*performed.size
                     val marker=when{valid>0->if(valid==expected)"✓"else"•";daily.isNotEmpty()&&daily.all{it.state=="CANCELADA"}->"×";performed.isNotEmpty()->"NR";daily.isNotEmpty()->"◇";else->""}
-                    CalendarMarker(marker,when(marker){"✓"->"chamada preenchida";"•"->"chamada parcial";"×"->"horários cancelados";"NR"->"sem frequência registrada";"◇"->"aulas previstas legadas";else->"sem aulas"})
+                    CalendarMarker(marker,when(marker){"✓"->"chamada preenchida";"•"->"chamada parcial";"×"->"horários cancelados";"NR"->"sem frequência registrada";"◇"->"aulas previstas legadas";else->"sem aulas"},Timetables.planned(data,c.id,day).size)
                 },instruction="",
-                    legend="✓ completa • • parcial • NR sem registros\n× cancelada • ◇ prevista",tag="attendance-calendar")
+                    legend="✓ completa • • parcial • NR sem registros\n× cancelada • ◇ prevista legada • pontos menores: grade semanal",tag="attendance-calendar")
             }
         }
     }

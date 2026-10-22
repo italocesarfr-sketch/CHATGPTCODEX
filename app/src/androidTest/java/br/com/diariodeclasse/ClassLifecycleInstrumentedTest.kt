@@ -28,7 +28,7 @@ class ClassLifecycleInstrumentedTest {
     private val h=c.copy(id="life-h",name="Turma Fictícia Preservada")
     private val a=Student("life-a","life-person-a",c.id,"Estudante Fictício Alfa Áurea\r\nLinha",1,"2026-01-01",notes="Observação fictícia preservada")
     private val b=a.copy(id="life-b",personId="life-person-b",classId=h.id,name="Estudante Fictício Beta")
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),14,null)}
+    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),14,null)}
     private suspend fun data()=repo.snapshot.first{it.loaded}
     @Before fun setup()=runBlocking {
         context.deleteDatabase(name);folder=File(context.cacheDir,"life-${newId()}");open()

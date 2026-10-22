@@ -12,7 +12,7 @@ data class ClassDeletionPreview(val school:SchoolClass,val counts:Map<String,Int
 }
 object ClassLifecycle {
     fun snapshot(d:DiarySnapshot)=BackupSnapshot(d.classes,d.students,d.terms,d.lessons,d.marks,d.activities,d.grades,d.drafts,
-        recompositions=d.recompositions,relocations=d.relocations,exportRows=d.exportRows,classArchives=d.classArchives,lessonRecords=d.lessonRecords,histories=d.histories)
+        recompositions=d.recompositions,relocations=d.relocations,exportRows=d.exportRows,classArchives=d.classArchives,lessonRecords=d.lessonRecords,histories=d.histories,timetables=d.timetables)
     fun fingerprint(d:DiarySnapshot)=BackupCodec.fingerprint(snapshot(d))
     fun preview(d:DiarySnapshot,id:String):ClassDeletionPreview {
         val c=requireNotNull(d.classes.firstOrNull{it.id==id}) {"Turma não encontrada."}

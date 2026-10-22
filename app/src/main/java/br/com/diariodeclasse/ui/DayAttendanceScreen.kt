@@ -25,7 +25,8 @@ import kotlinx.coroutines.*
     val enrolledIds = data.currentRoster(c.id).filter { it.enrolled(day) }.map { it.id }.toSet()
     val filled = data.marks.count { it.lessonId in performedIds && it.studentId in enrolledIds && it.mark != "NR" }
     val expected = performed * enrolledIds.size
-    var count by rememberSaveable(c.id, day) { mutableIntStateOf(1) }
+    val planned = Timetables.planned(data,c.id,day).size
+    var count by rememberSaveable(c.id, day) { mutableIntStateOf(planned.takeIf { it > 0 } ?: 1) }
     var more by remember { mutableStateOf(false) }
     var hoursForm by rememberSaveable { mutableStateOf(false) }
     var hoursText by rememberSaveable { mutableStateOf("") }
@@ -59,6 +60,7 @@ import kotlinx.coroutines.*
             ContextHelp("Ajuda da chamada", "Toque novamente em P, F ou FJ para limpar. NR não conta como presença nem falta. Use o menu da célula para justificar.")
         }
         Text(period?.let { "${it.number}º bimestre • ${counted(performed, "horário", "horários")} • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = NoctuaSpace.medium), style = MaterialTheme.typography.labelSmall)
+        if(planned>0) Text("${counted(planned,"aula prevista","aulas previstas")} para esta turma.",Modifier.padding(horizontal=NoctuaSpace.medium).testTag("planned-hours"),style=MaterialTheme.typography.bodyMedium)
         AttendanceSaveStatus(vm)
         if (lessons.isEmpty()) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(NoctuaSpace.medium), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {

@@ -1,0 +1,74 @@
+package br.com.diariodeclasse.data
+
+import androidx.room.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import java.time.LocalDate
+import java.time.Instant
+
+/** Previsão independente de Lesson. O retrato da turma mantém legível uma revisão após sua exclusão. */
+@Serializable
+data class WeeklySlot(val id: String = newId(), val classId: String, val weekday: Int, val ordinal: Int,
+    val className: String, val subject: String, val shift: String)
+
+/** Cada revisão é imutável. A maior revisão de uma data vale até a próxima vigência do mesmo ano. */
+@Serializable
+@Entity(tableName = "weekly_timetables", indices = [Index(value = ["year", "effective", "revision"], unique = true)])
+data class WeeklyTimetable(@PrimaryKey val id: String = newId(), val year: Int, val effective: String,
+    val revision: Int, val createdAt: String = Instant.now().toString(), val slots: List<WeeklySlot>)
+
+class TimetableConverters {
+    @TypeConverter fun encode(slots: List<WeeklySlot>): String = Json.encodeToString(slots)
+    @TypeConverter fun decode(value: String): List<WeeklySlot> = Json.decodeFromString(value)
+}
+
+data class TimetablePreview(val expected: List<WeeklyTimetable>, val proposed: WeeklyTimetable,
+    val through: String, val affected: List<String>)
+
+object Timetables {
+    fun current(rows: List<WeeklyTimetable>, day: String): WeeklyTimetable? = rows
+        .filter { it.year == LocalDate.parse(day).year && it.effective <= day }
+        .maxWithOrNull(compareBy<WeeklyTimetable> { it.effective }.thenBy { it.revision })
+    fun planned(data: DiarySnapshot, classId: String, day: String): List<WeeklySlot> {
+        val weekday = LocalDate.parse(day).dayOfWeek.value
+        return current(data.timetables, day)?.slots.orEmpty().filter { it.classId == classId && it.weekday == weekday }.sortedBy { it.ordinal }
+    }
+    fun validate(rows: List<WeeklyTimetable>) {
+        require(rows.map { it.id }.distinct().size == rows.size) { "Revisões de horários repetidas." }
+        require(rows.map { Triple(it.year,it.effective,it.revision) }.distinct().size == rows.size) { "Vigências de horários conflitantes." }
+        require(rows.flatMap { it.slots }.groupBy { it.id }.values.all { versions ->
+            versions.map { Triple(it.classId,it.weekday,it.ordinal) }.distinct().size == 1
+        }) { "Um identificador de período pertence a configurações diferentes." }
+        rows.forEach { row ->
+            require(row.id.isNotBlank() && row.year in 2000..2100 && row.revision > 0 && LocalDate.parse(row.effective).year == row.year) { "Confira a vigência da grade." }
+            Instant.parse(row.createdAt)
+            require(row.slots.map { it.id }.distinct().size == row.slots.size) { "Horários repetidos." }
+            require(row.slots.map { it.weekday to it.ordinal }.distinct().size == row.slots.size) { "Duas turmas ocupam o mesmo período. Revise os horários." }
+            require(row.slots.all { it.id.isNotBlank() && it.classId.isNotBlank() && it.weekday in 1..7 && it.ordinal in 1..12 && it.className.isNotBlank() && it.subject.isNotBlank() }) { "Confira os períodos da grade." }
+        }
+    }
+    fun preview(data: DiarySnapshot, year: Int, effective: String, slots: List<WeeklySlot>): TimetablePreview {
+        require(LocalDate.parse(effective).year == year) { "A vigência deve estar no ano selecionado." }
+        val expected = data.timetables.filter { it.year == year }.sortedBy { it.id }
+        val revision = (expected.filter { it.effective == effective }.maxOfOrNull { it.revision } ?: 0) + 1
+        val proposed = WeeklyTimetable(year=year,effective=effective,revision=revision,slots=slots.sortedWith(compareBy({it.weekday},{it.ordinal})))
+        validate(expected + proposed)
+        // Mantém retratos históricos de turmas excluídas/arquivadas, mas não cria novos períodos nelas.
+        val previous = current(expected,effective)?.slots.orEmpty()
+        slots.filter { it !in previous }.forEach { slot ->
+            val school = requireNotNull(data.classes.firstOrNull { it.id == slot.classId }) { "Turma não encontrada. Reabra os horários." }
+            require(school.year == year && data.classArchives.none { it.classId == school.id }) { "Escolha uma turma ativa do mesmo ano." }
+        }
+        val next = expected.map { it.effective }.filter { it > effective }.minOrNull()
+        val through = next?.let { LocalDate.parse(it).minusDays(1).toString() } ?: "$year-12-31"
+        val after = data.copy(timetables = data.timetables + proposed)
+        val dates = (data.lessons.map { it.classId to it.date } + data.lessonRecords.map { it.classId to it.date }).distinct()
+        val affected = dates.filter { (id,day) -> day in effective..through &&
+            planned(data,id,day).map { it.ordinal } != planned(after,id,day).map { it.ordinal } }
+            .sortedWith(compareBy({it.second},{it.first})).map { (id,day) ->
+                "$day • ${data.classes.firstOrNull { it.id==id }?.name ?: slots.firstOrNull {it.classId==id}?.className.orEmpty()}" }
+        return TimetablePreview(expected,proposed,through,affected)
+    }
+}

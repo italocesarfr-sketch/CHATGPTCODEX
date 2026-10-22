@@ -47,7 +47,7 @@ class RelocationConversionTest {
         assertTrue(audits.last().removed.isEmpty());assertEquals("Noturno corrigido",audits.last().previousTarget)
         assertNull(audits.last().externalTarget);assertNotNull(audits.last().targetLabel)
         val encoded=BackupCodec.encode(ClassLifecycle.snapshot(after),27,null)
-        assertEquals(10,BackupCodec.decode(encoded).envelope.formatVersion)
+        assertEquals(11,BackupCodec.decode(encoded).envelope.formatVersion)
         assertEquals(ClassLifecycle.snapshot(after).canonical(),BackupCodec.decode(encoded).snapshot)
     }
     @Test fun existingCompatibleEnrollmentAndItsMarksAndGradesArePreserved() {
@@ -114,7 +114,7 @@ class RelocationConversionTest {
             is JsonArray -> JsonArray(value.map(::strip));else -> value
         }
         val legacyPayload=strip(BackupCodec.json.parseToJsonElement(payload)).toString()
-        val envelope=BackupEnvelope("diario-de-classe-backup",9,"br.com.diariodeclasse",8,BackupCodec.IDENTITY,"2026-10-21T00:00:00Z",26,null,BackupCodec.hash(legacyPayload.toByteArray()),legacyPayload)
+        val envelope=BackupEnvelope("diario-de-classe-backup",9,"br.com.diariodeclasse",8,BackupCodec.V8_IDENTITY,"2026-10-21T00:00:00Z",26,null,BackupCodec.hash(legacyPayload.toByteArray()),legacyPayload)
         val restored=BackupCodec.decode(BackupCodec.json.encodeToString(envelope).toByteArray()).snapshot
         assertEquals(ClassLifecycle.snapshot(old).canonical(),restored)
         val converted=apply(convert(old))

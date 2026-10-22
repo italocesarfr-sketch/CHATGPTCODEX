@@ -140,6 +140,15 @@ class StableUpgradeProbeTest {
                 assertEquals("CONVERSAO_INTERNA",converted.corrections.last().operation)
                 assertEquals("FJ",converted.corrections.first().removed.single().attendance.mark)
                 assertNotNull(converted.targetStudentId);assertNull(converted.externalTarget)
+                // Nova tabela criada somente após atualizar a release 0.16.0 real.
+                val source=repo.dao.schoolClass("classe-alfa")!!
+                val slots=(1..2).map { WeeklySlot(classId=source.id,weekday=4,ordinal=it,className=source.name,subject=source.subject,shift=source.shift) }
+                repo.confirmTimetable(repo.previewTimetable(2026,"2026-01-01",slots))
+                val scheduled=manager.snapshot();val scheduleBytes=manager.backupBytes()
+                repo.confirmTimetable(repo.previewTimetable(2026,"2026-11-01",emptyList()))
+                manager.restore(manager.prepare(scheduleBytes.inputStream()),"RESTAURAR")
+                assertEquals(scheduled,manager.snapshot())
+                assertEquals(2,Timetables.planned(manager.snapshot().diarySnapshot(),source.id,"2026-08-06").size)
                 file.writeBytes(manager.backupBytes())
             }
         }
@@ -199,7 +208,7 @@ class StableUpgradeProbeTest {
         val rows=ExportLayout.normalize(listOf(ExportLayout.blank("classe-alfa"))+ExportLayout.rows(data,"classe-alfa").reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
         repo.saveExportLayout("classe-alfa",before.exportRows.filter{it.classId=="classe-alfa"},rows)
         val configured=manager.snapshot();assertEquals(before,configured.copy(exportRows=before.exportRows))
-        val bytes=manager.backupBytes();assertEquals(10,BackupCodec.decode(bytes).envelope.formatVersion)
+        val bytes=manager.backupBytes();assertEquals(11,BackupCodec.decode(bytes).envelope.formatVersion)
         repo.saveExportLayout("classe-alfa",rows,rows.map{it.copy(manualHidden=false)})
         manager.restore(manager.prepare(oldBytes.inputStream()),"RESTAURAR")
         assertEquals(original,manager.snapshot());assertEquals(original.exportRows,manager.snapshot().exportRows)

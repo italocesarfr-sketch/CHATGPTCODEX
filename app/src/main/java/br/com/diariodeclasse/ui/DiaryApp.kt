@@ -37,7 +37,7 @@ import br.com.diariodeclasse.backup.BackupCodec
 private data class MainPage(val title: String, val label: String, val icon: Int)
 private val pages = listOf(
     MainPage("Cadastrar Turma", "Cadastrar\nTurma", R.drawable.ic_classes),
-    MainPage("Fazer Chamada / Diário de Classe", "Chamada e Diário", R.drawable.ic_calendar),
+    MainPage("Horários / Chamada / Diário", "Horários\nChamada\nDiário", R.drawable.ic_calendar),
     MainPage("Atividades e Notas", "Atividades\ne Notas", R.drawable.ic_grades),
     MainPage("Relatórios", "Relatórios", R.drawable.ic_reports))
 
@@ -153,7 +153,7 @@ private val pages = listOf(
                 Column(Modifier.weight(1f).heightIn(min=80.dp).testTag("nav-$index")
                     .selectable(selected=active,enabled=!navigating&&!exportBusy,role=Role.Tab,
                         onClick={if(page!=index||detail.isNotEmpty())navigate{page=index;detail=""}})
-                    .semantics{contentDescription=if(index==1) "Chamada e Diário" else item.title}.padding(vertical=8.dp),
+                    .semantics{contentDescription=if(index==1) "Horários / Chamada / Diário" else item.title}.padding(vertical=8.dp),
                     horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(4.dp)) {
                     Surface(shape=MaterialTheme.shapes.large,color=if(active)MaterialTheme.colorScheme.secondaryContainer else Color.Transparent) {
                         Icon(painterResource(item.icon),null,Modifier.padding(horizontal=14.dp,vertical=4.dp).size(23.dp).testTag("nav-icon-$index"),
@@ -211,10 +211,11 @@ private val pages = listOf(
                             TermSelector(term){term=it}
                             ReportScreen(data,null,term,globalProfile=::openReportStudent) {}
                         }
-                        c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
-                        page == 1 && c != null -> frequencyStates.SaveableStateProvider(c.id) {
-                            ClassJournalArea(vm,data,c,term,{term=it},{termForm=true},classAreaMode,{next->navigate{classAreaMode=next}},recordDraft,::changeRecord,::dismissRecord,::navigate)
+                        page == 1 -> frequencyStates.SaveableStateProvider(c?.id ?: "timetable-${selected.year}") {
+                            ClassJournalArea(vm,data,c,term,{term=it},{termForm=true},classAreaMode,{next->navigate{classAreaMode=next}},recordDraft,::changeRecord,::dismissRecord,::navigate,
+                                year=selected.year,openClass={id->navigate {vm.select(AppSelection(selected.year,id)){classAreaMode="Chamada";detail=""}}},guard={importGuard=it})
                         }
+                        c == null -> EmptyClassPage(pages[page].title) { page = 0; editingClass = null; classForm = true }
                         else -> Column {
                             Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.page), verticalAlignment = Alignment.CenterVertically) {
                                 Text(pages[page].title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
