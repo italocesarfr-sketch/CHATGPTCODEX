@@ -39,7 +39,7 @@ Impeccable 4.7.0 foi lido do diretório instalado no projeto `.agents/skills/imp
 
 ## Validação
 
-Resultados efetivamente executados e links serão registrados após o CI. Não considerar este texto uma declaração antecipada de aprovação.
+**Entrega aprovada:** execução 39864960677, código `4a52066`, 148 JVM e 243 Android sem falhas; atualização assinada sobre a release 0.15.2 e seis fases de preservação aprovadas. Evidências detalhadas abaixo e no JSON de resultados.
 
 Cobertura acrescentada: equivalência das seis projeções padrão, combinações de cabeçalhos/números/abrangência, cópias completas/vigentes/históricas, zero/pendente/linhas vazias, TSV/CSV, parâmetros por modelo, bimestre herdado e rotação, ausência de prévia obrigatória, todos os modelos acessíveis, filtros agrupados e preservação do snapshot Room.
 
@@ -60,3 +60,77 @@ A execução [39862135653](https://github.com/italocesarfr-sketch/CHATGPTCODEX/a
 ### Terceira execução de instrumentação
 
 A execução [39863260890](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39863260890) aprovou os 35 cenários anteriores e os 22 cenários focados, incluindo cópias consecutivas sem sobreposição. A regressão integral chegou ao fim com uma falha na nova medição de overflow de texto do layout compacto. A checagem foi alinhada à prova geométrica já existente para Organizar/Exportar: cobertura integral dos caracteres, ausência de reticências, linha única, limites reais dos glifos, texto dentro do botão e altura mínima de toque. Capturas e medidas por escala são arquivadas para revisão; o resultado final dependerá da nova instrumentação. Não foram alterados valores esperados de dados escolares nem removidas verificações de integridade.
+
+## Evidências da execução final
+
+Código e testes: `4a5206611928fad0ceea35c9c75da5f5496b0c15`. [Execução 39864960677](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39864960677).
+
+A validação principal foi aprovada: **148 JVM**, **243 Android**, sem falhas. A suíte Android contém 247 casos, dos quais quatro são sondas condicionais fora da execução geral. A sonda de frequência/reinício e a atualização legada foram executadas separadamente pelo script. O job de assinatura realiza a prova específica da release permanente.
+
+Também passaram **2 testes visuais iniciais**, **35 cenários anteriores focados** e **22 cenários de relatórios/exportação**. Os leitores independentes conferiram **41 XLSX gerais + 2 XLSX de planos**, **41 CSV** e **123 TSV**, incluindo arquivos efetivamente produzidos pelo Android. Zero numérico, pendência vazia, pontuação máxima, acentos, quebras de linha, recomposição, frequência, remanejamentos e linhas vazias mantiveram a equivalência.
+
+A medição confirmou o falso positivo da antiga asserção: em fonte 1,6×, “Exportar XLSX” ocupa 141,54 px de glifos em um nó Text de 142 px, dentro do botão de 288 px. O parágrafo reserva 264 px; por isso `didOverflowWidth` fica verdadeiro mesmo sem corte. As novas verificações exigem todos os caracteres, linha única, ausência de reticências e glifos/texto dentro dos limites visíveis. [Medidas nativas completas](images/relatorios-exportacao-0160/medidas-layout.txt).
+
+### Capturas reais do emulador
+
+Dados exclusivamente fictícios, produzidos nesta execução. As imagens foram copiadas sem redesenho ou edição.
+
+| Relatórios | Exportar (modelo Resumo anual) |
+| --- | --- |
+| ![Boletim com filtros agrupados](images/relatorios-exportacao-0160/relatorios.png) | ![Exportação direta sem painel permanente](images/relatorios-exportacao-0160/exportar.png) |
+
+| Ajustes sob demanda | Cópia sem sobreposição das ações |
+| --- | --- |
+| ![Folha Material 3 com Concluído acessível](images/relatorios-exportacao-0160/ajustes.png) | ![Mensagem acima do rodapé](images/relatorios-exportacao-0160/copia.png) |
+
+[Componente Exportar em 320 dp e fonte 1,6×](images/relatorios-exportacao-0160/fonte-ampliada.png) · [Prévia opcional](images/relatorios-exportacao-0160/previa.png).
+
+### Arquivos alterados
+
+Lista de código, testes, compilação e documentação do incremento em relação à 0.15.2; capturas e o JSON de resultados complementam a lista.
+
+```text
+.github/workflows/android.yml
+README.md
+app/build.gradle.kts
+app/src/androidTest/java/br/com/diariodeclasse/ExportLayoutUiInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/ExportLifecycleUiInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/FinalUxEntryInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/FinalUxLayoutInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/FunctionalFifteenUiInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/PostTwelveLayoutInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/PostTwelveUiInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt
+app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt
+app/src/main/java/br/com/diariodeclasse/export/ExportFiles.kt
+app/src/main/java/br/com/diariodeclasse/export/ExportPresentation.kt
+app/src/main/java/br/com/diariodeclasse/export/ExportProjection.kt
+app/src/main/java/br/com/diariodeclasse/export/SpreadsheetShare.kt
+app/src/main/java/br/com/diariodeclasse/reports/SchoolReports.kt
+app/src/main/java/br/com/diariodeclasse/ui/AttendanceExportScreen.kt
+app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt
+app/src/main/java/br/com/diariodeclasse/ui/ExportScreen.kt
+app/src/main/java/br/com/diariodeclasse/ui/ReportsScreen.kt
+app/src/test/java/br/com/diariodeclasse/ExportPresentationTest.kt
+docs/ESPECIFICACAO.md
+docs/RELATORIOS_EXPORTACAO_0160.md
+docs/ROADMAP.md
+docs/baseline/noctua-release-0.15.2.json
+scripts/ci/validate-android.sh
+```
+
+## Release assinada e atualização aprovada
+
+**[Baixar APK release 0.16.0 / 28](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39864960677/artifacts/12463554056)** · **[GitHub Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39864960677)** · [Resultados verificáveis](RELATORIOS_EXPORTACAO_0160_RESULTADOS.json).
+
+O ZIP contém `app-release.apk`, checksum, identidade e relatório de compatibilidade. O nome legado do artefato `noctua-etapa6-release` foi mantido para compatibilidade do workflow; o manifesto interno foi conferido: **Noctua 0.16.0, código 28, `br.com.diariodeclasse`**. Este é o APK release permanente, não o artefato debug.
+
+O APK existe e foi novamente verificado localmente com `apksigner`: assinatura v2 válida e certificado SHA-256 `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`, idêntico à release 0.15.2. Nenhuma chave privada foi criada, substituída, exibida ou publicada; Secrets e configuração permanente não foram alterados.
+
+SHA-256 do APK: `2f096dd50d6223e2ce15ea6d2ed227636a7141c712051087bed0554a5a2b29cf`.
+
+A identidade compatível foi acompanhada da prova de dados: instalação da release 0.15.2 real, criação de registros fictícios, `adb install -r` da nova release, comparação integral, backup/restauração, reinício e preservação de histórico após exclusão da origem. As seis fases `before`, `after`, `backup`, `reopened`, `deleted-history` e `reopened-history` passaram, sem desinstalação e sem dados reais. [Artefato da prova](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39864960677/artifacts/12463489394).
+
+Room v8 e seu JSON exportado permanecem byte a byte idênticos à base. Backup formato 10 e leitura de formatos 1–9 preservados. Não houve migração nem limpeza de tabelas nesta atualização.
+
+A compilação e a regressão estão concluídas. Permanece a conferência prática pelo proprietário no seu aparelho e no Microsoft Excel; o ambiente executou emulador API 30, testes em 320/360 dp e fontes ampliadas, com leitores independentes de arquivos. As escolhas de apresentação sobrevivem à rotação e à navegação na sessão; não substituem a disposição persistente de exportação existente.

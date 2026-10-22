@@ -1,0 +1,148 @@
+{
+  "versionName": "0.16.0",
+  "versionCode": 28,
+  "applicationId": "br.com.diariodeclasse",
+  "database": "diario.db",
+  "codeCommit": "4a5206611928fad0ceea35c9c75da5f5496b0c15",
+  "runId": 39864960677,
+  "conclusion": "success",
+  "runUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39864960677",
+  "releaseArtifactId": 12463554056,
+  "releaseArtifactName": "noctua-etapa6-release",
+  "releaseArtifactZipSha256": "ae99d83b0ccf1fe2821cf34ab507f7edc126a19a22d9cc475bce1e89492c1bf2",
+  "apkSha256": "2f096dd50d6223e2ce15ea6d2ed227636a7141c712051087bed0554a5a2b29cf",
+  "apkBytes": 8569576,
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "apkVerifiedLocally": true,
+  "sameCertificateAs0152": true,
+  "baseline": {
+    "apkSha256": "909b4a54f5b29121a708824da42ebdcc169803bedb60eca34d837fdf5757d84d",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "manifest": {
+      "package": "br.com.diariodeclasse",
+      "versionCode": 27,
+      "versionName": "0.15.2"
+    },
+    "runId": 39690176006,
+    "artifactId": 12389310277,
+    "artifactName": "noctua-etapa6-release"
+  },
+  "jvm": {
+    "tests": 148,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 148
+  },
+  "android": {
+    "tests": 247,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 243,
+    "conditionalProbes": [
+      "br.com.diariodeclasse.FrequencyProcessProbeTest.committedLastCellSurvivesProcessRestart",
+      "br.com.diariodeclasse.ReleaseContinuityProbeTest.releasePreservesSnapshotPreferencesAndBackupRoundTrip",
+      "br.com.diariodeclasse.StableUpgradeProbeTest.sameOwnerSignaturePreservesEveryRowPreferencesAndBackup",
+      "br.com.diariodeclasse.UpgradeProbeTest.allSyntheticRowsSurviveInInstalledApp"
+    ]
+  },
+  "focusedAndroid": {
+    "tests": 22,
+    "failures": 0
+  },
+  "previousFocusedAndroid": {
+    "tests": 35,
+    "failures": 0
+  },
+  "layoutSmoke": {
+    "tests": 2,
+    "failures": 0
+  },
+  "signedUpdatePhases": {
+    "before": "OK (1 test)",
+    "after": "OK (1 test)",
+    "backup": "OK (1 test)",
+    "reopened": "OK (1 test)",
+    "deleted-history": "OK (1 test)",
+    "reopened-history": "OK (1 test)"
+  },
+  "resultsArtifactId": 12464570475,
+  "resultsZipSha256": "a3dc9812af4a2f2056b09a79af7c63c1aa580ee4ac917e50d37ff2fd882fd856",
+  "stableResultsArtifactId": 12463489394,
+  "stableResultsZipSha256": "33204f5d230b668ce10cb7ccc7eb869c572e73f00d43ff148aafacff3469b6ee",
+  "independentReaders": {
+    "reader": "openpyxl 3.1.5 + Python csv",
+    "generalXlsx": 41,
+    "lessonPlanXlsx": 2,
+    "csv": 41,
+    "tsv": 123
+  },
+  "schema": {
+    "version": 8,
+    "tables": 14,
+    "changed": false,
+    "sha256": "a161e29da72d1673e329d84339357ebf244f54bd1b14e4161b1919c298dfe62d"
+  },
+  "backup": {
+    "format": 10,
+    "changed": false,
+    "readsPreviousFormats": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "skills": {
+    "impeccable": "4.7.0 — context, distill, Android, craft-floor; revisão de capturas reais",
+    "spreadsheets": "Não utilizada: escritores XLSX/CSV preservados; leitura técnica independente reutilizada."
+  },
+  "validationLimits": [
+    "Emulador Android API 30; aparelho físico do proprietário ainda requer conferência.",
+    "Arquivos lidos por leitores independentes; não foi executado Microsoft Excel neste ambiente.",
+    "Preferências de apresentação usam SavedInstanceState por turma/modelo; disposição personalizada continua em Room/backup."
+  ],
+  "modifiedFiles": [
+    ".github/workflows/android.yml",
+    "README.md",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/ExportLayoutUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ExportLifecycleUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FinalUxEntryInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FinalUxLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FunctionalFifteenUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PostTwelveLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PostTwelveUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/export/ExportFiles.kt",
+    "app/src/main/java/br/com/diariodeclasse/export/ExportPresentation.kt",
+    "app/src/main/java/br/com/diariodeclasse/export/ExportProjection.kt",
+    "app/src/main/java/br/com/diariodeclasse/export/SpreadsheetShare.kt",
+    "app/src/main/java/br/com/diariodeclasse/reports/SchoolReports.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/AttendanceExportScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ExportScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ReportsScreen.kt",
+    "app/src/test/java/br/com/diariodeclasse/ExportPresentationTest.kt",
+    "docs/ESPECIFICACAO.md",
+    "docs/RELATORIOS_EXPORTACAO_0160.md",
+    "docs/RELATORIOS_EXPORTACAO_0160_RESULTADOS.json",
+    "docs/ROADMAP.md",
+    "docs/baseline/noctua-release-0.15.2.json",
+    "docs/images/relatorios-exportacao-0160/ajustes.png",
+    "docs/images/relatorios-exportacao-0160/copia.png",
+    "docs/images/relatorios-exportacao-0160/exportar.png",
+    "docs/images/relatorios-exportacao-0160/fonte-ampliada.png",
+    "docs/images/relatorios-exportacao-0160/medidas-layout.txt",
+    "docs/images/relatorios-exportacao-0160/previa.png",
+    "docs/images/relatorios-exportacao-0160/relatorios.png",
+    "scripts/ci/validate-android.sh"
+  ]
+}
