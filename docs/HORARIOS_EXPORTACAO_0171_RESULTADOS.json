@@ -1,0 +1,110 @@
+{
+  "versionName": "0.17.1",
+  "versionCode": 30,
+  "applicationId": "br.com.diariodeclasse",
+  "validatedCommit": "e632aae295556c0f66171c60fb792b9a30cbbd2f",
+  "lastAppSourceCommit": "5739d9266554e1ec539c4a26e9dda090cfae57ff",
+  "runId": 39992962752,
+  "conclusion": "success",
+  "jobs": {
+    "validation": 120549791509,
+    "stableUpdate": 120554987340
+  },
+  "jvm": {
+    "tests": 162,
+    "passed": 162,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "tests": 269,
+    "passed": 265,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "conditional": [
+      "FrequencyProcessProbeTest",
+      "UpgradeProbeTest",
+      "StableUpgradeProbeTest",
+      "ReleaseContinuityProbeTest (legada; substituída pela sonda atual)"
+    ]
+  },
+  "focused": {
+    "weekly": 20,
+    "layout": 3,
+    "previousRegression": 35,
+    "reportsExports": 24,
+    "systemFont13": 2,
+    "systemFont16": 2,
+    "overlapsFullSuite": true
+  },
+  "independentReaders": {
+    "xlsx": 91,
+    "csv": 89,
+    "tsv": 267,
+    "newScopeMatrix": {
+      "xlsx": 48,
+      "csv": 48,
+      "tsv": 144
+    },
+    "reader": "openpyxl 3.1.5 / Python csv"
+  },
+  "room": {
+    "version": 9,
+    "identity": "28e0646355ca4f7088b43bbe8de33141",
+    "tables": 15,
+    "newMigration": false
+  },
+  "backup": {
+    "format": 11,
+    "formatChanged": false
+  },
+  "stableUpdate": {
+    "baselineVersion": "0.17.0",
+    "baselineVersionCode": 29,
+    "baselineApkSha256": "25199cab7d74519c607c41087b759a982f9ca8c166fc0c0d2c5cba273cd0fbe4",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "apkSignatureV2Verified": true,
+    "phases": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history"
+    ],
+    "uninstall": false,
+    "academicData": "synthetic",
+    "testedApkHashRecheckedBeforeUpload": true
+  },
+  "artifacts": [
+    {
+      "id": 12519900080,
+      "name": "resultados-etapa6",
+      "zipBytes": 5150511,
+      "zipDigest": "sha256:ab03430f8638d8eb9761019e633c6de379fe216f33717b4ec71edf0b16919849",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39992962752/artifacts/12519900080"
+    },
+    {
+      "id": 12519885935,
+      "name": "noctua-etapa6-release",
+      "zipBytes": 8237429,
+      "zipDigest": "sha256:235abde473361bb3c180f3f0bc213bb063f478ace00197594ae1d68c293178b5",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39992962752/artifacts/12519885935"
+    },
+    {
+      "id": 12519562217,
+      "name": "resultados-atualizacao-release",
+      "zipBytes": 1909,
+      "zipDigest": "sha256:56da7121e5cddc8f57a628a7b9e34d8d51d3cbf7928dee4d1b78a5e6d34f7793",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39992962752/artifacts/12519562217"
+    }
+  ],
+  "limitations": [
+    "Ambiente local indisponível ao baixar evidências finais; verificação final de assinatura e atualização feita no CI.",
+    "Capturas reais armazenadas em build/weekly-telas.tar e build/etapa52-telas.tar no artefato de resultados; revisão visual final das fontes reais permanece manual.",
+    "Validação em aparelho físico e na interface do Microsoft Excel permanece com o proprietário.",
+    "Os digests dos artefatos referem-se ao ZIP; o release inclui a identidade e o hash do APK interno."
+  ]
+}
