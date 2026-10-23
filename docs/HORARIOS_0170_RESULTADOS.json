@@ -1,0 +1,203 @@
+{
+  "status": "approved",
+  "versionName": "0.17.0",
+  "versionCode": 29,
+  "sourceCommit": "0b52be6f3e574316c6d60653e7955f9fb6e7e170",
+  "runId": 39967631678,
+  "runUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39967631678",
+  "mainJob": {
+    "id": 120461562490,
+    "conclusion": "success",
+    "artifactId": 12507224195,
+    "zipSha256": "44e8c8d51cd6664061c5bb304dafb946c89e2e78c49f287b4ddb4a4b9d38e12d"
+  },
+  "tests": {
+    "jvm": {
+      "tests": 156,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 156
+    },
+    "android": {
+      "tests": 260,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 4,
+      "passed": 256,
+      "skippedCases": [
+        "br.com.diariodeclasse.FrequencyProcessProbeTest.committedLastCellSurvivesProcessRestart",
+        "br.com.diariodeclasse.ReleaseContinuityProbeTest.releasePreservesSnapshotPreferencesAndBackupRoundTrip",
+        "br.com.diariodeclasse.StableUpgradeProbeTest.sameOwnerSignaturePreservesEveryRowPreferencesAndBackup",
+        "br.com.diariodeclasse.UpgradeProbeTest.allSyntheticRowsSurviveInInstalledApp"
+      ]
+    }
+  },
+  "focused": {
+    "weekly": 13,
+    "layout": 3,
+    "previousRules": 35,
+    "reportsExports": 22
+  },
+  "independentReaders": {
+    "xlsx": 41,
+    "lessonPlansXlsx": 2,
+    "csv": 41,
+    "tsv": 123,
+    "reader": "openpyxl 3.1.5 / Python csv"
+  },
+  "database": {
+    "previous": 8,
+    "current": 9,
+    "unchangedPreviousTables": 14,
+    "addedTable": "weekly_timetables",
+    "identity": "28e0646355ca4f7088b43bbe8de33141",
+    "schema8Sha256": "a161e29da72d1673e329d84339357ebf244f54bd1b14e4161b1919c298dfe62d",
+    "schema9Sha256": "36356bab53f36e26b9597dc594cfb938655fcf38fb495671d9ca9206a91512cf"
+  },
+  "backup": {
+    "currentFormat": 11,
+    "readsPreviousFormats": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  "skills": {
+    "impeccable": "4.7.0, filesystem .agents/skills/impeccable; contexto, Android, craft floor e adapt.native; análise de capturas e refinamento nativo"
+  },
+  "screenshots": {
+    "05-celular-320-fonte-ampliada.png": "327915bbf232d66d824979e408efda417a34b13b6ef072383b00dc9f97bf4c22",
+    "08-chamada-compacta-registrada.png": "342a70a5b3e75e6f2296fd5c9072cffe9ec62c6314d7ddb855ec91a9f6497ee2",
+    "05-sem-turma-fonte-1.3.png": "43f17d32126af28364c3ce2bbf8c9d5ad8d236985281e6a6980e6883c9b6c269",
+    "05-sem-turma-fonte-1.0.png": "b7b7e11fbba374671df3861b3e5494dd1b03a3eacaac0da3573a08cd475cd699",
+    "02-editar-grade.png": "d9aba25ca51cd2ae63eb018295a470813ea26f01c9c206260abc68674024ec09",
+    "03-chamada-prevista.png": "133bda8e7c782e37b75742cc19c836f234c0383e3f98e614895b025666ffd424",
+    "04-diario-previsto.png": "80a4dad418c0670962b69ad2bf58094c0e30f2e5bc130e0081e7490f2e9e6597",
+    "05-sem-turma-fonte-1.6.png": "c748bc8653a186e70f6e3173847cc0b4459668871647dfc4d0609ee0c68d2802",
+    "07-chamada-compacta.png": "75d4a8aa53dbef863e5d2f12bbd08c67d32c8d282bea904b3717477d96ca2b2c",
+    "01-grade-semanal.png": "9abf0d4f3290999171ea67fe254f29ba6be98f90825c51004d201e7468d3eb76"
+  },
+  "changedFiles": [
+    ".github/workflows/android.yml",
+    "README.md",
+    "app/build.gradle.kts",
+    "app/schemas/br.com.diariodeclasse.data.DiaryDatabase/9.json",
+    "app/src/androidTest/java/br/com/diariodeclasse/BackupInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ClassLifecycleInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ExportLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FinalUxEntryInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FunctionalFifteenInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/HistoryDeletionInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/LessonRecordsInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/RecompositionInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/RelocationConversionInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/RelocationInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ReportsConsolidationInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/SchemaBaselineInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StableUpgradeProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StageSixUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/UpgradeProbeTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/backup/BackupCodec.kt",
+    "app/src/main/java/br/com/diariodeclasse/backup/BackupDao.kt",
+    "app/src/main/java/br/com/diariodeclasse/backup/BackupManager.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/ClassLifecycle.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/Database.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/DiaryMigrations.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/WeeklyTimetable.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/CalendarScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ClassJournalArea.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DayAttendanceScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/SchoolCalendar.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/TimetableScreen.kt",
+    "app/src/test/java/br/com/diariodeclasse/BackupCodecTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/ExportLayoutTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/LessonRecordsTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/RecompositionBackupTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/RelocationConversionTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/RelocationRulesTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/TimetablesTest.kt",
+    "docs/ESPECIFICACAO.md",
+    "docs/HORARIOS_0170.md",
+    "docs/HORARIOS_0170_RESULTADOS.json",
+    "docs/ROADMAP.md",
+    "docs/baseline/noctua-release-0.16.0.json",
+    "docs/images/horarios-0170/01-grade-semanal.png",
+    "docs/images/horarios-0170/02-editar-grade.png",
+    "docs/images/horarios-0170/03-chamada-prevista.png",
+    "docs/images/horarios-0170/04-diario-previsto.png",
+    "docs/images/horarios-0170/05-celular-320-fonte-ampliada.png",
+    "docs/images/horarios-0170/05-sem-turma-fonte-1.0.png",
+    "docs/images/horarios-0170/05-sem-turma-fonte-1.3.png",
+    "docs/images/horarios-0170/05-sem-turma-fonte-1.6.png",
+    "docs/images/horarios-0170/07-chamada-compacta.png",
+    "docs/images/horarios-0170/08-chamada-compacta-registrada.png",
+    "docs/images/horarios-0170/08-geometria.txt",
+    "scripts/ci/validate-android.sh"
+  ],
+  "resolvedIssues": [
+    "JUnit: retorno Unit na integração de backup.",
+    "Automação: rolar LazyColumn até a turma.",
+    "Migração histórica: conferir v8 antes da abertura atual v9.",
+    "Acessibilidade: nomes dos modos inteiros com fonte ampliada.",
+    "Tela compacta: preservar área de chamada e data legível.",
+    "Automação: expor a tabela na rolagem vertical antes de localizar a célula horizontal, mantendo alvo P de 48 × 48 dp e persistência."
+  ],
+  "release": {
+    "jobId": 120467278094,
+    "conclusion": "success",
+    "artifactId": 12509400181,
+    "artifactUrl": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/39967631678/artifacts/12509400181",
+    "zipSha256": "02c7098ef9d95711ac76e1abe108054fe2d38c12dcac99ebf549262951f0d800",
+    "apkBytes": 8618728,
+    "apkSha256": "25199cab7d74519c607c41087b759a982f9ca8c166fc0c0d2c5cba273cd0fbe4",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "applicationId": "br.com.diariodeclasse",
+    "versionName": "0.17.0",
+    "versionCode": 29,
+    "v2SignatureVerified": true,
+    "reference": {
+      "versionName": "0.16.0",
+      "versionCode": 28,
+      "runId": 39864960677,
+      "artifactId": 12463554056,
+      "apkSha256": "2f096dd50d6223e2ce15ea6d2ed227636a7141c712051087bed0554a5a2b29cf"
+    },
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true,
+    "upgradeArtifactId": 12508856136,
+    "upgradeZipSha256": "af281b54f7df891a06dd1b9b184780b35a6b7bc9d41ce4357b7c2667e8058f1b",
+    "upgradePhases": {
+      "before": "OK (1 test)",
+      "after": "OK (1 test)",
+      "backup": "OK (1 test)",
+      "reopened": "OK (1 test)",
+      "deleted-history": "OK (1 test)",
+      "reopened-history": "OK (1 test)"
+    },
+    "installation": "APK original 0.16.0 instalado; candidato instalado com adb install -r, sem desinstalação, em emulador descartável."
+  },
+  "limits": [
+    "Validação em emulador Android API 30; aparelho físico continua com o proprietário.",
+    "Não há calendário institucional de feriados/recessos no modelo atual; não são inventadas exceções.",
+    "Horas de início/término não foram adicionadas; a grade usa períodos concretos e turno da turma.",
+    "Validação visual de modos em 320 dp, fontes 1.0/1.3/1.6; fluxo completo de chamada em 320 × 600 dp com fonte 1.3."
+  ],
+  "manualValidationPending": [
+    "Validar no aparelho físico do proprietário; os testes automatizados não utilizam dados reais."
+  ],
+  "documentationOnlyAfterApproval": true
+}
