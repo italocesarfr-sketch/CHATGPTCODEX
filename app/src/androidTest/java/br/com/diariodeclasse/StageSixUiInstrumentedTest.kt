@@ -139,9 +139,19 @@ class StageSixUiInstrumentedTest {
         tag("class-mode-Chamada").performClick();waitTag("attendance-calendar")
         val compactDay="2026-${LocalDate.now().monthValue.toString().padStart(2,'0')}-06"
         tag("attendance-calendar").performScrollToNode(hasTestTag("date-$compactDay"));tag("date-$compactDay").performScrollTo().performClick()
-        waitTag("attendance-day-$compactDay");shot("07-chamada-compacta")
+        waitTag("attendance-day-$compactDay")
+        val dateNode=tag("attendance-day-date");dateNode.assertTextEquals(shortDate(compactDay)).assertIsDisplayed()
+        val dateLayouts=mutableListOf<TextLayoutResult>()
+        dateNode.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(dateLayouts)}
+        val dateLayout=dateLayouts.single();assertEquals(1,dateLayout.lineCount);assertFalse(dateLayout.isLineEllipsized(0))
+        assertEquals(shortDate(compactDay).length,dateLayout.getLineEnd(0,true))
+        shot("07-chamada-compacta")
         compose.onNodeWithText("Registrar horários").performScrollTo().assertIsDisplayed().performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.day(c.id,compactDay).size==1}}
-
+        waitTag("daily-frequency")
+        val lesson=runBlocking{app.repository.dao.day(c.id,compactDay).single()}
+        tag("cell-${lesson.id}-${student.id}-P").performScrollTo().assertIsDisplayed().performClick()
+        compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(lesson.id).any{it.studentId==student.id&&it.mark=="P"}}}
+        shot("08-chamada-compacta-registrada")
     }
 }

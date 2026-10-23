@@ -10,6 +10,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
@@ -53,11 +54,20 @@ import kotlinx.coroutines.*
         } else saveHours(n, cancellation)
     }
     Column(Modifier.fillMaxSize().testTag("attendance-day-$day")) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.small), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = calendar) { Text("‹ Calendário") }
-            Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically), style = MaterialTheme.typography.titleSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            TextButton(onClick = termView) { Text("Bimestre") }
-            ContextHelp("Ajuda da chamada", "Toque novamente em P, F ou FJ para limpar. NR não conta como presença nem falta. Use o menu da célula para justificar.")
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val dateOnOwnLine=maxWidth<360.dp || LocalDensity.current.fontScale>1.2f
+            Column {
+                Row(Modifier.fillMaxWidth().padding(horizontal = NoctuaSpace.small), horizontalArrangement = Arrangement.SpaceBetween) {
+                    TextButton(onClick = calendar) { Text("‹ Calendário") }
+                    if(dateOnOwnLine) Spacer(Modifier.weight(1f))
+                    else Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically).testTag("attendance-day-date"),
+                        style=MaterialTheme.typography.titleSmall,textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=1,softWrap=false)
+                    TextButton(onClick = termView) { Text("Bimestre") }
+                    ContextHelp("Ajuda da chamada", "Toque novamente em P, F ou FJ para limpar. NR não conta como presença nem falta. Use o menu da célula para justificar.")
+                }
+                if(dateOnOwnLine) Text(shortDate(day),Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.medium).testTag("attendance-day-date"),
+                    style=MaterialTheme.typography.titleSmall,textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=1,softWrap=false)
+            }
         }
         Text(period?.let { "${it.number}º bimestre • ${counted(performed, "horário", "horários")} • $filled/$expected registros" } ?: "Fora dos bimestres • somente anual • $filled/$expected registros", Modifier.padding(horizontal = NoctuaSpace.medium), style = MaterialTheme.typography.labelSmall)
         if(planned>0) Text("${counted(planned,"aula prevista","aulas previstas")} para esta turma.",Modifier.padding(horizontal=NoctuaSpace.medium).testTag("planned-hours"),style=MaterialTheme.typography.bodyMedium)
