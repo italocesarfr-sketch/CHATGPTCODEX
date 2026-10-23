@@ -149,9 +149,16 @@ class StageSixUiInstrumentedTest {
         compose.onNodeWithText("Registrar horários").performScrollTo().assertIsDisplayed().performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.day(c.id,compactDay).size==1}}
         waitTag("daily-frequency")
+        // performScrollTo atua no ancestral mais próximo; expõe primeiro a tabela
+        // na página e só depois a célula em seu contêiner horizontal independente.
+        tag("daily-frequency").performScrollTo()
         val lesson=runBlocking{app.repository.dao.day(c.id,compactDay).single()}
         val present=tag("cell-${lesson.id}-${student.id}-P")
-        present.performScrollTo().assertIsDisplayed()
+        present.performScrollTo()
+        shot("08-chamada-compacta-alvo")
+        val diagnostics=File(app.filesDir,"etapa6-screenshots/08-geometria.txt")
+        diagnostics.writeText("Página: ${tag("attendance-day-$compactDay").fetchSemanticsNode().boundsInRoot}\nTabela: ${tag("daily-frequency").fetchSemanticsNode().boundsInRoot}\nP: ${present.fetchSemanticsNode().boundsInRoot}")
+        present.assertIsDisplayed()
         val target=present.fetchSemanticsNode().boundsInRoot
         assertTrue("O alvo P precisa ficar inteiramente visível",target.height>=48f*compose.density.density-0.5f && target.width>=48f*compose.density.density-0.5f)
         present.performClick()
