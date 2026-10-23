@@ -139,6 +139,7 @@ class StageSixUiInstrumentedTest {
         tag("class-mode-Chamada").performClick();waitTag("attendance-calendar")
         val compactDay="2026-${LocalDate.now().monthValue.toString().padStart(2,'0')}-06"
         tag("attendance-calendar").performScrollToNode(hasTestTag("date-$compactDay"));tag("date-$compactDay").performScrollTo().performClick()
+        waitTag("attendance-day-$compactDay");shot("07-chamada-compacta")
         compose.onNodeWithText("Registrar horários").performScrollTo().assertIsDisplayed().performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.day(c.id,compactDay).size==1}}
 

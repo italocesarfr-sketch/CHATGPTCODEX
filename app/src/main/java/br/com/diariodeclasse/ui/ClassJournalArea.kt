@@ -33,7 +33,15 @@ import java.time.LocalDate
         Text("Horários / Chamada / Diário",Modifier.padding(horizontal=16.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium)
         BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page).testTag("class-area-modes")) {
             val labels=listOf("Horários","Chamada","Diário")
-            if(LocalDensity.current.fontScale>1.2f || maxWidth<280.dp) {
+            if(LocalDensity.current.fontScale>1.2f && LocalDensity.current.fontScale<=1.6f && maxWidth>=270.dp) {
+                TabRow(selectedTabIndex=labels.indexOf(mode).coerceAtLeast(0),containerColor=MaterialTheme.colorScheme.surface) {
+                    labels.forEach { label -> Tab(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
+                        modifier=Modifier.heightIn(min=48.dp).testTag("class-mode-$label")) {
+                        Text(label,style=MaterialTheme.typography.labelLarge,maxLines=1,softWrap=false,
+                            modifier=Modifier.padding(vertical=8.dp).testTag("class-mode-label-$label"))
+                    } }
+                }
+            } else if(LocalDensity.current.fontScale>1.6f || maxWidth<280.dp) {
                 FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
                     labels.forEach { label -> FilterChip(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
                         label={Text(label,style=MaterialTheme.typography.labelLarge,maxLines=1,softWrap=false,modifier=Modifier.testTag("class-mode-label-$label"))},
