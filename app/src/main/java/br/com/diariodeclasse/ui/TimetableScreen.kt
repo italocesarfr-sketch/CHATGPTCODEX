@@ -165,7 +165,7 @@ import java.time.format.TextStyle
                     if(versions().isEmpty() || d.scope==TimetableScope.TODAY) vm.act(done={update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}
                     else preview=p
                 }.onFailure{error=it.message?:"Confira os horários."}
-            },modifier=Modifier.fillMaxWidth().testTag("review-weekly-hours")){Text("Salvar")}
+            },modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("review-weekly-hours")){Text("Salvar")}
         } else preview?.let{ p ->
             Form("Confirmar grade",{if(!saving)preview=null}) {
                 Text("${school?.name ?: versions().flatMap{it.slots}.firstOrNull{it.classId==d.classId}?.className.orEmpty()} • ${DayOfWeek.of(d.weekday).getDisplayName(TextStyle.FULL,brLocale)}",style=MaterialTheme.typography.titleMedium)
@@ -173,13 +173,13 @@ import java.time.format.TextStyle
                 Text("${shortDate(p.proposed.effective)} a ${shortDate(p.through)}",style=MaterialTheme.typography.titleMedium)
                 Text("Chamadas e conteúdos não serão alterados.")
                 if(p.annual && p.expected.any{it.effective>p.proposed.effective})
-                    Text("Esta grade substituirá também as previsões posteriores de $year (${p.expected.map{it.effective}.distinct().count{it>p.proposed.effective}} vigências).")
+                    Text("Esta grade substituirá também as previsões posteriores de $year (${counted(p.expected.map{it.effective}.distinct().count{it>p.proposed.effective},"vigência","vigências")}).")
                 if(p.affected.isNotEmpty()) {
                     Text("Datas com registros existentes:",style=MaterialTheme.typography.titleSmall)
                     p.affected.forEach{row->val date=row.substringBefore(" •");Text("${shortDate(date)} • ${row.substringAfter(" • ")}")}
                 }
                 SaveError(vm)
-                Button(enabled=!saving,onClick={vm.act(done={preview=null;update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}},modifier=Modifier.fillMaxWidth().testTag("save-weekly-hours")){Text("Confirmar grade")}
+                Button(enabled=!saving,onClick={vm.act(done={preview=null;update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("save-weekly-hours")){Text("Confirmar grade")}
             }
         }
     }

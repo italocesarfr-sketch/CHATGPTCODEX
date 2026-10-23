@@ -121,7 +121,7 @@ class TimetableUiInstrumentedTest {
         tag("timetable-scope-TODAY").assertExists();tag("timetable-scope-YEAR").performScrollTo().performClick()
         shot("09-alcance-anual")
         tag("review-weekly-hours").performScrollTo().performClick()
-        compose.onNodeWithText("Esta grade substituirá também as previsões posteriores de 2026 (1 vigências).").assertExists()
+        compose.onNodeWithText("Esta grade substituirá também as previsões posteriores de 2026 (1 vigência).").assertExists()
         shot("10-confirmacao-anual")
         tag("save-weekly-hours").performScrollTo().performClick()
         compose.waitUntil(10000){runBlocking{app.database.backupDao().timetables().size==4}}
