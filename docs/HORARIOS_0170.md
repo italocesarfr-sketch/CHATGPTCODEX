@@ -4,7 +4,7 @@ Base: 0.16.0 / código 28. Incremento: 0.17.0 / código 29. Escopo exclusivament
 
 ## Uso
 
-A segunda área reúne **Horários / Chamada / Diário**. No rodapé, os três nomes ocupam linhas separadas para permanecerem legíveis em celulares compactos. A Chamada continua sendo o modo inicial para preservar os caminhos anteriores.
+A segunda área reúne **Horários / Chamada / Diário**. No rodapé, os três nomes ocupam linhas separadas para permanecerem legíveis em celulares compactos. A Chamada continua sendo o modo inicial para preservar os caminhos anteriores. Com fonte ampliada ou largura muito reduzida, os três controles se distribuem em linhas sem quebrar palavras, mantendo áreas de toque de 48 dp.
 
 Em **Horários**, consulte segunda a domingo; o dia atual é selecionado inicialmente. A grade independe da seleção de turma. **+ Horários** permite escolher uma turma ativa do ano, dia, períodos de 1º a 12º e vigência. A quantidade deriva dos períodos escolhidos. O mesmo período não pode ser ocupado por duas turmas no mesmo dia e turno. O turno é reaproveitado do cadastro da turma, permitindo, por exemplo, 1º horário matutino e 1º horário noturno sem conflito. A lista ordena turnos e períodos.
 

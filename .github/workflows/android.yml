@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: UX — relatórios e exportação minimalistas
+    name: Horários — integridade, interface e regressão Android
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -142,7 +142,7 @@ jobs:
             build/android-runner-diagnostic.txt
           if-no-files-found: ignore
   stable-update:
-    name: Release — atualização da Noctua 0.15.2 com a assinatura existente
+    name: Release — atualização da Noctua 0.16.0 com a assinatura existente
     needs: validation
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: release

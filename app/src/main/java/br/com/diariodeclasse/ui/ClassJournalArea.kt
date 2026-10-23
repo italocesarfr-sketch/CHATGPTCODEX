@@ -9,11 +9,16 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.data.*
 import java.time.LocalDate
 
 /** Quatro páginas mantidas; grade única e dois calendários compartilham contexto. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable fun ClassJournalArea(vm:DiaryViewModel,data:DiarySnapshot,c:SchoolClass?,term:Int,
     changeTerm:(Int)->Unit,configureTerms:()->Unit,mode:String,changeMode:(String)->Unit,
     draft:LessonRecordDraft?,changeDraft:(LessonRecordDraft?)->Unit,dismissDraft:()->Unit,
@@ -26,9 +31,19 @@ import java.time.LocalDate
     BackHandler(mode=="Diário"&&(day!=null||allRecords)){back()}
     Column(Modifier.fillMaxSize().testTag("class-journal-area")) {
         Text("Horários / Chamada / Diário",Modifier.padding(horizontal=16.dp,vertical=8.dp),style=MaterialTheme.typography.titleMedium)
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page).testTag("class-area-modes")) {
-            listOf("Horários","Chamada","Diário").forEachIndexed{index,label->SegmentedButton(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
-                shape=SegmentedButtonDefaults.itemShape(index,3),icon={},modifier=Modifier.heightIn(min=48.dp).testTag("class-mode-$label")){Text(label,style=MaterialTheme.typography.labelLarge)}}
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.page).testTag("class-area-modes")) {
+            val labels=listOf("Horários","Chamada","Diário")
+            if(LocalDensity.current.fontScale>1.2f || maxWidth<280.dp) {
+                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                    labels.forEach { label -> FilterChip(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
+                        label={Text(label,style=MaterialTheme.typography.labelLarge,maxLines=1,softWrap=false,modifier=Modifier.testTag("class-mode-label-$label"))},
+                        modifier=Modifier.heightIn(min=48.dp).testTag("class-mode-$label").semantics{role=Role.Tab}) }
+                }
+            } else SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                labels.forEachIndexed{index,label->SegmentedButton(selected=mode==label,onClick={if(mode!=label)changeMode(label)},
+                    shape=SegmentedButtonDefaults.itemShape(index,3),icon={},modifier=Modifier.heightIn(min=48.dp).testTag("class-mode-$label")){
+                    Text(label,style=MaterialTheme.typography.labelLarge,maxLines=1,softWrap=false,modifier=Modifier.testTag("class-mode-label-$label"))}}
+            }
         }
         Spacer(Modifier.height(8.dp))
         if(mode=="Horários") {
