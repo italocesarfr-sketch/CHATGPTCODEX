@@ -151,9 +151,13 @@ class FunctionalFifteenInstrumentedTest {
             sql.execSQL("INSERT INTO lessons VALUES ('old-l','old','2026-08-20',2,'REALIZADA','Original')")
             sql.execSQL("INSERT INTO marks VALUES ('old-l','old-s','FJ')")
         }
-        helper.runMigrationsAndValidate(name,8,true,MIGRATION_7_8).close();open()
+        helper.runMigrationsAndValidate(name,8,true,MIGRATION_7_8).use { migrated ->
+            migrated.query("PRAGMA user_version").use { assertTrue(it.moveToFirst());assertEquals(8,it.getInt(0)) }
+        }
+        open()
         val current=snapshot();assertEquals("old-s",current.students.single().id);assertEquals("FJ",current.marks.single().mark);assertTrue(current.relocations.single().corrections.isEmpty())
-        db.openHelper.writableDatabase.query("PRAGMA user_version").use{assertTrue(it.moveToFirst());assertEquals(8,it.getInt(0))}
+        db.openHelper.writableDatabase.query("PRAGMA user_version").use{assertTrue(it.moveToFirst());assertEquals(9,it.getInt(0))}
+        assertTrue(backup.snapshot().timetables.isEmpty())
         val payload=BackupCodec.json.encodeToString(BackupSnapshot.serializer(),backup.snapshot())
         val old=BackupEnvelope("diario-de-classe-backup",8,"br.com.diariodeclasse",7,BackupCodec.V7_IDENTITY,"2026-10-21T00:00:00Z",24,null,BackupCodec.hash(payload.toByteArray()),payload)
         val decoded=BackupCodec.decode(BackupCodec.json.encodeToString(BackupEnvelope.serializer(),old).toByteArray())
