@@ -1,3 +1,5 @@
+> **0.17.1 / 30 validada:** primeiro cadastro anual de horários, edição Hoje/ano inteiro com histórico imutável e escolha direta de bimestre em Exportar. Room v9 e backup 11 inalterados. **162 JVM, 265 Android, fontes reais 1,3/1,6 e atualização assinada sobre a 0.17.0 original aprovados**. [Contrato, arquivos, capturas, resultados e limitações](HORARIOS_EXPORTACAO_0171.md).
+
 > **0.17.0 / 29 validada:** grade semanal com períodos, turnos e vigências, compartilhada por Horários, Chamada e Diário. Somente previsões; sem lançamentos automáticos. Room v9 aditivo, backup 11 lendo anteriores. **156 JVM, 256 Android e atualização assinada sobre a 0.16.0 aprovados**. [Contrato, capturas, release e resultados](HORARIOS_0170.md).
 
 > **Refinamento 0.16.0 / 28 validado:** relatórios com filtros unificados e exportação direta, bimestre herdado, ajustes e prévia sob demanda. Sem alteração de Room v8, backup 10 ou regras acadêmicas. [Contrato e validação](RELATORIOS_EXPORTACAO_0160.md). **148 JVM, 243 Android e atualização assinada sobre a 0.15.2 aprovados.**
