@@ -53,7 +53,10 @@ import kotlinx.coroutines.*
             pendingCount = n; cancellationApproved = cancellation; reactivationCount = cancelled
         } else saveHours(n, cancellation)
     }
-    Column(Modifier.fillMaxSize().testTag("attendance-day-$day")) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val scrollControls=LocalDensity.current.fontScale>1.2f && lessons.isNotEmpty()
+    val gridHeight=maxHeight.coerceAtLeast(240.dp)
+    Column((if(scrollControls) Modifier.fillMaxWidth().verticalScroll(rememberScrollState()) else Modifier.fillMaxSize()).testTag("attendance-day-$day")) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val dateOnOwnLine=maxWidth<360.dp || LocalDensity.current.fontScale>1.2f
             Column {
@@ -91,12 +94,13 @@ import kotlinx.coroutines.*
                 FilledTonalButton(enabled = !saving && performed > 0, onClick = { allPresent = true }, modifier = Modifier.weight(1f)) { Text("Marcar todos como presentes", style = MaterialTheme.typography.labelSmall) }
             }
             if (lessons.any { it.state == "PREVISTA" }) TextButton(onClick = { applyHours(active.maxOfOrNull { it.ordinal }?.coerceAtMost(12) ?: 0) }, enabled = !saving) { Text("Confirmar horários ministrados") }
-            Box(Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
+            Box(if(scrollControls) Modifier.height(gridHeight) else Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id
                     vm.act(context = context, key = "mark:$lessonId:$studentId") { vm.repository.toggleMark(lessonId, studentId, value) }
                 }, options = { option = it; action = "menu" }, openDay = {}) }
         }
+    }
     }
     if (hoursForm && pendingCount == null && emptyDay == null) Form("Quantidade de horários", { hoursForm = false }) {
         OutlinedTextField(hoursText, { hoursText = it }, label = { Text("Horários ministrados (0 a 12)") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth())

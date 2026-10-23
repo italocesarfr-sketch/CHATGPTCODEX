@@ -150,7 +150,11 @@ class StageSixUiInstrumentedTest {
         compose.waitUntil(10000){runBlocking{app.repository.dao.day(c.id,compactDay).size==1}}
         waitTag("daily-frequency")
         val lesson=runBlocking{app.repository.dao.day(c.id,compactDay).single()}
-        tag("cell-${lesson.id}-${student.id}-P").performScrollTo().assertIsDisplayed().performClick()
+        val present=tag("cell-${lesson.id}-${student.id}-P")
+        present.performScrollTo().assertIsDisplayed()
+        val target=present.fetchSemanticsNode().boundsInRoot
+        assertTrue("O alvo P precisa ficar inteiramente visível",target.height>=48f*compose.density.density-0.5f && target.width>=48f*compose.density.density-0.5f)
+        present.performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(lesson.id).any{it.studentId==student.id&&it.mark=="P"}}}
         shot("08-chamada-compacta-registrada")
     }
