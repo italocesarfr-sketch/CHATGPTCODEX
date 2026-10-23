@@ -12,6 +12,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
+import org.junit.Assert.assertEquals
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.ui.*
 import br.com.diariodeclasse.ui.theme.NoctuaTheme
@@ -40,16 +44,24 @@ class TimetableScopeLayoutInstrumentedTest {
         }
     }
     @After fun clean(){compose.runOnIdle{store.clear()}}
+    private val systemFont get()=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")
+    private fun checkDialogFont(label:String) {
+        val expected=systemFont?.toFloat() ?: return
+        val layouts=mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText(label,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
+        assertEquals("O diálogo precisa usar a escala real do Android",expected,layouts.single().layoutInput.density.fontScale,0.01f)
+    }
     private fun shot(name:String){
         val dir=File(app.filesDir,"weekly-screenshots");dir.mkdirs()
         val root=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog())else compose.onRoot()
-        File(dir,"$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+        File(dir,"${systemFont?.let{"system-$it-"}.orEmpty()}$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     @Test fun scopeAndSaveRemainReachableOnCompactPhoneAtLargeFont(){
         compose.onNodeWithTag("add-weekly-hours").performScrollTo().performClick()
         for(font in listOf(1.3f,1.6f)) {
             compose.runOnIdle{scale=font}
             for(option in TimetableScope.entries) compose.onNodeWithTag("timetable-scope-${option.name}").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick().assertIsSelected()
+            checkDialogFont("Como deseja aplicar a alteração?")
             shot("11-alcance-fonte-$font")
             compose.onNodeWithTag("review-weekly-hours").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             compose.onNodeWithTag("timetable-effective").assertDoesNotExist()
@@ -61,6 +73,7 @@ class TimetableScopeLayoutInstrumentedTest {
         compose.onNodeWithText("3º bimestre ▾").performScrollTo().performClick()
         compose.onNode(hasText("2º bimestre") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performScrollTo().performClick()
         compose.onNodeWithText("2º bimestre ▾").performScrollTo().assertIsDisplayed()
+        checkDialogFont("Ajustes da exportação")
         shot("12-abrangencia-fonte-1.6")
         compose.onNodeWithTag("export-settings-done").assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
         compose.onNodeWithText("${school.name} • ${school.subject} • 2026 • 2º bimestre").assertExists()

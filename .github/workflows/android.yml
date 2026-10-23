@@ -120,6 +120,7 @@ jobs:
             build/functional15-focused.txt
             build/minimal-export-focused.txt
             build/weekly-focused.txt
+            build/weekly-system-font-*.txt
             build/weekly-telas.tar
             build/ux14-telas.tar
             build/ux14-layout-smoke.txt

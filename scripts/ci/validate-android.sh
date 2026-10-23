@@ -15,6 +15,22 @@ from pathlib import Path
 text=Path('build/weekly-focused.txt').read_text()
 assert 'OK (20 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYWEEKLY
+# Dialog e ModalBottomSheet usam a configuração da janela Android, não apenas o LocalDensity
+# simulado pelo pai Compose. Confere a densidade efetiva do próprio texto no diálogo.
+if (( status == 0 )); then
+    for font in 1.3 1.6; do
+        adb shell settings put system font_scale "$font"
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/weekly-system-font-$font.txt" || status=$?
+        cat "build/weekly-system-font-$font.txt"
+        python3 - "build/weekly-system-font-$font.txt" <<'PYFONT' || status=1
+import sys
+from pathlib import Path
+text=Path(sys.argv[1]).read_text()
+assert 'OK (2 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYFONT
+    done
+    adb shell settings put system font_scale 1.0
+fi
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows,br.com.diariodeclasse.StageSixUiInstrumentedTest#smallPhoneAndLargeFontKeepFourNavigationLabelsAndAccessibleModeTargets br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
 cat build/ux14-layout-smoke.txt
 python3 - <<'PYSMOKE' || status=1
