@@ -95,13 +95,15 @@ class DiaryRepository(val db: DiaryDatabase) {
         require(data.timetables.filter { it.year == preview.proposed.year }.sortedBy { it.id } == preview.expected) {
             "A grade mudou após a edição. Reabra os horários; nada foi alterado."
         }
-        val checked = Timetables.preview(data, preview.proposed.year, preview.proposed.effective, preview.proposed.slots)
+        val checked = if (preview.annual) Timetables.annualPreview(data, preview.proposed.year, preview.proposed.slots)
+            else Timetables.preview(data, preview.proposed.year, preview.proposed.effective, preview.proposed.slots)
         require(checked.affected == preview.affected && checked.through == preview.through) {
             "Há novos registros nas datas afetadas. Confira novamente a prévia."
         }
-        require(checked.proposed.revision == preview.proposed.revision) { "A revisão mudou. Confira a grade novamente." }
-        Timetables.validate(data.timetables + preview.proposed)
-        dao.insertTimetable(preview.proposed)
+        require(checked.additions.map { Triple(it.effective,it.revision,it.slots) } ==
+            preview.additions.map { Triple(it.effective,it.revision,it.slots) }) { "A revisão mudou. Confira a grade novamente." }
+        Timetables.validate(data.timetables + preview.additions)
+        preview.additions.forEach { dao.insertTimetable(it) }
     }
 
     /** Comparação otimista impede sobrescrever/excluir uma edição confirmada por outra tela. */

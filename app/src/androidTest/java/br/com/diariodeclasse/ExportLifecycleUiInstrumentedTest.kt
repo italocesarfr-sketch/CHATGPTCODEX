@@ -90,11 +90,11 @@ class ExportLifecycleUiInstrumentedTest {
     @Test fun groupedOptionsAnnualAndCsvRefreshPreviewAcrossRecreation() {
         val before=runBlocking{app.backupManager.snapshot()};openExport();choose("Notas","Consolidado")
         compose.onNodeWithTag("export-options").performScrollTo().performClick()
-        choose("Bimestre selecionado","Quatro bimestres")
+        choose("3º bimestre","Quatro bimestres")
         choose("XLSX","CSV")
         compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
-        waitText("Resumo anual");compose.onNodeWithText("Exportar CSV").assertIsDisplayed();shot("02-consolidado")
-        compose.activityRule.scenario.recreate();waitText("Resumo anual");compose.onNodeWithText("Exportar CSV").assertIsDisplayed()
+        waitText("Quatro bimestres");compose.onNodeWithText("Exportar CSV").assertIsDisplayed();shot("02-consolidado")
+        compose.activityRule.scenario.recreate();waitText("Quatro bimestres");compose.onNodeWithText("Exportar CSV").assertIsDisplayed()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
     @Test fun realAndroidDocumentPickerCancellationHasNoSuccessAndDoesNotChangeDatabase() {
@@ -310,4 +310,48 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("delete-class-preview").performScrollTo().performClick();confirmDeletion();waitFinished()
         assertNull(runBlocking{app.repository.dao.schoolClass(c.id)})
     }
+    @Test fun directTermSelectionChangesCopyAndPreviewButNotReportsAndReentryInheritsReports() {
+        val before=runBlocking{app.backupManager.snapshot()};openExport()
+        compose.onNodeWithTag("export-options").performScrollTo().performClick();choose("3º bimestre","1º bimestre")
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
+        compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 1º bimestre").assertExists()
+        compose.onNodeWithTag("export-copy").performClick()
+        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        assertEquals(SpreadsheetWriter.clipboard(ExportProjection.build(vm.data.value,c,ExportOptions(term=1))),clip())
+        compose.activityRule.scenario.recreate();waitTag("export-screen")
+        compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 1º bimestre").assertExists()
+        compose.onNodeWithTag("export-show-preview").performScrollTo().performClick()
+        compose.onNodeWithTag("export-preview-0").assertExists();compose.onNodeWithTag("export-preview-close").performClick()
+        compose.onNodeWithText("‹ Voltar").performClick();waitTag("reports-list")
+        compose.onNodeWithText("Boletim 3º Bim").assertExists()
+        compose.onNodeWithTag("open-export").performClick();waitTag("export-screen")
+        compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 3º bimestre").assertExists()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun allFourTermsAndWholeYearAreRealAndScopedToEachModel() {
+        runBlocking{app.repository.saveLessonRecord(LessonRecord("ui52-plan-terms",c.id,"2026-08-10","Título fictício","Descrição exata"))}
+        val before=runBlocking{app.backupManager.snapshot()};openExport()
+        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        for(term in listOf(1,2,4,3)) {
+            compose.onNodeWithTag("export-options").performScrollTo().performClick()
+            val current=if(term==1)3 else if(term==2)1 else if(term==4)2 else 4
+            choose("${current}º bimestre","${term}º bimestre")
+            if(term==2)shot("08-abrangencia-bimestres")
+            compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
+            compose.onNodeWithTag("export-copy").performClick()
+            assertEquals(SpreadsheetWriter.clipboard(ExportProjection.build(vm.data.value,c,ExportOptions(term=term))),clip())
+        }
+        choose("Notas","Chamada");compose.onNodeWithTag("export-options").performScrollTo().performClick()
+        choose("3º bimestre","Quatro bimestres");compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
+        compose.onNodeWithTag("export-copy").performClick()
+        assertEquals(SpreadsheetWriter.clipboard(AttendanceExportProjection.build(vm.data.value,c,"2026-01-01","2026-12-31")),clip())
+        choose("Chamada","Planos de aula");compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 3º bimestre").assertExists()
+        compose.onNodeWithTag("export-options").performScrollTo().performClick();choose("3º bimestre","Quatro bimestres")
+        compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick();compose.onNodeWithTag("export-copy").performClick()
+        assertEquals(SpreadsheetWriter.clipboard(LessonPlanExportProjection.build(vm.data.value,c,"2026-01-01","2026-12-31")),clip())
+        choose("Planos de aula","Resumo anual");compose.onNodeWithTag("export-options").performScrollTo().performClick()
+        compose.onNodeWithText("Abrangência").assertDoesNotExist();compose.onNodeWithTag("export-settings-done").performClick()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+
 }

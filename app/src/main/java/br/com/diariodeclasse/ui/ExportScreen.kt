@@ -40,7 +40,7 @@ import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun ExportScreen(data: DiarySnapshot, c: SchoolClass, initialTerm: Int, ready: Boolean = true,
-    initialKind: SpreadsheetKind = SpreadsheetKind.NOTES, busyChanged: (Boolean) -> Unit) {
+    initialKind: SpreadsheetKind = SpreadsheetKind.NOTES, entryId: Int = 0, busyChanged: (Boolean) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val feedback = remember { SnackbarHostState() }
@@ -49,8 +49,16 @@ import java.io.File
     val kind = SpreadsheetKind.valueOf(kindName)
     // Uma preferência por modelo e turma. Rotação preserva o estado, sem gravar no banco/backup.
     var preferencesJson by rememberSaveable(c.id) { mutableStateOf("{}") }
+    var savedEntry by rememberSaveable(c.id) { mutableIntStateOf(entryId) }
+    if(savedEntry != entryId) {
+        // Uma nova visita herda o boletim; rotação mantém a visita e os ajustes atuais.
+        preferencesJson = Json.encodeToString(Json.decodeFromString<Map<String, SpreadsheetPreferences>>(preferencesJson)
+            .mapValues { (_, value) -> value.copy(term=null,allTerms=false,customRange=false) })
+        savedEntry = entryId
+    }
     val preferences = remember(preferencesJson) { Json.decodeFromString<Map<String, SpreadsheetPreferences>>(preferencesJson) }
     val p = preferences[kindName] ?: SpreadsheetPreferences()
+    val selectedTerm = p.term ?: initialTerm
     fun change(value: SpreadsheetPreferences) { preferencesJson = Json.encodeToString(preferences + (kindName to value)) }
     var settings by rememberSaveable(c.id) { mutableStateOf(false) }
     var preview by rememberSaveable(c.id) { mutableStateOf(false) }
@@ -65,11 +73,12 @@ import java.io.File
     val table = result.getOrNull()
     val hasData = table != null && table.records.isNotEmpty() && (kind != SpreadsheetKind.ATTENDANCE || table.columns.any { it.key.startsWith("lesson:") })
     val canExport = ready && !busy && hasData
-    val period = data.terms.firstOrNull { it.classId == c.id && it.number == initialTerm }
+    val period = data.terms.firstOrNull { it.classId == c.id && it.number == selectedTerm }
     val periodLabel = when {
-        kind == SpreadsheetKind.ANNUAL || kind.regular && p.allTerms -> "Resumo anual"
+        kind == SpreadsheetKind.ANNUAL -> "Resumo anual"
+        p.allTerms && !p.customRange -> "Quatro bimestres"
         kind.ranged && p.customRange -> "${shortDate(p.start)} a ${shortDate(p.end)}"
-        else -> "${initialTerm}º bimestre"
+        else -> "${selectedTerm}º bimestre"
     }
     fun delivered(uri: Uri?) {
         val path = pendingPath ?: return
@@ -103,7 +112,7 @@ import java.io.File
                 else {
                     pendingPath = file.absolutePath
                     val identity = (c.name + "-" + c.subject).replace(Regex("[^\\p{L}\\p{N} _.-]"), "_").take(70)
-                    val name = "Noctua-$identity-${c.year}-${kind.name.lowercase()}-${if (p.allTerms || kind == SpreadsheetKind.ANNUAL) "anual" else "bimestre-$initialTerm"}.${format.extension}"
+                    val name = "Noctua-$identity-${c.year}-${kind.name.lowercase()}-${if (p.allTerms || kind == SpreadsheetKind.ANNUAL) "anual" else "bimestre-$selectedTerm"}.${format.extension}"
                     when (format) { ExportFormat.XLSX -> xlsx.launch(name); ExportFormat.CSV -> csv.launch(name); ExportFormat.TSV -> tsv.launch(name) }
                 }
             } catch (e: Exception) {
@@ -182,14 +191,20 @@ import java.io.File
         Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.85f).dp).imePadding()) {
         Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
             Text("Ajustes da exportação", style = MaterialTheme.typography.titleLarge)
+            if (kind != SpreadsheetKind.ANNUAL) {
+                val ranges = (1..4).map { "${it}º bimestre" } + "Quatro bimestres" + if(kind.ranged) listOf("Intervalo de datas") else emptyList()
+                val range = if(kind.ranged && p.customRange) "Intervalo de datas" else if(p.allTerms) "Quatro bimestres" else "${selectedTerm}º bimestre"
+                Choice("Abrangência", ranges, range) { label ->
+                    change(p.copy(term=label.firstOrNull()?.digitToIntOrNull()?.takeIf{it in 1..4} ?: selectedTerm,
+                        allTerms=label=="Quatro bimestres", customRange=label=="Intervalo de datas",
+                        start=if(label=="Intervalo de datas") p.start.ifEmpty{period?.start ?: "${c.year}-01-01"} else p.start,
+                        end=if(label=="Intervalo de datas") p.end.ifEmpty{period?.end ?: "${c.year}-12-31"} else p.end))
+                }
+            }
             if (kind.regular) {
-                Choice("Abrangência", listOf("Bimestre selecionado", "Quatro bimestres"), if (p.allTerms) "Quatro bimestres" else "Bimestre selecionado") { change(p.copy(allTerms = it == "Quatro bimestres")) }
                 Choice("Formato", ExportFormat.entries.map { it.name }, p.format.name) { change(p.copy(format = ExportFormat.valueOf(it))) }
             }
             if (kind.ranged) {
-                Choice("Período", listOf("Bimestre selecionado", "Intervalo de datas"), if (p.customRange) "Intervalo de datas" else "Bimestre selecionado") {
-                    change(p.copy(customRange = it == "Intervalo de datas", start = p.start.ifEmpty { period?.start ?: "${c.year}-01-01" }, end = p.end.ifEmpty { period?.end ?: "${c.year}-12-31" }))
-                }
                 if (p.customRange) {
                     Field("Data inicial (dd/mm/aaaa)", shortDate(p.start), { change(p.copy(start = runCatching { iso(it) }.getOrDefault(it))) }, Modifier.testTag("attendance-export-start"))
                     Field("Data final (dd/mm/aaaa)", shortDate(p.end), { change(p.copy(end = runCatching { iso(it) }.getOrDefault(it))) }, Modifier.testTag("attendance-export-end"))

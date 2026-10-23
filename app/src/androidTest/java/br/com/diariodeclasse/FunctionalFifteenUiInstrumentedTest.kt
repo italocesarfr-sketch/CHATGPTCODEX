@@ -258,7 +258,7 @@ class FunctionalFifteenUiInstrumentedTest {
         compose.onNodeWithText("Descrição exata\nCom acentuação.").performScrollTo().assertExists();shot("03-planos-xlsx")
         compose.onNodeWithTag("export-preview-close").performClick()
         click("export-options")
-        compose.onNodeWithText("Bimestre selecionado ▾").performScrollTo().performClick()
+        compose.onNodeWithText("4º bimestre ▾").performScrollTo().performClick()
         compose.onNode(hasText("Intervalo de datas") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
         compose.onNodeWithTag("attendance-export-start").performTextReplacement("01/01/2026")
         compose.onNodeWithTag("attendance-export-end").performTextReplacement("31/03/2026")

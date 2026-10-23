@@ -72,4 +72,63 @@ class TimetablesTest {
         fail{Timetables.preview(data(),2026,"2026-01-01",listOf(slot(n=0)))}
         fail{Timetables.preview(data(),2026,"2026-01-01",listOf(slot(),slot(n=2).copy(id=slot().id)))}
     }
+    @Test fun firstRegistrationInOctoberOrDecemberCoversTheEntireSchoolYear() {
+        for(now in listOf("2026-10-23","2026-12-20")) {
+            val start=Timetables.effective(2026,TimetableScope.YEAR,java.time.LocalDate.parse(now))
+            assertEquals("2026-01-01",start)
+            val p=Timetables.annualPreview(data(),2026,listOf(slot()))
+            val after=data().copy(timetables=p.additions)
+            for(month in 1..12) {
+                val date=java.time.LocalDate.of(2026,month,1).with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.THURSDAY))
+                assertEquals(1,Timetables.planned(after,c.id,date.toString()).size)
+            }
+            assertNull(Timetables.current(after.timetables,"2027-01-07"))
+        }
+    }
+    @Test fun annualChangeOverridesEveryFutureBoundaryWithoutChangingAnyHistoricalRevision() {
+        val old=Timetables.preview(data(),2026,"2026-10-01",listOf(slot())).proposed
+        var d=data().copy(timetables=listOf(old))
+        val future=Timetables.preview(d,2026,"2026-11-01",listOf(slot(day=5))).proposed
+        d=d.copy(timetables=d.timetables+future)
+        val later=Timetables.preview(d,2026,"2026-12-01",listOf(slot(day=6))).proposed
+        d=d.copy(timetables=d.timetables+later)
+        val p=Timetables.annualPreview(d,2026,listOf(slot(day=3)))
+        val after=d.copy(timetables=d.timetables+p.additions)
+        assertEquals(listOf("2026-01-01","2026-10-01","2026-11-01","2026-12-01"),p.additions.map{it.effective})
+        assertTrue(after.timetables.containsAll(d.timetables));assertEquals(7,after.timetables.size)
+        for(day in listOf("2026-01-07","2026-08-05","2026-10-28","2026-11-04","2026-12-30"))
+            assertEquals(listOf(1),Timetables.planned(after,c.id,day).map{it.ordinal})
+        assertTrue(Timetables.planned(after,c.id,"2026-12-04").isEmpty())
+        val again=Timetables.annualPreview(after,2026,listOf(slot(day=2)))
+        assertEquals(p.additions.map{it.revision+1},again.additions.map{it.revision})
+        val final=after.copy(timetables=after.timetables+again.additions)
+        assertEquals(1,Timetables.planned(final,c.id,"2026-12-29").size)
+        val restored=BackupCodec.decode(BackupCodec.encode(ClassLifecycle.snapshot(final),30,null)).snapshot.diarySnapshot()
+        assertEquals(final.timetables.sortedBy{it.id},restored.timetables.sortedBy{it.id})
+        assertEquals(1,Timetables.planned(restored,c.id,"2026-08-04").size)
+    }
+    @Test fun todayScopeKeepsEarlierPredictionsAndRejectsADifferentSchoolYear() {
+        val day=java.time.LocalDate.parse("2026-11-10")
+        assertEquals("2026-11-10",Timetables.effective(2026,TimetableScope.TODAY,day))
+        fail{Timetables.effective(2025,TimetableScope.TODAY,day)}
+        fail{Timetables.effective(2027,TimetableScope.TODAY,day)}
+        val annual=Timetables.annualPreview(data(),2026,listOf(slot()))
+        val d=data().copy(timetables=annual.additions)
+        val q=Timetables.preview(d,2026,Timetables.effective(2026,TimetableScope.TODAY,day),listOf(slot(day=3)))
+        val after=d.copy(timetables=d.timetables+q.additions)
+        assertEquals(1,Timetables.planned(after,c.id,"2026-11-05").size)
+        assertEquals(0,Timetables.planned(after,c.id,"2026-11-12").size)
+        assertEquals(1,Timetables.planned(after,c.id,"2026-11-11").size)
+    }
+    @Test fun annualPreviewFindsAffectedActualDatesAcrossAllFutureBoundariesAndConflicts() {
+        val old=Timetables.preview(data(),2026,"2026-10-01",listOf(slot())).proposed
+        val future=Timetables.preview(data().copy(timetables=listOf(old)),2026,"2026-11-01",listOf(slot(day=5))).proposed
+        val d=data().copy(timetables=listOf(old,future),lessons=listOf(Lesson("actual",c.id,"2026-08-05",1,"REALIZADA")),lessonRecords=listOf(LessonRecord("journal",c.id,"2026-12-02","Fictício","Preservado")))
+        val p=Timetables.annualPreview(d,2026,listOf(slot(day=3)))
+        assertEquals(2,p.affected.size);assertEquals("2026-12-31",p.through)
+        fail{Timetables.annualPreview(d,2026,listOf(slot(),slot(school=h)))}
+        val otherYear=h.copy(year=2027)
+        fail{Timetables.annualPreview(data().copy(classes=listOf(otherYear)),2026,listOf(slot(school=otherYear)))}
+    }
+
 }

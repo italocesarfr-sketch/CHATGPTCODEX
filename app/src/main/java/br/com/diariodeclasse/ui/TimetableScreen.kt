@@ -2,6 +2,8 @@ package br.com.diariodeclasse.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -22,7 +24,8 @@ import java.time.DayOfWeek
 import java.time.format.TextStyle
 
 @Serializable private data class TimetableDraft(val year:Int,val weekday:Int,val classId:String,
-    val effective:String,val periods:List<Int>,val expectedFingerprint:String)
+    val effective:String,val periods:List<Int>,val expectedFingerprint:String,
+    val scope:TimetableScope = TimetableScope.YEAR)
 
 /** Uma única rotina do professor. Apenas a confirmação grava uma revisão, nunca aulas. */
 @OptIn(ExperimentalLayoutApi::class)
@@ -45,7 +48,7 @@ import java.time.format.TextStyle
         guard(if(draft!=null) { action -> discard=action } else null)
         onDispose {guard(null)}
     }
-    fun close(){if(!saving&&draft!=null) discard={update(null);preview=null} }
+    fun close(){if(!saving&&draft!=null) { if(preview!=null) preview=null else discard={update(null)} } }
     BackHandler(draft!=null){close()}
     fun versions()=data.timetables.filter{it.year==year}.sortedBy{it.id}
     fun fingerprint()=BackupCodec.hash(BackupCodec.json.encodeToString(versions()).toByteArray(Charsets.UTF_8))
@@ -53,7 +56,8 @@ import java.time.format.TextStyle
     val schools=data.classes.filter{it.year==year&&data.classArchives.none{a->a.classId==it.id}}
     fun edit(classId:String,day:Int=weekday){
         val periods=current?.slots.orEmpty().filter{it.classId==classId&&it.weekday==day}.map{it.ordinal}
-        update(TimetableDraft(year,day,classId,at,periods,fingerprint()));error=null
+        update(TimetableDraft(year,day,classId,at,periods,fingerprint(),
+            if(versions().isEmpty() || periods.isEmpty() || LocalDate.now().year!=year) TimetableScope.YEAR else TimetableScope.TODAY));error=null
     }
     LazyColumn(Modifier.fillMaxSize().testTag("weekly-timetable"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
@@ -121,7 +125,18 @@ import java.time.format.TextStyle
                     }) }
                 }
             }
-            Field("Válido a partir de (dd/mm/aaaa)",shortDate(d.effective),{update(d.copy(effective=runCatching{iso(it)}.getOrDefault(it)))},Modifier.testTag("timetable-effective"))
+            if(versions().isNotEmpty()) {
+                Text("Como deseja aplicar a alteração?",style=MaterialTheme.typography.titleSmall)
+                TimetableScope.entries.forEach { option ->
+                    Row(Modifier.fillMaxWidth().heightIn(min=48.dp).selectable(d.scope==option,role=Role.RadioButton,onClick={update(d.copy(scope=option));error=null}).testTag("timetable-scope-${option.name}"),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                        RadioButton(d.scope==option,null)
+                        Text(option.label,Modifier.weight(1f))
+                    }
+                }
+                val effective=runCatching{Timetables.effective(year,d.scope)}
+                Text(effective.fold({"Desde ${shortDate(it)}"},{it.message.orEmpty()}),
+                    color=if(effective.isSuccess)MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error)
+            }
             Text("Períodos",style=MaterialTheme.typography.titleSmall)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
                 (1..12).forEach{n->FilterChip(n in d.periods,{update(d.copy(periods=if(n in d.periods)d.periods-n else(d.periods+n).sorted()))},label={Text("${n}º")},modifier=Modifier.heightIn(min=48.dp).testTag("weekly-period-$n"))}
@@ -140,22 +155,31 @@ import java.time.format.TextStyle
                         if(previous!=null) if(school!=null)previous.copy(className=school.name,subject=school.subject,shift=school.shift)else previous
                         else WeeklySlot(classId=d.classId,weekday=d.weekday,ordinal=n,className=requireNotNull(school){"Turma não encontrada."}.name,subject=school.subject,shift=school.shift)
                     }
-                    Timetables.preview(data,d.year,d.effective,keep+new)
+                    if(d.scope==TimetableScope.YEAR) Timetables.annualPreview(data,d.year,keep+new)
+                    else Timetables.preview(data,d.year,Timetables.effective(d.year,d.scope),keep+new)
                 }
-                result.onSuccess{preview=it;error=null}.onFailure{error=it.message?:"Confira os horários."}
-            },modifier=Modifier.fillMaxWidth().testTag("review-weekly-hours")){Text("Revisar grade")}
+                result.onSuccess{p->
+                    error=null
+                    // O primeiro cadastro não precisa de uma conferência administrativa.
+                    // Revisões anuais posteriores exigem a prévia antes de substituir previsões.
+                    if(versions().isEmpty() || d.scope==TimetableScope.TODAY) vm.act(done={update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}
+                    else preview=p
+                }.onFailure{error=it.message?:"Confira os horários."}
+            },modifier=Modifier.fillMaxWidth().testTag("review-weekly-hours")){Text("Salvar")}
         } else preview?.let{ p ->
             Form("Confirmar grade",{if(!saving)preview=null}) {
                 Text("${school?.name ?: versions().flatMap{it.slots}.firstOrNull{it.classId==d.classId}?.className.orEmpty()} • ${DayOfWeek.of(d.weekday).getDisplayName(TextStyle.FULL,brLocale)}",style=MaterialTheme.typography.titleMedium)
                 Text(if(d.periods.isEmpty()) "Sem períodos previstos neste dia." else d.periods.sorted().joinToString(" • "){"${it}º horário"})
                 Text("${shortDate(p.proposed.effective)} a ${shortDate(p.through)}",style=MaterialTheme.typography.titleMedium)
-                Text("Somente a previsão será alterada. Chamadas e conteúdos permanecem intactos.")
+                Text("Chamadas e conteúdos não serão alterados.")
+                if(p.annual && p.expected.any{it.effective>p.proposed.effective})
+                    Text("Esta grade substituirá também as previsões posteriores de $year (${p.expected.map{it.effective}.distinct().count{it>p.proposed.effective}} vigências).")
                 if(p.affected.isNotEmpty()) {
                     Text("Datas com registros existentes:",style=MaterialTheme.typography.titleSmall)
                     p.affected.forEach{row->val date=row.substringBefore(" •");Text("${shortDate(date)} • ${row.substringAfter(" • ")}")}
                 }
                 SaveError(vm)
-                Button(enabled=!saving,onClick={vm.act(done={preview=null;update(null);at=p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}},modifier=Modifier.fillMaxWidth().testTag("save-weekly-hours")){Text("Confirmar grade")}
+                Button(enabled=!saving,onClick={vm.act(done={preview=null;update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}},modifier=Modifier.fillMaxWidth().testTag("save-weekly-hours")){Text("Confirmar grade")}
             }
         }
     }

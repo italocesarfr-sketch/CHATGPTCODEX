@@ -25,9 +25,50 @@ class TimetableConverters {
 }
 
 data class TimetablePreview(val expected: List<WeeklyTimetable>, val proposed: WeeklyTimetable,
-    val through: String, val affected: List<String>)
+    val through: String, val affected: List<String>,
+    val additional: List<WeeklyTimetable> = emptyList(), val annual: Boolean = false) {
+    val additions get() = listOf(proposed) + additional
+}
+
+enum class TimetableScope(val label: String) { TODAY("A partir de hoje"), YEAR("Para o ano todo") }
 
 object Timetables {
+    fun effective(year: Int, scope: TimetableScope, today: LocalDate = LocalDate.now()): String {
+        require(year in 2000..2100) { "Confira o ano letivo." }
+        if (scope == TimetableScope.YEAR) return "$year-01-01"
+        require(today.year == year) { "A partir de hoje só está disponível no ano atual. Para $year, escolha Para o ano todo." }
+        return today.toString()
+    }
+
+    /** Sombreia cada fronteira existente com uma nova revisão. Nenhuma revisão antiga é alterada.
+     * O mesmo resolvedor da 0.17.0 e o backup 11 continuam suficientes para ler o resultado. */
+    fun annualPreview(data: DiarySnapshot, year: Int, slots: List<WeeklySlot>): TimetablePreview {
+        val start = effective(year, TimetableScope.YEAR)
+        val expected = data.timetables.filter { it.year == year }.sortedBy { it.id }
+        val historical = expected.flatMap { it.slots }
+        slots.filter { it !in historical }.forEach { slot ->
+            val school = requireNotNull(data.classes.firstOrNull { it.id == slot.classId }) { "Turma não encontrada. Reabra os horários." }
+            require(school.year == year && data.classArchives.none { it.classId == school.id }) { "Escolha uma turma ativa do mesmo ano." }
+        }
+        val createdAt = Instant.now().toString()
+        val additions = (listOf(start) + expected.map { it.effective }).distinct().sorted().map { date ->
+            WeeklyTimetable(year = year, effective = date,
+                revision = (expected.filter { it.effective == date }.maxOfOrNull { it.revision } ?: 0) + 1,
+                createdAt = createdAt, slots = slots.sortedWith(compareBy({ it.weekday }, { it.ordinal })))
+        }
+        validate(data.timetables + additions)
+        val through = "$year-12-31"
+        return TimetablePreview(expected, additions.first(), through,
+            affected(data, additions, start, through), additions.drop(1), annual = true)
+    }
+
+    private fun affected(data: DiarySnapshot, additions: List<WeeklyTimetable>, start: String, end: String): List<String> {
+        val after = data.copy(timetables = data.timetables + additions)
+        return (data.lessons.map { it.classId to it.date } + data.lessonRecords.map { it.classId to it.date }).distinct()
+            .filter { (id, day) -> day in start..end && planned(data,id,day).map { it.ordinal } != planned(after,id,day).map { it.ordinal } }
+            .sortedWith(compareBy({it.second},{it.first})).map { (id,day) ->
+                "$day • ${data.classes.firstOrNull { it.id == id }?.name ?: additions.flatMap { it.slots }.firstOrNull { it.classId == id }?.className.orEmpty()}" }
+    }
     fun shiftOrder(shift:String): Int = when(shift.trim().lowercase(java.util.Locale.ROOT)) {
         "matutino" -> 0; "vespertino" -> 1; "noturno" -> 2; else -> 3
     }
@@ -72,12 +113,6 @@ object Timetables {
         }
         val next = expected.map { it.effective }.filter { it > effective }.minOrNull()
         val through = next?.let { LocalDate.parse(it).minusDays(1).toString() } ?: "$year-12-31"
-        val after = data.copy(timetables = data.timetables + proposed)
-        val dates = (data.lessons.map { it.classId to it.date } + data.lessonRecords.map { it.classId to it.date }).distinct()
-        val affected = dates.filter { (id,day) -> day in effective..through &&
-            planned(data,id,day).map { it.ordinal } != planned(after,id,day).map { it.ordinal } }
-            .sortedWith(compareBy({it.second},{it.first})).map { (id,day) ->
-                "$day • ${data.classes.firstOrNull { it.id==id }?.name ?: slots.firstOrNull {it.classId==id}?.className.orEmpty()}" }
-        return TimetablePreview(expected,proposed,through,affected)
+        return TimetablePreview(expected,proposed,through,affected(data,listOf(proposed),effective,through))
     }
 }

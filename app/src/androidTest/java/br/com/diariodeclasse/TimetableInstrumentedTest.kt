@@ -110,4 +110,53 @@ class TimetableInstrumentedTest {
         try {val manager=BackupManager(upgraded,FileSafetyBackupStore(File(context.cacheDir,"weekly-migrate")),29,null);assertEquals(before,manager.snapshot());assertTrue(manager.snapshot().timetables.isEmpty())}
         finally{upgraded.close();context.deleteDatabase(oldName)}
     }
+    @Test fun annualOverrideRetainsAllRevisionsAndEveryAcademicRowAfterRestartAndRestore()=runBlocking {
+        val student=Student(classId=c.id,name="Estudante Fictício",number=1,joined="2026-01-01");repo.saveStudent(student)
+        repo.setDayHours(c.id,"2026-08-06",4)
+        repo.dao.day(c.id,"2026-08-06").forEachIndexed{i,l->repo.dao.save(Attendance(l.id,student.id,listOf("P","F","FJ","NR")[i]))}
+        repo.saveLessonRecord(LessonRecord(classId=c.id,date="2026-08-06",title="Fictício",description="Mantido integralmente"))
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-10-01",listOf(slot())))
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-11-01",listOf(slot(day=5))))
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-12-01",emptyList()))
+        val before=backup.snapshot()
+        val p=Timetables.annualPreview(snapshot(),2026,listOf(slot(day=3)))
+        assertEquals(before,backup.snapshot());repo.confirmTimetable(p)
+        val expected=backup.snapshot()
+        assertEquals(before,expected.copy(timetables=before.timetables));assertTrue(expected.timetables.containsAll(before.timetables))
+        assertEquals(7,expected.timetables.size)
+        assertEquals(1,Timetables.planned(snapshot(),c.id,"2026-08-05").size)
+        assertEquals(1,Timetables.planned(snapshot(),c.id,"2026-12-30").size)
+        val bytes=backup.backupBytes();db.close();open();assertEquals(expected,backup.snapshot())
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-11-15",emptyList()))
+        backup.restore(backup.prepare(bytes.inputStream()),"RESTAURAR");assertEquals(expected,backup.snapshot())
+        db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
+    }
+    @Test fun annualMultiInsertFailureAndConcurrentRevisionRollBackTheEntireBatch()=runBlocking {
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-10-01",listOf(slot())))
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-12-01",emptyList()))
+        val p=Timetables.annualPreview(snapshot(),2026,listOf(slot(day=3)))
+        val before=backup.snapshot()
+        // A primeira inserção de janeiro ocorre; a falha na segunda precisa revertê-la também.
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER fail_annual BEFORE INSERT ON weekly_timetables WHEN NEW.effective='2026-10-01' BEGIN SELECT RAISE(ABORT,'ficticio'); END")
+        try{repo.confirmTimetable(p);fail()}catch(_:android.database.sqlite.SQLiteException){}
+        assertEquals(before,backup.snapshot())
+        db.openHelper.writableDatabase.execSQL("DROP TRIGGER fail_annual")
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-11-01",listOf(slot(day=5))))
+        val concurrent=backup.snapshot()
+        try{repo.confirmTimetable(p);fail()}catch(_:IllegalArgumentException){}
+        assertEquals(concurrent,backup.snapshot())
+    }
+    @Test fun annualPreviewRechecksNewAcademicDatesAndArchivedClassBeforeAnyInsert()=runBlocking {
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-10-01",listOf(slot())))
+        var p=Timetables.annualPreview(snapshot(),2026,listOf(slot(day=3)))
+        repo.setDayHours(c.id,"2026-08-05",1)
+        var before=backup.snapshot()
+        try{repo.confirmTimetable(p);fail()}catch(_:IllegalArgumentException){}
+        assertEquals(before,backup.snapshot())
+        p=Timetables.annualPreview(snapshot(),2026,listOf(slot(day=3)))
+        repo.archiveClass(c.id,true);before=backup.snapshot()
+        try{repo.confirmTimetable(p);fail()}catch(_:IllegalArgumentException){}
+        assertEquals(before,backup.snapshot())
+    }
+
 }

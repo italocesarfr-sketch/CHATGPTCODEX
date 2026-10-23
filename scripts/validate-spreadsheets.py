@@ -1,6 +1,7 @@
 """Validação independente: openpyxl + csv padrão, sem chamar o escritor Kotlin."""
 from pathlib import Path
 import csv,io,json,sys,math,zipfile
+from datetime import datetime
 import openpyxl
 root=Path(sys.argv[1] if len(sys.argv)>1 else 'app/build/exports-validation')
 cases=json.loads((root/'expected.json').read_text());validated=[]
@@ -15,9 +16,16 @@ for case in cases:
     book=openpyxl.load_workbook(xlsx,data_only=False);sheet=book.active
     assert sheet.max_row==max(1,len(expected)) and sheet.max_column==width,(name,sheet.max_row,sheet.max_column)
     assert not sheet.protection.sheet
+    dates={}
     for r,row in enumerate(expected,1):
         for c,value in enumerate(row,1):
-            cell=sheet.cell(r,c);assert equal(cell.value,value),(name,cell.coordinate,cell.value,value)
+            cell=sheet.cell(r,c)
+            if isinstance(cell.value,datetime):
+                assert isinstance(value,(int,float)) and cell.number_format=='dd/mm/yyyy'
+                assert equal(openpyxl.utils.datetime.to_excel(cell.value,book.epoch),value),(name,cell.coordinate)
+                dates[(r,c)]=cell.value.strftime('%d/%m/%Y')
+                continue
+            assert equal(cell.value,value),(name,cell.coordinate,cell.value,value)
             if isinstance(value,(int,float)):
                 assert cell.data_type=='n'
                 if cell.number_format!='General':assert '0.00' in cell.number_format
@@ -27,9 +35,12 @@ for case in cases:
         text=(root/(name+suffix)).read_bytes().decode('utf-8-sig')
         actual=list(csv.reader(io.StringIO(text,newline=''),delimiter=delimiter))
         assert len(actual)==len(rows),(name,suffix,len(actual),len(rows))
-        for output,source in zip(actual,rows):
+        for r,(output,source) in enumerate(zip(actual,rows),1):
             assert len(output)==len(source),(name,suffix,output,source)
-            for value,original in zip(output,source):
+            for c,(value,original) in enumerate(zip(output,source),1):
+                if suffix in ('.csv','.tsv') and (r,c) in dates:
+                    assert value==dates[(r,c)],(name,suffix,r,c,value,dates[(r,c)])
+                    continue
                 if original is None:assert value==''
                 elif isinstance(original,(int,float)):assert math.isclose(float(value.replace(',','.')),original,rel_tol=1e-12,abs_tol=1e-12)
                 else:assert value==original,(name,suffix,value,original)

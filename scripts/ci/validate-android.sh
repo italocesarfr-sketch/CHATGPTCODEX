@@ -8,12 +8,12 @@ mkdir -p build
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.TimetableInstrumentedTest,br.com.diariodeclasse.TimetableUiInstrumentedTest,br.com.diariodeclasse.TimetableLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/weekly-focused.txt || status=$?
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.TimetableInstrumentedTest,br.com.diariodeclasse.TimetableUiInstrumentedTest,br.com.diariodeclasse.TimetableLayoutInstrumentedTest,br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/weekly-focused.txt || status=$?
 cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
 from pathlib import Path
 text=Path('build/weekly-focused.txt').read_text()
-assert 'OK (13 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (20 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYWEEKLY
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows,br.com.diariodeclasse.StageSixUiInstrumentedTest#smallPhoneAndLargeFontKeepFourNavigationLabelsAndAccessibleModeTargets br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
 cat build/ux14-layout-smoke.txt
@@ -37,7 +37,7 @@ if (( status == 0 )); then
     python3 - <<'PYMINIMAL' || status=1
 from pathlib import Path
 text=Path('build/minimal-export-focused.txt').read_text()
-assert 'OK (22 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (24 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYMINIMAL
 fi
 if (( status == 0 )); then

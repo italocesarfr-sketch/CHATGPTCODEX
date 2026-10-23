@@ -11,5 +11,5 @@ import br.com.diariodeclasse.export.SpreadsheetKind
         plans -> SpreadsheetKind.PLANS
         annual -> SpreadsheetKind.ANNUAL
         else -> SpreadsheetKind.ATTENDANCE
-    }, busyChanged)
+    }, busyChanged=busyChanged)
 }

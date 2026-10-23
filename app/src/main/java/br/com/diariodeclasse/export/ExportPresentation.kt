@@ -21,21 +21,24 @@ data class SpreadsheetPreferences(
     val start: String = "",
     val end: String = "",
     val copyMode: String = "Dados completos",
-    val share: Boolean = false
+    val share: Boolean = false,
+    val term: Int? = null
 )
 
 /** Adapta apenas parâmetros/colunas das projeções existentes. A matriz serve arquivo, cópia e prévia. */
 object ExportPresentation {
     fun build(data: DiarySnapshot, c: SchoolClass, term: Int, kind: SpreadsheetKind, p: SpreadsheetPreferences): ExportTable {
-        require(term in 1..4)
+        val selectedTerm = p.term ?: term
+        require(selectedTerm in 1..4)
         if (kind.regular) return ExportProjection.build(data, c, ExportOptions(
-            ExportModel.valueOf(kind.name), term.takeUnless { p.allTerms }, p.headers, p.callNumber))
+            ExportModel.valueOf(kind.name), selectedTerm.takeUnless { p.allTerms }, p.headers, p.callNumber))
         val source = when (kind) {
             SpreadsheetKind.ANNUAL -> AnnualExportProjection.build(data, c)
             SpreadsheetKind.ATTENDANCE, SpreadsheetKind.PLANS -> {
-                val period = data.terms.firstOrNull { it.classId == c.id && it.number == term }
-                val start = if (p.customRange) p.start else requireNotNull(period) { "Configure o bimestre ou escolha um intervalo de datas nos ajustes." }.start
-                val end = if (p.customRange) p.end else requireNotNull(period).end
+                val periods = data.terms.filter { it.classId == c.id && (p.allTerms || it.number == selectedTerm) }.sortedBy { it.number }
+                if (!p.customRange) require(periods.size == if(p.allTerms) 4 else 1) { "Configure os bimestres ou escolha um intervalo de datas nos ajustes." }
+                val start = if (p.customRange) p.start else periods.minOf { it.start }
+                val end = if (p.customRange) p.end else periods.maxOf { it.end }
                 if (kind == SpreadsheetKind.PLANS) LessonPlanExportProjection.build(data, c, start, end)
                 else AttendanceExportProjection.build(data, c, start, end)
             }

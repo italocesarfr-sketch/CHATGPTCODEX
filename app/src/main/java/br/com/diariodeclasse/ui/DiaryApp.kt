@@ -59,6 +59,7 @@ private val pages = listOf(
     var page by rememberSaveable { mutableIntStateOf(0) }
     var detail by rememberSaveable { mutableStateOf("") }
     var managedClassId by rememberSaveable { mutableStateOf("") }
+    var exportEntry by rememberSaveable { mutableIntStateOf(0) }
     var exportBusy by remember { mutableStateOf(false) }
     var returnDetail by rememberSaveable { mutableStateOf("") }
     var term by rememberSaveable { mutableIntStateOf((LocalDate.now().monthValue - 1) / 3 + 1) }
@@ -112,7 +113,7 @@ private val pages = listOf(
             vm.repository.saveExportLayout(draft.classId,draft.expected,draft.rows)
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 changeExport(null)
-                if(detail == "export-layout") { page=3;detail=if(openFile) "export" else "" }
+                if(detail == "export-layout") { page=3;if(openFile)exportEntry++;detail=if(openFile) "export" else "" }
             }
         }
     }
@@ -180,7 +181,7 @@ private val pages = listOf(
                                 ReportScreen(data,archived,term,globalSearch=false) {studentId=it;detail="archived-student-report"} }
                         }
                         detail == "archived-student-report" -> data.classes.firstOrNull{it.id==managedClassId}?.let { archived -> data.students.firstOrNull{it.id==studentId&&it.classId==archived.id}?.let {IndividualReportScreen(data,archived,it,term){term=it}} }
-                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{archived -> exportStates.SaveableStateProvider(archived.id) { ExportScreen(data,archived,term,ready=!saving){exportBusy=it} }}
+                        detail == "archived-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{archived -> exportStates.SaveableStateProvider(archived.id) { ExportScreen(data,archived,term,ready=!saving,entryId=exportEntry){exportBusy=it} }}
                         detail == "archived-attendance-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving){exportBusy=it}}
                         detail == "archived-plans-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,plans=true){exportBusy=it}}
                         detail == "archived-annual-export" -> data.classes.firstOrNull{it.id==managedClassId}?.let{AttendanceExportScreen(data,it,term,vm::message,!saving,annual=true){exportBusy=it}}
@@ -189,7 +190,7 @@ private val pages = listOf(
                         detail == "attendance-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving){exportBusy=it}
                         detail == "plans-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,plans=true){exportBusy=it}
                         detail == "annual-export" && c != null -> AttendanceExportScreen(data,c,term,vm::message,!saving,annual=true){exportBusy=it}
-                        detail == "export" && c != null -> exportStates.SaveableStateProvider(c.id) { ExportScreen(data,c,term,ready=!saving){exportBusy=it} }
+                        detail == "export" && c != null -> exportStates.SaveableStateProvider(c.id) { ExportScreen(data,c,term,ready=!saving,entryId=exportEntry){exportBusy=it} }
                         detail == "export-layout" && c != null && exportDraft?.classId == c.id -> ExportLayoutScreen(vm,data,c,exportDraft,::changeExport,{concludeExport()},{changeExport(null);detail=""},export={concludeExport(true)})
                         detail == "recomposition" && c != null -> RecompositionScreen(vm, data, c, term) { next -> navigate { term = next } }
                         detail == "grades" -> data.activities.firstOrNull { it.id == activityId && it.classId == c?.id }?.let { a ->
@@ -226,7 +227,7 @@ private val pages = listOf(
                                 2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true }, recomposition = { detail = "recomposition" },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> Column {
-                                    ReportActions(organize={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},export={detail="export"})
+                                    ReportActions(organize={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},export={exportEntry++;detail="export"})
                                     reportStates.SaveableStateProvider(c.id) {
                                     ReportScreen(data, c, term,globalProfile=::openReportStudent) { studentId = it; returnDetail = ""; detail = "student-report" }
                                     }
@@ -262,7 +263,7 @@ private val pages = listOf(
         },
         archived=data.classArchives.any{it.classId==editingClass?.id},
         reports={classForm=false;detail="archived-reports"},
-        export={classForm=false;detail="archived-export"},
+        export={classForm=false;exportEntry++;detail="archived-export"},
         records={classForm=false;detail="archived-records"}) { id ->
         classForm = false
         // O formulário retorna o ano persistido, não a posição da turma no seletor.

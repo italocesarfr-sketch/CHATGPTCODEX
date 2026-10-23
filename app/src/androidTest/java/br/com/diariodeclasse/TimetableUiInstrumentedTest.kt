@@ -67,11 +67,11 @@ class TimetableUiInstrumentedTest {
     @Test fun registerDoubleHoursThroughEditorAndCancelAnotherDraftWithoutPersisting() {
         weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
         tag("weekly-period-1").performScrollTo().performClick();tag("weekly-period-2").performScrollTo().performClick()
-        tag("timetable-effective").performScrollTo().performTextReplacement("01/01/2026")
+        tag("timetable-effective").assertDoesNotExist();tag("timetable-scope-YEAR").assertDoesNotExist()
         shot("02-editar-grade")
-        tag("review-weekly-hours").performScrollTo().performClick();tag("save-weekly-hours").performScrollTo().performClick()
+        tag("review-weekly-hours").performScrollTo().performClick()
         compose.waitUntil(10000){runBlocking{app.database.backupDao().timetables().any{it.slots.count{s->s.classId==c.id}==2}}}
-        val saved=runBlocking{app.backupManager.snapshot()};compose.activityRule.scenario.recreate();waitTag("weekly-timetable")
+        val saved=runBlocking{app.backupManager.snapshot()};assertEquals("2026-01-01",saved.timetables.single().effective);compose.activityRule.scenario.recreate();waitTag("weekly-timetable")
         tag("add-weekly-hours").performClick();tag("weekly-period-3").performScrollTo().performClick()
         compose.onNode(hasText("Voltar") and hasAnyAncestor(isDialog()),useUnmergedTree=true).performScrollTo().performClick()
         compose.onNodeWithText("Descartar edição da grade?").assertExists();compose.onNodeWithText("Confirmar").performClick()
@@ -111,4 +111,37 @@ class TimetableUiInstrumentedTest {
         compose.onNode(hasText("Voltar") and hasAnyAncestor(isDialog()),useUnmergedTree=true).performScrollTo().performClick();compose.onNodeWithText("Confirmar").performClick()
         tag("class-mode-Chamada").performClick();waitTag("attendance-calendar");assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
+    @Test fun annualEditOverridesFutureRevisionsWithCompactConfirmationAndKeepsAcademicData() {
+        seed()
+        runBlocking{app.repository.confirmTimetable(app.repository.previewTimetable(2026,"2026-11-01",emptyList()))}
+        val before=runBlocking{app.backupManager.snapshot()}
+        weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        tag("weekly-period-3").performScrollTo().performClick()
+        tag("timetable-effective").assertDoesNotExist()
+        tag("timetable-scope-TODAY").assertExists();tag("timetable-scope-YEAR").performScrollTo().performClick()
+        shot("09-alcance-anual")
+        tag("review-weekly-hours").performScrollTo().performClick()
+        compose.onNodeWithText("Esta grade substituirá também as previsões posteriores de 2026 (1 vigências).").assertExists()
+        shot("10-confirmacao-anual")
+        tag("save-weekly-hours").performScrollTo().performClick()
+        compose.waitUntil(10000){runBlocking{app.database.backupDao().timetables().size==4}}
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(before,after.copy(timetables=before.timetables));assertTrue(after.timetables.containsAll(before.timetables))
+        assertEquals(3,Timetables.planned(vm.data.value,c.id,"2026-12-03").size)
+        compose.activityRule.scenario.recreate();waitTag("weekly-timetable")
+        assertEquals(after,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun todayScopeShowsEffectiveDateAndSavesWithoutAnotherAdministrativeStep() {
+        seed();weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        tag("timetable-scope-TODAY").performScrollTo().performClick()
+        compose.onNodeWithText("Desde ${shortDate(today())}").assertExists()
+        val before=runBlocking{app.backupManager.snapshot()}
+        tag("weekly-period-3").performScrollTo().performClick()
+        tag("review-weekly-hours").performScrollTo().performClick()
+        compose.waitUntil(10000){runBlocking{app.database.backupDao().timetables().size==2}}
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(before,after.copy(timetables=before.timetables))
+        assertEquals(today(),after.timetables.first{it.id !in before.timetables.map{v->v.id}}.effective)
+    }
+
 }

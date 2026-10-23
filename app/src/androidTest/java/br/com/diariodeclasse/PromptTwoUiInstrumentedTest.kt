@@ -152,7 +152,7 @@ class PromptTwoUiInstrumentedTest {
         runBlocking{app.repository.mark("${c.id}:$day:1",a.id,"P");app.repository.mark("${c.id}:$day:2",a.id,"F")}
         val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ATTENDANCE").performClick();waitTag("attendance-export-screen")
         tag("export-options").performScrollTo().performClick()
-        chooseExport("Bimestre selecionado","Intervalo de datas")
+        chooseExport("3º bimestre","Intervalo de datas")
         tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard();tag("export-settings-done").assertIsDisplayed().performClick()
         shot("04-exportar-chamada")
         tag("export-file").assertIsDisplayed().performClick();backFromExternalWindow();waitText("Exportação cancelada.")
