@@ -13,7 +13,7 @@ cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
 from pathlib import Path
 text=Path('build/weekly-focused.txt').read_text()
-assert 'OK (20 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (23 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYWEEKLY
 # Dialog e ModalBottomSheet usam a configuração da janela Android, não apenas o LocalDensity
 # simulado pelo pai Compose. Confere a densidade efetiva do próprio texto no diálogo.
@@ -31,12 +31,12 @@ PYFONT
     done
     adb shell settings put system font_scale 1.0
 fi
-timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows,br.com.diariodeclasse.StageSixUiInstrumentedTest#smallPhoneAndLargeFontKeepFourNavigationLabelsAndAccessibleModeTargets br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows,br.com.diariodeclasse.StageSixUiInstrumentedTest#smallPhoneAndLargeFontKeepFourNavigationLabelsAndAccessibleModeTargets,br.com.diariodeclasse.PostTwelveLayoutInstrumentedTest#reportAndImportActionsStayReachableAtSmallWidthsAndLargeFonts br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
 cat build/ux14-layout-smoke.txt
 python3 - <<'PYSMOKE' || status=1
 from pathlib import Path
 text=Path('build/ux14-layout-smoke.txt').read_text()
-assert 'OK (3 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
+assert 'OK (4 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
 PYSMOKE
 if (( status == 0 )); then
     timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RelocationConversionInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenUiInstrumentedTest,br.com.diariodeclasse.ExportLayoutInstrumentedTest#migrationFromDistributedV3PreservesEverySchoolTableAndMovement,br.com.diariodeclasse.HistoryDeletionInstrumentedTest#distributedSchemaSixMigratesAdditivelyWithoutChangingAnyOfItsThirteenTables,br.com.diariodeclasse.RelocationUiInstrumentedTest#confirmedMoveHidesSourceAndRefreshesDestinationReportsAcrossRecreation,br.com.diariodeclasse.RecompositionUiInstrumentedTest#reportsRefreshWithoutAddingRecompositionToActivitiesOrFourthTerm br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/functional15-focused.txt || status=$?
@@ -53,7 +53,7 @@ if (( status == 0 )); then
     python3 - <<'PYMINIMAL' || status=1
 from pathlib import Path
 text=Path('build/minimal-export-focused.txt').read_text()
-assert 'OK (24 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (27 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYMINIMAL
 fi
 if (( status == 0 )); then

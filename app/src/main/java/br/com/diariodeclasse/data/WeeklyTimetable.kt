@@ -33,6 +33,12 @@ data class TimetablePreview(val expected: List<WeeklyTimetable>, val proposed: W
 enum class TimetableScope(val label: String) { TODAY("A partir de hoje"), YEAR("Para o ano todo") }
 
 object Timetables {
+    private fun validateEditedSlots(expected: List<WeeklyTimetable>, slots: List<WeeklySlot>) {
+        val historical = expected.flatMap { it.slots }
+        require(slots.filter { it.ordinal > 6 }.all { slot -> historical.any {
+            it.id == slot.id && it.classId == slot.classId && it.weekday == slot.weekday && it.ordinal == slot.ordinal
+        } }) { "Novos horários devem usar os períodos de 1º a 6º do turno. Períodos antigos podem ser mantidos ou retirados explicitamente." }
+    }
     fun effective(year: Int, scope: TimetableScope, today: LocalDate = LocalDate.now()): String {
         require(year in 2000..2100) { "Confira o ano letivo." }
         if (scope == TimetableScope.YEAR) return "$year-01-01"
@@ -45,6 +51,7 @@ object Timetables {
     fun annualPreview(data: DiarySnapshot, year: Int, slots: List<WeeklySlot>): TimetablePreview {
         val start = effective(year, TimetableScope.YEAR)
         val expected = data.timetables.filter { it.year == year }.sortedBy { it.id }
+        validateEditedSlots(expected,slots)
         val historical = expected.flatMap { it.slots }
         slots.filter { it !in historical }.forEach { slot ->
             val school = requireNotNull(data.classes.firstOrNull { it.id == slot.classId }) { "Turma não encontrada. Reabra os horários." }
@@ -102,6 +109,7 @@ object Timetables {
     fun preview(data: DiarySnapshot, year: Int, effective: String, slots: List<WeeklySlot>): TimetablePreview {
         require(LocalDate.parse(effective).year == year) { "A vigência deve estar no ano selecionado." }
         val expected = data.timetables.filter { it.year == year }.sortedBy { it.id }
+        validateEditedSlots(expected,slots)
         val revision = (expected.filter { it.effective == effective }.maxOfOrNull { it.revision } ?: 0) + 1
         val proposed = WeeklyTimetable(year=year,effective=effective,revision=revision,slots=slots.sortedWith(compareBy({it.weekday},{it.ordinal})))
         validate(expected + proposed)

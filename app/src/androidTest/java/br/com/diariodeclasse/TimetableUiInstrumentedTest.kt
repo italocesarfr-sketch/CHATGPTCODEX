@@ -144,4 +144,34 @@ class TimetableUiInstrumentedTest {
         assertEquals(today(),after.timetables.first{it.id !in before.timetables.map{v->v.id}}.effective)
     }
 
+    @Test fun commonEditorShowsSixPeriodsAndRegistersAllSixForTheWholeYear() {
+        weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        for(n in 1..6)tag("weekly-period-$n").performScrollTo().assertIsDisplayed().performClick()
+        for(n in 7..12)tag("weekly-period-$n").assertDoesNotExist()
+        shot("13-seis-periodos-por-turno")
+        tag("review-weekly-hours").performScrollTo().performClick()
+        compose.waitUntil(10000){vm.data.value.timetables.any{it.slots.count{s->s.classId==c.id}==6}}
+        assertEquals(listOf(1,2,3,4,5,6),Timetables.planned(vm.data.value,c.id,"2026-08-06").map{it.ordinal})
+    }
+    @Test fun legacyPeriodNeedsExplicitRemovalAndSaveWhileItsHistoryRemains() {
+        seed()
+        runBlocking{
+            val row=app.database.backupDao().timetables().single()
+            app.repository.dao.insertTimetable(row.copy(id=newId(),revision=row.revision+1,slots=row.slots+WeeklySlot(classId=c.id,weekday=4,ordinal=9,className=c.name,subject=c.subject,shift=c.shift)))
+        }
+        compose.waitUntil(10000){vm.data.value.timetables.any{it.slots.any{s->s.ordinal==9}}}
+        val before=runBlocking{app.backupManager.snapshot()}
+        weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        tag("weekly-period-9").assertDoesNotExist();tag("weekly-legacy-periods").performScrollTo().assertIsDisplayed()
+        tag("weekly-legacy-9").performScrollTo().performClick();compose.onNodeWithText("Cancelar").performClick()
+        tag("weekly-legacy-9").assertExists();assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        tag("weekly-legacy-9").performClick();compose.onNodeWithText("Confirmar").performClick()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        tag("timetable-scope-YEAR").performScrollTo().performClick();tag("review-weekly-hours").performScrollTo().performClick()
+        tag("save-weekly-hours").performScrollTo().performClick()
+        compose.waitUntil(10000){vm.data.value.timetables.size==3}
+        val after=runBlocking{app.backupManager.snapshot()};assertTrue(after.timetables.containsAll(before.timetables));assertEquals(before,after.copy(timetables=before.timetables))
+        assertEquals(listOf(1,2),Timetables.planned(vm.data.value,c.id,"2026-08-06").map{it.ordinal})
+    }
+
 }

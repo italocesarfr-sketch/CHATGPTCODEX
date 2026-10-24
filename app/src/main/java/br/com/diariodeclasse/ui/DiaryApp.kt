@@ -227,9 +227,10 @@ private val pages = listOf(
                                 2 -> ActivitiesPage(vm, data, c, term, create = { editingActivity = null; activityForm = true }, recomposition = { detail = "recomposition" },
                                     edit = { editingActivity = it; activityForm = true }) { activityId = it; detail = "grades" }
                                 3 -> Column {
-                                    ReportActions(organize={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},export={exportEntry++;detail="export"})
                                     reportStates.SaveableStateProvider(c.id) {
-                                    ReportScreen(data, c, term,globalProfile=::openReportStudent) { studentId = it; returnDetail = ""; detail = "student-report" }
+                                    ReportScreen(data, c, term,globalProfile=::openReportStudent,actions={
+                                        ReportActions(organize={navigate{changeExport(ExportEditSession.start(data,c.id,"ORDER"));detail="export-layout"}},export={exportEntry++;detail="export"})
+                                    }) { studentId = it; returnDetail = ""; detail = "student-report" }
                                     }
                                 }
                             }

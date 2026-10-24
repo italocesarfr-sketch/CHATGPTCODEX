@@ -59,7 +59,7 @@ class ExportLifecycleUiInstrumentedTest {
     private fun waitTag(tag:String){compose.waitUntil(10000){compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()}}
     private fun waitText(text:String){compose.waitUntil(10000){compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()}}
     private fun manage(){compose.onNodeWithTag("edit-class").performScrollTo().performClick();waitTag("archive-class")}
-    private fun openExport(){compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick();compose.onNodeWithTag("open-export").performClick();waitTag("export-screen")}
+    private fun openExport(){compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick();compose.onNodeWithTag("open-export").performScrollTo().performClick();waitTag("export-screen")}
     private fun shot(name:String){compose.waitForIdle();val folder=File(app.filesDir,"etapa52-screenshots");folder.mkdirs();val root=when {compose.onAllNodesWithTag("delete-class-dialog").fetchSemanticsNodes().isNotEmpty()->compose.onNodeWithTag("delete-class-dialog");compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty()->compose.onNode(isDialog());else->compose.onRoot()};File(folder,"$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
     private fun choose(current:String,value:String) {
         compose.onNodeWithText("$current ▾").performScrollTo().performClick()
@@ -117,7 +117,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 3º bimestre").assertExists()
         compose.onNodeWithText("‹ Voltar").performClick();waitTag("reports-list")
         compose.onNodeWithText("Boletim 3º Bim").assertExists()
-        compose.onNodeWithText("2º bim.").performClick();compose.onNodeWithTag("open-export").performClick()
+        compose.onNodeWithText("2º bim.").performClick();compose.onNodeWithTag("open-export").performScrollTo().performClick()
         compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 2º bimestre").assertExists()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
@@ -172,15 +172,14 @@ class ExportLifecycleUiInstrumentedTest {
         val before=runBlocking{app.backupManager.snapshot()}
         compose.onNodeWithTag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick()
         compose.onNodeWithText("Geral ▾").assertDoesNotExist()
-        compose.onNodeWithTag("export-organize").assertIsDisplayed()
-        compose.onNodeWithTag("report-sort").performScrollTo().performClick()
+        compose.onNodeWithTag("export-organize").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("report-mode-Notas").performScrollTo().performClick()
         compose.onNodeWithTag("report-row-${a.id}-performed",useUnmergedTree=true).assertDoesNotExist()
         compose.onNodeWithTag("report-sort").performScrollTo().performClick()
-        compose.onNodeWithText("Ordem alfabética").performScrollTo().performClick()
-        compose.onNodeWithContentDescription("Filtros do relatório: Notas; ordem Ordem alfabética").assertExists()
+        compose.onNodeWithText("Nome A–Z").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Ordenar alunos: Nome A–Z").assertExists()
         shot("06-boletim-minimalista")
-        compose.onNodeWithTag("export-organize").performClick();waitTag("export-layout-list")
+        compose.onNodeWithTag("export-organize").performScrollTo().performClick();waitTag("export-layout-list")
         compose.onNodeWithTag("export-cancel").performScrollTo().performClick()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
@@ -190,13 +189,13 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         compose.onNodeWithTag("class-selector").performClick()
         compose.onNode(hasText(h.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
-        waitTag("open-export");compose.onNodeWithTag("open-export").performClick()
+        waitTag("open-export");compose.onNodeWithTag("open-export").performScrollTo().performClick()
         compose.onNodeWithText("Exportar XLSX").assertIsDisplayed()
         compose.onNodeWithText("${h.name} • ${h.subject} • ${h.year} • 3º bimestre").assertExists()
         compose.onNodeWithTag("export-file").assertIsNotEnabled()
         compose.onNodeWithTag("class-selector").performClick()
         compose.onNode(hasText(c.name) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
-        waitTag("open-export");compose.onNodeWithTag("open-export").performClick()
+        waitTag("open-export");compose.onNodeWithTag("open-export").performScrollTo().performClick()
         compose.onNodeWithText("Exportar CSV").assertIsDisplayed()
         compose.onNodeWithTag("export-file").assertIsEnabled()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
@@ -324,7 +323,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-preview-0").assertExists();compose.onNodeWithTag("export-preview-close").performClick()
         compose.onNodeWithText("‹ Voltar").performClick();waitTag("reports-list")
         compose.onNodeWithText("Boletim 3º Bim").assertExists()
-        compose.onNodeWithTag("open-export").performClick();waitTag("export-screen")
+        compose.onNodeWithTag("open-export").performScrollTo().performClick();waitTag("export-screen")
         compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 3º bimestre").assertExists()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }

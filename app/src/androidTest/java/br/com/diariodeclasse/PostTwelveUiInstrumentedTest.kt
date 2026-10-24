@@ -117,18 +117,22 @@ class PostTwelveUiInstrumentedTest {
     }
     private fun chooseReport(value:String,current:String) {
         tag("reports-list").performScrollToIndex(0)
-        tag("report-sort").performScrollTo().performClick()
-        compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        tag("report-mode-$value").performScrollTo().performClick()
     }
     @Test fun threeReportViewsAndGlobalSearchKeepGradesAndRestoreNormalFilters() {
         val before=runBlocking{app.backupManager.snapshot()};report()
         chooseReport("Frequência","Geral")
         compose.onNodeWithTag("report-sort").assertExists()
         search("ficticia aurea")
-        compose.onAllNodesWithText("Relatório").assertCountEquals(0);compose.onAllNodesWithTag("report-sort").assertCountEquals(0)
-        assertGrade(a,"0,00");assertGrade(b,"7,50");shot("03-busca-sem-filtros")
+        tag("report-mode-Frequência").assertIsSelected();tag("report-sort").assertExists()
+        for(student in listOf(a,b)) {
+            tag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}"))
+            compose.onNodeWithTag("report-row-${student.id}-present",useUnmergedTree=true).assertExists()
+            compose.onNodeWithTag("report-row-${student.id}-current",useUnmergedTree=true).assertDoesNotExist()
+        }
+        shot("03-busca-com-visualizacao-frequencia")
         tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
-        compose.onNodeWithContentDescription("Filtros do relatório: Frequência; ordem Chamada").assertExists();compose.onNodeWithTag("report-sort").assertExists()
+        compose.onNodeWithContentDescription("Ordenar alunos: Nº da chamada").assertExists();compose.onNodeWithTag("report-sort").assertExists()
         chooseReport("Notas","Frequência");assertGrade(a,"0,00")
         compose.onAllNodesWithTag("report-row-${a.id}-performed",useUnmergedTree=true).assertCountEquals(0)
         chooseReport("Geral","Notas");assertGrade(a,"0,00")

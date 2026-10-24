@@ -150,7 +150,7 @@ class PromptTwoUiInstrumentedTest {
     }
     @Test fun attendanceXlsxPreviewPickerCancelAndShareLeaveAllSchoolDataUnchanged() {
         runBlocking{app.repository.mark("${c.id}:$day:1",a.id,"P");app.repository.mark("${c.id}:$day:2",a.id,"F")}
-        val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ATTENDANCE").performClick();waitTag("attendance-export-screen")
+        val before=runBlocking{app.backupManager.snapshot()};report();tag("open-export").performScrollTo().performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ATTENDANCE").performClick();waitTag("attendance-export-screen")
         tag("export-options").performScrollTo().performClick()
         chooseExport("3º bimestre","Intervalo de datas")
         tag("attendance-export-start").performTextReplacement("28/08/2026");tag("attendance-export-end").performTextReplacement("29/08/2026");hideKeyboard();tag("export-settings-done").assertIsDisplayed().performClick()
@@ -163,7 +163,7 @@ class PromptTwoUiInstrumentedTest {
     @Test fun annualXlsxPreviewSaveCancellationAndShareAreReadOnly() {
         val before=runBlocking{app.backupManager.snapshot()}
         report();compose.onNodeWithContentDescription("Buscar aluno").assertExists()
-        tag("open-export").performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ANNUAL").performClick();waitTag("annual-export-screen")
+        tag("open-export").performScrollTo().performClick();tag("export-type").performScrollTo().performClick();tag("export-type-ANNUAL").performClick();waitTag("annual-export-screen")
         tag("attendance-export-start").assertDoesNotExist();tag("attendance-export-end").assertDoesNotExist()
         tag("export-show-preview").performClick();tag("export-preview-0").assertIsDisplayed();tag("export-preview-close").performClick()
         fun back() {

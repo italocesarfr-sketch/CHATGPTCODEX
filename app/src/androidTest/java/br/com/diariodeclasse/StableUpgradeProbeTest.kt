@@ -76,8 +76,8 @@ class StableUpgradeProbeTest {
                 repo.dao.save(externalLesson);repo.dao.save(Attendance(externalLesson.id,external.id,"FJ"))
                 repo.confirmRelocation(repo.previewRelocation(external.id,null,"Destino externo fictício","2026-10-25"))
                 repo.confirmRelocationCorrection(repo.previewRelocationCorrection(external.id,"2026-10-17","Destino externo corrigido",setOf(externalLesson.id)))
-                // A grade é semeada na 0.17.0 ORIGINAL, antes de adb install -r.
-                val originalSlots=(1..2).map{WeeklySlot(classId=origin.id,weekday=4,ordinal=it,className=origin.name,subject=origin.subject,shift=origin.shift)}
+                // A grade é semeada na 0.17.1 ORIGINAL, antes de adb install -r.
+                val originalSlots=listOf(1,2,9).map{WeeklySlot(classId=origin.id,weekday=4,ordinal=it,className=origin.name,subject=origin.subject,shift=origin.shift)}
                 repo.confirmTimetable(repo.previewTimetable(2026,"2026-10-01",originalSlots))
                 repo.confirmTimetable(repo.previewTimetable(2026,"2026-12-01",emptyList()))
                 file.writeBytes(manager.backupBytes())
@@ -144,7 +144,7 @@ class StableUpgradeProbeTest {
                 assertEquals("CONVERSAO_INTERNA",converted.corrections.last().operation)
                 assertEquals("FJ",converted.corrections.first().removed.single().attendance.mark)
                 assertNotNull(converted.targetStudentId);assertNull(converted.externalTarget)
-                // Corrige a grade antiga de outubro após atualizar a release 0.17.0 original.
+                // Corrige a grade antiga de outubro após atualizar a release 0.17.1 original.
                 val source=repo.dao.schoolClass("classe-alfa")!!
                 val slots=(1..2).map { WeeklySlot(classId=source.id,weekday=4,ordinal=it,className=source.name,subject=source.subject,shift=source.shift) }
                 val oldSchedules=manager.snapshot().timetables

@@ -55,8 +55,7 @@ class ReportsUiInstrumentedTest {
     private fun waitText(text:String) { compose.waitUntil(10000) {compose.onAllNodesWithText(text,substring=true).fetchSemanticsNodes().isNotEmpty()} }
     private fun mode(value:String,current:String="Geral") {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithTag("report-sort").performScrollTo().performClick()
-        compose.onNode(hasText(if(value=="Bimestral")"Geral"else value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        compose.onNodeWithTag("report-mode-${if(value=="Bimestral")"Geral"else value}").performScrollTo().performClick()
     }
     private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
     private fun selectClass(school:SchoolClass) {
@@ -73,17 +72,17 @@ class ReportsUiInstrumentedTest {
     }
     @Test fun explanatoryHelpStaysOffTheTableAndClosesWithoutChangingDataOrFilters() {
         val before=runBlocking {app.backupManager.snapshot()}
-        compose.onNodeWithTag("export-organize").assertIsDisplayed()
-        compose.onNodeWithTag("open-export").assertIsDisplayed()
+        compose.onNodeWithTag("export-organize").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("open-export").performScrollTo().assertIsDisplayed()
         compose.onNodeWithTag("report-information").assertDoesNotExist()
         compose.onNodeWithText("Atividades: escala",substring=true).assertDoesNotExist()
         compose.onNodeWithText("Deslize as colunas",substring=true).assertDoesNotExist()
         compose.onNodeWithText("Faltas efetivas: F + FJ",substring=true).assertDoesNotExist()
-        val help=compose.onNodeWithContentDescription("Informações do relatório")
+        val help=compose.onNodeWithTag("report-options")
         help.assertWidthIsAtLeast(48.dp)
         help.assertHeightIsAtLeast(48.dp)
         shot("06-relatorios-sem-blocos-auxiliares")
-        help.performScrollTo().performClick()
+        openReportHelp(compose)
         compose.onNodeWithTag("report-information").assertIsDisplayed()
         compose.onNodeWithText("Atividades: escala 0 a 10,00. Recomposição: 0 a 10. Pendências e pontuação disponível abaixo da escala mantêm o original parcial.").assertExists()
         compose.onNodeWithText("Deslize as colunas",substring=true).performScrollTo().assertIsDisplayed()
@@ -95,19 +94,19 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithText("Maior nota",useUnmergedTree=true).performScrollTo().performClick()
         row(a);cell(a,0).assertTextEquals("0,00")
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
-        compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem Maior nota").performScrollTo().assertIsDisplayed()
-        help.performScrollTo().performClick();compose.onNodeWithText("Fechar").performClick()
-        compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem Maior nota").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Ordenar alunos: Maior nota").performScrollTo().assertIsDisplayed()
+        openReportHelp(compose);compose.onNodeWithText("Fechar").performClick()
+        compose.onNodeWithContentDescription("Ordenar alunos: Maior nota").performScrollTo().assertIsDisplayed()
         assertEquals(before,runBlocking {app.backupManager.snapshot()})
     }
     @Test fun helpPreservesCurrentClassJustificationPolicy() {
         mode("Frequência")
-        compose.onNodeWithContentDescription("Informações do relatório").performClick()
+        openReportHelp(compose)
         compose.onNodeWithText("Aulas elegíveis variam conforme a matrícula.").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Fechar").performClick()
         runBlocking {app.repository.saveClass(c.copy(countJustified=false),"2026-01-01")}
         compose.waitForIdle()
-        compose.onNodeWithContentDescription("Informações do relatório").performClick()
+        openReportHelp(compose)
         waitText("Faltas efetivas: somente F.")
         compose.onNodeWithText("Faltas efetivas: somente F.",substring=true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Fechar").performClick()
@@ -144,15 +143,15 @@ class ReportsUiInstrumentedTest {
     @Test fun sortingUsesEffectiveAbsencesAndRestoresOfficialCallOnSecondChoice() {
         val before=runBlocking {app.backupManager.snapshot()}
         compose.onAllNodesWithText("Consultas").assertCountEquals(0)
-        for(label in listOf("Ordem alfabética","Mais faltas","Menos faltas","Maior nota","Menor nota","Chamada")) {
+        for(label in listOf("Nome A–Z","Mais faltas","Menos faltas","Maior nota","Menor nota","Nº da chamada")) {
             compose.onNodeWithTag("reports-list").performScrollToIndex(0)
             compose.onNodeWithTag("report-sort").performScrollTo().performClick()
             compose.onNodeWithText(label,useUnmergedTree=true).performScrollTo().performClick()
-            compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem $label").assertExists()
-            if(label!="Chamada") {
+            compose.onNodeWithContentDescription("Ordenar alunos: $label").assertExists()
+            if(label!="Nº da chamada") {
                 compose.onNodeWithTag("report-sort").performClick()
                 compose.onNodeWithText(label,useUnmergedTree=true).performScrollTo().performClick()
-                compose.onNodeWithContentDescription("Filtros do relatório: Geral; ordem Chamada").assertExists()
+                compose.onNodeWithContentDescription("Ordenar alunos: Nº da chamada").assertExists()
             }
         }
         mode("Frequência");row(a);cell(a,4).assertTextEquals("1")
@@ -266,6 +265,53 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(c.name,useUnmergedTree=true).performClick()
         compose.waitUntil(10000) {compose.onAllNodesWithTag("report-row-${otherStudent.id}").fetchSemanticsNodes().isEmpty()}
         row(a);field(a,"current").assertTextEquals("0,00")
+    }
+
+    @Test fun viewsExposeOnlyCompatibleOrdersAndResetIncompatibleSelections() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        fun order(value:String){compose.onNodeWithTag("report-sort").performScrollTo().performClick();compose.onNodeWithText(value,useUnmergedTree=true).performScrollTo().performClick()}
+        mode("Notas");order("Maior nota")
+        mode("Frequência")
+        compose.onNodeWithContentDescription("Ordenar alunos: Nº da chamada").assertExists()
+        compose.onNodeWithTag("report-sort").performScrollTo().performClick()
+        compose.onNodeWithText("Maior nota",useUnmergedTree=true).assertDoesNotExist();compose.onNodeWithText("Menor nota",useUnmergedTree=true).assertDoesNotExist()
+        compose.onNodeWithText("Mais faltas",useUnmergedTree=true).performClick()
+        mode("Geral");compose.onNodeWithContentDescription("Ordenar alunos: Mais faltas").assertExists()
+        mode("Notas");compose.onNodeWithContentDescription("Ordenar alunos: Nº da chamada").assertExists()
+        compose.onNodeWithTag("report-sort").performScrollTo().performClick()
+        compose.onNodeWithText("Mais faltas",useUnmergedTree=true).assertDoesNotExist();compose.onNodeWithText("Menos faltas",useUnmergedTree=true).assertDoesNotExist()
+        compose.onNodeWithText("Nome A–Z",useUnmergedTree=true).performClick()
+        mode("Frequência");compose.onNodeWithContentDescription("Ordenar alunos: Nome A–Z").assertExists()
+        shot("10-visualizacao-ordenacao")
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun searchKeepsViewOrderAndSemesterAcrossRotationWithoutWritingSchoolRows() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        mode("Frequência");compose.onNodeWithTag("report-sort").performScrollTo().performClick()
+        compose.onNodeWithText("Mais faltas",useUnmergedTree=true).performClick()
+        compose.onNodeWithTag("report-search").performScrollTo().performTextInput("ficticio")
+        row(a);compose.onNodeWithTag("report-row-${a.id}-current",useUnmergedTree=true).assertDoesNotExist()
+        compose.onNodeWithTag("report-row-${a.id}-effective-absences",useUnmergedTree=true).onChild().assertTextEquals("1")
+        compose.activityRule.scenario.recreate()
+        compose.onNodeWithTag("report-mode-Frequência").performScrollTo().assertIsSelected()
+        compose.onNodeWithContentDescription("Ordenar alunos: Mais faltas").assertExists()
+        compose.onNodeWithText("3º bim.").performClick()
+        compose.onNodeWithTag("report-mode-Frequência").assertIsSelected()
+        compose.onNodeWithTag("report-search").assertTextContains("ficticio")
+        compose.onNodeWithTag("report-search-clear").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Ordenar alunos: Mais faltas").assertExists()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+    }
+    @Test fun secondaryMenuNeverDuplicatesViewsOrOrderingAndPersonalizationKeepsSeparatePurpose() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        compose.onNodeWithTag("report-options").performScrollTo().performClick()
+        compose.onNode(hasText("Geral") and hasAnyAncestor(isPopup()),useUnmergedTree=true).assertDoesNotExist()
+        compose.onNode(hasText("Maior nota") and hasAnyAncestor(isPopup()),useUnmergedTree=true).assertDoesNotExist()
+        compose.onNodeWithTag("report-help").performClick();compose.onNodeWithText("Fechar").performClick()
+        compose.onNodeWithText("Personalizar planilha").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("export-organize").performClick();compose.onNodeWithTag("export-layout-list").assertExists()
+        compose.onNodeWithTag("export-cancel").performScrollTo().performClick()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
 
 }

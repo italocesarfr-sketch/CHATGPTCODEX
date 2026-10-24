@@ -11,6 +11,9 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
+import org.junit.Assert.*
 import androidx.test.core.app.ApplicationProvider
 import br.com.diariodeclasse.backup.BackupDialog
 import br.com.diariodeclasse.backup.diarySnapshot
@@ -68,6 +71,16 @@ class PostTwelveLayoutInstrumentedTest {
     @Test fun reportAndImportActionsStayReachableAtSmallWidthsAndLargeFonts() {
         for((w,f) in listOf(320 to 1f,320 to 1.6f,360 to 1.3f)) {
             compose.runOnIdle{width=w;scale=f;screen="report"}
+            for(view in listOf("Geral","Notas","Frequência")) {
+                compose.onNodeWithTag("report-mode-$view").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+                val layouts=mutableListOf<TextLayoutResult>()
+                compose.onNodeWithTag("report-view-label-$view",useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
+                val text=layouts.single();assertEquals("$view fonte $f",1,text.lineCount)
+                assertFalse(text.multiParagraph.didExceedMaxLines);assertFalse(text.isLineEllipsized(0))
+                val bounds=compose.onNodeWithTag("report-view-label-$view",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
+                val glyphs=text.layoutInput.text.indices.map{text.getBoundingBox(it)}
+                assertTrue("$view cortado em $f",glyphs.maxOf{it.right}-glyphs.minOf{it.left}<=bounds.width+0.5f)
+            }
             compose.onNodeWithTag("report-sort").performScrollTo().assertIsDisplayed().assertWidthIsAtLeast(48.dp)
             compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-ux12-layout-student"))
             compose.onNodeWithTag("report-row-ux12-layout-student").assertIsDisplayed();shot("layout-report-$w-$f")

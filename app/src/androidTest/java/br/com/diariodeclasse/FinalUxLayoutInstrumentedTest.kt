@@ -82,10 +82,10 @@ class FinalUxLayoutInstrumentedTest {
             val first=tag("export-organize");val second=tag("open-export")
             first.assertIsDisplayed().assertHeightIsAtLeast(48.dp);second.assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             val a=first.fetchSemanticsNode().boundsInRoot;val b=second.fetchSemanticsNode().boundsInRoot
-            assertEquals(a.width,b.width,1f);assertEquals(a.height,b.height,1f);assertEquals(a.top,b.top,1f)
-            assertTrue(a.right<=b.left)
+            assertEquals(a.width,b.width,1f);assertEquals(a.height,b.height,1f)
+            if(f>1.2f)assertTrue(a.bottom<=b.top)else{assertEquals(a.top,b.top,1f);assertTrue(a.right<=b.left)}
             shot("acoes-320-fonte-$f")
-            for(text in listOf("Organizar","Exportar")) {
+            for(text in listOf("Personalizar planilha","Exportar")) {
                 val result=mutableListOf<TextLayoutResult>()
                 compose.onNodeWithText(text,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(result)}
                 val layout=result.single()
@@ -93,13 +93,13 @@ class FinalUxLayoutInstrumentedTest {
                 // Com TextAlign.Center, o parágrafo pode reservar toda a largura disponível,
                 // enquanto size contém a largura intrínseca do texto. Comparar glyphs e nó
                 // visível com o botão, não largura reservada do parágrafo com size.
-                assertEquals(detail,1,layout.lineCount)
-                assertFalse(detail,layout.isLineEllipsized(0))
+                if(text.startsWith("Personalizar"))assertTrue(detail,layout.lineCount in 1..2)else assertEquals(detail,1,layout.lineCount)
+                assertFalse(detail,(0 until layout.lineCount).any{layout.isLineEllipsized(it)})
                 assertFalse(detail,layout.multiParagraph.didExceedMaxLines)
-                assertEquals(detail,text.length,layout.getLineEnd(0,visibleEnd=true))
+                assertEquals(detail,text.length,layout.getLineEnd(layout.lineCount-1,visibleEnd=true))
                 assertFalse(detail,layout.didOverflowHeight)
                 val bounds=compose.onNodeWithText(text,useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
-                val button=if(text=="Organizar")a else b
+                val button=if(text.startsWith("Personalizar"))a else b
                 // Os limites de linha também incluem o espaço da centralização.
                 // Bounding boxes por caractere medem os glifos efetivamente desenhados.
                 val glyphs=text.indices.map{layout.getBoundingBox(it)}
@@ -146,10 +146,10 @@ class FinalUxLayoutInstrumentedTest {
                 val detail="$text fonte=$f size=${layout.size} paragraph=${layout.multiParagraph.width}x${layout.multiParagraph.height} constraints=${layout.layoutInput.constraints} overflowWidth=${layout.didOverflowWidth} overflowHeight=${layout.didOverflowHeight} text=$bounds glyphs=${glyphWidth}x$glyphHeight button=$button"
                 val measurements=File(app.filesDir,"ux14-screenshots/export-layout-measurements.txt")
                 measurements.parentFile!!.mkdirs();measurements.appendText(detail+"\n")
-                assertEquals(detail,1,layout.lineCount)
-                assertFalse(detail,layout.isLineEllipsized(0))
+                if(text.startsWith("Personalizar"))assertTrue(detail,layout.lineCount in 1..2)else assertEquals(detail,1,layout.lineCount)
+                assertFalse(detail,(0 until layout.lineCount).any{layout.isLineEllipsized(it)})
                 assertFalse(detail,layout.multiParagraph.didExceedMaxLines)
-                assertEquals(detail,text.length,layout.getLineEnd(0,visibleEnd=true))
+                assertEquals(detail,text.length,layout.getLineEnd(layout.lineCount-1,visibleEnd=true))
                 // Como em ReportActions, testar os glifos e os limites efetivamente visíveis.
                 // O parágrafo reservado pode exceder a largura intrínseca do Text centralizado.
                 assertTrue(detail,glyphWidth<=bounds.width+0.5f)

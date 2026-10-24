@@ -110,7 +110,7 @@ class StageSixUiInstrumentedTest {
         tag("date-${note.date}").assertContentDescriptionContains("sem registro de aula",substring=true);assertEquals(2026,app.selectionStore.read()!!.year)
     }
     @Test fun reportsOrganizeThenExportPersistsHiddenRowsAndLeavesOfficialRosterUntouched() {
-        val before=runBlocking{app.backupManager.snapshot()};tag("nav-3").performClick();tag("export-organize").performClick();waitTag("export-layout-list")
+        val before=runBlocking{app.backupManager.snapshot()};tag("nav-3").performClick();tag("export-organize").performScrollTo().performClick();waitTag("export-layout-list")
         tag("export-layout-list").performScrollToNode(hasTestTag("export-order-hide-${student.id}"));tag("export-order-hide-${student.id}").performClick()
         tag("export-layout-list").performScrollToIndex(0);tag("export-add-blank").performScrollTo().performClick();shot("03-organizar-exportacao")
         tag("export-conclude-and-export").performScrollTo().performClick();waitTag("export-screen")

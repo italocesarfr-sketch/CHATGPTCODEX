@@ -131,4 +131,27 @@ class TimetablesTest {
         fail{Timetables.annualPreview(data().copy(classes=listOf(otherYear)),2026,listOf(slot(school=otherYear)))}
     }
 
+    @Test fun sixNewPeriodsPerShiftCoexistButSameShiftConflictsAndNewSeventhIsRejected() {
+        val morning=c.copy(shift="Matutino");val afternoon=h.copy(shift="Vespertino");val night=h.copy(id="night",shift="Noturno")
+        val d=data().copy(classes=listOf(morning,afternoon,night))
+        val slots=listOf(morning,afternoon,night).flatMap{school->(1..6).map{slot(n=it,school=school)}}
+        assertEquals(18,Timetables.annualPreview(d,2026,slots).proposed.slots.size)
+        fail{Timetables.annualPreview(d,2026,listOf(slot(n=2),slot(n=2,school=h)))}
+        fail{Timetables.annualPreview(d,2026,listOf(slot(n=7)))}
+        fail{Timetables.preview(d,2026,"2026-10-01",listOf(slot(n=7)))}
+    }
+    @Test fun legacyTwelvePeriodsRemainReadableRestorableAndCanBeRetainedButNotDuplicated() {
+        val legacy=WeeklyTimetable(id="legacy",year=2026,effective="2026-01-01",revision=1,slots=(1..12).map{slot(n=it)})
+        val d=data().copy(timetables=listOf(legacy))
+        Timetables.validate(d.timetables)
+        val p=Timetables.annualPreview(d,2026,legacy.slots)
+        assertEquals(12,p.proposed.slots.size)
+        fail{Timetables.annualPreview(d,2026,legacy.slots.filter{it.ordinal<=6}+slot(n=7).copy(id="new-seven"))}
+        val kept=d.copy(timetables=d.timetables+p.additions)
+        val b=BackupCodec.decode(BackupCodec.encode(ClassLifecycle.snapshot(kept),31,null)).snapshot.diarySnapshot()
+        assertEquals((1..12).toList(),Timetables.planned(b,c.id,"2026-08-06").map{it.ordinal})
+        val corrected=Timetables.annualPreview(b,2026,legacy.slots.filter{it.ordinal<=6})
+        assertEquals(6,corrected.proposed.slots.size);assertTrue((b.timetables+corrected.additions).contains(legacy))
+    }
+
 }

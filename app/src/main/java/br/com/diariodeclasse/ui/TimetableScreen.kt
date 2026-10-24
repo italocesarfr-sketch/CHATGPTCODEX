@@ -43,6 +43,7 @@ import java.time.format.TextStyle
     var preview by remember { mutableStateOf<TimetablePreview?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var classMenu by remember { mutableStateOf(false) }
+    var removeLegacy by remember { mutableStateOf<Int?>(null) }
     val saving by vm.saving.collectAsState()
     DisposableEffect(draftJson) {
         guard(if(draft!=null) { action -> discard=action } else null)
@@ -139,7 +140,15 @@ import java.time.format.TextStyle
             }
             Text("Períodos",style=MaterialTheme.typography.titleSmall)
             FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                (1..12).forEach{n->FilterChip(n in d.periods,{update(d.copy(periods=if(n in d.periods)d.periods-n else(d.periods+n).sorted()))},label={Text("${n}º")},modifier=Modifier.heightIn(min=48.dp).testTag("weekly-period-$n"))}
+                (1..6).forEach{n->FilterChip(n in d.periods,{update(d.copy(periods=if(n in d.periods)d.periods-n else(d.periods+n).sorted()))},label={Text("${n}º")},modifier=Modifier.heightIn(min=48.dp).testTag("weekly-period-$n"))}
+            }
+            if(d.periods.any{it>6}) {
+                Text("Períodos antigos fora do intervalo comum",style=MaterialTheme.typography.titleSmall,modifier=Modifier.testTag("weekly-legacy-periods"))
+                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    d.periods.filter{it>6}.sorted().forEach { n ->
+                        OutlinedButton(onClick={removeLegacy=n},modifier=Modifier.heightIn(min=48.dp).testTag("weekly-legacy-$n")){Text("${n}º • Retirar")}
+                    }
+                }
             }
             TextButton(onClick={update(d.copy(periods=emptyList()))},modifier=Modifier.testTag("remove-weekly-hours")){Text("Retirar estes horários da grade")}
             error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
@@ -183,5 +192,8 @@ import java.time.format.TextStyle
             }
         }
     }
+    removeLegacy?.let { n -> Confirm("Retirar ${n}º período da previsão?","Chamadas e registros do Diário permanecem intactos.",{removeLegacy=null}){
+        draft?.let{update(it.copy(periods=it.periods-n))};removeLegacy=null
+    } }
     discard?.let{ action->Confirm("Descartar edição da grade?","A grade salva não será alterada.",{discard=null}){discard=null;update(null);preview=null;action()}}
 }

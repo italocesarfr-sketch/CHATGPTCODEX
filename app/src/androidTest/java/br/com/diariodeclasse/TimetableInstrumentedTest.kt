@@ -159,4 +159,24 @@ class TimetableInstrumentedTest {
         assertEquals(before,backup.snapshot())
     }
 
+    @Test fun legacyNinthPeriodIsKeptOnReadUpdateBackupAndExplicitlyRetiredWithoutAcademicLoss()=runBlocking {
+        val legacy=WeeklyTimetable(year=2026,effective="2026-01-01",revision=1,slots=listOf(slot(),slot(n=9)))
+        repo.dao.insertTimetable(legacy)
+        val student=Student(classId=c.id,name="Estudante Fictício",number=1,joined="2026-01-01");repo.saveStudent(student)
+        repo.setDayHours(c.id,"2026-08-06",9)
+        repo.dao.day(c.id,"2026-08-06").take(4).forEachIndexed{i,l->repo.dao.save(Attendance(l.id,student.id,listOf("P","F","FJ","NR")[i]))}
+        repo.saveLessonRecord(LessonRecord(classId=c.id,date="2026-08-06",title="Fictício",description="Mantido"))
+        val before=backup.snapshot()
+        repo.confirmTimetable(Timetables.annualPreview(snapshot(),2026,legacy.slots+slot(n=6)))
+        assertEquals(listOf(1,6,9),Timetables.planned(snapshot(),c.id,"2026-08-06").map{it.ordinal})
+        assertEquals(before,backup.snapshot().copy(timetables=before.timetables))
+        val bytes=backup.backupBytes();val expected=backup.snapshot();db.close();open();assertEquals(expected,backup.snapshot())
+        val p=Timetables.annualPreview(snapshot(),2026,legacy.slots.filter{it.ordinal<=6})
+        repo.confirmTimetable(p)
+        assertEquals(listOf(1),Timetables.planned(snapshot(),c.id,"2026-08-06").map{it.ordinal})
+        assertTrue(backup.snapshot().timetables.contains(legacy));assertEquals(before,backup.snapshot().copy(timetables=before.timetables))
+        backup.restore(backup.prepare(bytes.inputStream()),"RESTAURAR");assertEquals(expected,backup.snapshot())
+        assertEquals(9,repo.dao.day(c.id,"2026-08-06").size)
+    }
+
 }
