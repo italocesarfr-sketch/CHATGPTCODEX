@@ -1,0 +1,143 @@
+{
+  "versionName": "0.17.2",
+  "versionCode": 31,
+  "applicationId": "br.com.diariodeclasse",
+  "validatedCommit": "6c31af5505d3e13925c8487f8ed7e0598320aa0e",
+  "runId": 40044377918,
+  "conclusion": "success",
+  "jobs": {
+    "validation": 120722672815,
+    "stableUpdate": 120726045962
+  },
+  "jvm": {
+    "tests": 167,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 167,
+    "conditional": []
+  },
+  "android": {
+    "tests": 275,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 271,
+    "conditional": [
+      "br.com.diariodeclasse.FrequencyProcessProbeTest",
+      "br.com.diariodeclasse.ReleaseContinuityProbeTest",
+      "br.com.diariodeclasse.StableUpgradeProbeTest",
+      "br.com.diariodeclasse.UpgradeProbeTest"
+    ]
+  },
+  "focused": {
+    "weekly": 23,
+    "layout": 4,
+    "previousRegression": 35,
+    "reportsExports": 27,
+    "systemFont13": 2,
+    "systemFont16": 2,
+    "overlapsFullSuite": true
+  },
+  "independentReaders": {
+    "xlsx": 91,
+    "csv": 89,
+    "tsv": 267,
+    "reader": "openpyxl 3.1.5 / Python csv"
+  },
+  "room": {
+    "version": 9,
+    "identity": "28e0646355ca4f7088b43bbe8de33141",
+    "tables": 15,
+    "newMigration": false
+  },
+  "backup": {
+    "format": 11,
+    "formatChanged": false
+  },
+  "stableUpdate": {
+    "status": "success",
+    "baselineVersion": "0.17.1",
+    "baselineVersionCode": 30,
+    "baselineApkSha256": "53c26975ed13170f2fd3989fb6fcdff1e6962f41f847efdd22695039087b29fb",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "uninstall": false,
+    "academicData": "synthetic",
+    "apkSha256": "23b8123637ebbfbf31002ff66938b880906bdc3f592e818e00c345c3f420fc8a",
+    "apkSignatureV2Verified": true,
+    "phases": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history"
+    ],
+    "testedApkHashRecheckedBeforeUpload": true,
+    "downloadedApkVerifiedLocally": true
+  },
+  "changedFiles": [
+    ".github/workflows/android.yml",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/ExportLayoutUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ExportLifecycleUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FinalUxEntryInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FinalUxLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PostTwelveLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PostTwelveUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ReportUiActions.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StableUpgradeProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StageSixUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableUiInstrumentedTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/WeeklyTimetable.kt",
+    "app/src/main/java/br/com/diariodeclasse/reports/ReportDisplay.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/Components.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/ReportsScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/TimetableScreen.kt",
+    "app/src/test/java/br/com/diariodeclasse/ReportDisplayTest.kt",
+    "app/src/test/java/br/com/diariodeclasse/TimetablesTest.kt",
+    "docs/RELATORIOS_TURNOS_0172.md",
+    "docs/baseline/noctua-release-0.17.1.json",
+    "scripts/ci/validate-android.sh",
+    "README.md",
+    "docs/ROADMAP.md",
+    "docs/ESPECIFICACAO.md",
+    "docs/RELATORIOS_TURNOS_0172_RESULTADOS.json",
+    "docs/images/relatorios-0172/boletim-320-fonte-1.6.png",
+    "docs/images/relatorios-0172/horarios-seis-periodos.png",
+    "docs/images/relatorios-0172/personalizar-exportar-fonte-1.6.png",
+    "docs/images/relatorios-0172/relatorios-visualizar-ordenar.png"
+  ],
+  "limitations": [
+    "Validação em aparelho físico e na interface do Microsoft Excel permanece com o proprietário.",
+    "Os artefatos Actions exigem acesso ao repositório e têm prazo de retenção.",
+    "As quatro sondas condicionais não são contadas como aprovadas na suíte Android geral."
+  ],
+  "artifacts": [
+    {
+      "id": 12540628164,
+      "name": "resultados-etapa6",
+      "zipBytes": 5268334,
+      "zipDigest": "sha256:e53fe325b6dfeefad835f4cc6d25761ed7398cda7105bdfd110a5fd7c48301f2",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40044377918/artifacts/12540628164"
+    },
+    {
+      "id": 12541357071,
+      "name": "noctua-etapa6-release",
+      "zipBytes": 8243453,
+      "zipDigest": "sha256:a5412d2d737001b1eb981e64d9ffe958e37671b348b970c2d94f52d28c97399b",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40044377918/artifacts/12541357071"
+    },
+    {
+      "id": 12541397123,
+      "name": "resultados-atualizacao-release",
+      "zipBytes": 1906,
+      "zipDigest": "sha256:5943b1d5be948924f20893eda93a6cb3a2ad471f312ee47d72c814398dd8ea0f",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40044377918/artifacts/12541397123"
+    }
+  ]
+}
