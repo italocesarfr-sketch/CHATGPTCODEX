@@ -50,7 +50,7 @@ class PostTwelveLayoutInstrumentedTest {
             CompositionLocalProvider(LocalDensity provides Density(density,scale)) {
                 NoctuaTheme { Surface(Modifier.widthIn(max=width.dp).heightIn(max=520.dp).fillMaxSize()) {
                     when(screen) {
-                        "report"->ReportScreen(data,c,3){}
+                        "report"->ReportScreen(data,c,3,actions={ReportActions({},{})}){}
                         "import"->ImportReviewScreen(vm,data,c){}
                         else->BackupDialog(vm){}
                     }
@@ -82,6 +82,28 @@ class PostTwelveLayoutInstrumentedTest {
                 assertTrue("$view cortado em $f",glyphs.maxOf{it.right}-glyphs.minOf{it.left}<=bounds.width+0.5f)
             }
             compose.onNodeWithTag("report-sort").performScrollTo().assertIsDisplayed().assertWidthIsAtLeast(48.dp)
+            // The full-width search has no adjacent filter. Existing history/help live by the bulletin.
+            val search=compose.onNodeWithTag("report-search")
+            search.performScrollTo().assertIsDisplayed().assertTextContains("Buscar")
+            compose.onNodeWithContentDescription("Buscar aluno").assertExists()
+            compose.onNode(hasTestTag("report-options") and hasAnyAncestor(hasTestTag("report-heading"))).assertExists()
+            val view=compose.onNodeWithTag("report-view-section").getUnclippedBoundsInRoot()
+            val ordering=compose.onNodeWithTag("report-sort-section").getUnclippedBoundsInRoot()
+            val field=search.getUnclippedBoundsInRoot()
+            val actions=compose.onNodeWithTag("report-actions").getUnclippedBoundsInRoot()
+            val heading=compose.onNodeWithTag("report-heading").getUnclippedBoundsInRoot()
+            assertTrue("Separação Visualizar/Ordenar em $w/$f",ordering.top-view.bottom>=15.dp)
+            assertTrue("Separação Ordenar/Buscar em $w/$f",field.top-ordering.bottom>=15.dp)
+            assertTrue("Separação Buscar/ações em $w/$f",actions.top-field.bottom>=15.dp)
+            assertTrue("Separação ações/boletim em $w/$f",heading.top-actions.bottom>=15.dp)
+            assertEquals("Busca ocupa toda a largura",(view.right-view.left).value,(field.right-field.left).value,1f)
+            shot("report-respiro-busca-$w-$f")
+            compose.onNodeWithTag("export-organize").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            compose.onNodeWithTag("open-export").performScrollTo().assertIsDisplayed().assertHeightIsAtLeast(48.dp)
+            val first=compose.onNodeWithTag("export-organize").getUnclippedBoundsInRoot()
+            val second=compose.onNodeWithTag("open-export").getUnclippedBoundsInRoot()
+            assertTrue("Ações não se sobrepõem",first.right<=second.left || first.bottom<=second.top)
+            shot("report-respiro-acoes-$w-$f")
             compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-ux12-layout-student"))
             compose.onNodeWithTag("report-row-ux12-layout-student").assertIsDisplayed();shot("layout-report-$w-$f")
             compose.runOnIdle{screen="import"}

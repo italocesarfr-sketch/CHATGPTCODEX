@@ -192,62 +192,73 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reportGroup(data:Diar
     },confirmButton={TextButton(onClick={showInformation=false}){Text("Fechar")}})
     LazyColumn(Modifier.fillMaxSize().testTag("reports-list"),state=listState,contentPadding=PaddingValues(NoctuaSpace.page),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
         item {
-            Text("Visualizar",style=MaterialTheme.typography.labelLarge)
-            BoxWithConstraints(Modifier.fillMaxWidth()) {
-                if(LocalDensity.current.fontScale<=1.2f && maxWidth>=280.dp) {
-                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().testTag("report-views")) {
-                        ReportDisplay.views.forEachIndexed { index,label ->
-                            SegmentedButton(selected=displayMode==label,onClick={changeView(label)},
-                                shape=SegmentedButtonDefaults.itemShape(index,ReportDisplay.views.size),icon={},
-                                modifier=Modifier.weight(if(label=="Frequência")1.3f else 1f).heightIn(min=48.dp).testTag("report-mode-$label")) {
-                                Text(label,Modifier.testTag("report-view-label-$label"))
+            Column(Modifier.fillMaxWidth().padding(bottom=NoctuaSpace.small),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.page)) {
+                Column(Modifier.fillMaxWidth().testTag("report-view-section"),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+                    Text("Visualizar",style=MaterialTheme.typography.labelLarge)
+                    BoxWithConstraints(Modifier.fillMaxWidth()) {
+                        if(LocalDensity.current.fontScale<=1.2f && maxWidth>=280.dp) {
+                            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().testTag("report-views")) {
+                                ReportDisplay.views.forEachIndexed { index,label ->
+                                    SegmentedButton(selected=displayMode==label,onClick={changeView(label)},
+                                        shape=SegmentedButtonDefaults.itemShape(index,ReportDisplay.views.size),icon={},
+                                        modifier=Modifier.weight(if(label=="Frequência")1.3f else 1f).heightIn(min=48.dp).testTag("report-mode-$label")) {
+                                        Text(label,Modifier.testTag("report-view-label-$label"))
+                                    }
+                                }
+                            }
+                        } else {
+                            // A fonte ampliada mantém o tamanho escolhido pelo professor; as opções quebram em linhas.
+                            FlowRow(Modifier.fillMaxWidth().testTag("report-views"),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                                ReportDisplay.views.forEach { label ->
+                                    FilterChip(displayMode==label,{changeView(label)},label={Text(label,Modifier.testTag("report-view-label-$label"))},modifier=Modifier.heightIn(min=48.dp).testTag("report-mode-$label"))
+                                }
                             }
                         }
                     }
-                } else {
-                    // A fonte ampliada mantém o tamanho escolhido pelo professor; as opções quebram em linhas.
-                    FlowRow(Modifier.fillMaxWidth().testTag("report-views"),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                        ReportDisplay.views.forEach { label ->
-                            FilterChip(displayMode==label,{changeView(label)},label={Text(label,Modifier.testTag("report-view-label-$label"))},modifier=Modifier.heightIn(min=48.dp).testTag("report-mode-$label"))
+                }
+                Column(Modifier.fillMaxWidth().testTag("report-sort-section"),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.tiny)) {
+                    Text("Ordenar alunos",style=MaterialTheme.typography.labelLarge)
+                    Box {
+                        OutlinedButton(onClick={sorting=true},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("report-sort")
+                            .semantics{contentDescription="Ordenar alunos: ${ReportDisplay.label(selectedOrder)}"}) {
+                            Text("${ReportDisplay.label(selectedOrder)} ▾")
+                        }
+                        DropdownMenu(sorting,{sorting=false}) {
+                            ReportDisplay.orders(displayMode).forEach { value ->
+                                DropdownMenuItem(text={Text(ReportDisplay.label(value))},leadingIcon={RadioButton(selectedOrder==value,null)},
+                                    onClick={order=if(selectedOrder==value)StudentOrder.CALL.name else value.name;sorting=false},modifier=Modifier.testTag("report-order-${value.name}"))
+                            }
                         }
                     }
                 }
-            }
-
-            Text("Ordenar alunos",style=MaterialTheme.typography.labelLarge)
-            Box {
-                OutlinedButton(onClick={sorting=true},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("report-sort")
-                    .semantics{contentDescription="Ordenar alunos: ${ReportDisplay.label(selectedOrder)}"}) {
-                    Text("${ReportDisplay.label(selectedOrder)} ▾")
-                }
-                DropdownMenu(sorting,{sorting=false}) {
-                    ReportDisplay.orders(displayMode).forEach { value ->
-                        DropdownMenuItem(text={Text(ReportDisplay.label(value))},leadingIcon={RadioButton(selectedOrder==value,null)},
-                            onClick={order=if(selectedOrder==value)StudentOrder.CALL.name else value.name;sorting=false},modifier=Modifier.testTag("report-order-${value.name}"))
-                    }
-                }
-            }
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 if(globalSearch)OutlinedTextField(query,{query=it},label={Text("Buscar")},singleLine=true,leadingIcon={Icon(painterResource(R.drawable.ic_search),"Buscar aluno")},
                     keyboardOptions=KeyboardOptions(imeAction=ImeAction.Search),keyboardActions=KeyboardActions(onSearch={focus.clearFocus();keyboard?.hide()}),
-                    modifier=Modifier.weight(1f).testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
-                Box {
-                    IconButton(onClick={options=true},modifier=Modifier.size(48.dp).testTag("report-options")) {
-                        BadgedBox(badge={if(showRelocated)Badge()}) { Icon(painterResource(R.drawable.ic_filter),"Opções do relatório") }
+                    modifier=Modifier.fillMaxWidth().testTag("report-search"),trailingIcon={if(query.isNotEmpty())TextButton(onClick={query="";focus.clearFocus();keyboard?.hide()},modifier=Modifier.testTag("report-search-clear")){Text("Limpar")}})
+                actions?.let { content ->
+                    Box(Modifier.fillMaxWidth().padding(top=NoctuaSpace.tiny,bottom=NoctuaSpace.small).testTag("report-actions")) { content() }
+                }
+                Column(Modifier.fillMaxWidth().testTag("report-heading"),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+                    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+                        Box(Modifier.weight(1f)) {
+                            Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(displayMode){
+                                "Frequência"->"Frequência do ${term}º bimestre";else->"Boletim ${term}º Bim"
+                            },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})
+                        }
+                        Box {
+                            IconButton(onClick={options=true},modifier=Modifier.size(48.dp).testTag("report-options")) {
+                                BadgedBox(badge={if(showRelocated)Badge()}) { Icon(painterResource(R.drawable.ic_more_vert),"Opções do relatório") }
+                            }
+                            DropdownMenu(options,{options=false}) {
+                                if(hasRelocated) DropdownMenuItem(text={Text("Mostrar remanejados (histórico)")},leadingIcon={Checkbox(showRelocated,null)},modifier=Modifier.testTag("show-relocated"),onClick={showRelocated=!showRelocated;options=false})
+                                DropdownMenuItem(text={Text("Informações do relatório")},modifier=Modifier.testTag("report-help"),onClick={options=false;showInformation=true})
+                            }
+                        }
                     }
-                    DropdownMenu(options,{options=false}) {
-                        if(hasRelocated) DropdownMenuItem(text={Text("Mostrar remanejados (histórico)")},leadingIcon={Checkbox(showRelocated,null)},modifier=Modifier.testTag("show-relocated"),onClick={showRelocated=!showRelocated;options=false})
-                        DropdownMenuItem(text={Text("Informações do relatório")},modifier=Modifier.testTag("report-help"),onClick={options=false;showInformation=true})
-                    }
+                    if(c!=null && !searching) {
+                        if(displayMode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
+                    } else if(!searching) Text("Selecione uma turma ou pesquise um aluno em todas as turmas.")
                 }
             }
-            actions?.invoke()
-            Section(if(searching)"Resultados em todas as turmas"else if(c==null)"Buscar alunos"else when(displayMode){
-                "Frequência"->"Frequência do ${term}º bimestre";else->"Boletim ${term}º Bim"
-            },if(searching)"${matches.size} matrícula(s) encontrada(s)"else c?.let{"${it.name} • ${it.subject} • ${it.year}"})
-            if(c!=null && !searching) {
-                if(displayMode!="Resumo anual")Text(data.terms.firstOrNull{it.classId==c.id&&it.number==term}?.let{"${shortDate(it.start)} a ${shortDate(it.end)}"} ?: "Bimestre não configurado",style=MaterialTheme.typography.bodySmall)
-            } else if(!searching) Text("Selecione uma turma ou pesquise um aluno em todas as turmas.")
         }
         when {
             searching -> {
