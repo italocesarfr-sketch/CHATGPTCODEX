@@ -161,7 +161,9 @@ class TimetableUiInstrumentedTest {
         }
         compose.waitUntil(10000){vm.data.value.timetables.any{it.slots.any{s->s.ordinal==9}}}
         val before=runBlocking{app.backupManager.snapshot()}
-        weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        weekly();tag("weekday-4").performClick()
+        tag("weekly-timetable").performScrollToNode(hasTestTag("weekly-legacy-class-${c.id}"));tag("weekly-legacy-class-${c.id}").assertIsDisplayed()
+        tag("add-weekly-hours").performScrollTo().performClick()
         tag("weekly-period-9").assertDoesNotExist();tag("weekly-legacy-periods").performScrollTo().assertIsDisplayed()
         tag("weekly-legacy-9").performScrollTo().performClick();compose.onNodeWithText("Cancelar").performClick()
         tag("weekly-legacy-9").assertExists();assertEquals(before,runBlocking{app.backupManager.snapshot()})

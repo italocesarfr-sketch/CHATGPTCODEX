@@ -100,6 +100,7 @@ import java.time.format.TextStyle
             Column(Modifier.fillMaxWidth().testTag("weekly-class-${slot.classId}")) {
                 Text("${school?.name?:slot.className} • ${school?.subject?:slot.subject} • ${slot.shift}",style=MaterialTheme.typography.titleMedium)
                 Text(slots.sortedBy{it.ordinal}.joinToString(" • "){"${it.ordinal}º horário"})
+                if(slots.any{it.ordinal>6}) Text("Períodos antigos acima do 6º",style=MaterialTheme.typography.bodyMedium,modifier=Modifier.testTag("weekly-legacy-class-${slot.classId}"))
                 if(archived||school==null) Text(if(archived)"Turma arquivada" else "Turma excluída • previsão histórica",style=MaterialTheme.typography.bodySmall)
                 FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     if(school!=null&&!archived) TextButton(onClick={openClass(slot.classId)},modifier=Modifier.testTag("open-weekly-${slot.classId}")){Text("Abrir chamada")}
