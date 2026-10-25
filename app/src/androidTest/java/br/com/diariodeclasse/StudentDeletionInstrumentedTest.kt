@@ -7,6 +7,8 @@ import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.export.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.*
 import org.junit.Assert.*
 import java.io.File
@@ -110,6 +112,22 @@ class StudentDeletionInstrumentedTest {
         assertTrue(p.blockedReason!!.contains("outra turma"))
         try{repo.deleteStudent(p);fail("Referência de outra turma")}catch(_:IllegalArgumentException){}
         assertEquals(before,manager.snapshot())
+    }
+
+    @Test fun unrelatedPreservedHistoryNeverBlocksOrChangesIndependentEnrollmentDeletion()=runBlocking {
+        val previous=manager.snapshot()
+        val fixture=BackupCodec.json.decodeFromString<BackupSnapshot>(InstrumentationRegistry.getInstrumentation().context.assets.open("history-deletion.json").bufferedReader().use{it.readText()})
+        val seeded=previous.copy(classes=previous.classes+fixture.classes,students=previous.students+fixture.students,
+            terms=previous.terms+fixture.terms,lessons=previous.lessons+fixture.lessons,marks=previous.marks+fixture.marks,
+            activities=previous.activities+fixture.activities,grades=previous.grades+fixture.grades,
+            recompositions=previous.recompositions+fixture.recompositions,relocations=previous.relocations+fixture.relocations)
+        manager.restore(manager.prepare(BackupCodec.encode(seeded,33,null).inputStream()),"RESTAURAR")
+        for(id in listOf("history-x","history-g")){val p=repo.previewClassDeletion(id);repo.deleteClass(p,p.confirmation)}
+        val before=data();assertEquals(2,before.histories.size)
+        val p=repo.previewStudentDeletion(wrong.id,h.id);assertNull(p.blockedReason)
+        repo.deleteStudent(p)
+        assertEquals(ClassLifecycle.fingerprint(StudentDeletion.without(before,wrong.id)),ClassLifecycle.fingerprint(data()))
+        assertEquals(before.histories,data().histories)
     }
 
 }

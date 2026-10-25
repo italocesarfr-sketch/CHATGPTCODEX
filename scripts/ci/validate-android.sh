@@ -13,7 +13,7 @@ cat build/student-deletion-focused.txt
 python3 - <<'PYSTUDENT' || status=1
 from pathlib import Path
 text=Path('build/student-deletion-focused.txt').read_text()
-assert 'OK (13 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (14 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYSTUDENT
 if (( status == 0 )); then
     for font in 1.3 1.6; do

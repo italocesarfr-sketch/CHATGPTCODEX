@@ -65,4 +65,15 @@ class StudentDeletionTest {
         val d=fixture().let{it.copy(students=it.students.map{if(it.id==wrong.id)it.copy(status="Transferido",left="2026-09-30")else it})}
         assertNull(StudentDeletion.preview(d,wrong.id,h.id).blockedReason)
     }
+    @Test fun unrelatedPreservedHistoryDoesNotBlockIndependentEnrollmentWithRecords() {
+        val d=fixture()
+        val historic=kept.copy(id="unrelated-historic",classId="unrelated-class",left="2026-08-31",status="Remanejado")
+        val content=HistoricalContent(g.copy(id=historic.classId),listOf(historic),emptyList(),emptyList(),emptyList(),emptyList(),emptyList(),emptyList(),
+            listOf(Relocation(historic.id,kept.id,"2026-09-01")))
+        val current=d.copy(histories=listOf(PreservedHistory(historic.classId,content)))
+        val plan=StudentDeletion.preview(current,wrong.id,h.id)
+        assertNull(plan.blockedReason);assertEquals(4,plan.counts["Registros de frequência"])
+        assertEquals(current.histories,StudentDeletion.without(current,wrong.id).histories)
+    }
+
 }

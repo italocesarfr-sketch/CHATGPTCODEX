@@ -22,10 +22,10 @@ object StudentDeletion {
         val recompositions = data.recompositions.filter { it.studentId == studentId }
         val rows = data.exportRows.filter { it.studentId == studentId }
         val links = data.academic().relocations.filter { it.references(studentId) }
-        val historicalReference = data.histories.any { h -> with(h.content) {
-            students.any { it.id == studentId } || marks.any { it.studentId == studentId } ||
-                grades.any { it.studentId == studentId } || recompositions.any { it.studentId == studentId }
-        } }
+        val historicalReference = data.histories.any { h ->
+            h.content.students.any { it.id == studentId } || h.content.marks.any { it.studentId == studentId } ||
+                h.content.grades.any { it.studentId == studentId } || h.content.recompositions.any { it.studentId == studentId }
+        }
         val crossClass = grades.any { g -> data.activities.none { it.id == g.activityId && it.classId == classId } } ||
             marks.any { m -> data.lessons.none { it.id == m.lessonId && it.classId == classId } } || rows.any { it.classId != classId }
         val blocked = when {
