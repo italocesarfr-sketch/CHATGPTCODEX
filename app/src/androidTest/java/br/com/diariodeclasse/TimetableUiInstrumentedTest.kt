@@ -127,6 +127,9 @@ class TimetableUiInstrumentedTest {
         compose.waitUntil(10000){runBlocking{app.database.backupDao().timetables().size==4}}
         val after=runBlocking{app.backupManager.snapshot()}
         assertEquals(before,after.copy(timetables=before.timetables));assertTrue(after.timetables.containsAll(before.timetables))
+        // Commit Room e publicação do Flow são eventos distintos. Aguarda o retrato completo,
+        // sem substituir a conferência do resultado previsto por uma condição permissiva.
+        compose.waitUntil(10000){vm.data.value.timetables.sortedBy{it.id}==after.timetables.sortedBy{it.id}}
         assertEquals(3,Timetables.planned(vm.data.value,c.id,"2026-12-03").size)
         compose.activityRule.scenario.recreate();waitTag("weekly-timetable")
         assertEquals(after,runBlocking{app.backupManager.snapshot()})
