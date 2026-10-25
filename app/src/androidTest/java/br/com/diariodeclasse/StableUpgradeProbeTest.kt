@@ -19,11 +19,15 @@ import java.io.File
 class StableUpgradeProbeTest {
     @Test fun sameOwnerSignaturePreservesEveryRowPreferencesAndBackup() {
         val phase=InstrumentationRegistry.getArguments().getString("stableUpgradePhase")
-        assumeTrue("Sonda exclusiva de atualização estável",phase in listOf("seed","check","restore","delete-history","reopen-history"))
+        assumeTrue("Sonda exclusiva de atualização estável",phase in listOf("seed","check","restore","delete-history","reopen-history","delete-student","reopen-student"))
         check(Build.HARDWARE in setOf("ranchu","goldfish")) {"Somente emulador descartável."}
         runBlocking {
             val app=ApplicationProvider.getApplicationContext<DiaryApplication>()
             val repo=app.repository;val manager=app.backupManager
+            if(phase in listOf("delete-student","reopen-student")) {
+                verifyStudentDeletionAfterSignedUpgrade(app,phase!!)
+                return@runBlocking
+            }
             if(phase in listOf("delete-history","reopen-history")) {
                 verifyDeletedHistoryAfterSignedUpgrade(app,phase!!)
                 return@runBlocking
@@ -76,10 +80,22 @@ class StableUpgradeProbeTest {
                 repo.dao.save(externalLesson);repo.dao.save(Attendance(externalLesson.id,external.id,"FJ"))
                 repo.confirmRelocation(repo.previewRelocation(external.id,null,"Destino externo fictício","2026-10-25"))
                 repo.confirmRelocationCorrection(repo.previewRelocationCorrection(external.id,"2026-10-17","Destino externo corrigido",setOf(externalLesson.id)))
-                // A grade é semeada na 0.17.1 ORIGINAL, antes de adb install -r.
+                // A release 0.17.3 original lê o legado 9º; não o cadastra pelo editor comum.
+                // Fixture histórica inserida pelo DAO, como em um banco que veio da 0.17.0.
                 val originalSlots=listOf(1,2,9).map{WeeklySlot(classId=origin.id,weekday=4,ordinal=it,className=origin.name,subject=origin.subject,shift=origin.shift)}
-                repo.confirmTimetable(repo.previewTimetable(2026,"2026-10-01",originalSlots))
+                repo.dao.insertTimetable(WeeklyTimetable(year=2026,effective="2026-10-01",revision=1,slots=originalSlots))
                 repo.confirmTimetable(repo.previewTimetable(2026,"2026-12-01",emptyList()))
+                // Dois cadastros independentes semeados NA release anterior, antes da atualização.
+                for(suffix in listOf("kept","wrong")) {
+                    val school=origin.copy(id="stable-delete-$suffix-class",name="Turma Fictícia Duplicidade $suffix")
+                    repo.saveClass(school,"2026-01-01")
+                    val enrollment=Student("stable-delete-$suffix","stable-delete-person-$suffix",school.id,"Estudante Fictício Homônimo Atualização",1,"2026-01-01")
+                    repo.saveStudent(enrollment)
+                    val activity=Activity("stable-delete-$suffix-score",school.id,"Atividade Fictícia Duplicidade",date="2026-08-10",term=3,maximum=10.0)
+                    repo.saveActivity(activity);repo.saveGrade(activity.id,enrollment.id,0.0)
+                    repo.setDayHours(school.id,"2026-08-10",1);repo.mark("${school.id}:2026-08-10:1",enrollment.id,"FJ")
+                    repo.saveRecomposition(Recomposition(enrollment.id,3,5.0,"2026-08-20"))
+                }
                 file.writeBytes(manager.backupBytes())
             }
             val bytes=file.readBytes();val expected=BackupCodec.decode(bytes).snapshot
@@ -160,6 +176,27 @@ class StableUpgradeProbeTest {
                 file.writeBytes(manager.backupBytes())
             }
         }
+    }
+    private suspend fun verifyStudentDeletionAfterSignedUpgrade(app:DiaryApplication,phase:String) {
+        val repo=app.repository;val manager=app.backupManager
+        val file=File(app.filesDir,"stable-deleted-student.json")
+        if(phase=="delete-student") {
+            val before=manager.snapshot();val data=before.diarySnapshot()
+            val expected=StudentDeletion.without(data,"stable-delete-wrong")
+            val plan=repo.previewStudentDeletion("stable-delete-wrong","stable-delete-wrong-class")
+            assertNull(plan.blockedReason);assertEquals(1,plan.counts["Atividades com notas lançadas"])
+            assertEquals(1,plan.counts["Registros de frequência"]);assertEquals(1,plan.counts["Recomposições com nota"])
+            repo.deleteStudent(plan)
+            assertEquals(ClassLifecycle.fingerprint(expected),ClassLifecycle.fingerprint(manager.snapshot().diarySnapshot()))
+            assertEquals(before.students.first{it.id=="stable-delete-kept"},repo.dao.student("stable-delete-kept"))
+            file.writeBytes(manager.backupBytes())
+            repo.saveGrade("stable-delete-kept-score","stable-delete-kept",9.0)
+            manager.restore(manager.prepare(file.readBytes().inputStream()),"RESTAURAR")
+        }
+        assertEquals(BackupCodec.decode(file.readBytes()).snapshot,manager.snapshot())
+        assertNull(repo.dao.student("stable-delete-wrong"));assertNotNull(repo.dao.student("stable-delete-kept"))
+        assertEquals(0.0,manager.snapshot().grades.first{it.studentId=="stable-delete-kept"}.value!!,0.0)
+        assertEquals(2,manager.snapshot().histories.size)
     }
     private suspend fun verifyDeletedHistoryAfterSignedUpgrade(app:DiaryApplication,phase:String) {
         val repo=app.repository;val manager=app.backupManager

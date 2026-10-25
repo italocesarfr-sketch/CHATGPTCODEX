@@ -91,7 +91,7 @@ import java.time.LocalDate
     }
 }
 
-@Composable fun StudentForm(vm: DiaryViewModel, c: SchoolClass, original: Student?, initialStatus: String? = null, dismiss: () -> Unit) {
+@Composable fun StudentForm(vm: DiaryViewModel, c: SchoolClass, original: Student?, initialStatus: String? = null, deleted: () -> Unit = {}, dismiss: () -> Unit) {
     val data by vm.data.collectAsState()
     val saving by vm.saving.collectAsState()
     val student = remember { original ?: Student(classId = c.id, name = "", number = (data.roster(c.id).maxOfOrNull { it.number } ?: 0) + 1, joined = defaultEnrollment(c.year)) }
@@ -102,6 +102,9 @@ import java.time.LocalDate
     var target by rememberSaveable { mutableStateOf("") };var external by rememberSaveable { mutableStateOf("") }
     var effective by rememberSaveable { mutableStateOf(shortDate(today())) }
     var preview by remember { mutableStateOf<RelocationPreview?>(null) }
+    var deleting by remember(student.id,c.id) { mutableStateOf(false) }
+    var deletionPreview by remember(student.id,c.id) { mutableStateOf<StudentDeletionPreview?>(null) }
+    val deletionError by vm.error.collectAsState()
     var discard by remember { mutableStateOf(false) }
     var confirmReactivation by remember { mutableStateOf(false) }
     var correcting by remember { mutableStateOf(false) }
@@ -143,7 +146,8 @@ import java.time.LocalDate
             Info("Há um nome semelhante nesta turma. Confira se já está cadastrado.")
             Row { Checkbox(homonym, { homonym = it }); Text("Confirmo que é outra pessoa (homônimo)", Modifier.padding(top = 12.dp)) }
         }
-        Button(enabled = !saving && (!duplicate || homonym) && (!relocating || target.isNotBlank()), onClick = {
+        StudentFormActions(saveEnabled = !saving && (!duplicate || homonym) && (!relocating || target.isNotBlank()),
+            saveLabel = if(relocating) "Conferir remanejamento" else "Salvar aluno", save = {
             val edited=student.copy(name=name.trim(),number=num.toIntOrNull()?:0,notes=notes)
             val formJoined=joined;val formLeft=left;val formStatus=status;val formDay=effective;val formTarget=target;val formExternal=external
             vm.act {
@@ -156,9 +160,29 @@ import java.time.LocalDate
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {dismiss()}
                 }
             }
-        },modifier=Modifier.testTag("student-save")) { Text(if(relocating) "Conferir remanejamento" else "Salvar aluno") }
+        }, deleteEnabled = !saving, delete = if(original==null) null else ({
+            vm.clearError(); deletionPreview=null; deleting=true
+            val id=student.id; val classId=c.id
+            vm.act {
+                val plan=vm.repository.previewStudentDeletion(id,classId)
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { deletionPreview=plan }
+            }
+        }))
         SaveError(vm)
     }
+    if(deleting) StudentDeletionDialog(deletionPreview,saving,deletionError,
+        cancel={deleting=false;deletionPreview=null;vm.clearError()},
+        confirm={
+            val plan=deletionPreview
+            if(plan!=null&&!saving) vm.act(done={
+                deleting=false;deletionPreview=null;dismiss();deleted();vm.message("Aluno excluído desta turma.")
+            }) {
+                try { vm.repository.deleteStudent(plan) }
+                catch(e:kotlinx.coroutines.CancellationException) { throw e }
+                catch(e:IllegalArgumentException) { throw e }
+                catch(e:Exception) { throw IllegalArgumentException("Não foi possível excluir. Nenhum registro foi alterado.",e) }
+            }
+        })
     preview?.let { p -> Form("Confirmar remanejamento",{if(!saving)preview=null}) {
         Text(p.proposedSource.name,style=MaterialTheme.typography.titleMedium)
         Info("Origem: ${c.name} • matrícula encerrada em ${shortDate(p.end)}\nDestino: ${p.targetName} • ingresso em ${shortDate(p.link.effectiveDate)}\n${if(p.target==null) "Destino externo: sem criar turma ou matrícula fictícia." else if(p.linkedExisting) "Será vinculada a matrícula existente, com a mesma identidade." else "Será criada uma matrícula ativa com a mesma identidade da pessoa."}")

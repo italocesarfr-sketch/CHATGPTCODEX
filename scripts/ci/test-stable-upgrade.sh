@@ -32,3 +32,7 @@ probe check reopened
 probe delete-history deleted-history
 adb shell am force-stop br.com.diariodeclasse
 probe reopen-history reopened-history
+
+probe delete-student deleted-student
+adb shell am force-stop br.com.diariodeclasse
+probe reopen-student reopened-student

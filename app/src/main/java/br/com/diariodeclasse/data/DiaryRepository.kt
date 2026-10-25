@@ -212,6 +212,31 @@ class DiaryRepository(val db: DiaryDatabase) {
         }
         sorted.zipWithNext().forEach { (a, b) -> require(a.end < b.start) { "Bimestres não podem se sobrepor." } }
     }
+    suspend fun previewStudentDeletion(studentId: String, classId: String): StudentDeletionPreview =
+        StudentDeletion.preview(readSnapshot(), studentId, classId)
+
+    /** A confirmação autoriza exclusivamente a matrícula e dependências da prévia imutável. */
+    suspend fun deleteStudent(preview: StudentDeletionPreview) = db.withTransaction {
+        val before = readSnapshot()
+        val current = StudentDeletion.preview(before, preview.student.id, preview.school.id)
+        require(current == preview) { "Os dados mudaram após a conferência. Feche e confira novamente; nada foi excluído." }
+        require(current.blockedReason == null) { requireNotNull(current.blockedReason) }
+        val expected = StudentDeletion.without(before, current.student.id)
+        br.com.diariodeclasse.backup.BackupCodec.validate(ClassLifecycle.snapshot(expected))
+        val sql = db.openHelper.writableDatabase
+        for(table in listOf("grades", "marks", "recompositions", "export_rows"))
+            sql.execSQL("DELETE FROM $table WHERE studentId = ?", arrayOf(current.student.id))
+        // A linha vazia conserva posições manuais dos demais alunos, inclusive de homônimos.
+        dao.insertExportRows(expected.exportRows.filter { row ->
+            before.exportRows.any { it.studentId == current.student.id && StudentDeletion.blank(it) == row }
+        })
+        sql.execSQL("DELETE FROM students WHERE id = ? AND classId = ?", arrayOf(current.student.id, current.school.id))
+        sql.query("PRAGMA foreign_key_check").use { check(!it.moveToFirst()) { "Falha na integridade. A exclusão foi desfeita." } }
+        check(ClassLifecycle.fingerprint(readSnapshot()) == ClassLifecycle.fingerprint(expected)) {
+            "A conferência da exclusão falhou. Todos os registros anteriores foram preservados."
+        }
+    }
+
     suspend fun saveStudent(value: Student) = db.withTransaction {
         val old=dao.student(value.id);val data=readSnapshot()
         require(old!=null || data.histories.none {h->h.content.students.any {it.id==value.id}}) {"Esta matrícula pertence ao histórico preservado de uma turma excluída."}

@@ -198,7 +198,7 @@ private val pages = listOf(
                                 deleted = { detail = "" }, dirty = { invalidGrade = it })
                         }
                         detail == "profile" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
-                            ProfileScreen(vm, data, c, it, term) { term = it }
+                            ProfileScreen(vm, data, c, it, term, deleted={studentId="";detail="roster"}) { term = it }
                         }
                         detail == "student-report" && c != null -> data.students.firstOrNull { it.id == studentId && it.classId == c.id }?.let {
                             IndividualReportScreen(data, c, it, term) { term = it }

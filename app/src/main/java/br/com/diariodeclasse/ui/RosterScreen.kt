@@ -91,7 +91,7 @@ import java.text.Collator
     }
 }
 
-@Composable fun ProfileScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, student: Student, term: Int, changeTerm: (Int) -> Unit) {
+@Composable fun ProfileScreen(vm: DiaryViewModel, data: DiarySnapshot, c: SchoolClass, student: Student, term: Int, deleted: () -> Unit = {}, changeTerm: (Int) -> Unit) {
     var edit by remember { mutableStateOf(false) }; var relocate by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         Row {
@@ -100,8 +100,8 @@ import java.text.Collator
         }
         Box(Modifier.weight(1f)) {IndividualReportScreen(data,c,student,term,changeTerm)}
     }
-    if(edit) StudentForm(vm,c,student) {edit=false}
-    if(relocate) StudentForm(vm,c,student,initialStatus="Remanejado") {relocate=false}
+    if(edit) StudentForm(vm,c,student,deleted=deleted) {edit=false}
+    if(relocate) StudentForm(vm,c,student,initialStatus="Remanejado",deleted=deleted) {relocate=false}
 }
 
 private fun java.io.InputStream.readBytesLimited(limit: Int): ByteArray {
