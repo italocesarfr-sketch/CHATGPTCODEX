@@ -1,0 +1,130 @@
+{
+  "versionName": "0.18.0",
+  "versionCode": 33,
+  "applicationId": "br.com.diariodeclasse",
+  "sourceCommit": "aaf8e57312cec007d40463a8bb059ad57f045d6a",
+  "validatedCommit": "4d8cde571108dcf1c111f0d00c0e927399e5895d",
+  "runId": 40195629751,
+  "conclusion": "success",
+  "jvm": {
+    "tests": 175,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 175,
+    "conditional": []
+  },
+  "android": {
+    "tests": 289,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 285,
+    "conditional": [
+      "br.com.diariodeclasse.FrequencyProcessProbeTest",
+      "br.com.diariodeclasse.ReleaseContinuityProbeTest",
+      "br.com.diariodeclasse.StableUpgradeProbeTest",
+      "br.com.diariodeclasse.UpgradeProbeTest"
+    ]
+  },
+  "studentDeletionFocused": 14,
+  "systemFont13": 1,
+  "systemFont16": 1,
+  "focusedOverlapsFullSuite": true,
+  "roomVersion": 9,
+  "backupFormat": 11,
+  "newMigration": false,
+  "schemaChanged": false,
+  "stableUpdate": {
+    "status": "success",
+    "baselineVersion": "0.17.3",
+    "baselineVersionCode": 32,
+    "uninstall": false,
+    "data": "synthetic",
+    "baselineApkSha256": "a9e12dddcc904eab2ecd68de1860bfb353d6a7e49067cdbd6dc708165a8cc07f",
+    "apkSha256": "3d90feff487e0ef7edbcb61df769c2baf8bf7d2942a6e564067877b7030cfb99",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "apkSignatureV2Verified": true,
+    "downloadedApkVerifiedLocally": true,
+    "testedApkHashRecheckedBeforeUpload": true,
+    "phases": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history",
+      "deleted-student",
+      "reopened-student"
+    ]
+  },
+  "changedFiles": [
+    ".github/workflows/android.yml",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/StableUpgradeProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StudentDeletionInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StudentDeletionLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StudentDeletionUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableUiInstrumentedTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/StudentDeletion.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/Forms.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/RosterScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/StudentDeletionDialog.kt",
+    "app/src/main/res/drawable/ic_delete.xml",
+    "app/src/test/java/br/com/diariodeclasse/StudentDeletionTest.kt",
+    "docs/EXCLUSAO_ALUNO_0180.md",
+    "docs/baseline/noctua-release-0.17.3.json",
+    "scripts/ci/test-stable-upgrade.sh",
+    "scripts/ci/validate-android.sh",
+    "README.md",
+    "docs/ESPECIFICACAO.md",
+    "docs/ROADMAP.md",
+    "docs/EXCLUSAO_ALUNO_0180_RESULTADOS.json",
+    "docs/images/exclusao-aluno-0180/acoes-fonte-1.6.png",
+    "docs/images/exclusao-aluno-0180/acoes-lado-a-lado.png",
+    "docs/images/exclusao-aluno-0180/confirmacao.png",
+    "docs/images/exclusao-aluno-0180/editar-aluno.png",
+    "docs/images/exclusao-aluno-0180/popup-fonte-1.6.png"
+  ],
+  "jobs": {
+    "validation": 121175730607,
+    "stableUpdate": 121178641995
+  },
+  "independentReaders": {
+    "xlsx": 91,
+    "csv": 89,
+    "tsv": 267,
+    "reader": "openpyxl 3.1.5 / Python csv"
+  },
+  "artifacts": [
+    {
+      "id": 12599598181,
+      "name": "resultados-etapa6",
+      "zipBytes": 5563053,
+      "zipDigest": "sha256:00cecbedc6a7a233c763595d09e5f6edfc1bf31aee065fdb7ab1300621b8008c",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40195629751/artifacts/12599598181"
+    },
+    {
+      "id": 12600252554,
+      "name": "noctua-etapa6-release",
+      "zipBytes": 8262433,
+      "zipDigest": "sha256:5203e1e9b4a8fe928c7f71467eb65de45dbff7ff05caccfea4ab3751e43fba47",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40195629751/artifacts/12600252554"
+    },
+    {
+      "id": 12600367335,
+      "name": "resultados-atualizacao-release",
+      "zipBytes": 2324,
+      "zipDigest": "sha256:3f489ee3c9ebba9e062533583eab5463dc11617bad1185994bf84f9802ed2c42",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40195629751/artifacts/12600367335"
+    }
+  ],
+  "limitations": [
+    "Origens/destinos de remanejamento confirmado, inclusive externo, e auditorias históricas vinculadas permanecem bloqueados para preservar o histórico legítimo.",
+    "Qualquer alteração no conjunto escolar após a prévia exige nova conferência.",
+    "Validação física final permanece com o proprietário.",
+    "Artefatos Actions exigem acesso ao repositório e têm prazo de retenção."
+  ]
+}
