@@ -1,0 +1,114 @@
+{
+  "versionName": "0.18.1",
+  "versionCode": 34,
+  "applicationId": "br.com.diariodeclasse",
+  "validatedCommit": "3ca40f625fbb01d98bdacea4709f59d360cb68c6",
+  "runId": 40200325343,
+  "conclusion": "success",
+  "jvm": {
+    "tests": 175,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 175
+  },
+  "android": {
+    "tests": 291,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4,
+    "passed": 287
+  },
+  "rosterLayoutFocused": 2,
+  "focusedOverlapsFullSuite": true,
+  "fixtureStudents": 100,
+  "widthsDp": [
+    320,
+    360
+  ],
+  "fontScales": [
+    1.0,
+    1.3,
+    1.6
+  ],
+  "roomVersion": 9,
+  "backupFormat": 11,
+  "schemaChanged": false,
+  "newMigration": false,
+  "changedFiles": [
+    ".github/workflows/android.yml",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/RosterLayoutInstrumentedTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/Components.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/RosterScreen.kt",
+    "docs/ALUNOS_LAYOUT_0181.md",
+    "scripts/ci/validate-android.sh",
+    "README.md",
+    "docs/ALUNOS_LAYOUT_0181_RESULTADOS.json",
+    "docs/images/alunos-layout-0181/alunos-320-fonte-1.6.png",
+    "docs/images/alunos-layout-0181/alunos-320.png",
+    "docs/images/alunos-layout-0181/alunos-360-fonte-1.3.png",
+    "docs/images/alunos-layout-0181/lista-longa-fonte-1.6.png"
+  ],
+  "jobs": {
+    "validation": 121189941810,
+    "stableUpdate": 121192549610
+  },
+  "stableUpdate": {
+    "status": "success",
+    "baselineVersion": "0.17.3",
+    "baselineVersionCode": 32,
+    "uninstall": false,
+    "data": "synthetic",
+    "phases": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history",
+      "deleted-student",
+      "reopened-student"
+    ],
+    "testedApkHashRecheckedBeforeUpload": true
+  },
+  "localApkVerification": {
+    "previousVersion": "0.18.0",
+    "previousVersionCode": 33,
+    "previousApkSha256": "3d90feff487e0ef7edbcb61df769c2baf8bf7d2942a6e564067877b7030cfb99",
+    "apkSha256": "5c7de9a6296932d045678f17513a294aeeeb0c2634e85c84583546019a9f3dfc",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "samePackage": true,
+    "sameCertificate": true,
+    "higherVersion": true,
+    "apkSignatureVerified": true
+  },
+  "artifacts": [
+    {
+      "id": 12601368073,
+      "name": "resultados-etapa6",
+      "zipBytes": 5892777,
+      "zipDigest": "sha256:db5feacd6120dab751821d5815aee524f0f7f25d1483161e05fc1ce609da7ed0",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40200325343/artifacts/12601368073"
+    },
+    {
+      "id": 12601513476,
+      "name": "noctua-etapa6-release",
+      "zipBytes": 8264163,
+      "zipDigest": "sha256:ae7879dcede2f7515ec05fb5dfdc925b41ef983b2f1cc39b90504a475d188bfc",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40200325343/artifacts/12601513476"
+    },
+    {
+      "id": 12601503509,
+      "name": "resultados-atualizacao-release",
+      "zipBytes": 2326,
+      "zipDigest": "sha256:41da86e6ec64600f05983d49cd99b1d4999040f139c768600d64339b0169959f",
+      "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40200325343/artifacts/12601503509"
+    }
+  ],
+  "limitations": [
+    "Em fonte ampliada, a tela exige rolagem; não houve redução de fontes.",
+    "Conferência final em aparelho físico permanece manual.",
+    "Atualização com dados no CI utiliza a referência original 0.17.3; a identidade do APK foi comparada localmente à 0.18.0."
+  ]
+}
