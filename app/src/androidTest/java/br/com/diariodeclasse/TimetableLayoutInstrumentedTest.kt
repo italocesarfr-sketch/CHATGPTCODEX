@@ -54,7 +54,7 @@ class TimetableLayoutInstrumentedTest {
             for(day in 1..5) {
                 val node=compose.onNodeWithTag("weekday-label-$day",useUnmergedTree=true);val layouts=mutableListOf<TextLayoutResult>()
                 node.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
-                val text=layouts.single();assertEquals(1,text.lineCount);assertFalse(text.isLineEllipsized(0));assertFalse(text.multiParagraph.didExceedMaxLines)
+                val text=layouts.single();assertEquals(1,text.lineCount);assertFalse("Dia $day com reticências na fonte $font",text.isLineEllipsized(0));assertFalse("Dia $day excede a largura na fonte $font",text.multiParagraph.didExceedMaxLines)
                 val bounds=node.fetchSemanticsNode().boundsInRoot;val glyphs=text.layoutInput.text.indices.map{text.getBoundingBox(it)}
                 assertTrue("Dia cortado na fonte $font",glyphs.maxOf{it.right}-glyphs.minOf{it.left}<=bounds.width+0.5f)
             }
@@ -67,7 +67,7 @@ class TimetableLayoutInstrumentedTest {
                 label.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
                 val text=layouts.single();val bounds=label.fetchSemanticsNode().boundsInRoot
                 assertEquals("Palavra quebrada em fonte $font",1,text.lineCount)
-                assertFalse(text.isLineEllipsized(0));assertFalse(text.multiParagraph.didExceedMaxLines)
+                assertFalse("Dia $day com reticências na fonte $font",text.isLineEllipsized(0));assertFalse("Dia $day excede a largura na fonte $font",text.multiParagraph.didExceedMaxLines)
                 assertEquals(text.layoutInput.text.length,text.getLineEnd(0,true))
                 val boxes=(0 until text.layoutInput.text.length).map{text.getBoundingBox(it)}
                 assertTrue("Rótulo cortado em fonte $font",boxes.maxOf{it.right}-boxes.minOf{it.left}<=bounds.width+0.5f)

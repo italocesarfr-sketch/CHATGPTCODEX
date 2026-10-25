@@ -39,7 +39,7 @@ internal fun regularTimetableDay(day: Int) = day.takeIf { it in regularTimetable
                 .semantics{contentDescription=DayOfWeek.of(day).getDisplayName(TextStyle.FULL,brLocale)})
     }
     BoxWithConstraints(Modifier.fillMaxWidth().padding(vertical=NoctuaSpace.small).testTag("weekly-days")) {
-        if(LocalDensity.current.fontScale<=1.2f && maxWidth>=280.dp) {
+        if(LocalDensity.current.fontScale<=1.2f && maxWidth>=340.dp) {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.tiny)) {
                 regularTimetableDays.forEach { day -> chip(day,Modifier.weight(1f)) }
             }
