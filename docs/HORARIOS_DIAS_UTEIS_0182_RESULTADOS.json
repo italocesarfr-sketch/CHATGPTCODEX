@@ -1,0 +1,72 @@
+{
+  "versionName": "0.18.2",
+  "versionCode": 35,
+  "applicationId": "br.com.diariodeclasse",
+  "codeCommit": "cc8a07855fa5cd19d674cf004d93db7e65f9f496",
+  "runId": 40214997657,
+  "conclusion": "success",
+  "jvm": {
+    "tests": 176,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "android": {
+    "tests": 293,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 4
+  },
+  "androidPassed": 289,
+  "weeklyFocusedTests": 25,
+  "roomVersion": 9,
+  "backupFormat": 11,
+  "schemaChanged": false,
+  "backupFormatChanged": false,
+  "legacyWeekendRecordsPreserved": true,
+  "signedUpgrade": {
+    "baseline": "0.18.1",
+    "baselineCode": 34,
+    "baselineRunId": 40200325343,
+    "phases": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history",
+      "deleted-student",
+      "reopened-student"
+    ],
+    "passed": true,
+    "withoutUninstall": true,
+    "artifactId": 12607756758
+  },
+  "releaseArtifactId": 12607866370,
+  "validationArtifactId": 12607650952,
+  "apkSha256": "51c2e9516ebe4c0e1c5b5534491d71d661bd715440cc714c4eef90ad7d9da469",
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "manualLimitations": [
+    "Aparelho físico",
+    "Leitor de tela"
+  ],
+  "skillsUsed": [
+    "Impeccable 4.7.0: contexto, diretrizes Android, legibilidade e capturas reais"
+  ],
+  "files": [
+    "app/src/main/java/br/com/diariodeclasse/ui/TimetableScreen.kt",
+    "app/build.gradle.kts",
+    "app/src/test/java/br/com/diariodeclasse/TimetablesTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/TimetableInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StableUpgradeProbeTest.kt",
+    ".github/workflows/android.yml",
+    "scripts/ci/validate-android.sh",
+    "docs/baseline/noctua-release-0.18.1.json",
+    "docs/HORARIOS_DIAS_UTEIS_0182.md",
+    "docs/HORARIOS_DIAS_UTEIS_0182_RESULTADOS.json",
+    "docs/images/horarios-dias-uteis-0182/",
+    "README.md"
+  ]
+}
