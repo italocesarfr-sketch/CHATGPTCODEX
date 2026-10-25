@@ -8,6 +8,13 @@ mkdir -p build
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RosterLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/roster-layout-focused.txt || status=$?
+cat build/roster-layout-focused.txt
+python3 - <<'PYROSTER' || status=1
+from pathlib import Path
+text=Path('build/roster-layout-focused.txt').read_text()
+assert 'OK (2 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYROSTER
 timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.StudentDeletionInstrumentedTest,br.com.diariodeclasse.StudentDeletionUiInstrumentedTest,br.com.diariodeclasse.StudentDeletionLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/student-deletion-focused.txt || status=$?
 cat build/student-deletion-focused.txt
 python3 - <<'PYSTUDENT' || status=1
@@ -79,6 +86,9 @@ PYMINIMAL
 fi
 if (( status == 0 )); then
     timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
+fi
+if adb shell run-as br.com.diariodeclasse test -d files/roster-layout-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/roster-layout-screenshots > build/roster-layout-telas.tar
 fi
 if adb shell run-as br.com.diariodeclasse test -d files/student-deletion-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/student-deletion-screenshots > build/student-deletion-telas.tar

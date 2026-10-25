@@ -119,6 +119,8 @@ jobs:
             build/functional15-telas.tar
             build/functional15-focused.txt
             build/minimal-export-focused.txt
+            build/roster-layout-focused.txt
+            build/roster-layout-telas.tar
             build/student-deletion-focused.txt
             build/student-deletion-font-*.txt
             build/student-deletion-telas.tar

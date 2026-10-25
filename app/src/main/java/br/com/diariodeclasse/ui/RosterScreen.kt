@@ -50,16 +50,27 @@ import java.text.Collator
     }
     LazyColumn(Modifier.fillMaxSize().testTag("roster-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
         item {
-            if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
-            Section("Alunos da turma", "${c.name} • ${counted(roster.size, "matrícula", "matrículas")}")
-                Button(onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp)) { Text("+ Adicionar aluno") }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.small)) {
-                    OutlinedButton(onClick = { names = ""; bulk = true }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Colar lista") }
-                    OutlinedButton(onClick = { csvTarget = c.id; csv.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) }, modifier = Modifier.weight(1f).heightIn(min = 50.dp)) { Text("Importar CSV") }
+            Column(Modifier.fillMaxWidth().padding(bottom=NoctuaSpace.medium),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.section)) {
+                Column(Modifier.fillMaxWidth().testTag("roster-heading"),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.small)) {
+                    if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
+                    Section("Alunos da turma", "${c.name} • ${counted(roster.size, "matrícula", "matrículas")}")
                 }
-                val drafts = data.drafts.count { it.classId == c.id }
-                if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth().testTag("import-review-open")) { Text("Conferir ${counted(drafts, "aluno", "alunos")}") }
-                Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada") { alphabetical = it == "Ordem alfabética" }
+                Column(Modifier.fillMaxWidth().testTag("roster-actions"),verticalArrangement=Arrangement.spacedBy(NoctuaSpace.page)) {
+                    Button(onClick = { editing = null; form = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 50.dp).testTag("roster-add")) { Text("+ Adicionar aluno") }
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).testTag("roster-import-actions"), horizontalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
+                        OutlinedButton(onClick = { names = ""; bulk = true }, contentPadding=PaddingValues(horizontal=NoctuaSpace.medium,vertical=NoctuaSpace.small),
+                            modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 50.dp).testTag("roster-paste")) { Text("Colar lista",Modifier.testTag("roster-paste-label")) }
+                        OutlinedButton(onClick = { csvTarget = c.id; csv.launch(arrayOf("text/*", "application/csv", "application/vnd.ms-excel", "application/octet-stream")) },
+                            contentPadding=PaddingValues(horizontal=NoctuaSpace.medium,vertical=NoctuaSpace.small),
+                            modifier = Modifier.weight(1f).fillMaxHeight().heightIn(min = 50.dp).testTag("roster-csv")) { Text("Importar CSV",Modifier.testTag("roster-csv-label")) }
+                    }
+                    val drafts = data.drafts.count { it.classId == c.id }
+                    if (drafts > 0) FilledTonalButton(onClick = { review = true }, modifier = Modifier.fillMaxWidth().testTag("import-review-open")) { Text("Conferir ${counted(drafts, "aluno", "alunos")}") }
+                    Box(Modifier.fillMaxWidth().testTag("roster-organization")) {
+                        Choice("Organização da lista", listOf("Ordem alfabética", "Ordem da chamada"), if (alphabetical) "Ordem alfabética" else "Ordem da chamada",labelSpacing=NoctuaSpace.small) { alphabetical = it == "Ordem alfabética" }
+                    }
+                }
+            }
         }
         if (roster.isEmpty()) item { Text(if(data.roster(c.id).isEmpty()) "Nenhum aluno cadastrado." else "Nenhum aluno nesta visualização.") }
         items(roster, key = { it.id }) { student ->

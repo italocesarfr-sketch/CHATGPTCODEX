@@ -57,9 +57,9 @@ fun requiredDecimal(text: String): Double = requireNotNull(decimal(text)) { "Inf
         text = { Text(text, Modifier.verticalScroll(rememberScrollState())) },
         confirmButton = { TextButton(onClick = { opened = false }) { Text("Fechar") } })
 }
-@Composable fun Choice(label: String, options: List<String>, value: String, select: (String) -> Unit) {
+@Composable fun Choice(label: String, options: List<String>, value: String, labelSpacing: androidx.compose.ui.unit.Dp = 0.dp, select: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(labelSpacing)) {
         Text(label, style = MaterialTheme.typography.labelMedium)
         Box {
             OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) { Text("$value ▾") }
