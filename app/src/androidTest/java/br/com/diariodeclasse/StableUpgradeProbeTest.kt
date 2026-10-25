@@ -166,7 +166,8 @@ class StableUpgradeProbeTest {
                 assertNotNull(converted.targetStudentId);assertNull(converted.externalTarget)
                 // Corrige a grade antiga de outubro após atualizar a release 0.17.1 original.
                 val source=repo.dao.schoolClass("classe-alfa")!!
-                val slots=(1..2).map { WeeklySlot(classId=source.id,weekday=4,ordinal=it,className=source.name,subject=source.subject,shift=source.shift) }
+                val slots=(1..2).map { WeeklySlot(classId=source.id,weekday=4,ordinal=it,className=source.name,subject=source.subject,shift=source.shift) } +
+                    manager.snapshot().timetables.flatMap{it.slots}.filter{it.weekday in 6..7}.distinctBy{it.id}
                 val oldSchedules=manager.snapshot().timetables
                 val annual=Timetables.annualPreview(manager.snapshot().diarySnapshot(),2026,slots)
                 repo.confirmTimetable(annual)
