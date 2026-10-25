@@ -67,7 +67,7 @@ class TimetableLayoutInstrumentedTest {
                 label.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
                 val text=layouts.single();val bounds=label.fetchSemanticsNode().boundsInRoot
                 assertEquals("Palavra quebrada em fonte $font",1,text.lineCount)
-                assertFalse("Dia $day com reticências na fonte $font",text.isLineEllipsized(0));assertFalse("Dia $day excede a largura na fonte $font",text.multiParagraph.didExceedMaxLines)
+                assertFalse("Aba $s com reticências na fonte $font",text.isLineEllipsized(0));assertFalse("Aba $s excede a largura na fonte $font",text.multiParagraph.didExceedMaxLines)
                 assertEquals(text.layoutInput.text.length,text.getLineEnd(0,true))
                 val boxes=(0 until text.layoutInput.text.length).map{text.getBoundingBox(it)}
                 assertTrue("Rótulo cortado em fonte $font",boxes.maxOf{it.right}-boxes.minOf{it.left}<=bounds.width+0.5f)
