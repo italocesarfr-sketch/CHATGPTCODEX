@@ -154,4 +154,10 @@ class TimetablesTest {
         assertEquals(6,corrected.proposed.slots.size);assertTrue((b.timetables+corrected.additions).contains(legacy))
     }
 
+    @Test fun regularWeekdaySelectionHasFiveDaysAndWeekendRestorationUsesMonday() {
+        assertEquals((1..5).toList(),br.com.diariodeclasse.ui.regularTimetableDays.toList())
+        for(day in 1..5)assertEquals(day,br.com.diariodeclasse.ui.regularTimetableDay(day))
+        for(day in listOf(6,7,0,8))assertEquals(1,br.com.diariodeclasse.ui.regularTimetableDay(day))
+    }
+
 }

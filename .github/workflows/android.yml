@@ -150,7 +150,7 @@ jobs:
             build/android-runner-diagnostic.txt
           if-no-files-found: ignore
   stable-update:
-    name: Release — atualização da Noctua 0.17.3 com a assinatura existente
+    name: Release — atualização da Noctua 0.18.1 com a assinatura existente
     needs: validation
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment: release
@@ -206,7 +206,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 40052446835
+          run-id: 40200325343
           name: noctua-etapa6-release
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
@@ -219,7 +219,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.17.3.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.18.1.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk

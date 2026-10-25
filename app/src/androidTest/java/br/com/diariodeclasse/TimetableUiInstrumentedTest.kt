@@ -6,6 +6,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
 import br.com.diariodeclasse.data.*
+import br.com.diariodeclasse.backup.diarySnapshot
 import br.com.diariodeclasse.ui.*
 import kotlinx.coroutines.runBlocking
 import org.junit.*
@@ -54,12 +55,13 @@ class TimetableUiInstrumentedTest {
         compose.waitUntil(10000){vm.selection.value?.year==2099}
         val before=runBlocking{app.backupManager.snapshot()}
         weekly();tag("add-weekly-hours").assertIsNotEnabled()
-        tag("weekday-${LocalDate.now().dayOfWeek.value}").assertIsSelected()
+        tag("weekday-${regularTimetableDay(LocalDate.now().dayOfWeek.value)}").assertIsSelected()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
-    @Test fun todayAndEveryWeekdayAreAccessibleAndWeeklyShortcutOpensAttendance() {
-        seed();weekly();tag("weekday-${LocalDate.now().dayOfWeek.value}").assertIsSelected()
-        for(d in 1..7){tag("weekday-$d").performClick().assertIsSelected()}
+    @Test fun todayOrMondayAndEveryWorkdayAreAccessibleAndWeeklyShortcutOpensAttendance() {
+        seed();weekly();tag("weekday-${regularTimetableDay(LocalDate.now().dayOfWeek.value)}").assertIsSelected()
+        for(d in 1..5){tag("weekday-$d").performClick().assertIsSelected()}
+        tag("weekday-6").assertDoesNotExist();tag("weekday-7").assertDoesNotExist()
         tag("weekday-4").performClick();tag("weekly-timetable").performScrollToNode(hasTestTag("weekly-class-${c.id}"));tag("weekly-class-${c.id}").assertExists();shot("01-grade-semanal")
         tag("open-weekly-${c.id}").performScrollTo().performClick();waitTag("attendance-calendar")
         assertEquals(c.id,app.selectionStore.read()?.classId)
@@ -177,6 +179,30 @@ class TimetableUiInstrumentedTest {
         compose.waitUntil(10000){vm.data.value.timetables.size==3}
         val after=runBlocking{app.backupManager.snapshot()};assertTrue(after.timetables.containsAll(before.timetables));assertEquals(before,after.copy(timetables=before.timetables))
         assertEquals(listOf(1,2),Timetables.planned(vm.data.value,c.id,"2026-08-06").map{it.ordinal})
+    }
+
+    @Test fun weekdayEditorOffersOnlyFiveDaysAndKeepsLegacyWeekendSlotsUntouched() {
+        val legacy=WeeklyTimetable(id="weekly-ui-weekend-legacy",year=2026,effective="2026-01-01",revision=1,
+            slots=listOf(1,6,7).map{d->WeeklySlot(id="weekend-legacy-$d",classId=c.id,weekday=d,ordinal=1,className=c.name,subject=c.subject,shift=c.shift)})
+        runBlocking{app.database.backupDao().removeTimetables();app.repository.dao.insertTimetable(legacy)}
+        compose.waitUntil(10000){vm.data.value.timetables==listOf(legacy)}
+        val before=runBlocking{app.backupManager.snapshot()}
+        weekly();tag("weekday-1").performClick();tag("weekly-class-${c.id}").performScrollTo().assertIsDisplayed()
+        tag("weekday-2").performScrollTo().performClick();tag("empty-timetable").assertExists()
+        tag("weekday-4").performScrollTo().performClick();tag("add-weekly-hours").performScrollTo().performClick()
+        compose.onNodeWithText("quinta-feira ▾").performScrollTo().performClick()
+        for(day in 1..5) compose.onNode(hasText(java.time.DayOfWeek.of(day).getDisplayName(TextStyle.FULL,brLocale)) and hasAnyAncestor(isPopup()),useUnmergedTree=true).assertExists()
+        for(label in listOf("sábado","domingo")) compose.onNode(hasText(label) and hasAnyAncestor(isPopup()),useUnmergedTree=true).assertDoesNotExist()
+        compose.onNode(hasText("sexta-feira") and hasAnyAncestor(isPopup()),useUnmergedTree=true).performScrollTo().performClick()
+        tag("weekly-period-2").performScrollTo().performClick();tag("timetable-scope-YEAR").performScrollTo().performClick()
+        tag("review-weekly-hours").performScrollTo().performClick();tag("save-weekly-hours").performScrollTo().performClick()
+        compose.waitUntil(10000){runBlocking{app.database.backupDao().timetables().size==2}}
+        val after=runBlocking{app.backupManager.snapshot()}
+        assertEquals(before,after.copy(timetables=before.timetables));assertTrue(after.timetables.contains(legacy))
+        for(date in listOf("2026-10-24","2026-10-25"))assertEquals(1,Timetables.planned(after.diarySnapshot(),c.id,date).size)
+        assertEquals(listOf(2),Timetables.planned(after.diarySnapshot(),c.id,"2026-10-30").map{it.ordinal})
+        tag("weekday-6").assertDoesNotExist();tag("weekday-7").assertDoesNotExist()
+        shot("14-segunda-a-sexta")
     }
 
 }

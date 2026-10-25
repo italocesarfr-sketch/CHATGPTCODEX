@@ -179,4 +179,22 @@ class TimetableInstrumentedTest {
         assertEquals(9,repo.dao.day(c.id,"2026-08-06").size)
     }
 
+    @Test fun legacyWeekendScheduleMarksAndJournalSurviveWorkdayEditRestartAndBackup()=runBlocking {
+        val legacy=WeeklyTimetable(id="weekend-legacy",year=2026,effective="2026-01-01",revision=1,slots=listOf(slot(day=6),slot(day=7)))
+        repo.dao.insertTimetable(legacy)
+        val student=Student(id="weekend-legacy-student",classId=c.id,name="Estudante Fictício Legado",number=1,joined="2026-01-01")
+        repo.saveStudent(student);repo.setDayHours(c.id,"2026-10-24",2);repo.setDayHours(c.id,"2026-10-25",1)
+        repo.mark("${c.id}:2026-10-24:1",student.id,"P");repo.mark("${c.id}:2026-10-24:2",student.id,"FJ")
+        repo.mark("${c.id}:2026-10-25:1",student.id,"NR")
+        repo.saveLessonRecord(LessonRecord(classId=c.id,date="2026-10-25",title="Registro Fictício Legado",description="Preservado, independente da grade."))
+        val before=backup.snapshot()
+        repo.confirmTimetable(Timetables.annualPreview(snapshot(),2026,legacy.slots+slot(day=5,n=2)))
+        val after=backup.snapshot();assertEquals(before,after.copy(timetables=before.timetables));assertTrue(after.timetables.contains(legacy))
+        for(date in listOf("2026-10-24","2026-10-25"))assertEquals(1,Timetables.planned(after.diarySnapshot(),c.id,date).size)
+        val bytes=backup.backupBytes();db.close();open();assertEquals(after,backup.snapshot())
+        repo.confirmTimetable(repo.previewTimetable(2026,"2026-11-01",emptyList()))
+        backup.restore(backup.prepare(bytes.inputStream()),"RESTAURAR");assertEquals(after,backup.snapshot())
+        db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
+    }
+
 }

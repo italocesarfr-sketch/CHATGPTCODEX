@@ -14,6 +14,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import br.com.diariodeclasse.ui.theme.NoctuaSpace
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.backup.BackupCodec
 import kotlinx.serialization.Serializable
@@ -23,6 +25,31 @@ import java.time.LocalDate
 import java.time.DayOfWeek
 import java.time.format.TextStyle
 
+/** Restrição da interface regular; leitura histórica e calendários continuam aceitando os sete dias. */
+internal val regularTimetableDays = 1..5
+internal fun regularTimetableDay(day: Int) = day.takeIf { it in regularTimetableDays } ?: 1
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable private fun TimetableWeekdaySelector(selected: Int, select: (Int) -> Unit) {
+    val chip: @Composable (Int, Modifier) -> Unit = { day, item ->
+        FilterChip(selected==day,{select(day)},
+            label={Text(DayOfWeek.of(day).getDisplayName(TextStyle.SHORT,brLocale),
+                Modifier.testTag("weekday-label-$day"),maxLines=1,softWrap=false)},
+            modifier=item.heightIn(min=48.dp).testTag("weekday-$day")
+                .semantics{contentDescription=DayOfWeek.of(day).getDisplayName(TextStyle.FULL,brLocale)})
+    }
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(vertical=NoctuaSpace.small).testTag("weekly-days")) {
+        if(LocalDensity.current.fontScale<=1.2f && maxWidth>=280.dp) {
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.tiny)) {
+                regularTimetableDays.forEach { day -> chip(day,Modifier.weight(1f)) }
+            }
+        } else FlowRow(horizontalArrangement=Arrangement.spacedBy(NoctuaSpace.small),
+            verticalArrangement=Arrangement.spacedBy(NoctuaSpace.tiny),maxItemsInEachRow=3) {
+            regularTimetableDays.forEach { day -> chip(day,Modifier) }
+        }
+    }
+}
+
 @Serializable private data class TimetableDraft(val year:Int,val weekday:Int,val classId:String,
     val effective:String,val periods:List<Int>,val expectedFingerprint:String,
     val scope:TimetableScope = TimetableScope.YEAR)
@@ -31,7 +58,8 @@ import java.time.format.TextStyle
 @OptIn(ExperimentalLayoutApi::class)
 @Composable fun TimetableScreen(vm:DiaryViewModel,data:DiarySnapshot,year:Int,openClass:(String)->Unit,
     guard: (((() -> Unit) -> Unit)?) -> Unit, preferredClassId:String?=null) {
-    var weekday by rememberSaveable { mutableIntStateOf(LocalDate.now().dayOfWeek.value) }
+    var weekday by rememberSaveable { mutableIntStateOf(regularTimetableDay(LocalDate.now().dayOfWeek.value)) }
+    val selectedWeekday = regularTimetableDay(weekday)
     var at by rememberSaveable(year) { mutableStateOf(if(LocalDate.now().year==year) today() else "$year-01-01") }
     var dateText by rememberSaveable(year) { mutableStateOf(shortDate(at)) }
     var history by rememberSaveable { mutableStateOf(false) }
@@ -55,7 +83,7 @@ import java.time.format.TextStyle
     fun fingerprint()=BackupCodec.hash(BackupCodec.json.encodeToString(versions()).toByteArray(Charsets.UTF_8))
     val current=Timetables.current(data.timetables,at)
     val schools=data.classes.filter{it.year==year&&data.classArchives.none{a->a.classId==it.id}}
-    fun edit(classId:String,day:Int=weekday){
+    fun edit(classId:String,day:Int=selectedWeekday){
         val periods=current?.slots.orEmpty().filter{it.classId==classId&&it.weekday==day}.map{it.ordinal}
         update(TimetableDraft(year,day,classId,at,periods,fingerprint(),
             if(versions().isEmpty() || periods.isEmpty() || LocalDate.now().year!=year) TimetableScope.YEAR else TimetableScope.TODAY));error=null
@@ -63,12 +91,10 @@ import java.time.format.TextStyle
     LazyColumn(Modifier.fillMaxSize().testTag("weekly-timetable"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                Text(DayOfWeek.of(weekday).getDisplayName(TextStyle.FULL,brLocale).replaceFirstChar{it.uppercase()},style=MaterialTheme.typography.titleLarge,modifier=Modifier.weight(1f))
+                Text(DayOfWeek.of(selectedWeekday).getDisplayName(TextStyle.FULL,brLocale).replaceFirstChar{it.uppercase()},style=MaterialTheme.typography.titleLarge,modifier=Modifier.weight(1f))
                 TextButton(onClick={history=!history},modifier=Modifier.testTag("timetable-history")){Text("Vigências")}
             }
-            FlowRow(horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                (1..7).forEach{d->FilterChip(weekday==d,{weekday=d},label={Text(DayOfWeek.of(d).getDisplayName(TextStyle.SHORT,brLocale))},modifier=Modifier.heightIn(min=48.dp).testTag("weekday-$d").semantics{contentDescription=DayOfWeek.of(d).getDisplayName(TextStyle.FULL,brLocale)})}
-            }
+            TimetableWeekdaySelector(selectedWeekday){weekday=it}
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     if(at!=today()) Text("Em ${shortDate(at)}",style=MaterialTheme.typography.bodyMedium)
@@ -92,7 +118,7 @@ import java.time.format.TextStyle
                 }
             }
         }
-        val grouped=current?.slots.orEmpty().filter{it.weekday==weekday}.groupBy{it.classId}.values.sortedWith(compareBy({Timetables.shiftOrder(it.first().shift)},{it.minOf{p->p.ordinal}},{it.first().classId}))
+        val grouped=current?.slots.orEmpty().filter{it.weekday==selectedWeekday}.groupBy{it.classId}.values.sortedWith(compareBy({Timetables.shiftOrder(it.first().shift)},{it.minOf{p->p.ordinal}},{it.first().classId}))
         if(grouped.isEmpty()) item {Text("Nenhum horário previsto para este dia.",modifier=Modifier.testTag("empty-timetable"))}
         items(grouped,key={it.first().classId}) { slots ->
             val slot=slots.first();val school=data.classes.firstOrNull{it.id==slot.classId}
@@ -114,7 +140,7 @@ import java.time.format.TextStyle
     draft?.let { d ->
         val school=data.classes.firstOrNull{it.id==d.classId}
         if(preview==null) Form("Editar horários",::close) {
-            Choice("Dia da semana",(1..7).map{DayOfWeek.of(it).getDisplayName(TextStyle.FULL,brLocale)},DayOfWeek.of(d.weekday).getDisplayName(TextStyle.FULL,brLocale)){label->val wd=(1..7).first{DayOfWeek.of(it).getDisplayName(TextStyle.FULL,brLocale)==label};update(d.copy(weekday=wd,periods=runCatching{Timetables.current(versions(),d.effective)?.slots.orEmpty().filter{it.classId==d.classId&&it.weekday==wd}.map{it.ordinal}}.getOrDefault(emptyList())))}
+            Choice("Dia da semana",regularTimetableDays.map{DayOfWeek.of(it).getDisplayName(TextStyle.FULL,brLocale)},if(d.weekday in regularTimetableDays)DayOfWeek.of(d.weekday).getDisplayName(TextStyle.FULL,brLocale)else"Selecionar dia útil"){label->val wd=regularTimetableDays.first{DayOfWeek.of(it).getDisplayName(TextStyle.FULL,brLocale)==label};update(d.copy(weekday=wd,periods=runCatching{Timetables.current(versions(),d.effective)?.slots.orEmpty().filter{it.classId==d.classId&&it.weekday==wd}.map{it.ordinal}}.getOrDefault(emptyList())))}
             val choices=(schools+data.classes.filter{it.id==d.classId}).distinctBy{it.id}
             fun label(c:SchoolClass)="${c.name} • ${c.subject} • ${c.year} • ${c.shift}"
             Text("Turma",style=MaterialTheme.typography.labelLarge)
@@ -154,8 +180,9 @@ import java.time.format.TextStyle
             TextButton(onClick={update(d.copy(periods=emptyList()))},modifier=Modifier.testTag("remove-weekly-hours")){Text("Retirar estes horários da grade")}
             error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
             SaveError(vm)
-            Button(enabled=!saving,onClick={
+            Button(enabled=!saving&&d.weekday in regularTimetableDays,onClick={
                 val result=runCatching {
+                    require(d.weekday in regularTimetableDays){"Selecione um dia de segunda a sexta."}
                     require(fingerprint()==d.expectedFingerprint){"A grade mudou. Feche e reabra a edição."}
                     val before=Timetables.current(versions(),d.effective)?.slots.orEmpty()
                     val keep=before.filterNot{it.classId==d.classId&&it.weekday==d.weekday}
@@ -189,7 +216,7 @@ import java.time.format.TextStyle
                     p.affected.forEach{row->val date=row.substringBefore(" •");Text("${shortDate(date)} • ${row.substringAfter(" • ")}")}
                 }
                 SaveError(vm)
-                Button(enabled=!saving,onClick={vm.act(done={preview=null;update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("save-weekly-hours")){Text("Confirmar grade")}
+                Button(enabled=!saving&&d.weekday in regularTimetableDays,onClick={vm.act(done={preview=null;update(null);at=if(LocalDate.now().year==year)today() else p.proposed.effective;dateText=shortDate(at);weekday=d.weekday;vm.message("Grade salva.")}){vm.repository.confirmTimetable(p)}},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("save-weekly-hours")){Text("Confirmar grade")}
             }
         }
     }

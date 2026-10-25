@@ -45,11 +45,19 @@ class TimetableLayoutInstrumentedTest {
         for(font in listOf(1f,1.3f,1.6f)) {
             compose.runOnIdle{scale=font;mode="Horários"}
             compose.onNodeWithTag("weekly-timetable").assertExists()
-            if(font==1f) compose.onNodeWithTag("weekday-${LocalDate.now().dayOfWeek.value}").assertIsSelected()
+            if(font==1f) compose.onNodeWithTag("weekday-${regularTimetableDay(LocalDate.now().dayOfWeek.value)}").assertIsSelected()
             compose.onNodeWithTag("class-mode-Horários").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             compose.onNodeWithTag("class-mode-Chamada").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
             compose.onNodeWithTag("class-mode-Diário").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
-            for(d in 1..7) compose.onNodeWithTag("weekday-$d").performScrollTo().performClick().assertIsSelected().assertHeightIsAtLeast(48.dp)
+            for(d in 1..5) compose.onNodeWithTag("weekday-$d").performScrollTo().performClick().assertIsSelected().assertHeightIsAtLeast(48.dp)
+            compose.onNodeWithTag("weekday-6").assertDoesNotExist();compose.onNodeWithTag("weekday-7").assertDoesNotExist()
+            for(day in 1..5) {
+                val node=compose.onNodeWithTag("weekday-label-$day",useUnmergedTree=true);val layouts=mutableListOf<TextLayoutResult>()
+                node.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
+                val text=layouts.single();assertEquals(1,text.lineCount);assertFalse(text.isLineEllipsized(0));assertFalse(text.multiParagraph.didExceedMaxLines)
+                val bounds=node.fetchSemanticsNode().boundsInRoot;val glyphs=text.layoutInput.text.indices.map{text.getBoundingBox(it)}
+                assertTrue("Dia cortado na fonte $font",glyphs.maxOf{it.right}-glyphs.minOf{it.left}<=bounds.width+0.5f)
+            }
             val root=compose.onRoot().fetchSemanticsNode().boundsInRoot
             for(s in listOf("class-mode-Horários","class-mode-Chamada","class-mode-Diário")) {
                 val b=compose.onNodeWithTag(s).fetchSemanticsNode().boundsInRoot

@@ -80,9 +80,10 @@ class StableUpgradeProbeTest {
                 repo.dao.save(externalLesson);repo.dao.save(Attendance(externalLesson.id,external.id,"FJ"))
                 repo.confirmRelocation(repo.previewRelocation(external.id,null,"Destino externo fictício","2026-10-25"))
                 repo.confirmRelocationCorrection(repo.previewRelocationCorrection(external.id,"2026-10-17","Destino externo corrigido",setOf(externalLesson.id)))
-                // A release 0.17.3 original lê o legado 9º; não o cadastra pelo editor comum.
+                // A release 0.18.1 original lê os legados 9º e fins de semana; o editor comum não os cria.
                 // Fixture histórica inserida pelo DAO, como em um banco que veio da 0.17.0.
-                val originalSlots=listOf(1,2,9).map{WeeklySlot(classId=origin.id,weekday=4,ordinal=it,className=origin.name,subject=origin.subject,shift=origin.shift)}
+                val originalSlots=listOf(1,2,9).map{WeeklySlot(classId=origin.id,weekday=4,ordinal=it,className=origin.name,subject=origin.subject,shift=origin.shift)} +
+                    listOf(6,7).map{WeeklySlot(classId=origin.id,weekday=it,ordinal=1,className=origin.name,subject=origin.subject,shift=origin.shift)}
                 repo.dao.insertTimetable(WeeklyTimetable(year=2026,effective="2026-10-01",revision=1,slots=originalSlots))
                 repo.confirmTimetable(repo.previewTimetable(2026,"2026-12-01",emptyList()))
                 // Dois cadastros independentes semeados NA release anterior, antes da atualização.
@@ -100,6 +101,9 @@ class StableUpgradeProbeTest {
             }
             val bytes=file.readBytes();val expected=BackupCodec.decode(bytes).snapshot
             assertEquals(expected,manager.snapshot()) // Atualização/leitura nunca reativam automaticamente.
+            for(date in listOf("2026-10-24","2026-10-25")) {
+                assertEquals(1,Timetables.planned(manager.snapshot().diarySnapshot(),"classe-alfa",date).size)
+            }
             assertEquals(expected.selection,app.selectionStore.read())
             assertEquals("Noctua",app.packageManager.getApplicationLabel(app.applicationInfo).toString())
             assertEquals("Transferido",repo.dao.student("stable-closed")!!.status)

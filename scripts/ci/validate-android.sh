@@ -41,7 +41,7 @@ cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
 from pathlib import Path
 text=Path('build/weekly-focused.txt').read_text()
-assert 'OK (23 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+assert 'OK (25 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYWEEKLY
 # Dialog e ModalBottomSheet usam a configuração da janela Android, não apenas o LocalDensity
 # simulado pelo pai Compose. Confere a densidade efetiva do próprio texto no diálogo.
