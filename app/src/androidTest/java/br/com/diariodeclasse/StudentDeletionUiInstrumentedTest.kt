@@ -50,7 +50,7 @@ class StudentDeletionUiInstrumentedTest {
         val before=runBlocking{app.backupManager.snapshot()}
         compose.onNodeWithText("+ Adicionar aluno").performScrollTo().performClick();tag("student-delete").assertDoesNotExist()
         compose.onNodeWithText("Voltar").performScrollTo().performClick()
-        edit();tag("student-save").performScrollTo().assertIsDisplayed();tag("student-delete").assertExists();shot("01-editar-aluno")
+        edit();tag("student-save").performScrollTo().assertIsDisplayed();tag("student-delete").performScrollTo().assertIsDisplayed();shot("01-editar-aluno")
         preview();compose.onNode(hasText(wrong.name) and hasAnyAncestor(hasTestTag("student-delete-diagnosis"))).assertExists();compose.onNodeWithText("${h.name} • História • 2026").assertExists()
         tag("student-delete-count-Atividades com notas lançadas").assertTextEquals("Atividades com notas lançadas: 1")
         tag("student-delete-count-Registros de frequência").assertTextEquals("Registros de frequência: 1")
@@ -74,6 +74,10 @@ class StudentDeletionUiInstrumentedTest {
         assertEquals(ClassLifecycle.fingerprint(StudentDeletion.without(before.diarySnapshot(),wrong.id)),ClassLifecycle.fingerprint(runBlocking{app.backupManager.snapshot().diarySnapshot()}))
         compose.activityRule.scenario.recreate();tag("roster-list").assertExists();tag("roster-student-${wrong.id}").assertDoesNotExist()
         tag("class-selector").performClick();compose.onNodeWithText(g.name,useUnmergedTree=true).performClick()
+        // Trocar turma volta à gestão por contrato existente; não deve manter o detalhe anterior.
+        compose.waitUntil(10000){compose.onAllNodesWithText("Gerenciar alunos").fetchSemanticsNodes().isNotEmpty()}
+        compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("roster-list").fetchSemanticsNodes().isNotEmpty()}
         tag("roster-list").performScrollToNode(hasTestTag("roster-student-${kept.id}"));tag("roster-student-${kept.id}").assertIsDisplayed()
         tag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick()
         tag("reports-list").performScrollToNode(hasTestTag("report-row-${kept.id}"))

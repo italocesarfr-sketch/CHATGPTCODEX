@@ -49,7 +49,15 @@ class StudentDeletionInstrumentedTest {
         assertEquals(1,p.counts["Atividades com notas lançadas"]);assertEquals(4,p.counts["Registros de frequência"]);assertEquals(1,p.counts["Recomposições com nota"])
         repo.deleteStudent(p)
         assertEquals(ClassLifecycle.fingerprint(StudentDeletion.without(before,wrong.id)),ClassLifecycle.fingerprint(data()))
-        assertEquals(reports,br.com.diariodeclasse.reports.SchoolReports(data(),g).student(kept,3));assertEquals(export,ExportProjection.build(data(),g,ExportOptions(term=3)))
+        val afterReport=br.com.diariodeclasse.reports.SchoolReports(data(),g).student(kept,3)
+        // GradeSummary/Frequency são classes Java sem equals por valor. Confere todos os campos.
+        assertEquals(reports.copy(grades=afterReport.grades,frequency=afterReport.frequency),afterReport)
+        assertEquals(listOf(reports.grades.total,reports.grades.maximum,reports.grades.pending,reports.grades.partial),
+            listOf(afterReport.grades.total,afterReport.grades.maximum,afterReport.grades.pending,afterReport.grades.partial))
+        assertEquals(reports.attendance,afterReport.attendance)
+        assertEquals(listOf(reports.original,reports.total,reports.enrollment,reports.launched,reports.hasData,reports.resultScale),
+            listOf(afterReport.original,afterReport.total,afterReport.enrollment,afterReport.launched,afterReport.hasData,afterReport.resultScale))
+        assertEquals(export,ExportProjection.build(data(),g,ExportOptions(term=3)))
         assertNull(repo.dao.student(wrong.id));assertEquals(kept,repo.dao.student(kept.id))
         val expected=manager.snapshot();val bytes=manager.backupBytes()
         db.close();open();assertEquals(expected,manager.snapshot())

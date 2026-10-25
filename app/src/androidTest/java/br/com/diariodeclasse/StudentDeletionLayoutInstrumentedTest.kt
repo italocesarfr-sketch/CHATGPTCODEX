@@ -55,9 +55,9 @@ class StudentDeletionLayoutInstrumentedTest {
             assertTrue("Botões sobrepostos em $w/$f",a.right<=b.left||a.bottom<=b.top)
             if(w>=280&&f<=1.2f){assertEquals(a.top.value,b.top.value,1f);assertTrue(a.left<b.left)}else assertTrue(a.bottom<=b.top)
             for(id in listOf("student-save-label","student-delete-label")) {
-                val layouts=mutableListOf<TextLayoutResult>();tag(id).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
+                val layouts=mutableListOf<TextLayoutResult>();compose.onNodeWithTag(id,useUnmergedTree=true).performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
                 val t=layouts.single();assertFalse(t.didOverflowHeight);assertFalse(t.multiParagraph.didExceedMaxLines)
-                val bounds=tag(id).fetchSemanticsNode().boundsInRoot
+                val bounds=compose.onNodeWithTag(id,useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
                 for(line in 0 until t.lineCount)assertFalse(t.isLineEllipsized(line))
                 val glyphs=t.layoutInput.text.indices.map{t.getBoundingBox(it)}
                 assertTrue("Texto cortado em $w/$f",glyphs.maxOf{it.right}-glyphs.minOf{it.left}<=bounds.width+0.5f)
