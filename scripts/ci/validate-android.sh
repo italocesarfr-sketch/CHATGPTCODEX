@@ -115,6 +115,20 @@ text=Path('build/minimal-export-focused.txt').read_text()
 assert 'OK (27 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYMINIMAL
 fi
+# As duas interações que expuseram corridas devem passar em ambas as execuções;
+# não é retry de falhas e a suíte completa abaixo permanece obrigatória.
+if (( status == 0 )); then
+    for repetition in 1 2; do
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class 'br.com.diariodeclasse.FjPopupInstrumentedTest#firstTouchRecordRefreshAndDismissKeepTheSameAbsenceAndSolidSurface,br.com.diariodeclasse.ReportsUiInstrumentedTest#searchKeepsViewOrderAndSemesterAcrossRotationWithoutWritingSchoolRows' br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/fj-reports-repeat-$repetition.txt" || status=$?
+        cat "build/fj-reports-repeat-$repetition.txt"
+        python3 - "build/fj-reports-repeat-$repetition.txt" <<'PYREPEAT' || status=1
+import sys
+from pathlib import Path
+text=Path(sys.argv[1]).read_text()
+assert 'OK (2 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYREPEAT
+    done
+fi
 if (( status == 0 )); then
     timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
 fi

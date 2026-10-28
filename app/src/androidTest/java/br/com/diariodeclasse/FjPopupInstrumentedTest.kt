@@ -87,25 +87,35 @@ class FjPopupInstrumentedTest {
         shot("03-primeiro-toque-superficie-solida")
         back();compose.onNode(isPopup()).assertDoesNotExist();assertEquals("F",shown.marks.single().mark);assertEquals(0,writes)
         tag("cell-menu-fj-mock-l1-fj-mock-s1").performClick()
-        // performClick não aguarda a próxima janela Android ser desenhada.
-        // Verifica e captura o popup antes de enviar um gesto nativo externo.
-        compose.onNode(isPopup()).assertExists()
-        tag("attendance-menu").captureToImage()
-        compose.mainClock.advanceTimeBy(300);compose.waitForIdle()
-        // Um toque enviado ao root Compose é relativo à janela daquele root;
-        // (4,4) pode cair dentro do popup ancorado no topo. Injeta um toque
-        // de tela abaixo da janela, como o gesto real de dispensa no Android.
+        // Aguarda composição e desenho da janela, sem atraso arbitrário.
+        compose.onNode(isPopup()).assertIsDisplayed()
+        tag("attendance-menu").captureToImage();compose.waitForIdle()
+        val popup=compose.onNode(isPopup()).fetchSemanticsNode()
+        val grid=tag("daily-frequency").fetchSemanticsNode()
+        fun screenBounds(node:androidx.compose.ui.semantics.SemanticsNode):androidx.compose.ui.geometry.Rect {
+            val origin=node.positionOnScreen
+            return androidx.compose.ui.geometry.Rect(origin.x,origin.y,origin.x+node.size.width,origin.y+node.size.height)
+        }
+        val (menuBounds,appBounds)=compose.runOnIdle{screenBounds(popup) to screenBounds(grid)}
+        // Coordenadas reais de tela já incluem densidade e insets. Escolhe uma
+        // faixa da própria grade comprovadamente fora da janela e longe da borda.
+        val gap=4f*pixels
+        val regions=listOf(
+            androidx.compose.ui.geometry.Rect(appBounds.left,appBounds.top,appBounds.right,minOf(appBounds.bottom,menuBounds.top-gap)),
+            androidx.compose.ui.geometry.Rect(appBounds.left,maxOf(appBounds.top,menuBounds.bottom+gap),appBounds.right,appBounds.bottom),
+            androidx.compose.ui.geometry.Rect(appBounds.left,appBounds.top,minOf(appBounds.right,menuBounds.left-gap),appBounds.bottom),
+            androidx.compose.ui.geometry.Rect(maxOf(appBounds.left,menuBounds.right+gap),appBounds.top,appBounds.right,appBounds.bottom))
+        val outside=regions.firstOrNull{it.width>2*gap&&it.height>2*gap}
+        assertNotNull("A fixture deve oferecer uma área externa tocável",outside)
+        val point=outside!!.center
+        assertTrue(appBounds.contains(point));assertFalse(menuBounds.inflate(gap).contains(point))
+        val x=point.x;val y=point.y
         val instrumentation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
         val screenshot=instrumentation.uiAutomation.takeScreenshot()
-        val menuBounds=android.graphics.Rect()
-        instrumentation.uiAutomation.rootInActiveWindow?.getBoundsInScreen(menuBounds)
-        // Cabeçalho Aluno, acima da âncora na primeira linha da fixture.
-        // A borda direita/centro pode ficar dentro do menu ancorado à direita.
-        val x=8f*pixels;val y=48f*pixels
         val dir=File(ApplicationProvider.getApplicationContext<DiaryApplication>().filesDir,"fj-flow-screenshots");dir.mkdirs()
         File(dir,"04-popup-tela-inteira.png").outputStream().use{screenshot.compress(Bitmap.CompressFormat.PNG,100,it)}
         screenshot.recycle()
-        android.util.Log.i("FjPopupTest","Popup acessível: $menuBounds; toque fora: $x,$y")
+        File(dir,"geometria-toque-externo.txt").writeText("popup=$menuBounds\ngrade=$appBounds\ntoque=$point\ndensidade=$pixels\n")
         val down=android.os.SystemClock.uptimeMillis()
         for(action in listOf(android.view.MotionEvent.ACTION_DOWN,android.view.MotionEvent.ACTION_UP)) {
             val event=android.view.MotionEvent.obtain(down,android.os.SystemClock.uptimeMillis(),action,x,y,0)

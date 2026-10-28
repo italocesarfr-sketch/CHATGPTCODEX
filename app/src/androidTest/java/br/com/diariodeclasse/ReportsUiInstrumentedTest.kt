@@ -290,7 +290,14 @@ class ReportsUiInstrumentedTest {
         mode("Frequência");compose.onNodeWithTag("report-sort").performScrollTo().performClick()
         compose.onNodeWithText("Mais faltas",useUnmergedTree=true).performClick()
         compose.onNodeWithTag("report-search").performScrollTo().performTextInput("ficticio")
-        row(a);compose.onNodeWithTag("report-row-${a.id}-current",useUnmergedTree=true).assertDoesNotExist()
+        compose.onNodeWithTag("report-search").performImeAction()
+        waitText("Resultados em todas as turmas")
+        // A busca troca os filhos lazy. A varredura recursiva performScrollToNode
+        // podia ler semântica durante o relayout no thread do harness Compose.
+        // Fixture: controles, turma, resumo, cabeçalho, primeira matrícula (Alfa).
+        compose.onNodeWithTag("reports-list").performScrollToIndex(4)
+        compose.onNodeWithTag("report-row-${a.id}").assertIsDisplayed()
+        compose.onNodeWithTag("report-row-${a.id}-current",useUnmergedTree=true).assertDoesNotExist()
         compose.onNodeWithTag("report-row-${a.id}-effective-absences",useUnmergedTree=true).onChild().assertTextEquals("1")
         compose.activityRule.scenario.recreate()
         compose.onNodeWithTag("report-mode-Frequência").performScrollTo().assertIsSelected()

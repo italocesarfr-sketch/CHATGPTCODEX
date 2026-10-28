@@ -126,6 +126,7 @@ jobs:
             build/student-deletion-telas.tar
             build/classification-font-*.txt
             build/fj-flow-focused.txt
+            build/fj-reports-repeat-*.txt
             build/fj-flow-telas.tar
             build/classification-focused.txt
             build/classification-telas.tar

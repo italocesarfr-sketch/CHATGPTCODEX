@@ -31,3 +31,22 @@ Room v10, backup 12, esquema, migrações e modelos permanecem inalterados. Sem 
 Quatro testes JVM novos e nove Android focados verificam conversão/remoção, seis motivos, FJ antiga, concorrência, rollback, backup e reinício, auditoria protegida, primeiro toque, atualizações de dados, duas direções de rolagem, vários alunos e horários, superfície opaca e dispensas sem alteração de frequência. A regressão anterior foi adaptada somente onde o novo contrato explícito substitui o segundo toque por P/F diretos e Remover justificativa por F.
 
 Impeccable 4.7.0 consultado: contexto, Android e craft, diagnóstico por capturas reais e preservação da interface existente. Resultados completos, capturas e release serão registrados após execução efetiva. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem manuais.
+
+## Arquivos da alteração
+
+- `app/src/main/java/br/com/diariodeclasse/ui/FrequencyGrid.kt`: identidade do popup, fundo sólido e ações do indicador existente.
+- `app/src/main/java/br/com/diariodeclasse/ui/DayAttendanceScreen.kt`: P/F diretos e encaminhamento da justificativa.
+- `app/src/main/java/br/com/diariodeclasse/data/Classifications.kt`: transição explícita F/FJ e validação dos seis motivos.
+- `app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt`: atualização transacional da ocorrência esperada.
+- `app/build.gradle.kts`: 0.19.1 / 37.
+- `AbsenceJustificationsTest.kt`, `FjFlowInstrumentedTest.kt`, `FjPopupInstrumentedTest.kt`: testes novos; `ClassificationsLayoutInstrumentedTest.kt`, `ClassificationsUiInstrumentedTest.kt` e `PromptTwoUiInstrumentedTest.kt`: atualização das expectativas de interação, preservando comparações de dados.
+- `scripts/ci/validate-android.sh`, `.github/workflows/android.yml` e `docs/baseline/noctua-release-0.19.0.json`: testes, capturas e referência original de atualização. A configuração da chave permanente não mudou.
+- Esta documentação, README e capturas da entrega.
+
+## Retomada da validação
+
+A execução `40627184906` aprovou os nove testes focados de FJ, o grupo de dez classificações e as fontes reais 1,3/1,6. A suíte completa terminou com uma única falha em `ReportsUiInstrumentedTest.searchKeepsViewOrderAndSemesterAcrossRotationWithoutWritingSchoolRows`: `SnapshotStateObserver` foi acessado pelo thread do harness enquanto `performScrollToNode` percorria os filhos semânticos durante a atualização da busca. O stack trace aponta para a construção da mensagem de erro da automação, sem alteração de dados ou código de produto de Relatórios.
+
+A retomada preservou as asserções de conteúdo, seleção, rotação e comparação integral do backup. O teste espera o resultado global, fecha o teclado pela ação de pesquisa e posiciona o primeiro resultado pela estrutura conhecida da fixture; valida explicitamente a matrícula e a falta efetiva exibidas. A tela de Relatórios não foi modificada.
+
+O teste de dispensa externa agora espera a composição/desenho, lê `positionOnScreen` e o tamanho real da grade e da janela, seleciona uma região dentro da grade e fora do popup com margem de segurança, e comprova essas condições antes de enviar o gesto Android. Não usa coordenadas fixas nem um atraso arbitrário para abrir a janela. Captura e geometria são salvas no artefato. O fechamento deve ocorrer com zero gravações e a falta original intacta. As duas interações são executadas novamente duas vezes, ambas obrigatoriamente aprovadas, além dos grupos focados e da suíte completa; não há retry que aceite uma falha anterior nem exclusão de testes.
