@@ -35,12 +35,14 @@ class ClassificationsUiInstrumentedTest {
     }
     private fun tag(t:String)=compose.onNodeWithTag(t)
     private fun waitTag(t:String){compose.waitUntil(10000){compose.onAllNodesWithTag(t).fetchSemanticsNodes().isNotEmpty()}}
+    private fun waitText(value:String){compose.waitUntil(10000){compose.onAllNodesWithText(value).fetchSemanticsNodes().isNotEmpty()}}
     private fun reason(value:String?) {
-        tag("reason-$lesson-${s.id}").performScrollTo().performClick()
+        if(compose.onAllNodesWithTag("justification-option-none").fetchSemanticsNodes().isEmpty())
+            tag("reason-$lesson-${s.id}").performScrollTo().performClick()
         tag("justification-option-${value ?: "none"}").performScrollTo().performClick()
         compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark=="FJ"&&it.reason==value}}
     }
-    private fun shot(name:String){val d=File(app.filesDir,"classification-screenshots");d.mkdirs();val node=if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog())else compose.onRoot();File(d,"$name.png").outputStream().use{node.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
+    private fun shot(name:String){val d=File(app.filesDir,"classification-screenshots");d.mkdirs();val node=if(compose.onAllNodes(isPopup()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isPopup())else if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog())else compose.onRoot();File(d,"$name.png").outputStream().use{node.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
     @Test fun productionTextCanBeCreatedEditedAndReopenedWithoutChangingExistingActivities() {
         val old=runBlocking{app.backupManager.snapshot()}.activities
         tag("nav-2").performClick();compose.onNodeWithText("3º bim.").performClick()
@@ -51,13 +53,13 @@ class ClassificationsUiInstrumentedTest {
         shot("01-producao-textual")
         compose.onNodeWithText("Salvar e lançar notas").performScrollTo().performClick()
         compose.waitUntil(10000){vm.data.value.activities.any{it.classId==c.id&&it.type=="Produção textual"}}
-        compose.onNodeWithText("Editar atividade").performScrollTo().performClick()
+        waitText("Editar atividade");compose.onNodeWithText("Editar atividade").performScrollTo().performClick()
         compose.onNodeWithText("Produção textual ▾").assertExists()
         compose.onNodeWithText("Nome da atividade").performTextReplacement("Produção Fictícia Editada")
         compose.onNodeWithText("Salvar alterações").performScrollTo().performClick()
         compose.waitUntil(10000){vm.data.value.activities.any{it.classId==c.id&&it.name=="Produção Fictícia Editada"}}
-        compose.activityRule.scenario.recreate()
-        compose.onNodeWithText("Editar atividade").performScrollTo().performClick()
+        waitText("Editar atividade");compose.activityRule.scenario.recreate()
+        waitText("Editar atividade");compose.onNodeWithText("Editar atividade").performScrollTo().performClick()
         compose.onNodeWithText("Produção textual ▾").assertExists()
         assertEquals(old,runBlocking{app.backupManager.snapshot()}.activities.filter{it.classId!=c.id})
     }
@@ -72,7 +74,9 @@ class ClassificationsUiInstrumentedTest {
         compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark=="FJ"}}
         assertNull(runBlocking{app.repository.dao.attendance(lesson).single().reason})
         for(value in JustificationReasons.options) reason(value)
-        shot("02-fj-com-motivo")
+        tag("reason-$lesson-${s.id}").performClick()
+        tag("justification-option-Outro").assertIsSelected();shot("02-fj-com-motivo")
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
         compose.activityRule.scenario.recreate();waitTag("daily-frequency")
         tag("reason-$lesson-${s.id}").assertExists();assertEquals("Outro",runBlocking{app.repository.dao.attendance(lesson).single().reason})
         reason(null);reason("Atestado médico")

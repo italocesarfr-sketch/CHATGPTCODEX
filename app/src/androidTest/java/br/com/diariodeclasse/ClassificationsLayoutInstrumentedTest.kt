@@ -24,7 +24,7 @@ import java.io.File
 
 class ClassificationsLayoutInstrumentedTest {
     @get:Rule val compose=createComposeRule()
-    @Test fun optionalReasonStaysBelowButtonsAndPopupFitsCompactScreenAtLargeFonts() {
+    @Test fun optionalReasonUsesExistingFjMenuWithoutIncreasingRowsAtLargeFonts() {
         val c=SchoolClass(id="reason-layout-c",name="Turma Fictícia",subject="História",year=2026)
         val s=Student(id="reason-layout-s",classId=c.id,name="Estudante Fictícia de Nome Comprido",number=1,joined="2026-01-01")
         val lesson=Lesson("reason-layout-l",c.id,"2026-08-28",1,"REALIZADA")
@@ -44,7 +44,9 @@ class ClassificationsLayoutInstrumentedTest {
             val p=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-P");val f=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-F")
             val reason=compose.onNodeWithTag("reason-${lesson.id}-${s.id}")
             for(node in listOf(p,f,reason))node.assertIsDisplayed().assertHeightIsAtLeast(48.dp)
-            assertTrue(reason.fetchSemanticsNode().boundsInRoot.top>=p.fetchSemanticsNode().boundsInRoot.bottom)
+            assertTrue(reason.fetchSemanticsNode().boundsInRoot.left>=f.fetchSemanticsNode().boundsInRoot.right)
+            val nameBounds=compose.onNodeWithTag("student-name-${s.id}").getUnclippedBoundsInRoot()
+            assertEquals(64f,nameBounds.bottom.value-nameBounds.top.value,0.5f)
             assertTrue(f.fetchSemanticsNode().boundsInRoot.left>=p.fetchSemanticsNode().boundsInRoot.right)
             val root=compose.onRoot().fetchSemanticsNode().boundsInRoot;val bounds=reason.fetchSemanticsNode().boundsInRoot
             assertTrue(bounds.right<=root.right&&bounds.bottom<=root.bottom)
@@ -55,6 +57,7 @@ class ClassificationsLayoutInstrumentedTest {
             val text=compose.onNodeWithText("Atividade escolar ou esportiva",useUnmergedTree=true)
             val layouts=mutableListOf<TextLayoutResult>();text.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
             assertFalse(layouts.single().multiParagraph.didExceedMaxLines)
+            File(dir,"04-motivos-fonte-$font.png").outputStream().use{compose.onNode(isPopup()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("justification-option-none").performScrollTo().performClick()
             compose.runOnIdle{assertNull(record.reason);assertEquals("FJ",record.mark)}
         }

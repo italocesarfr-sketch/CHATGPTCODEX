@@ -8,7 +8,7 @@ Tipo passa a oferecer, na ordem: Prova, Trabalho, Redação, Produção textual,
 
 ## Faltas justificadas
 
-Ao registrar FJ, aparece abaixo dos controles da ocorrência um seletor de motivo opcional. Opções: Atestado médico, Acompanhamento médico, Falecimento familiar, Convocação oficial, Atividade escolar ou esportiva e Outro. Sem motivo limpa a seleção; não é uma nova categoria. Sem texto livre, documentos ou confirmação adicional. Salvamento automático pela fila de comandos existente, com feedback de erro já utilizado pela chamada.
+Ao registrar FJ, o menu da própria célula passa a oferecer os motivos opcionais. Continua sendo possível seguir a chamada sem abrir ou preencher esse seletor. Opções: Atestado médico, Acompanhamento médico, Falecimento familiar, Convocação oficial, Atividade escolar ou esportiva e Outro. Sem motivo limpa a seleção; não é uma nova categoria. Sem texto livre, documentos ou confirmação adicional. Salvamento automático pela fila de comandos existente, com feedback de erro já utilizado pela chamada.
 
 A chave continua sendo aula/horário e matrícula. Aula determina turma e data. Motivos de ocorrências e alunos diferentes permanecem independentes. Trocar FJ por P, F ou NR limpa o motivo; o segundo toque em FJ continua produzindo NR sem motivo. A ação explícita de copiar a primeira chamada copia também o motivo de uma FJ; marcar todos como presentes limpa os motivos substituídos. Cancelar um horário preserva seu histórico.
 
@@ -26,7 +26,7 @@ Identificador `br.com.diariodeclasse`, banco `diario.db`, funcionamento offline 
 
 ## Interface e testes
 
-Impeccable 4.7.0 efetivamente consultado: contexto do alvo, modo Operate, diretrizes Android e craft. Componentes Material 3 existentes; seletor inline apenas em FJ, com área de toque mínima de 48 dp, altura adaptada e menu rolável. Identidade noturna e demais controles preservados.
+Impeccable 4.7.0 efetivamente consultado: contexto do alvo, modo Operate, diretrizes Android e craft. Componentes Material 3 existentes; seletor no próprio menu de FJ, com área de toque mínima de 48 dp e menu rolável, sem aumentar a altura das linhas. Identidade noturna e demais controles preservados.
 
 Sete testes JVM novos verificam opções exatas, motivos opcionais, tipos inválidos, equivalência das projeções/cálculos/exportações, backup 12, leitura de backup 11 sem campo e auditoria antiga. As fixtures já lidas independentemente em XLSX/CSV/TSV também incluem Produção textual e FJ com motivo. Os testes anteriores de versão esperada foram atualizados para banco 10/backup 12, preservando as verificações de dados e esquemas antigos.
 

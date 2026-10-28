@@ -64,8 +64,7 @@ import kotlin.math.ceil
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f).testTag("frequency-students")) {
             items(roster, key = { it.id }) { student ->
-                val hasJustified = daily && columns.any { byMark[it.id to student.id]?.mark == "FJ" }
-                val height = if (hasJustified) 64.dp + 64.dp * LocalDensity.current.fontScale.coerceAtLeast(1f) else if (daily) 64.dp else 60.dp
+                val height = if (daily) 64.dp else 60.dp
                 Row(Modifier.fillMaxWidth().height(height), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.width(124.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface).clickable { fullName = student }.testTag("student-name-${student.id}").padding(6.dp), verticalArrangement = Arrangement.Center) {
                         Text("${student.number}. ${student.name}", maxLines = if (daily) 2 else 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
@@ -99,11 +98,9 @@ import kotlin.math.ceil
 @Composable private fun AttendanceCell(lesson: Lesson, student: Student, attendance: Attendance?, change: (Lesson, Student, String) -> Unit,
     justification: (Attendance, String?) -> Unit) {
     val current = attendance?.mark ?: "NR"
-    var reasons by remember(lesson.id, student.id) { mutableStateOf(false) }
     var menu by remember(lesson.id, student.id) { mutableStateOf(false) }
     val eligible = student.enrolled(lesson.date)
     val enabled = eligible && student.status!="Remanejado" && lesson.state == "REALIZADA"
-    Column(Modifier.fillMaxWidth()) {
     Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         listOf("P", "F").forEach { value ->
             val selected = current == value
@@ -115,31 +112,24 @@ import kotlin.math.ceil
                     contentDescription = "${if (value == "P") "Presente" else "Faltou"}, ${student.name}, ${lesson.ordinal}º horário, ${shortDate(lesson.date)}"
                 }) { Text(value, style = MaterialTheme.typography.labelLarge) }
         }
-        Box {
-            TextButton(onClick = { menu = true }, enabled = enabled, contentPadding = PaddingValues(0.dp), modifier = Modifier.width(48.dp).height(48.dp).testTag("cell-menu-${lesson.id}-${student.id}").semantics { contentDescription = "Outras marcações de ${student.name}, ${lesson.ordinal}º horário. Atual: $current" }) {
+        Box(if (current == "FJ") Modifier.testTag("reason-${lesson.id}-${student.id}") else Modifier) {
+            TextButton(onClick = { menu = true }, enabled = enabled, contentPadding = PaddingValues(0.dp), modifier = Modifier.width(48.dp).height(48.dp).testTag("cell-menu-${lesson.id}-${student.id}").semantics { contentDescription = "Outras marcações de ${student.name}, ${lesson.ordinal}º horário. Atual: $current${if(current=="FJ") ", motivo: ${attendance?.reason ?: "sem motivo"}" else ""}" }) {
                 Text(if (!eligible) "—" else "$current ▾", style = MaterialTheme.typography.labelSmall)
             }
             DropdownMenu(menu, { menu = false }) {
                 DropdownMenuItem(text = { Text("FJ — falta justificada") }, onClick = { menu = false; change(lesson, student, "FJ") })
                 DropdownMenuItem(text = { Text("NR — não registrado") }, onClick = { menu = false; change(lesson, student, "NR") })
+                if (attendance?.mark == "FJ") {
+                    HorizontalDivider()
+                    Text("Motivo (opcional)", Modifier.padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
+                    (listOf<String?>(null) + JustificationReasons.options).forEach { reason ->
+                        DropdownMenuItem(text = { Text(reason ?: "Sem motivo") },
+                            leadingIcon = { RadioButton(attendance.reason == reason, null, Modifier.size(24.dp)) },
+                            modifier = Modifier.testTag("justification-option-${reason ?: "none"}").semantics { selected = attendance.reason == reason },
+                            onClick = { menu = false; justification(attendance, reason) })
+                    }
+                }
             }
         }
-    }
-    if (attendance?.mark == "FJ") Box(Modifier.fillMaxWidth()) {
-        TextButton(onClick = { reasons = true }, enabled = enabled,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("reason-${lesson.id}-${student.id}").semantics {
-                contentDescription = "Motivo da falta justificada de ${student.name}, ${lesson.ordinal}º horário: ${attendance.reason ?: "sem motivo"}"
-            }) {
-            Text((attendance.reason ?: "Motivo (opcional)") + " ▾", style = MaterialTheme.typography.labelSmall,
-                maxLines = 3, overflow = TextOverflow.Ellipsis)
-        }
-        DropdownMenu(reasons, { reasons = false }) {
-            (listOf<String?>(null) + JustificationReasons.options).forEach { reason ->
-                DropdownMenuItem(text = { Text(reason ?: "Sem motivo") },
-                    modifier = Modifier.testTag("justification-option-${reason ?: "none"}").semantics { selected = attendance.reason == reason },
-                    onClick = { reasons = false; justification(attendance, reason) })
-            }
-        }
-    }
     }
 }
