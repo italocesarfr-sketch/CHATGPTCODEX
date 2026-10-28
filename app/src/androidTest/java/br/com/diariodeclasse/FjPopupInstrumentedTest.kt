@@ -92,13 +92,22 @@ class FjPopupInstrumentedTest {
         // de tela abaixo da janela, como o gesto real de dispensa no Android.
         val instrumentation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
         val screenshot=instrumentation.uiAutomation.takeScreenshot()
-        val x=screenshot.width/2f;val y=screenshot.height-48f*pixels;screenshot.recycle()
+        val menuBounds=android.graphics.Rect()
+        instrumentation.uiAutomation.rootInActiveWindow?.getBoundsInScreen(menuBounds)
+        val x=if(menuBounds.left>8)4f else screenshot.width-4f
+        val y=screenshot.height/2f
+        val dir=File(ApplicationProvider.getApplicationContext<DiaryApplication>().filesDir,"fj-flow-screenshots");dir.mkdirs()
+        File(dir,"04-popup-tela-inteira.png").outputStream().use{screenshot.compress(Bitmap.CompressFormat.PNG,100,it)}
+        screenshot.recycle()
+        android.util.Log.i("FjPopupTest","Popup acessível: $menuBounds; toque fora: $x,$y")
         val down=android.os.SystemClock.uptimeMillis()
         for(action in listOf(android.view.MotionEvent.ACTION_DOWN,android.view.MotionEvent.ACTION_UP)) {
             val event=android.view.MotionEvent.obtain(down,android.os.SystemClock.uptimeMillis(),action,x,y,0)
+            event.source=android.view.InputDevice.SOURCE_TOUCHSCREEN
             instrumentation.sendPointerSync(event);event.recycle()
         }
-        compose.waitForIdle()
+        instrumentation.waitForIdleSync()
+        compose.waitUntil(5000){compose.onAllNodes(isPopup()).fetchSemanticsNodes().isEmpty()}
         compose.onNode(isPopup()).assertDoesNotExist();assertEquals(0,writes)
     }
     @Test fun largeButtonsAndSixReasonsUseOneIndicatorAndExplicitRemoval() {
