@@ -1,0 +1,139 @@
+{
+  "versionName": "0.19.1",
+  "versionCode": 37,
+  "applicationId": "br.com.diariodeclasse",
+  "sourceCommit": "48613c85f12e82f0e5b70ff3f690269e31c42a15",
+  "runId": 40681663108,
+  "ciConclusion": "success",
+  "artifacts": {
+    "results": 12814390886,
+    "release": 12814700649,
+    "signedUpgrade": 12813179206
+  },
+  "tests": {
+    "jvm": {
+      "tests": 187,
+      "passed": 187,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "android": {
+      "tests": 312,
+      "passed": 308,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 4,
+      "conditionalProbes": [
+        "FrequencyProcessProbeTest",
+        "ReleaseContinuityProbeTest",
+        "StableUpgradeProbeTest",
+        "UpgradeProbeTest"
+      ]
+    },
+    "focusedAndAdditionalRuns": {
+      "classification-focused.txt": {
+        "tests": 10,
+        "passed": true
+      },
+      "classification-font-1.3.txt": {
+        "tests": 1,
+        "passed": true
+      },
+      "classification-font-1.6.txt": {
+        "tests": 1,
+        "passed": true
+      },
+      "fj-flow-focused.txt": {
+        "tests": 9,
+        "passed": true
+      },
+      "fj-reports-repeat-1.txt": {
+        "tests": 2,
+        "passed": true
+      },
+      "fj-reports-repeat-2.txt": {
+        "tests": 2,
+        "passed": true
+      },
+      "functional15-focused.txt": {
+        "tests": 35,
+        "passed": true
+      },
+      "minimal-export-focused.txt": {
+        "tests": 27,
+        "passed": true
+      },
+      "roster-layout-focused.txt": {
+        "tests": 2,
+        "passed": true
+      },
+      "student-deletion-focused.txt": {
+        "tests": 14,
+        "passed": true
+      },
+      "weekly-focused.txt": {
+        "tests": 25,
+        "passed": true
+      }
+    },
+    "signedUpgradePhases": [
+      "before",
+      "after",
+      "backup",
+      "reopened",
+      "deleted-history",
+      "reopened-history",
+      "deleted-student",
+      "reopened-student"
+    ],
+    "signedUpgradePassed": true
+  },
+  "compatibility": {
+    "baseVersionName": "0.19.0",
+    "baseVersionCode": 36,
+    "originalApkSha256": "e0acaf8b5d46b4550da22ad19c8bbe64fd8d767ace50a55b4f6a520988d1fc97",
+    "apkSha256": "8a7166d6eb0691aa77807a0b971109a03022ba3e40cfb9ac68e33d483a75fe2d",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "sameCertificate": true,
+    "samePackage": true,
+    "higherVersion": true,
+    "signatureV2Valid": true,
+    "testedHashMatchesPublishedApk": true,
+    "roomVersion": 10,
+    "backupFormat": 12,
+    "schemaChanged": false,
+    "backupFormatChanged": false,
+    "databaseName": "diario.db",
+    "uninstallUsed": false
+  },
+  "manualPending": [
+    "Aparelho físico do proprietário",
+    "TalkBack"
+  ],
+  "filesChanged": [
+    ".github/workflows/android.yml",
+    "README.md",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/ClassificationsLayoutInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ClassificationsUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FjFlowInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/FjPopupInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/ReportsUiInstrumentedTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/StableUpgradeProbeTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/Classifications.kt",
+    "app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DayAttendanceScreen.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/FrequencyGrid.kt",
+    "app/src/test/java/br/com/diariodeclasse/AbsenceJustificationsTest.kt",
+    "docs/FLUXO_FJ_0191.md",
+    "docs/FLUXO_FJ_0191_RESULTADOS.json",
+    "docs/baseline/noctua-release-0.19.0.json",
+    "docs/images/fluxo-fj-0191/chamada-compacta-fonte-1.6.png",
+    "docs/images/fluxo-fj-0191/geometria-toque-externo.txt",
+    "docs/images/fluxo-fj-0191/menu-primeiro-toque.png",
+    "docs/images/fluxo-fj-0191/motivos-fonte-1.6.png",
+    "scripts/ci/validate-android.sh"
+  ]
+}

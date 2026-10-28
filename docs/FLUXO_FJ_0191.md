@@ -1,6 +1,6 @@
 # NOcTuA Professor 0.19.1 — fluxo direto de FJ
 
-Base: 0.19.0 / 36. Candidata: 0.19.1 / 37. Compilação e 187 testes JVM aprovados localmente; Android e release pendentes.
+Base: 0.19.0 / 36. Entrega validada: **0.19.1 / 37**. CI completo aprovado: 187 JVM, 308 Android, fontes ampliadas e atualização assinada sobre a release original. Room v10 e backup 12 inalterados.
 
 ## Diagnóstico reproduzido antes da correção
 
@@ -30,7 +30,7 @@ Room v10, backup 12, esquema, migrações e modelos permanecem inalterados. Sem 
 
 Quatro testes JVM novos e nove Android focados verificam conversão/remoção, seis motivos, FJ antiga, concorrência, rollback, backup e reinício, auditoria protegida, primeiro toque, atualizações de dados, duas direções de rolagem, vários alunos e horários, superfície opaca e dispensas sem alteração de frequência. A regressão anterior foi adaptada somente onde o novo contrato explícito substitui o segundo toque por P/F diretos e Remover justificativa por F.
 
-Impeccable 4.7.0 consultado: contexto, Android e craft, diagnóstico por capturas reais e preservação da interface existente. Resultados completos, capturas e release serão registrados após execução efetiva. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem manuais.
+Impeccable 4.7.0 consultado: contexto, Android e craft, diagnóstico por capturas reais e preservação da interface existente. Resultados completos, capturas e release registrados abaixo após execução efetiva. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem manuais.
 
 ## Arquivos da alteração
 
@@ -39,7 +39,7 @@ Impeccable 4.7.0 consultado: contexto, Android e craft, diagnóstico por captura
 - `app/src/main/java/br/com/diariodeclasse/data/Classifications.kt`: transição explícita F/FJ e validação dos seis motivos.
 - `app/src/main/java/br/com/diariodeclasse/data/DiaryRepository.kt`: atualização transacional da ocorrência esperada.
 - `app/build.gradle.kts`: 0.19.1 / 37.
-- `AbsenceJustificationsTest.kt`, `FjFlowInstrumentedTest.kt`, `FjPopupInstrumentedTest.kt`: testes novos; `ClassificationsLayoutInstrumentedTest.kt`, `ClassificationsUiInstrumentedTest.kt` e `PromptTwoUiInstrumentedTest.kt`: atualização das expectativas de interação, preservando comparações de dados.
+- `AbsenceJustificationsTest.kt`, `FjFlowInstrumentedTest.kt`, `FjPopupInstrumentedTest.kt`: testes novos; `ClassificationsLayoutInstrumentedTest.kt`, `ClassificationsUiInstrumentedTest.kt` e `PromptTwoUiInstrumentedTest.kt`, `ReportsUiInstrumentedTest.kt` e `StableUpgradeProbeTest.kt`: atualização das expectativas de interação e validação de busca/atualização, preservando comparações de dados.
 - `scripts/ci/validate-android.sh`, `.github/workflows/android.yml` e `docs/baseline/noctua-release-0.19.0.json`: testes, capturas e referência original de atualização. A configuração da chave permanente não mudou.
 - Esta documentação, README e capturas da entrega.
 
@@ -50,3 +50,39 @@ A execução `40627184906` aprovou os nove testes focados de FJ, o grupo de dez 
 A retomada preservou as asserções de conteúdo, seleção, rotação e comparação integral do backup. O teste espera o resultado global, fecha o teclado pela ação de pesquisa e posiciona o resultado pela chave estável da matrícula (`performScrollToKey`), sem presumir a quantidade de cabeçalhos ou de turmas; valida explicitamente a matrícula e a falta efetiva exibidas. A tela de Relatórios não foi modificada.
 
 O teste de dispensa externa agora espera a composição/desenho, lê `positionOnScreen` e o tamanho real da grade e da janela, seleciona uma região dentro da grade e fora do popup com margem de segurança, e comprova essas condições antes de enviar o gesto Android. Não usa coordenadas fixas nem um atraso arbitrário para abrir a janela. Captura e geometria são salvas no artefato. O fechamento deve ocorrer com zero gravações e a falta original intacta. As duas interações são executadas novamente duas vezes, ambas obrigatoriamente aprovadas, além dos grupos focados e da suíte completa; não há retry que aceite uma falha anterior nem exclusão de testes.
+
+## Resultados da regressão confirmados
+
+Código testado: `48613c85f12e82f0e5b70ff3f690269e31c42a15`. [Execução](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40681663108) · [XML, grupos, fontes e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40681663108/artifacts/12814390886).
+
+- 187 testes JVM aprovados; zero falhas, erros ou ignorados.
+- XML Android: 312 casos, 308 aprovados, zero falhas/erros e quatro sondas condicionais. Frequência/reinício e atualização possuem fases próprias fora da suíte geral; `ReleaseContinuityProbeTest` é legada, sem aprovação presumida.
+- Nove testes FJ focados aprovados e novamente incluídos na regressão completa.
+- Grupo Relatórios/Exportação: 27 testes aprovados; busca e popup executados mais duas vezes (dois testes por rodada, ambas aprovadas), sem contar duplicatas como casos únicos.
+- Classificações: dez testes aprovados; menu com fontes reais Android 1,3 e 1,6 aprovado em execuções adicionais.
+- Grupos anteriores de alunos, exclusão, horários, históricos, backup e reinício aprovados; XLSX, CSV e TSV conferidos por leitores independentes. Cálculos e exportadores não foram modificados.
+
+| Captura real | Evidência |
+| --- | --- |
+| [Popup aberto](images/fluxo-fj-0191/menu-primeiro-toque.png) | Indicador F, seis motivos, fundo sólido e tabela preservada |
+| [Fonte real 1,6](images/fluxo-fj-0191/motivos-fonte-1.6.png) | Motivo atual identificado, textos completos, remover e NR acessíveis |
+| [Chamada compacta](images/fluxo-fj-0191/chamada-compacta-fonte-1.6.png) | P/F e indicador existentes, sem controles permanentes novos |
+| [Geometria do gesto](images/fluxo-fj-0191/geometria-toque-externo.txt) | Popup (20,133)–(274,486); grade (0,24)–(320,584); toque (160,76,5), fora da janela |
+
+As capturas foram baixadas do artefato do código testado e inspecionadas. Emulador API 30, largura de 320 dp e dados fictícios. A revisão Impeccable aplicou as orientações nativas Android: componentes Material 3, rótulos de estado, alvos de 48 dp, tipografia escalável, superfície noturna e ausência de novas etapas. Não há tela web nem substituição da identidade visual.
+
+## Atualização assinada e APK publicado
+
+A release original **0.19.0 / 36**, hash fixado em `docs/baseline/noctua-release-0.19.0.json`, recebeu dados fictícios no emulador. A instalação de **0.19.1 / 37** ocorreu com `adb install -r`, sem desinstalar ou reinicializar o banco. As oito fases passaram: antes, após instalar, backup/restauração, reabertura, exclusão com histórico preservado, nova reabertura, exclusão individual e reabertura final. A comparação integral inclui matrículas, notas, frequências, diários, remanejamentos/auditorias, grade e preferências. Uma FJ com Atestado médico foi semeada no APK antigo antes do remanejamento; o motivo e as FJ antigas sem motivo foram preservados.
+
+O APK publicado foi baixado e conferido novamente com `apksigner`, `aapt` e `check-apk-update.py`: assinatura v2 válida, um signatário, mesmo pacote/certificado e código maior. O hash local é idêntico ao manifesto publicado e ao APK usado no ensaio. Nenhuma chave ou Secret foi alterado. Esquemas, backup, fórmulas, exportadores e regras de movimentação permanecem intactos.
+
+- **Código testado:** `48613c85f12e82f0e5b70ff3f690269e31c42a15`.
+- **APK SHA-256:** `8a7166d6eb0691aa77807a0b971109a03022ba3e40cfb9ac68e33d483a75fe2d`.
+- **Certificado SHA-256:** `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae` (identificação pública).
+- [GitHub Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40681663108).
+- [APK release assinado — extrair o ZIP e instalar app-release.apk](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40681663108/artifacts/12814700649).
+- [Oito fases da atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40681663108/artifacts/12813179206).
+- [Resultados estruturados e arquivos alterados](FLUXO_FJ_0191_RESULTADOS.json).
+
+Não há falhas automatizadas pendentes. A reprodução/validação foi feita em emulador API 30 com dados fictícios; o aparelho físico do proprietário e TalkBack permanecem conferências manuais. A continuidade após o código validado altera somente documentação, README e capturas; não requer nova compilação do mesmo código.

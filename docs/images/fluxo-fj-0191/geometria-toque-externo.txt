@@ -1,0 +1,4 @@
+popup=Rect.fromLTRB(20.0, 133.0, 274.0, 486.0)
+grade=Rect.fromLTRB(0.0, 24.0, 320.0, 584.0)
+toque=Offset(160.0, 76.5)
+densidade=1.0
