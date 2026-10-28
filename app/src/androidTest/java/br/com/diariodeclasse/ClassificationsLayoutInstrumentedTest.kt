@@ -42,7 +42,8 @@ class ClassificationsLayoutInstrumentedTest {
         }
         val systemFont=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")
         val prefix=systemFont?.let{"system-$it-"} ?: ""
-        for(font in listOf(1f,1.3f,1.6f)) {
+        val fonts=systemFont?.toFloat()?.let{listOf(it)} ?: listOf(1f,1.3f,1.6f)
+        for(font in fonts) {
             compose.runOnIdle{scale=font;record=record.copy(reason="Atividade escolar ou esportiva")}
             val p=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-P");val f=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-F")
             val reason=compose.onNodeWithTag("reason-${lesson.id}-${s.id}")
