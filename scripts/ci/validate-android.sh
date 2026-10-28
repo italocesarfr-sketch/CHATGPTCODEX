@@ -8,6 +8,16 @@ mkdir -p build
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FjPopupInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/fj-flow-focused.txt || status=$?
+cat build/fj-flow-focused.txt
+if adb shell run-as br.com.diariodeclasse test -d files/fj-flow-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/fj-flow-screenshots > build/fj-flow-telas.tar
+fi
+python3 - <<'PYFJ'
+from pathlib import Path
+text=Path('build/fj-flow-focused.txt').read_text()
+assert 'OK (1 test)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYFJ
 timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RosterLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/roster-layout-focused.txt || status=$?
 cat build/roster-layout-focused.txt
 python3 - <<'PYROSTER' || status=1
