@@ -35,3 +35,5 @@ Dez testes Android novos cobrem migração, seis categorias, conversões P/F/FJ/
 Resultados finais, arquivos, capturas e APK serão registrados somente após validação. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem validações manuais.
 
 A validação de fonte do seletor inclui também `font_scale` real do Android em 1,3 e 1,6, com conferência da densidade do texto dentro da janela do menu. O teste de interface respeita o contrato anterior: criar abre as notas; salvar uma edição retorna à lista. A reabertura após recriação é feita a partir dessa lista, preservando as verificações de nome, categoria e demais atividades.
+
+Na regressão completa, um teste anterior de lista longa encontrou acesso concorrente ao SnapshotStateObserver durante a busca iterativa por 100 cards. O teste passou a usar o índice determinístico da fixture, mantendo a rolagem até o último aluno, os controles de legibilidade/alinhamento e a comparação integral do snapshot. Nenhuma tela de alunos foi modificada nesta atualização.

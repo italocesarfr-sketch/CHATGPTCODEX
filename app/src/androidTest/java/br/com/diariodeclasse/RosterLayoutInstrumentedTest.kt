@@ -88,7 +88,10 @@ class RosterLayoutInstrumentedTest {
             val selector=compose.onNodeWithText("Ordem alfabética ▾").getUnclippedBoundsInRoot()
             assertTrue("Rótulo separado do seletor",selector.top-label.bottom>=7.dp)
             shot("02-organizacao-$w-fonte-$f")
-            tag("roster-list").performScrollToNode(hasTestTag("roster-student-${students.first().id}"))
+            // A fixture tem nomes em ordem inversa à chamada e um único item de cabeçalho.
+            // O salto direto evita varrer 100 árvores de semântica durante recomposições.
+            val targetIndex=1+students.sortedBy{it.name}.indexOfFirst{it.id==students.first().id}
+            tag("roster-list").performScrollToIndex(targetIndex);compose.waitForIdle()
             val card=tag("roster-student-${students.first().id}");card.assertIsDisplayed()
             assertEquals("Cards alinhados ao cabeçalho",heading.left.value,card.getUnclippedBoundsInRoot().left.value,1f)
             shot("03-lista-longa-$w-fonte-$f")
