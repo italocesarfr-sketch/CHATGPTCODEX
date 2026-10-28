@@ -1,6 +1,6 @@
 # NOcTuA Professor 0.19.0 — Produção textual e motivos opcionais de FJ
 
-Base validada: 0.18.2 / 35. Nova versão: 0.19.0 / 36. Compilação debug/instrumentação e 183 testes JVM aprovados localmente. Validação Android e release ainda pendentes.
+Base validada: 0.18.2 / 35. Nova versão: 0.19.0 / 36. **Compilação, testes JVM/Android, fontes reais e atualização release assinada aprovados.**
 
 ## Atividades
 
@@ -32,8 +32,49 @@ Sete testes JVM novos verificam opções exatas, motivos opcionais, tipos invál
 
 Dez testes Android novos cobrem migração, seis categorias, conversões P/F/FJ/NR, edição, limpeza, concorrência, rollback SQL, dois alunos/horários, reinício, backup/restauração, auditoria administrativa, exclusão da turma de origem com histórico e exclusão individual, criação/edição/reabertura de atividade e layout 320 dp/fontes 1,0/1,3/1,6.
 
-Resultados finais, arquivos, capturas e APK serão registrados somente após validação. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem validações manuais.
+Resultados finais, arquivos, capturas e APK registrados abaixo após validação efetiva. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem validações manuais.
 
 A validação de fonte do seletor inclui também `font_scale` real do Android em 1,3 e 1,6, com conferência da densidade do texto dentro da janela do menu. O teste de interface respeita o contrato anterior: criar abre as notas; salvar uma edição retorna à lista. A reabertura após recriação é feita a partir dessa lista, preservando as verificações de nome, categoria e demais atividades.
 
 Na regressão completa, um teste anterior de lista longa encontrou acesso concorrente ao SnapshotStateObserver durante a busca iterativa por 100 cards. O teste passou a usar o índice determinístico da fixture, mantendo a rolagem até o último aluno, os controles de legibilidade/alinhamento e a comparação integral do snapshot. Nenhuma tela de alunos foi modificada nesta atualização.
+
+## Validação Android executada
+
+- **183 testes JVM aprovados**, sem falhas, erros ou casos ignorados.
+- **303 casos Android nos XML: 299 aprovados e quatro sondas condicionais**, sem falhas ou erros. Frequência e atualização têm execuções próprias; ReleaseContinuityProbe é legada e não é contada como aprovada na suíte geral.
+- Grupo novo de **10 testes** aprovado, também executado na regressão completa (sem contar os mesmos casos duas vezes).
+- Menu de motivos validado adicionalmente com `font_scale` real 1,3 e 1,6: **um teste em cada escala**, ambos aprovados, incluindo densidade do texto da própria janela e rolagem para limpar o motivo.
+- Grupos anteriores de alunos, exclusão individual, horários, históricos/remanejamentos e relatórios/exportação aprovados. Sondas de frequência/reinício e atualização debug também passaram.
+- Leitura independente das planilhas existentes aprovada, incluindo as fixtures de Produção textual e FJ com motivo, com valores zero e pendentes preservados.
+
+[Commit de código validado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/commit/89cc459b2144d9b60b0cebe3ae8b817d7c33f7f6) · [Execução](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40616867694) · [XML, testes e capturas](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40616867694/artifacts/12785772621).
+
+## Capturas reais conferidas
+
+| Captura | Verificação |
+| --- | --- |
+| [Produção textual](images/classificacoes-0190/producao-textual.png) | Categoria selecionada no formulário existente |
+| [Motivo da FJ](images/classificacoes-0190/motivo-fj.png) | Seis motivos, Sem motivo e indicação da seleção atual |
+| [Fonte real 1,6](images/classificacoes-0190/motivos-fonte-1.6.png) | Texto completo, quebra de linha e opção de limpeza |
+| [Chamada compacta](images/classificacoes-0190/chamada-compacta.png) | Controles P/F/FJ com a altura de linha anterior |
+
+As capturas vêm de emulador API 30 e dados fictícios. O seletor usa o próprio menu da célula FJ; selecionar novamente a ação FJ limpa a marcação para NR, enquanto Sem motivo limpa somente a classificação e mantém FJ. As permissões de edição de chamadas históricas continuam as mesmas.
+
+## Release assinada e preservação
+
+O APK original da **0.18.2 / 35** foi instalado em emulador descartável e recebeu dados fictícios, antes de atualizar com `adb install -r` para **0.19.0 / 36**, sem desinstalação. As oito fases passaram: antes, após atualizar, backup/restauração, reinício, exclusão com histórico preservado, novo reinício, exclusão individual e reabertura. A comparação integral de snapshots confirmou a preservação de matrículas, atividades, notas, frequências, diários, auditorias, exportação e grade anteriores; FJ antigas continuam com motivo nulo.
+
+A abertura e as restaurações verificaram Room v10 e seu hash gerado. Backups anteriores foram lidos e os novos backups formato 12 restaurados. O APK publicado foi baixado e verificado novamente, com assinatura v2 válida, mesmo certificado e identificador `br.com.diariodeclasse`, código maior e hash idêntico ao arquivo efetivamente testado. Nenhuma chave ou Secret foi alterado.
+
+- **APK SHA-256:** `e0acaf8b5d46b4550da22ad19c8bbe64fd8d767ace50a55b4f6a520988d1fc97`.
+- **Certificado SHA-256:** `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae` (identificação pública).
+- [GitHub Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40616867694).
+- [APK release assinado — extrair o ZIP e instalar app-release.apk](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40616867694/artifacts/12786033435).
+- [Oito fases da atualização assinada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40616867694/artifacts/12786352645).
+- [Resultados estruturados e lista completa de arquivos](CLASSIFICACOES_0190_RESULTADOS.json).
+
+## Arquivos e limites
+
+Implementação: `data/Classifications.kt`, `data/Database.kt`, `data/DiaryMigrations.kt`, `data/DiaryRepository.kt`, `data/RelocationRules.kt`, `backup/BackupCodec.kt`, `backup/BackupManager.kt`, `ui/Forms.kt`, `ui/FrequencyGrid.kt` e `ui/DayAttendanceScreen.kt`, sob `app/src/main/java/br/com/diariodeclasse`. Versionamento em `app/build.gradle.kts`; esquema novo em `app/schemas/.../10.json`. Também foram atualizados testes, referência original da release, automação de CI, README e esta documentação. O JSON acima lista todos os caminhos.
+
+Aparelho físico e leitor de tela continuam como conferências manuais. A validação automatizada usa exclusivamente dados fictícios em emulador API 30. Motivos são classificações opcionais: não abonam faltas, não aparecem em colunas novas e seguem as permissões anteriores de edição. Não há falhas automatizadas pendentes. A finalização posterior ao commit de código `89cc459b2144d9b60b0cebe3ae8b817d7c33f7f6` altera somente documentação, README e capturas.
