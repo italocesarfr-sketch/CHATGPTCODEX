@@ -33,3 +33,5 @@ Sete testes JVM novos verificam opções exatas, motivos opcionais, tipos invál
 Dez testes Android novos cobrem migração, seis categorias, conversões P/F/FJ/NR, edição, limpeza, concorrência, rollback SQL, dois alunos/horários, reinício, backup/restauração, auditoria administrativa, exclusão da turma de origem com histórico e exclusão individual, criação/edição/reabertura de atividade e layout 320 dp/fontes 1,0/1,3/1,6.
 
 Resultados finais, arquivos, capturas e APK serão registrados somente após validação. Dados exclusivamente fictícios; aparelho físico e leitor de tela permanecem validações manuais.
+
+A validação de fonte do seletor inclui também `font_scale` real do Android em 1,3 e 1,6, com conferência da densidade do texto dentro da janela do menu. O teste de interface respeita o contrato anterior: criar abre as notas; salvar uma edição retorna à lista. A reabertura após recriação é feita a partir dessa lista, preservando as verificações de nome, categoria e demais atividades.

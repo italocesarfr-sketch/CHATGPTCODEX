@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.core.app.ApplicationProvider
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.ui.FrequencyGrid
@@ -39,6 +40,8 @@ class ClassificationsLayoutInstrumentedTest {
                 } }
             }
         }
+        val systemFont=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")
+        val prefix=systemFont?.let{"system-$it-"} ?: ""
         for(font in listOf(1f,1.3f,1.6f)) {
             compose.runOnIdle{scale=font;record=record.copy(reason="Atividade escolar ou esportiva")}
             val p=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-P");val f=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-F")
@@ -51,13 +54,14 @@ class ClassificationsLayoutInstrumentedTest {
             val root=compose.onRoot().fetchSemanticsNode().boundsInRoot;val bounds=reason.fetchSemanticsNode().boundsInRoot
             assertTrue(bounds.right<=root.right&&bounds.bottom<=root.bottom)
             val dir=File(ApplicationProvider.getApplicationContext<DiaryApplication>().filesDir,"classification-screenshots");dir.mkdirs()
-            File(dir,"03-fj-320-fonte-$font.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+            File(dir,"${prefix}03-fj-320-fonte-$font.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             reason.performClick()
             compose.onNodeWithTag("justification-option-Atividade escolar ou esportiva").performScrollTo().assertIsDisplayed()
             val text=compose.onNodeWithText("Atividade escolar ou esportiva",useUnmergedTree=true)
             val layouts=mutableListOf<TextLayoutResult>();text.performSemanticsAction(SemanticsActions.GetTextLayoutResult){it(layouts)}
             assertFalse(layouts.single().multiParagraph.didExceedMaxLines)
-            File(dir,"04-motivos-fonte-$font.png").outputStream().use{compose.onNode(isPopup()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+            systemFont?.let{assertEquals("O menu precisa usar a escala real do Android",it.toFloat(),layouts.single().layoutInput.density.fontScale,0.01f)}
+            File(dir,"${prefix}04-motivos-fonte-$font.png").outputStream().use{compose.onNode(isPopup()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
             compose.onNodeWithTag("justification-option-none").performScrollTo().performClick()
             compose.runOnIdle{assertNull(record.reason);assertEquals("FJ",record.mark)}
         }

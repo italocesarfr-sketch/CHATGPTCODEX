@@ -124,6 +124,7 @@ jobs:
             build/student-deletion-focused.txt
             build/student-deletion-font-*.txt
             build/student-deletion-telas.tar
+            build/classification-font-*.txt
             build/classification-focused.txt
             build/classification-telas.tar
             build/weekly-focused.txt

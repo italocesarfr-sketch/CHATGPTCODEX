@@ -58,9 +58,14 @@ class ClassificationsUiInstrumentedTest {
         compose.onNodeWithText("Nome da atividade").performTextReplacement("Produção Fictícia Editada")
         compose.onNodeWithText("Salvar alterações").performScrollTo().performClick()
         compose.waitUntil(10000){vm.data.value.activities.any{it.classId==c.id&&it.name=="Produção Fictícia Editada"}}
-        waitText("Editar atividade");compose.activityRule.scenario.recreate()
-        waitText("Editar atividade");compose.onNodeWithText("Editar atividade").performScrollTo().performClick()
+        val edited=vm.data.value.activities.single{it.classId==c.id&&it.name=="Produção Fictícia Editada"}
+        // O contrato existente retorna à lista após editar; somente a criação abre notas.
+        waitTag("activities-list");compose.waitUntil(10000){compose.onAllNodes(isDialog()).fetchSemanticsNodes().isEmpty()}
+        compose.activityRule.scenario.recreate();waitTag("activities-list")
+        tag("activities-list").performScrollToNode(hasTestTag("activity-edit-${edited.id}"))
+        tag("activity-edit-${edited.id}").performClick()
         compose.onNodeWithText("Produção textual ▾").assertExists()
+        compose.onNodeWithText("Nome da atividade").assertTextContains("Produção Fictícia Editada")
         assertEquals(old,runBlocking{app.backupManager.snapshot()}.activities.filter{it.classId!=c.id})
     }
     @Test fun justifiedReasonAutosavesCanBeChangedClearedAndRemovedBySecondTap() {

@@ -43,6 +43,20 @@ from pathlib import Path
 text=Path('build/classification-focused.txt').read_text()
 assert 'OK (10 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYCLASSIFICATIONS
+if (( status == 0 )); then
+    for font in 1.3 1.6; do
+        adb shell settings put system font_scale "$font"
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.ClassificationsLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/classification-font-$font.txt" || status=$?
+        cat "build/classification-font-$font.txt"
+        python3 - "build/classification-font-$font.txt" <<'PYCLASSFONT' || status=1
+import sys
+from pathlib import Path
+text=Path(sys.argv[1]).read_text()
+assert 'OK (1 test)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYCLASSFONT
+    done
+    adb shell settings put system font_scale 1.0
+fi
 timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.TimetableInstrumentedTest,br.com.diariodeclasse.TimetableUiInstrumentedTest,br.com.diariodeclasse.TimetableLayoutInstrumentedTest,br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/weekly-focused.txt || status=$?
 cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
