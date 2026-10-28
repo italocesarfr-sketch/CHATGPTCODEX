@@ -37,10 +37,10 @@ class ClassificationsUiInstrumentedTest {
     private fun waitTag(t:String){compose.waitUntil(10000){compose.onAllNodesWithTag(t).fetchSemanticsNodes().isNotEmpty()}}
     private fun waitText(value:String){compose.waitUntil(10000){compose.onAllNodesWithText(value).fetchSemanticsNodes().isNotEmpty()}}
     private fun reason(value:String?) {
-        if(compose.onAllNodesWithTag("justification-option-none").fetchSemanticsNodes().isEmpty())
+        if(compose.onAllNodesWithTag("attendance-menu").fetchSemanticsNodes().isEmpty())
             tag("reason-$lesson-${s.id}").performScrollTo().performClick()
-        tag("justification-option-${value ?: "none"}").performScrollTo().performClick()
-        compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark=="FJ"&&it.reason==value}}
+        tag(if(value==null)"justification-remove"else"justification-option-$value").performScrollTo().performClick()
+        compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark==(if(value==null)"F"else"FJ")&&it.reason==value}}
     }
     private fun shot(name:String){val d=File(app.filesDir,"classification-screenshots");d.mkdirs();val node=if(compose.onAllNodes(isPopup()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isPopup())else if(compose.onAllNodes(isDialog()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isDialog())else compose.onRoot();File(d,"$name.png").outputStream().use{node.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
     @Test fun productionTextCanBeCreatedEditedAndReopenedWithoutChangingExistingActivities() {
@@ -68,15 +68,16 @@ class ClassificationsUiInstrumentedTest {
         compose.onNodeWithText("Nome da atividade").assertTextContains("Produção Fictícia Editada")
         assertEquals(old,runBlocking{app.backupManager.snapshot()}.activities.filter{it.classId!=c.id})
     }
-    @Test fun justifiedReasonAutosavesCanBeChangedClearedAndRemovedBySecondTap() {
+    @Test fun justifiedReasonAutosavesFromNormalAbsenceAndCanBeRemovedExplicitly() {
         val before=runBlocking{app.backupManager.snapshot()}
         tag("nav-1").performClick();tag("class-mode-Chamada").performClick();waitTag("attendance-calendar")
         val now=LocalDate.now();compose.onNodeWithText("${now.monthValue} • ${now.month.getDisplayName(TextStyle.FULL,brLocale)} ▾").performClick()
         compose.onAllNodesWithText("8 • agosto").onLast().performScrollTo().performClick()
         tag("attendance-calendar").performScrollToNode(hasTestTag("date-$day"));tag("attendance-calendar").performScrollToIndex(2)
         tag("date-$day").performClick();waitTag("daily-frequency")
-        tag("cell-menu-$lesson-${s.id}").performScrollTo().performClick();compose.onNodeWithText("FJ — falta justificada").performClick()
-        compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark=="FJ"}}
+        tag("cell-$lesson-${s.id}-F").performScrollTo().performClick()
+        compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark=="F"}}
+        compose.onNode(isPopup()).assertDoesNotExist()
         assertNull(runBlocking{app.repository.dao.attendance(lesson).single().reason})
         for(value in JustificationReasons.options) reason(value)
         tag("reason-$lesson-${s.id}").performClick()
@@ -88,9 +89,12 @@ class ClassificationsUiInstrumentedTest {
         tag("cell-$lesson-${s.id}-P").performScrollTo().performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(lesson).single().let{it.mark=="P"&&it.reason==null}}}
         tag("reason-$lesson-${s.id}").assertDoesNotExist()
-        tag("cell-menu-$lesson-${s.id}").performClick();compose.onNodeWithText("FJ — falta justificada").performClick()
+        tag("cell-$lesson-${s.id}-F").performClick()
+        compose.waitUntil(10000){vm.data.value.marks.any{it.lessonId==lesson&&it.studentId==s.id&&it.mark=="F"}}
         waitTag("reason-$lesson-${s.id}");reason("Convocação oficial")
-        tag("cell-menu-$lesson-${s.id}").performScrollTo().performClick();compose.onNodeWithText("FJ — falta justificada").performClick()
+        tag("cell-$lesson-${s.id}-F").performClick()
+        compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(lesson).single().let{it.mark=="F"&&it.reason==null}}}
+        tag("cell-menu-$lesson-${s.id}").performScrollTo().performClick();tag("attendance-unregister").performClick()
         compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(lesson).single().let{it.mark=="NR"&&it.reason==null}}}
         compose.activityRule.scenario.recreate();waitTag("daily-frequency");tag("reason-$lesson-${s.id}").assertDoesNotExist()
         val after=runBlocking{app.backupManager.snapshot()};assertEquals(before.copy(marks=after.marks),after)

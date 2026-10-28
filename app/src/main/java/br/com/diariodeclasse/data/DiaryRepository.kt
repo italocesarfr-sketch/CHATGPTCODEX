@@ -465,6 +465,16 @@ class DiaryRepository(val db: DiaryDatabase) {
         require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
         dao.save(expected.copy(reason = reason))
     }
+    /** F → FJ com motivo, ou FJ → F ao remover. Revalida exatamente a ocorrência exibida. */
+    suspend fun justifyAbsence(expected: Attendance, reason: String?) = db.withTransaction {
+        val proposed = AbsenceJustifications.apply(expected, reason)
+        val current = dao.attendance(expected.lessonId).firstOrNull { it.studentId == expected.studentId }
+        require(current == expected) { "A chamada mudou. Confira a marcação antes de justificar." }
+        val lesson = requireNotNull(dao.lesson(expected.lessonId)); val student = requireNotNull(dao.student(expected.studentId))
+        ensureWritable(student)
+        require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
+        dao.save(proposed)
+    }
     /** Resolve o segundo toque dentro da transação, inclusive com cliques rápidos antes do Flow. */
     suspend fun toggleMark(lessonId: String, studentId: String, value: String) = db.withTransaction {
         require(value in listOf("P", "F", "FJ", "NR"))

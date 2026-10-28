@@ -30,11 +30,13 @@ import kotlin.math.ceil
         val end = (first + visible).coerceAtMost(count)
         Row(Modifier.horizontalScroll(scroll).testTag("frequency-horizontal")) {
             Spacer(Modifier.width(width * first))
-            for (i in first until end) Box(Modifier.width(width)) { cell(i) }
+            for (i in first until end) key(i) { Box(Modifier.width(width)) { cell(i) } }
             Spacer(Modifier.width(width * (count - end)))
         }
     }
 }
+
+private data class AttendanceMenuKey(val lessonId: String, val studentId: String)
 
 @Composable fun FrequencyGrid(data: DiarySnapshot, c: SchoolClass, columns: List<Lesson>, period: Term?, daily: Boolean,
     mark: (Lesson, Student, String) -> Unit, options: (Lesson) -> Unit, openDay: (String) -> Unit, justification: (Attendance, String?) -> Unit = { _, _ -> }) {
@@ -45,6 +47,7 @@ import kotlin.math.ceil
     val byMark = remember(data.marks) { data.marks.associate { (it.lessonId to it.studentId) to it } }
     val totals = remember(data, c, period, showRelocated) { roster.associate { it.id to data.frequency(it, period, c.countJustified) } }
     var fullName by remember { mutableStateOf<Student?>(null) }
+    var activeMenu by remember(c.id, daily, columns.map { it.id }) { mutableStateOf<AttendanceMenuKey?>(null) }
     val background = MaterialTheme.colorScheme.surfaceContainer
     Column(Modifier.fillMaxSize().testTag(if (daily) "daily-frequency" else "term-frequency")) {
         if(data.roster(c.id).any {it.status=="Remanejado"}) RelocatedFilter(showRelocated) {showRelocated=it}
@@ -78,7 +81,13 @@ import kotlin.math.ceil
                             val lesson = columns[index]
                             val attendance = byMark[lesson.id to student.id]
                             val current = attendance?.mark ?: "NR"
-                            if (daily) AttendanceCell(lesson, student, attendance, mark, justification)
+                            if (daily) {
+                                val occurrence = AttendanceMenuKey(lesson.id, student.id)
+                                AttendanceCell(lesson, student, attendance, activeMenu == occurrence,
+                                    open = { activeMenu = occurrence }, dismiss = { if (activeMenu == occurrence) activeMenu = null },
+                                    change = { l, s, value -> activeMenu = null; mark(l, s, value) },
+                                    justification = { expected, reason -> activeMenu = null; justification(expected, reason) })
+                            }
                             else {
                                 val value = if (!student.enrolled(lesson.date)) "—" else current + when(lesson.state) { "CANCELADA" -> "×"; "PREVISTA" -> "◇"; else -> "" }
                                 Text(value, Modifier.fillMaxWidth().height(height).clickable { openDay(lesson.date) }.wrapContentHeight().semantics { contentDescription = "${student.name}, ${shortDate(lesson.date)}, ${lesson.ordinal}º horário, $value" }, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
@@ -95,12 +104,13 @@ import kotlin.math.ceil
         text = { Text("Nº ${student.number} • ${student.status}\nIngresso: ${shortDate(student.joined)}\nSaída: ${student.left?.let { shortDate(it) } ?: "não informada"}") }, confirmButton = { TextButton(onClick = { fullName = null }) { Text("Voltar") } }) }
 }
 
-@Composable private fun AttendanceCell(lesson: Lesson, student: Student, attendance: Attendance?, change: (Lesson, Student, String) -> Unit,
+@Composable private fun AttendanceCell(lesson: Lesson, student: Student, attendance: Attendance?, menu: Boolean, open: () -> Unit, dismiss: () -> Unit, change: (Lesson, Student, String) -> Unit,
     justification: (Attendance, String?) -> Unit) {
     val current = attendance?.mark ?: "NR"
-    var menu by remember(lesson.id, student.id) { mutableStateOf(false) }
     val eligible = student.enrolled(lesson.date)
     val enabled = eligible && student.status!="Remanejado" && lesson.state == "REALIZADA"
+    DisposableEffect(lesson.id, student.id) { onDispose { dismiss() } }
+    LaunchedEffect(enabled) { if (!enabled) dismiss() }
     Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         listOf("P", "F").forEach { value ->
             val selected = current == value
@@ -112,23 +122,28 @@ import kotlin.math.ceil
                     contentDescription = "${if (value == "P") "Presente" else "Faltou"}, ${student.name}, ${lesson.ordinal}º horário, ${shortDate(lesson.date)}"
                 }) { Text(value, style = MaterialTheme.typography.labelLarge) }
         }
-        Box(if (current == "FJ") Modifier.testTag("reason-${lesson.id}-${student.id}") else Modifier) {
-            TextButton(onClick = { menu = true }, enabled = enabled, contentPadding = PaddingValues(0.dp), modifier = Modifier.width(48.dp).height(48.dp).testTag("cell-menu-${lesson.id}-${student.id}").semantics { contentDescription = "Outras marcações de ${student.name}, ${lesson.ordinal}º horário. Atual: $current${if(current=="FJ") ", motivo: ${attendance?.reason ?: "sem motivo"}" else ""}" }) {
+        Box(if (current in listOf("F", "FJ")) Modifier.testTag("reason-${lesson.id}-${student.id}") else Modifier) {
+            TextButton(onClick = open, enabled = enabled, contentPadding = PaddingValues(0.dp), modifier = Modifier.width(48.dp).height(48.dp).testTag("cell-menu-${lesson.id}-${student.id}").semantics { contentDescription = "Outras marcações de ${student.name}, ${lesson.ordinal}º horário. Atual: $current${if(current=="FJ") ", motivo: ${attendance?.reason ?: "sem motivo"}" else ""}" }) {
                 Text(if (!eligible) "—" else "$current ▾", style = MaterialTheme.typography.labelSmall)
             }
-            DropdownMenu(menu, { menu = false }) {
-                DropdownMenuItem(text = { Text("FJ — falta justificada") }, onClick = { menu = false; change(lesson, student, "FJ") })
-                DropdownMenuItem(text = { Text("NR — não registrado") }, onClick = { menu = false; change(lesson, student, "NR") })
-                if (attendance?.mark == "FJ") {
-                    HorizontalDivider()
-                    Text("Motivo (opcional)", Modifier.padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge)
-                    (listOf<String?>(null) + JustificationReasons.options).forEach { reason ->
-                        DropdownMenuItem(text = { Text(reason ?: "Sem motivo") },
+            DropdownMenu(menu, dismiss, modifier = Modifier.testTag("attendance-menu"),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 1f)) {
+                if (attendance != null && current in listOf("F", "FJ")) {
+                    JustificationReasons.options.forEach { reason ->
+                        DropdownMenuItem(text = { Text(reason) },
                             leadingIcon = { RadioButton(attendance.reason == reason, null, Modifier.size(24.dp)) },
-                            modifier = Modifier.testTag("justification-option-${reason ?: "none"}").semantics { selected = attendance.reason == reason },
-                            onClick = { menu = false; justification(attendance, reason) })
+                            modifier = Modifier.testTag("justification-option-$reason").semantics { selected = attendance.reason == reason },
+                            onClick = { dismiss(); justification(attendance, reason) })
                     }
+                    if (current == "FJ") DropdownMenuItem(text = { Text("Remover justificativa") },
+                        modifier = Modifier.testTag("justification-remove"), onClick = { dismiss(); justification(attendance, null) })
+                    HorizontalDivider()
+                } else {
+                    // P e NR mantêm suas ações anteriores; abrir nunca altera uma marcação.
+                    DropdownMenuItem(text = { Text("FJ — falta justificada") }, onClick = { dismiss(); change(lesson, student, "FJ") })
                 }
+                DropdownMenuItem(text = { Text("NR — não registrado") }, modifier = Modifier.testTag("attendance-unregister"),
+                    onClick = { dismiss(); change(lesson, student, "NR") })
             }
         }
     }

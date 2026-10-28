@@ -36,7 +36,7 @@ class ClassificationsLayoutInstrumentedTest {
             CompositionLocalProvider(LocalDensity provides Density(density,scale)) {
                 NoctuaTheme { Surface(Modifier.width(320.dp).height(560.dp)) {
                     FrequencyGrid(DiarySnapshot(classes=listOf(c),students=listOf(s),lessons=listOf(lesson),marks=listOf(record),loaded=true),c,listOf(lesson),null,true,
-                        mark={_,_,_->},options={},openDay={},justification={current,value->record=current.copy(reason=value)})
+                        mark={_,_,_->},options={},openDay={},justification={current,value->record=AbsenceJustifications.apply(current,value)})
                 } }
             }
         }
@@ -44,7 +44,7 @@ class ClassificationsLayoutInstrumentedTest {
         val prefix=systemFont?.let{"system-$it-"} ?: ""
         val fonts=systemFont?.toFloat()?.let{listOf(it)} ?: listOf(1f,1.3f,1.6f)
         for(font in fonts) {
-            compose.runOnIdle{scale=font;record=record.copy(reason="Atividade escolar ou esportiva")}
+            compose.runOnIdle{scale=font;record=record.copy(mark="FJ",reason="Atividade escolar ou esportiva")}
             val p=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-P");val f=compose.onNodeWithTag("cell-${lesson.id}-${s.id}-F")
             val reason=compose.onNodeWithTag("reason-${lesson.id}-${s.id}")
             for(node in listOf(p,f,reason))node.assertIsDisplayed().assertHeightIsAtLeast(48.dp)
@@ -63,8 +63,8 @@ class ClassificationsLayoutInstrumentedTest {
             assertFalse(layouts.single().multiParagraph.didExceedMaxLines)
             systemFont?.let{assertEquals("O menu precisa usar a escala real do Android",it.toFloat(),layouts.single().layoutInput.density.fontScale,0.01f)}
             File(dir,"${prefix}04-motivos-fonte-$font.png").outputStream().use{compose.onNode(isPopup()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
-            compose.onNodeWithTag("justification-option-none").performScrollTo().performClick()
-            compose.runOnIdle{assertNull(record.reason);assertEquals("FJ",record.mark)}
+            compose.onNodeWithTag("justification-remove").performScrollTo().performClick()
+            compose.runOnIdle{assertNull(record.reason);assertEquals("F",record.mark)}
         }
     }
 }

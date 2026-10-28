@@ -118,16 +118,17 @@ class PromptTwoUiInstrumentedTest {
             throw AssertionError("Abertura da data: "+compose.onRoot().printToString(),e)
         }
     }
-    @Test fun repeatPAndFAndFjClearOnlyTheirOwnCellAndNrSurvivesRecreation() {
+    @Test fun largePAndFRecordDirectlyAndExplicitNrSurvivesRecreation() {
         val id="${c.id}:$day:1";val before=runBlocking{app.backupManager.snapshot()};openDay()
         fun waitMark(value:String){compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(id).any{it.studentId==a.id&&it.mark==value}}}}
         for(value in listOf("P","F")) {
             tag("cell-$id-${a.id}-$value").performScrollTo().performClick();waitMark(value)
-            tag("cell-$id-${a.id}-$value").performClick();waitMark("NR")
+            tag("cell-$id-${a.id}-$value").performClick();waitMark(value)
+            tag("cell-menu-$id-${a.id}").performClick();tag("attendance-unregister").performClick();waitMark("NR")
         }
-        repeat(2) {
-            tag("cell-menu-$id-${a.id}").performScrollTo().performClick();compose.onNodeWithText("FJ — falta justificada").performClick();waitMark(if(it==0)"FJ"else"NR")
-        }
+        tag("cell-menu-$id-${a.id}").performScrollTo().performClick();compose.onNodeWithText("FJ — falta justificada").performClick();waitMark("FJ")
+        tag("cell-menu-$id-${a.id}").performClick();tag("justification-remove").performClick();waitMark("F")
+        tag("cell-menu-$id-${a.id}").performClick();tag("attendance-unregister").performClick();waitMark("NR")
         compose.activityRule.scenario.recreate();waitTag("daily-frequency")
         tag("cell-$id-${a.id}-P").assertIsNotSelected();tag("cell-$id-${a.id}-F").assertIsNotSelected()
         tag("frequency-total-${a.id}").performScrollTo().assertTextEquals("0 / 1");shot("03-chamada-sem-marcacao")
