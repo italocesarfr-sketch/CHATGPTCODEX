@@ -57,7 +57,7 @@ class ReportsUiInstrumentedTest {
         compose.onNodeWithTag("reports-list").performScrollToIndex(0)
         compose.onNodeWithTag("report-mode-${if(value=="Bimestral")"Geral"else value}").performScrollTo().performClick()
     }
-    private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}")) }
+    private fun row(student:Student) { compose.onNodeWithTag("reports-list").performScrollToKey(student.id) }
     private fun selectClass(school:SchoolClass) {
         val previousRoot=compose.onNodeWithTag("reports-list").fetchSemanticsNode().id
         compose.onNodeWithTag("class-selector").performClick();compose.onNodeWithText(school.name,useUnmergedTree=true).performClick()
@@ -294,8 +294,9 @@ class ReportsUiInstrumentedTest {
         waitText("Resultados em todas as turmas")
         // A busca troca os filhos lazy. A varredura recursiva performScrollToNode
         // podia ler semântica durante o relayout no thread do harness Compose.
-        // Fixture: controles, turma, resumo, cabeçalho, primeira matrícula (Alfa).
-        compose.onNodeWithTag("reports-list").performScrollToIndex(4)
+        // A chave real da matrícula resolve o índice no LazyColumn, sem percorrer
+        // semântica mutável nem presumir a posição de grupos ou cabeçalhos.
+        row(a)
         compose.onNodeWithTag("report-row-${a.id}").assertIsDisplayed()
         compose.onNodeWithTag("report-row-${a.id}-current",useUnmergedTree=true).assertDoesNotExist()
         compose.onNodeWithTag("report-row-${a.id}-effective-absences",useUnmergedTree=true).onChild().assertTextEquals("1")
