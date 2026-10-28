@@ -34,7 +34,7 @@ class RelocationInstrumentedTest {
     private val old=Activity("rel-old",g.id,"Trabalho Fictício Origem",date="2026-08-10",term=3,maximum=5.0)
     private val next=old.copy(id="rel-next",classId=h.id,name="Trabalho Fictício Destino",date="2026-09-10")
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10).build()
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),11,null)
     }
     @Before fun setup() {runBlocking {
@@ -262,7 +262,7 @@ class RelocationInstrumentedTest {
             for(field in listOf("classes","students","terms","lessons","activities","marks","grades","drafts","recompositions")) {
                 val rows=json.getJSONArray(field)
                 for(i in 0 until rows.length()) {
-                    val row=rows.getJSONObject(i);val values=ContentValues()
+                    val row=rows.getJSONObject(i);if(field=="marks") { assertTrue(row.isNull("reason")); row.remove("reason") };val values=ContentValues()
                     row.keys().forEach {key->when(val v=row.get(key)) {JSONObject.NULL->values.putNull(key);is Boolean->values.put(key,if(v)1 else 0);else->values.put(key,v.toString())}}
                     sql.insert(if(field=="drafts") "import_drafts" else field,0,values)
                 }

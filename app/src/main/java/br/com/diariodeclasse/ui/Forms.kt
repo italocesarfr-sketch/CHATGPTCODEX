@@ -210,7 +210,7 @@ import java.time.LocalDate
     val saving by vm.saving.collectAsState()
     if (preview == null) Form(if (original == null) "Criar atividade" else "Editar atividade", { if (!saving) dismiss() }) {
         Field("Nome da atividade", name, { name = it })
-        Choice("Tipo", listOf("Prova", "Trabalho", "Redação", "Atividade prática", "Seminário", "Estudo dirigido", "Outro"), type) { type = it }
+        Choice("Tipo", activityTypes, type) { type = it }
         Field("Data (dd/mm/aaaa)", day, { day = it }); Choice("Bimestre", listOf("1", "2", "3", "4"), selectedTerm) { selectedTerm = it }
         Field("Pontuação máxima", max, { max = it }); Field("Descrição", description, { description = it }, lines = 2)
         Field("Observações", notes, { notes = it }, lines = 2)

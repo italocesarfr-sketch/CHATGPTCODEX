@@ -76,6 +76,7 @@ object RelocationRules {
                 require(correction.removed.map { it.attendance.lessonId }.distinct().size == correction.removed.size)
                 correction.removed.forEach { removed ->
                     require(removed.attendance.studentId == source.id && removed.attendance.lessonId == removed.lesson.id && removed.lesson.classId == source.classId)
+                    require(JustificationReasons.valid(removed.attendance))
                     require(removed.attendance.mark in listOf("P", "F", "FJ", "NR") && removed.lesson.date >= correction.effectiveDate)
                     require(LocalDate.parse(removed.lesson.date).toString() == removed.lesson.date && removed.lesson.ordinal > 0)
                 }

@@ -47,7 +47,7 @@ class RelocationConversionTest {
         assertTrue(audits.last().removed.isEmpty());assertEquals("Noturno corrigido",audits.last().previousTarget)
         assertNull(audits.last().externalTarget);assertNotNull(audits.last().targetLabel)
         val encoded=BackupCodec.encode(ClassLifecycle.snapshot(after),27,null)
-        assertEquals(11,BackupCodec.decode(encoded).envelope.formatVersion)
+        assertEquals(12,BackupCodec.decode(encoded).envelope.formatVersion)
         assertEquals(ClassLifecycle.snapshot(after).canonical(),BackupCodec.decode(encoded).snapshot)
     }
     @Test fun existingCompatibleEnrollmentAndItsMarksAndGradesArePreserved() {

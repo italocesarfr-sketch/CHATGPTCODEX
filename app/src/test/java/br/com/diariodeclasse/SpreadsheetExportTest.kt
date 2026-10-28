@@ -18,7 +18,7 @@ class SpreadsheetExportTest {
     private val moved=old.copy(id="export-target",classId=c.id,number=3,joined="2026-09-01",left=null,status="Ativo")
     private val late=a.copy(id="export-late",personId="late-person",number=4,joined="2026-10-01",name="Estudante Fictício Tardio")
     private val q1=Activity("export-q1",c.id,"Prova Fictícia B1",date="2026-02-10",term=1,maximum=10.0)
-    private val q3=q1.copy(id="export-q3",name="Avaliação Fictícia B3",date="2026-09-10",term=3,maximum=3.0)
+    private val q3=q1.copy(type="Produção textual",id="export-q3",name="Avaliação Fictícia B3",date="2026-09-10",term=3,maximum=3.0)
     private val origin=q3.copy(id="export-old",classId=g.id,name="Atividade Anterior",date="2026-08-10",maximum=2.0)
     private fun data():DiarySnapshot {
         val terms=listOf(g,c).flatMap{cl->(1..4).map{n->val start=java.time.LocalDate.of(2026,3*(n-1)+1,1);Term(cl.id,n,start.toString(),start.plusMonths(3).minusDays(1).toString())}}
@@ -26,7 +26,7 @@ class SpreadsheetExportTest {
         return DiarySnapshot(classes=listOf(g,c),students=listOf(old,a,b,moved,late),terms=terms,activities=listOf(q1,q3,origin),
             grades=listOf(Grade(q1.id,a.id,0.0),Grade(q3.id,a.id,0.0),Grade(q3.id,moved.id,1.0),Grade(origin.id,old.id,1.5)),
             lessons=listOf(Lesson("old1",g.id,"2026-08-10",1,"REALIZADA"),Lesson("old2",g.id,"2026-08-10",2,"REALIZADA"),Lesson("next1",c.id,"2026-09-10",1,"REALIZADA"),Lesson("next2",c.id,"2026-09-10",2,"REALIZADA"),Lesson("cancel",c.id,"2026-09-10",3,"CANCELADA")),
-            marks=listOf(Attendance("old1",old.id,"P"),Attendance("old2",old.id,"F"),Attendance("next1",moved.id,"P"),Attendance("next2",moved.id,"FJ"),Attendance("cancel",moved.id,"F")),
+            marks=listOf(Attendance("old1",old.id,"P"),Attendance("old2",old.id,"F"),Attendance("next1",moved.id,"P"),Attendance("next2",moved.id,"FJ","Atestado médico"),Attendance("cancel",moved.id,"F")),
             recompositions=listOf(Recomposition(old.id,3,5.0,"2026-08-20")),relocations=listOf(Relocation(old.id,moved.id,"2026-09-01")),exportRows=ExportLayout.normalize(rows))
     }
     private fun value(t:ExportTable,id:String,key:String)=t.records.first{it.enrollmentId==id}.cells[t.columns.indexOfFirst{it.key==key}]

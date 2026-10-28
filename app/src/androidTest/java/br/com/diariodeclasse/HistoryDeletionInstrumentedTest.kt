@@ -29,7 +29,7 @@ class HistoryDeletionInstrumentedTest {
     private lateinit var folder:File
     private lateinit var original:BackupSnapshot
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5,MIGRATION_5_6,MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5,MIGRATION_5_6,MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10).build()
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),18,null)
     }
     private suspend fun data()=repo.snapshot.first {it.loaded}
@@ -128,6 +128,7 @@ class HistoryDeletionInstrumentedTest {
                 val rows=json.getJSONArray(field)
                 for(i in 0 until rows.length()) {
                     val row=rows.getJSONObject(i)
+                    if(field=="marks") { assertTrue(row.isNull("reason")); row.remove("reason") }
                     // A fixture é do esquema antigo: a auditoria só passa a existir na v8.
                     if(field=="relocations") { assertEquals(0,row.getJSONArray("corrections").length());row.remove("corrections") }
                     val values=ContentValues()

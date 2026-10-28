@@ -63,3 +63,10 @@ val MIGRATION_8_9 = object : Migration(8, 9) {
         db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_weekly_timetables_year_effective_revision` ON `weekly_timetables` (`year`, `effective`, `revision`)")
     }
 }
+
+/** Aditiva: FJ antigas ficam com motivo nulo; nenhuma marcação ou chave é reescrita. */
+val MIGRATION_9_10 = object : Migration(9, 10) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `marks` ADD COLUMN `reason` TEXT DEFAULT NULL")
+    }
+}

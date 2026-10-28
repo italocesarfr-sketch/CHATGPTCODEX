@@ -28,7 +28,7 @@ class ClassLifecycleInstrumentedTest {
     private val h=c.copy(id="life-h",name="Turma Fictícia Preservada")
     private val a=Student("life-a","life-person-a",c.id,"Estudante Fictício Alfa Áurea\r\nLinha",1,"2026-01-01",notes="Observação fictícia preservada")
     private val b=a.copy(id="life-b",personId="life-person-b",classId=h.id,name="Estudante Fictício Beta")
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),14,null)}
+    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),14,null)}
     private suspend fun data()=repo.snapshot.first{it.loaded}
     @Before fun setup()=runBlocking {
         context.deleteDatabase(name);folder=File(context.cacheDir,"life-${newId()}");open()
@@ -133,7 +133,7 @@ class ClassLifecycleInstrumentedTest {
         val json=JSONObject(BackupCodec.json.encodeToString(expected))
         helper.createDatabase(name,4).use{sql->for(field in listOf("classes","students","terms","lessons","activities","marks","grades","drafts","recompositions","relocations","exportRows")){
             val rows=json.getJSONArray(field);for(i in 0 until rows.length()){
-                val row=rows.getJSONObject(i);val values=ContentValues();row.keys().forEach{key->when(val v=row.get(key)){JSONObject.NULL->values.putNull(key);is Boolean->values.put(key,if(v)1 else 0);else->values.put(key,v.toString())}}
+                val row=rows.getJSONObject(i);if(field=="marks") { assertTrue(row.isNull("reason")); row.remove("reason") };val values=ContentValues();row.keys().forEach{key->when(val v=row.get(key)){JSONObject.NULL->values.putNull(key);is Boolean->values.put(key,if(v)1 else 0);else->values.put(key,v.toString())}}
                 sql.insert(when(field){"drafts"->"import_drafts";"exportRows"->"export_rows";else->field},0,values)
             }
         }}

@@ -48,7 +48,8 @@ object BackupCodec {
     const val V6_IDENTITY = "0bb463bface3e8d6c547f9424574818b"
     const val V7_IDENTITY = "0c0a542f53b49d5f6d895515d1b9ec49"
     const val V8_IDENTITY = "5e6a8d2ba79a933d48be69059702f9f6"
-    const val IDENTITY = "28e0646355ca4f7088b43bbe8de33141"
+    const val V9_IDENTITY = "28e0646355ca4f7088b43bbe8de33141"
+    const val IDENTITY = "b6c58d9caf618140ac691096cc028066"
     const val MAX_BYTES = 32 * 1024 * 1024
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = false; isLenient = false; coerceInputValues = false }
     fun hash(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
@@ -56,7 +57,7 @@ object BackupCodec {
     fun encode(value: BackupSnapshot, version: Int, certificate: String?): ByteArray {
         validate(value)
         val payload = json.encodeToString(value.canonical())
-        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 11, applicationId = "br.com.diariodeclasse", databaseVersion = 9, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
+        val envelope = BackupEnvelope(format = "diario-de-classe-backup", formatVersion = 12, applicationId = "br.com.diariodeclasse", databaseVersion = 10, schemaIdentityHash = IDENTITY, createdAt = Instant.now().toString(), appVersionCode = version,
             sourceCertificateSha256 = certificate, payloadSha256 = hash(payload.toByteArray(Charsets.UTF_8)), payload = payload)
         val bytes = json.encodeToString(envelope).toByteArray(Charsets.UTF_8)
         if (bytes.size > MAX_BYTES) throw BackupFailure("O backup excede o limite seguro de 32 MB.")
@@ -85,7 +86,8 @@ object BackupCodec {
             val recorded = envelope.formatVersion == 7 && envelope.databaseVersion == 6 && envelope.schemaIdentityHash == V6_IDENTITY
             val preserved = envelope.formatVersion == 8 && envelope.databaseVersion == 7 && envelope.schemaIdentityHash == V7_IDENTITY
             val corrected = envelope.formatVersion in 9..10 && envelope.databaseVersion == 8 && envelope.schemaIdentityHash == V8_IDENTITY
-            val current = corrected || (envelope.formatVersion == 11 && envelope.databaseVersion == 9 && envelope.schemaIdentityHash == IDENTITY)
+            val scheduled = envelope.formatVersion == 11 && envelope.databaseVersion == 9 && envelope.schemaIdentityHash == V9_IDENTITY
+            val current = corrected || scheduled || (envelope.formatVersion == 12 && envelope.databaseVersion == 10 && envelope.schemaIdentityHash == IDENTITY)
             if (!legacy && !previous && !linked && !organized && !archived && !recorded && !preserved && !current) throw BackupFailure("Versão de backup ou banco incompatível. Nenhum dado foi alterado.")
             Instant.parse(envelope.createdAt)
             if (hash(envelope.payload.toByteArray(Charsets.UTF_8)) != envelope.payloadSha256) throw BackupFailure("Falha de integridade: arquivo corrompido ou modificado.")
@@ -106,8 +108,11 @@ object BackupCodec {
             if (envelope.formatVersion < 10 && snapshot.diarySnapshot().academic().relocations.any { link -> link.corrections.any {
                 it.operation != "CORRECAO_EXTERNA" || it.sourceStudentId != null || it.targetStudentId != null || it.targetClassId != null || it.targetLabel != null
             } }) throw BackupFailure("Backup anterior não pode conter conversões administrativas.")
-            if (envelope.formatVersion == 11 && "timetables" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os horários.")
+            if (envelope.formatVersion >= 11 && "timetables" !in json.parseToJsonElement(envelope.payload).jsonObject) throw BackupFailure("Backup incompleto: faltam os horários.")
             if (envelope.formatVersion < 11 && snapshot.timetables.isNotEmpty()) throw BackupFailure("Backup anterior não pode conter grade semanal.")
+            if (envelope.formatVersion < 12 && snapshot.diarySnapshot().academic().let { data ->
+                data.marks.any { it.reason != null } || data.relocations.any { link -> link.corrections.any { c -> c.removed.any { it.attendance.reason != null } } }
+            }) throw BackupFailure("Backup anterior não pode conter motivos de FJ.")
             validate(snapshot)
             return DecodedBackup(envelope, snapshot)
         } catch (error: BackupFailure) { throw error }
@@ -160,7 +165,7 @@ object BackupCodec {
         s.activities.forEach { check(it.classId in classes && it.term in 1..4 && it.maximum.isFinite() && it.maximum > 0 && it.name.isNotBlank()); validDate(it.date) }
         s.marks.forEach {
             val lesson = lessons[it.lessonId]; val student = students[it.studentId]
-            check(lesson != null && student != null && lesson.classId == student.classId && it.mark in listOf("P", "F", "FJ", "NR"))
+            check(lesson != null && student != null && lesson.classId == student.classId && it.mark in listOf("P", "F", "FJ", "NR") && JustificationReasons.valid(it))
         }
         s.grades.forEach {
             val activity = activities[it.activityId]; val student = students[it.studentId]

@@ -41,7 +41,8 @@ data class Lesson(@PrimaryKey val id: String, val classId: String, val date: Str
     ForeignKey(entity = Student::class, parentColumns = ["id"], childColumns = ["studentId"], onDelete = ForeignKey.RESTRICT)
 ], indices = [Index("studentId")])
 @Serializable
-data class Attendance(val lessonId: String, val studentId: String, val mark: String)
+data class Attendance(val lessonId: String, val studentId: String, val mark: String,
+    @ColumnInfo(defaultValue = "NULL") val reason: String? = null)
 @Entity(tableName = "activities", foreignKeys = [ForeignKey(entity = SchoolClass::class,
     parentColumns = ["id"], childColumns = ["classId"], onDelete = ForeignKey.RESTRICT)], indices = [Index("classId")])
 @Serializable
@@ -142,12 +143,12 @@ interface DiaryDao {
 }
 
 @Database(entities = [SchoolClass::class, Student::class, Term::class, Lesson::class,
-    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class, PreservedHistory::class, WeeklyTimetable::class], version = 9, exportSchema = true)
+    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class, PreservedHistory::class, WeeklyTimetable::class], version = 10, exportSchema = true)
 @TypeConverters(HistoricalConverters::class, RelocationCorrectionConverters::class, TimetableConverters::class)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
     abstract fun backupDao(): BackupDao
     companion object {
-        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9).build()
+        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10).build()
     }
 }

@@ -98,7 +98,12 @@ import kotlinx.coroutines.*
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id
                     vm.act(context = context, key = "mark:$lessonId:$studentId") { vm.repository.toggleMark(lessonId, studentId, value) }
-                }, options = { option = it; action = "menu" }, openDay = {}) }
+                }, options = { option = it; action = "menu" }, openDay = {},
+                justification = { expectedMark, reason ->
+                    vm.act(context = context, key = "mark:${expectedMark.lessonId}:${expectedMark.studentId}") {
+                        vm.repository.setJustification(expectedMark, reason)
+                    }
+                }) }
         }
     }
     }

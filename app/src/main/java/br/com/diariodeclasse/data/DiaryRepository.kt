@@ -452,7 +452,18 @@ class DiaryRepository(val db: DiaryDatabase) {
         val lesson = requireNotNull(dao.lesson(lessonId)); val student = requireNotNull(dao.student(studentId))
         ensureWritable(student)
         require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
-        dao.save(Attendance(lessonId, studentId, mark))
+        val reason = if (mark == "FJ") dao.attendance(lessonId).firstOrNull { it.studentId == studentId && it.mark == "FJ" }?.reason else null
+        dao.save(Attendance(lessonId, studentId, mark, reason))
+    }
+    /** Altera somente o motivo da FJ esperada; cliques atrasados não recriam uma marcação. */
+    suspend fun setJustification(expected: Attendance, reason: String?) = db.withTransaction {
+        require(expected.mark == "FJ" && (reason == null || reason in JustificationReasons.options)) { "Escolha um motivo válido ou deixe em branco." }
+        val current = dao.attendance(expected.lessonId).firstOrNull { it.studentId == expected.studentId }
+        require(current == expected) { "A chamada mudou. Confira a marcação antes de escolher o motivo." }
+        val lesson = requireNotNull(dao.lesson(expected.lessonId)); val student = requireNotNull(dao.student(expected.studentId))
+        ensureWritable(student)
+        require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
+        dao.save(expected.copy(reason = reason))
     }
     /** Resolve o segundo toque dentro da transação, inclusive com cliques rápidos antes do Flow. */
     suspend fun toggleMark(lessonId: String, studentId: String, value: String) = db.withTransaction {
@@ -477,7 +488,7 @@ class DiaryRepository(val db: DiaryDatabase) {
         requireNotNull(first) { "Nenhuma chamada anterior realizada neste dia." }
         val eligible = dao.roster(target.classId).filter { it.status!="Remanejado" && it.enrolled(target.date) }.map { it.id }.toSet()
         val source = dao.attendance(first.id).associateBy { it.studentId }
-        eligible.forEach { studentId -> dao.save(Attendance(target.id, studentId, source[studentId]?.mark ?: "NR")) }
+        eligible.forEach { studentId -> dao.save(source[studentId]?.copy(lessonId = target.id) ?: Attendance(target.id, studentId, "NR")) }
     }
     private suspend fun validateActivity(value: Activity) {
         require(value.name.isNotBlank() && value.maximum.isFinite() && value.maximum > 0 && value.term in 1..4) { "Informe nome, bimestre e valor válidos." }

@@ -24,7 +24,7 @@ class UpgradeProbeTest {
             val migrated=code>=9
             // Activity RESUMED não significa que a primeira consulta Room já terminou.
             // Aguarda a abertura/migração pelo app, sem abrir Room nem alterar o banco aqui.
-            val expectedVersion=if(code>=29) 9 else if(code>=25) 8 else if(code>=18) 7 else if(code>=15) 6 else if(code>=14) 5 else if(code>=13) 4 else if(code>=11) 3 else if(migrated) 2 else 1
+            val expectedVersion=if(code>=36) 10 else if(code>=29) 9 else if(code>=25) 8 else if(code>=18) 7 else if(code>=15) 6 else if(code>=14) 5 else if(code>=13) 4 else if(code>=11) 3 else if(migrated) 2 else 1
             val deadline=android.os.SystemClock.uptimeMillis()+10000
             var observedVersion=0
             do {
@@ -38,7 +38,7 @@ class UpgradeProbeTest {
             assertEquals("A abertura/migração do app deve concluir antes da conferência",expectedVersion,observedVersion)
             SQLiteDatabase.openDatabase(path.path,null,SQLiteDatabase.OPEN_READONLY).use { sql ->
                 sql.rawQuery("PRAGMA user_version",null).use { assertTrue(it.moveToFirst());assertEquals(expectedVersion,it.getInt(0)) }
-                sql.rawQuery("SELECT identity_hash FROM room_master_table WHERE id=42",null).use { assertTrue(it.moveToFirst());assertEquals(if(code>=29) br.com.diariodeclasse.backup.BackupCodec.IDENTITY else if(code>=25) br.com.diariodeclasse.backup.BackupCodec.V8_IDENTITY else if(code>=18) br.com.diariodeclasse.backup.BackupCodec.V7_IDENTITY else if(code>=15) br.com.diariodeclasse.backup.BackupCodec.V6_IDENTITY else if(code>=14) br.com.diariodeclasse.backup.BackupCodec.V5_IDENTITY else if(code>=13) br.com.diariodeclasse.backup.BackupCodec.V4_IDENTITY else if(code>=11) br.com.diariodeclasse.backup.BackupCodec.V3_IDENTITY else if(migrated) br.com.diariodeclasse.backup.BackupCodec.V2_IDENTITY else "99b868cf68cf5dffb82edf267ddc78be",it.getString(0)) }
+                sql.rawQuery("SELECT identity_hash FROM room_master_table WHERE id=42",null).use { assertTrue(it.moveToFirst());assertEquals(if(code>=36) br.com.diariodeclasse.backup.BackupCodec.IDENTITY else if(code>=29) br.com.diariodeclasse.backup.BackupCodec.V9_IDENTITY else if(code>=25) br.com.diariodeclasse.backup.BackupCodec.V8_IDENTITY else if(code>=18) br.com.diariodeclasse.backup.BackupCodec.V7_IDENTITY else if(code>=15) br.com.diariodeclasse.backup.BackupCodec.V6_IDENTITY else if(code>=14) br.com.diariodeclasse.backup.BackupCodec.V5_IDENTITY else if(code>=13) br.com.diariodeclasse.backup.BackupCodec.V4_IDENTITY else if(code>=11) br.com.diariodeclasse.backup.BackupCodec.V3_IDENTITY else if(migrated) br.com.diariodeclasse.backup.BackupCodec.V2_IDENTITY else "99b868cf68cf5dffb82edf267ddc78be",it.getString(0)) }
                 expected.keys().forEach { field ->
                     val rows=expected.getJSONArray(field);val table=if(field=="drafts") "import_drafts" else field
                     sql.rawQuery("SELECT COUNT(*) FROM `$table`",null).use { assertTrue(it.moveToFirst());assertEquals(rows.length(),it.getInt(0)) }

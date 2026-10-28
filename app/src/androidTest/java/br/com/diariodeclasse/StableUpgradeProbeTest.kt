@@ -77,7 +77,9 @@ class StableUpgradeProbeTest {
                 val external=Student("stable-external-corrected","stable-external-person",origin.id,"Estudante Fictícia Correção",7,"2026-01-01")
                 repo.saveStudent(external)
                 val externalLesson=Lesson("stable-external-lesson",origin.id,"2026-10-20",1,"REALIZADA")
-                repo.dao.save(externalLesson);repo.dao.save(Attendance(externalLesson.id,external.id,"FJ"))
+                repo.dao.save(externalLesson)
+                // A semente roda no APK original v9, cuja Attendance ainda tem três campos.
+                app.database.openHelper.writableDatabase.execSQL("INSERT INTO marks (lessonId,studentId,mark) VALUES (?,?,?)",arrayOf(externalLesson.id,external.id,"FJ"))
                 repo.confirmRelocation(repo.previewRelocation(external.id,null,"Destino externo fictício","2026-10-25"))
                 repo.confirmRelocationCorrection(repo.previewRelocationCorrection(external.id,"2026-10-17","Destino externo corrigido",setOf(externalLesson.id)))
                 // A release 0.18.1 original lê os legados 9º e fins de semana; o editor comum não os cria.
@@ -258,7 +260,7 @@ class StableUpgradeProbeTest {
         val rows=ExportLayout.normalize(listOf(ExportLayout.blank("classe-alfa"))+ExportLayout.rows(data,"classe-alfa").reversed().map{it.copy(manualHidden=it.studentId=="alfa")})
         repo.saveExportLayout("classe-alfa",before.exportRows.filter{it.classId=="classe-alfa"},rows)
         val configured=manager.snapshot();assertEquals(before,configured.copy(exportRows=before.exportRows))
-        val bytes=manager.backupBytes();assertEquals(11,BackupCodec.decode(bytes).envelope.formatVersion)
+        val bytes=manager.backupBytes();assertEquals(12,BackupCodec.decode(bytes).envelope.formatVersion)
         repo.saveExportLayout("classe-alfa",rows,rows.map{it.copy(manualHidden=false)})
         manager.restore(manager.prepare(oldBytes.inputStream()),"RESTAURAR")
         assertEquals(original,manager.snapshot());assertEquals(original.exportRows,manager.snapshot().exportRows)

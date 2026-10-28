@@ -37,12 +37,12 @@ import kotlin.math.ceil
 }
 
 @Composable fun FrequencyGrid(data: DiarySnapshot, c: SchoolClass, columns: List<Lesson>, period: Term?, daily: Boolean,
-    mark: (Lesson, Student, String) -> Unit, options: (Lesson) -> Unit, openDay: (String) -> Unit) {
+    mark: (Lesson, Student, String) -> Unit, options: (Lesson) -> Unit, openDay: (String) -> Unit, justification: (Attendance, String?) -> Unit = { _, _ -> }) {
     val scroll = rememberScrollState()
     val width = if (daily) 152.dp else 56.dp
     var showRelocated by rememberSaveable(c.id) {mutableStateOf(false)}
     val roster = data.currentRoster(c.id,showRelocated)
-    val byMark = remember(data.marks) { data.marks.associate { (it.lessonId to it.studentId) to it.mark } }
+    val byMark = remember(data.marks) { data.marks.associate { (it.lessonId to it.studentId) to it } }
     val totals = remember(data, c, period, showRelocated) { roster.associate { it.id to data.frequency(it, period, c.countJustified) } }
     var fullName by remember { mutableStateOf<Student?>(null) }
     val background = MaterialTheme.colorScheme.surfaceContainer
@@ -64,7 +64,8 @@ import kotlin.math.ceil
         HorizontalDivider()
         LazyColumn(Modifier.weight(1f).testTag("frequency-students")) {
             items(roster, key = { it.id }) { student ->
-                val height = if (daily) 64.dp else 60.dp
+                val hasJustified = daily && columns.any { byMark[it.id to student.id]?.mark == "FJ" }
+                val height = if (hasJustified) 64.dp + 64.dp * LocalDensity.current.fontScale.coerceAtLeast(1f) else if (daily) 64.dp else 60.dp
                 Row(Modifier.fillMaxWidth().height(height), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.width(124.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface).clickable { fullName = student }.testTag("student-name-${student.id}").padding(6.dp), verticalArrangement = Arrangement.Center) {
                         Text("${student.number}. ${student.name}", maxLines = if (daily) 2 else 3, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
@@ -76,8 +77,9 @@ import kotlin.math.ceil
                             Text("${f.absent} / ${f.justified}", Modifier.fillMaxWidth().height(height).wrapContentHeight().testTag("frequency-total-${student.id}"), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelMedium)
                         } else {
                             val lesson = columns[index]
-                            val current = byMark[lesson.id to student.id] ?: "NR"
-                            if (daily) AttendanceCell(lesson, student, current, mark)
+                            val attendance = byMark[lesson.id to student.id]
+                            val current = attendance?.mark ?: "NR"
+                            if (daily) AttendanceCell(lesson, student, attendance, mark, justification)
                             else {
                                 val value = if (!student.enrolled(lesson.date)) "—" else current + when(lesson.state) { "CANCELADA" -> "×"; "PREVISTA" -> "◇"; else -> "" }
                                 Text(value, Modifier.fillMaxWidth().height(height).clickable { openDay(lesson.date) }.wrapContentHeight().semantics { contentDescription = "${student.name}, ${shortDate(lesson.date)}, ${lesson.ordinal}º horário, $value" }, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
@@ -94,10 +96,14 @@ import kotlin.math.ceil
         text = { Text("Nº ${student.number} • ${student.status}\nIngresso: ${shortDate(student.joined)}\nSaída: ${student.left?.let { shortDate(it) } ?: "não informada"}") }, confirmButton = { TextButton(onClick = { fullName = null }) { Text("Voltar") } }) }
 }
 
-@Composable private fun AttendanceCell(lesson: Lesson, student: Student, current: String, change: (Lesson, Student, String) -> Unit) {
+@Composable private fun AttendanceCell(lesson: Lesson, student: Student, attendance: Attendance?, change: (Lesson, Student, String) -> Unit,
+    justification: (Attendance, String?) -> Unit) {
+    val current = attendance?.mark ?: "NR"
+    var reasons by remember(lesson.id, student.id) { mutableStateOf(false) }
     var menu by remember(lesson.id, student.id) { mutableStateOf(false) }
     val eligible = student.enrolled(lesson.date)
     val enabled = eligible && student.status!="Remanejado" && lesson.state == "REALIZADA"
+    Column(Modifier.fillMaxWidth()) {
     Row(Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         listOf("P", "F").forEach { value ->
             val selected = current == value
@@ -118,5 +124,22 @@ import kotlin.math.ceil
                 DropdownMenuItem(text = { Text("NR — não registrado") }, onClick = { menu = false; change(lesson, student, "NR") })
             }
         }
+    }
+    if (attendance?.mark == "FJ") Box(Modifier.fillMaxWidth()) {
+        TextButton(onClick = { reasons = true }, enabled = enabled,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("reason-${lesson.id}-${student.id}").semantics {
+                contentDescription = "Motivo da falta justificada de ${student.name}, ${lesson.ordinal}º horário: ${attendance.reason ?: "sem motivo"}"
+            }) {
+            Text((attendance.reason ?: "Motivo (opcional)") + " ▾", style = MaterialTheme.typography.labelSmall,
+                maxLines = 3, overflow = TextOverflow.Ellipsis)
+        }
+        DropdownMenu(reasons, { reasons = false }) {
+            (listOf<String?>(null) + JustificationReasons.options).forEach { reason ->
+                DropdownMenuItem(text = { Text(reason ?: "Sem motivo") },
+                    modifier = Modifier.testTag("justification-option-${reason ?: "none"}").semantics { selected = attendance.reason == reason },
+                    onClick = { reasons = false; justification(attendance, reason) })
+            }
+        }
+    }
     }
 }

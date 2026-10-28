@@ -36,6 +36,13 @@ PYSTUDENTFONT
     done
     adb shell settings put system font_scale 1.0
 fi
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.ClassificationsInstrumentedTest,br.com.diariodeclasse.ClassificationsUiInstrumentedTest,br.com.diariodeclasse.ClassificationsLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/classification-focused.txt || status=$?
+cat build/classification-focused.txt
+python3 - <<'PYCLASSIFICATIONS' || status=1
+from pathlib import Path
+text=Path('build/classification-focused.txt').read_text()
+assert 'OK (10 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
+PYCLASSIFICATIONS
 timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.TimetableInstrumentedTest,br.com.diariodeclasse.TimetableUiInstrumentedTest,br.com.diariodeclasse.TimetableLayoutInstrumentedTest,br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/weekly-focused.txt || status=$?
 cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
@@ -92,6 +99,9 @@ if adb shell run-as br.com.diariodeclasse test -d files/roster-layout-screenshot
 fi
 if adb shell run-as br.com.diariodeclasse test -d files/student-deletion-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/student-deletion-screenshots > build/student-deletion-telas.tar
+fi
+if adb shell run-as br.com.diariodeclasse test -d files/classification-screenshots; then
+    adb exec-out run-as br.com.diariodeclasse tar -cf - files/classification-screenshots > build/classification-telas.tar
 fi
 if adb shell run-as br.com.diariodeclasse test -d files/weekly-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/weekly-screenshots > build/weekly-telas.tar

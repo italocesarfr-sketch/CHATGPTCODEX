@@ -62,7 +62,7 @@ class TimetablesTest {
     @Test fun backupElevenRoundTripsAndLegacyTenLoadsWithoutSchedule() {
         val p=Timetables.preview(data(),2026,"2026-01-01",listOf(slot()))
         val b=ClassLifecycle.snapshot(data().copy(timetables=listOf(p.proposed)))
-        val decoded=BackupCodec.decode(BackupCodec.encode(b,29,null));assertEquals(11,decoded.envelope.formatVersion);assertEquals(b,decoded.snapshot)
+        val decoded=BackupCodec.decode(BackupCodec.encode(b,29,null));assertEquals(12,decoded.envelope.formatVersion);assertEquals(b,decoded.snapshot)
         val payload=BackupCodec.json.encodeToString(b.copy(timetables=emptyList())).replace(",\"timetables\":[]","")
         val old=BackupEnvelope("diario-de-classe-backup",10,"br.com.diariodeclasse",8,BackupCodec.V8_IDENTITY,"2026-10-22T00:00:00Z",28,null,BackupCodec.hash(payload.toByteArray()),payload)
         assertTrue(BackupCodec.decode(BackupCodec.json.encodeToString(old).toByteArray()).snapshot.timetables.isEmpty())
