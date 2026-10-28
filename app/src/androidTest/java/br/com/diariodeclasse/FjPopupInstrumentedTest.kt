@@ -99,8 +99,9 @@ class FjPopupInstrumentedTest {
         val screenshot=instrumentation.uiAutomation.takeScreenshot()
         val menuBounds=android.graphics.Rect()
         instrumentation.uiAutomation.rootInActiveWindow?.getBoundsInScreen(menuBounds)
-        val x=if(menuBounds.left>8)4f else screenshot.width-4f
-        val y=screenshot.height/2f
+        // Cabeçalho Aluno, acima da âncora na primeira linha da fixture.
+        // A borda direita/centro pode ficar dentro do menu ancorado à direita.
+        val x=8f*pixels;val y=48f*pixels
         val dir=File(ApplicationProvider.getApplicationContext<DiaryApplication>().filesDir,"fj-flow-screenshots");dir.mkdirs()
         File(dir,"04-popup-tela-inteira.png").outputStream().use{screenshot.compress(Bitmap.CompressFormat.PNG,100,it)}
         screenshot.recycle()
