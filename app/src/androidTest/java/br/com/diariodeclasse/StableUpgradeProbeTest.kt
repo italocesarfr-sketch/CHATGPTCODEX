@@ -55,6 +55,9 @@ class StableUpgradeProbeTest {
                 repo.saveStudent(archived);repo.saveGrade("atividade-1",archived.id,3.0);repo.saveGrade("atividade-2",archived.id,1.0)
                 repo.setDayHours(origin.id,"2026-08-10",2)
                 repo.mark("${origin.id}:2026-08-10:1",archived.id,"P");repo.mark("${origin.id}:2026-08-10:2",archived.id,"FJ")
+                // Executado no APK 0.19.0 original: a atualização deve preservar
+                // motivos já existentes, inclusive no histórico remanejado.
+                repo.setJustification(repo.dao.attendance("${origin.id}:2026-08-10:2").single{it.studentId==archived.id},"Atestado médico")
                 repo.saveRecomposition(Recomposition(archived.id,3,6.0,"2026-08-20"))
                 repo.confirmRelocation(repo.previewRelocation(archived.id,target.id,null,"2026-09-01"))
                 val stale=Student("stable-stale","stable-stale-person",origin.id,"Estudante Fictícia Reativada",5,"2026-01-01",notes="Mesmo ID após corrigir")
@@ -103,6 +106,8 @@ class StableUpgradeProbeTest {
             }
             val bytes=file.readBytes();val expected=BackupCodec.decode(bytes).snapshot
             assertEquals(expected,manager.snapshot()) // Atualização/leitura nunca reativam automaticamente.
+            assertEquals("Atestado médico",expected.marks.single{it.studentId=="stable-archived"&&it.lessonId=="classe-alfa:2026-08-10:2"}.reason)
+            assertTrue(expected.marks.any{it.mark=="FJ"&&it.reason==null}) // FJ antiga sem motivo continua válida.
             for(date in listOf("2026-10-24","2026-10-25")) {
                 assertEquals(1,Timetables.planned(manager.snapshot().diarySnapshot(),"classe-alfa",date).size)
             }
