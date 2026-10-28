@@ -87,7 +87,18 @@ class FjPopupInstrumentedTest {
         shot("03-primeiro-toque-superficie-solida")
         back();compose.onNode(isPopup()).assertDoesNotExist();assertEquals("F",shown.marks.single().mark);assertEquals(0,writes)
         tag("cell-menu-fj-mock-l1-fj-mock-s1").performClick()
-        tag("daily-frequency").performTouchInput{click(androidx.compose.ui.geometry.Offset(4f,4f))}
+        // Um toque enviado ao root Compose é relativo à janela daquele root;
+        // (4,4) pode cair dentro do popup ancorado no topo. Injeta um toque
+        // de tela abaixo da janela, como o gesto real de dispensa no Android.
+        val instrumentation=androidx.test.platform.app.InstrumentationRegistry.getInstrumentation()
+        val screenshot=instrumentation.uiAutomation.takeScreenshot()
+        val x=screenshot.width/2f;val y=screenshot.height-48f*pixels;screenshot.recycle()
+        val down=android.os.SystemClock.uptimeMillis()
+        for(action in listOf(android.view.MotionEvent.ACTION_DOWN,android.view.MotionEvent.ACTION_UP)) {
+            val event=android.view.MotionEvent.obtain(down,android.os.SystemClock.uptimeMillis(),action,x,y,0)
+            instrumentation.sendPointerSync(event);event.recycle()
+        }
+        compose.waitForIdle()
         compose.onNode(isPopup()).assertDoesNotExist();assertEquals(0,writes)
     }
     @Test fun largeButtonsAndSixReasonsUseOneIndicatorAndExplicitRemoval() {
