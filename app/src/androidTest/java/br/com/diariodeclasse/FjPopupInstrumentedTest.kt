@@ -87,6 +87,11 @@ class FjPopupInstrumentedTest {
         shot("03-primeiro-toque-superficie-solida")
         back();compose.onNode(isPopup()).assertDoesNotExist();assertEquals("F",shown.marks.single().mark);assertEquals(0,writes)
         tag("cell-menu-fj-mock-l1-fj-mock-s1").performClick()
+        // performClick não aguarda a próxima janela Android ser desenhada.
+        // Verifica e captura o popup antes de enviar um gesto nativo externo.
+        compose.onNode(isPopup()).assertExists()
+        tag("attendance-menu").captureToImage()
+        compose.mainClock.advanceTimeBy(300);compose.waitForIdle()
         // Um toque enviado ao root Compose é relativo à janela daquele root;
         // (4,4) pode cair dentro do popup ancorado no topo. Injeta um toque
         // de tela abaixo da janela, como o gesto real de dispensa no Android.
