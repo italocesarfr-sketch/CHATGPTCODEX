@@ -102,7 +102,7 @@ import kotlinx.coroutines.launch
         } else TextButton(onClick=::back,enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("Voltar para entrar")}
     }
 }
-@Composable private fun LegacyClaim(app:DiaryApplication,user:AuthUser,opened:suspend()->Unit) {
+@Composable internal fun LegacyClaim(app:DiaryApplication,user:AuthUser,opened:suspend()->Unit) {
     val context=LocalContext.current
     val scope=app.authScope
     var password by remember{mutableStateOf("")}
@@ -122,7 +122,7 @@ import kotlinx.coroutines.launch
     AuthPanel("Seus dados anteriores") {
         Text("Vincular os registros deste aparelho à conta ${user.email}?")
         Text("Você confirmará o bloqueio do Android e salvará um backup protegido antes de vincular.")
-        OutlinedTextField(password,{password=it},label={Text("Senha do backup (12 ou mais caracteres)")},visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth(),enabled=!busy)
+        OutlinedTextField(password,{password=it},label={Text("Senha do backup")},supportingText={Text("12 ou mais caracteres")},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),visualTransformation=PasswordVisualTransformation(),modifier=Modifier.fillMaxWidth().testTag("auth-claim-password"),enabled=!busy)
         if(message.isNotBlank())Text(message)
         if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
         Button(enabled=!busy&&password.length>=12,onClick={

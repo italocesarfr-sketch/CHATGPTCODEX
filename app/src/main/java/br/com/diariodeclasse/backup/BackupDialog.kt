@@ -42,7 +42,7 @@ import java.time.LocalDate
             Column(Modifier.fillMaxWidth().heightIn(max = 700.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
                 Text("Backup e restauração", style = MaterialTheme.typography.titleLarge)
                 Text("Guarde o arquivo em um local protegido. Ele contém dados dos alunos.")
-                OutlinedTextField(password,{password=it},label={Text("Senha do backup")},visualTransformation=androidx.compose.ui.text.input.PasswordVisualTransformation(),singleLine=true,enabled=enabled,modifier=Modifier.fillMaxWidth().testTag("backup-password"))
+                OutlinedTextField(password,{password=it},label={Text("Senha do backup")},keyboardOptions=androidx.compose.foundation.text.KeyboardOptions(keyboardType=androidx.compose.ui.text.input.KeyboardType.Password),visualTransformation=androidx.compose.ui.text.input.PasswordVisualTransformation(),singleLine=true,enabled=enabled,modifier=Modifier.fillMaxWidth().testTag("backup-password"))
                 Text("Use 12 ou mais caracteres para criar um backup. Guarde a senha: ela será necessária para restaurar.")
                 if (!ready || state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (state.message.isNotBlank() && !state.exportSucceeded) Text(state.message, Modifier.testTag("backup-message"))

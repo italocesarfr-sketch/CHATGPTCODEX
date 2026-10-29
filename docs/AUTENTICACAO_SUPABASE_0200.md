@@ -210,3 +210,20 @@ sessão que expira antes do próximo tick: sem leitura/exportação do legado ne
 arquivo de backup criado ou titularidade gravada. A geração de cada tentativa de
 login também é capturada antes da espera pelo mutex, protegendo a ordem entre
 credenciais novas, logout e respostas atrasadas de threads diferentes.
+
+### Captura do menu e verificação da vinculação compacta
+
+Na rodada [40810164185](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40810164185),
+as sondas legadas, os 12 casos focados de autenticação e a regressão de correções
+passaram. A suíte comum teve uma falha na captura do novo teste de saída: `onRoot()`
+era ambíguo entre a janela principal e o popup. A captura passou a selecionar
+explicitamente `isPopup()` quando presente, preservando os passos e asserções de
+logout/reentrada. Os cinco testes de entrada/saída passaram a integrar o grupo
+inicial, para falhar cedo sem executar a regressão longa inutilmente.
+
+A vinculação recebeu também conferência de layout em 320 dp e fontes nativas,
+inclusive o bloqueio real do Android quando não há PIN configurado. Essa checagem
+não substitui a validação física positiva da credencial e do seletor de arquivos.
+Os campos de senha de backup usam teclado de senha e não oferecem sugestões de
+texto. O rótulo da vinculação foi encurtado, com a regra de 12 caracteres em ajuda
+curta, preservando leitura com fonte ampliada.

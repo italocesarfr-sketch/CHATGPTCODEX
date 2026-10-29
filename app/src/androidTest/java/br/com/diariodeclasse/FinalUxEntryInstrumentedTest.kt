@@ -33,7 +33,8 @@ class FinalUxEntryInstrumentedTest {
     private fun tag(v:String)=compose.onNodeWithTag(v)
     private fun shot(name:String) {
         val folder=File(app.filesDir,"ux14-screenshots");folder.mkdirs()
-        File(folder,"$name.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
+        val root=if(compose.onAllNodes(isPopup()).fetchSemanticsNodes().isNotEmpty())compose.onNode(isPopup())else compose.onRoot()
+        File(folder,"$name.png").outputStream().use{root.captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     private fun hideKeyboard() {compose.activityRule.scenario.onActivity{a->(a.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(a.window.decorView.windowToken,0)}}
     private fun entered() {tag("entry-email").performScrollTo().performTextReplacement(fixtureUser.email);tag("entry-password").performScrollTo().performTextReplacement("Fixture-Password-2026");tag("entry-enter").performScrollTo().performClick();compose.waitUntil(10000){compose.onAllNodesWithTag("nav-0").fetchSemanticsNodes().isNotEmpty()}}
