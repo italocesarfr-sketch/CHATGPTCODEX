@@ -138,7 +138,7 @@ XLSX/CSV/TSV com leitores independentes; e atualização sobre o APK **original
 Os testes de UI/isolamento usam clientes injetados exclusivamente na instrumentação;
 não são alegados como prova do backend real. O teste JVM online é opt-in, executado
 separadamente com arquivo privado e nunca com senha em variáveis de build ou APK.
-A suíte local executou 204 casos: 203 aprovados e o teste online opt-in ignorado.
+A suíte local executou 205 casos: 204 aprovados e o teste online opt-in ignorado.
 O opt-in foi executado separadamente e passou com o cliente real; resultado
 sanitarizado em `evidencias/auth-0200/kotlin-live-result.json`. Um leitor Python
 independente validou decifragem do contêiner, senhas ASCII/Unicode, preservação do
@@ -200,3 +200,13 @@ instalar a composição. A preparação passou a instalar a composição e usar
 da fixture completos. O prazo e todas as asserções da correção foram mantidos.
 A sonda legada foi antecipada no CI para diagnosticar seu runner antes da regressão
 longa; somente sua fixture descartável é limpa antes dos testes independentes.
+
+### Revalidação no acesso ao legado
+
+A consulta/criação do espaço e a vinculação verificam `canUse` imediatamente, não
+apenas a presença de um usuário na interface. A gravação da titularidade revalida
+o mesmo direito dentro da operação serializada. JVM e instrumentação cobrem a
+sessão que expira antes do próximo tick: sem leitura/exportação do legado nem
+arquivo de backup criado ou titularidade gravada. A geração de cada tentativa de
+login também é capturada antes da espera pelo mutex, protegendo a ordem entre
+credenciais novas, logout e respostas atrasadas de threads diferentes.

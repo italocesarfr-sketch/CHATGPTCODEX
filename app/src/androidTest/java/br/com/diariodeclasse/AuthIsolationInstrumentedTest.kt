@@ -43,6 +43,7 @@ class AuthIsolationInstrumentedTest {
     private val other=AuthUser("22222222-2222-4222-8222-222222222222","other@example.invalid",true,"Outra Conta Fictícia")
     private lateinit var before:BackupSnapshot
     private val phrase="Backup-Ficticio-Protegido-2026".toCharArray()
+    private var clockOffset=0L
     @Before fun seed():Unit=runBlocking {
         base=AuthSandbox(ApplicationProvider.getApplicationContext())
         val db=DiaryDatabase.open(base,base.getDatabasePath("diario.db").absolutePath)
@@ -65,7 +66,7 @@ class AuthIsolationInstrumentedTest {
             val selection=LocalSelectionStore(base).apply{write(AppSelection(2026,target.id))}
             before=BackupManager(db,FileSafetyBackupStore(File(base.filesDir,"safety-backups")),38,null,selection).snapshot()
         } finally{db.close()}
-        client=PrincipalTestClient(owner);vault=IsolationVault();auth=AuthController(client,vault);auth.restore();manager=AccountWorkspaces(base,auth)
+        client=PrincipalTestClient(owner);vault=IsolationVault();auth=AuthController(client,vault){System.currentTimeMillis()+clockOffset};auth.restore();manager=AccountWorkspaces(base,auth)
     }
     @After fun cleanup():Unit=runBlocking {if(::manager.isInitialized)manager.lock();if(::base.isInitialized)base.root.deleteRecursively();Unit}
     private suspend fun login(who:AuthUser){client.principal=who;auth.login(who.email,"Senha-ficticia-2026")}
@@ -116,6 +117,13 @@ class AuthIsolationInstrumentedTest {
         assertNull(vault.value.legacyOwner)
         assertThrows(IllegalArgumentException::class.java){runBlocking{manager.activate(owner.copy(confirmed=false))}}
         login(owner);claim();assertEquals(before,manager.activate(owner).backup.snapshot())
+    }
+    @Test fun expiredAdmissionCannotReadOrExportUnclaimedAcademicData():Unit=runBlocking {
+        login(owner);clockOffset=AuthPolicy.OFFLINE_MILLIS+1000
+        val file=File(base.cacheDir,"before-link.json")
+        assertThrows(IllegalStateException::class.java){runBlocking{claim()}}
+        assertFalse(file.exists());assertNull(vault.value.legacyOwner)
+        clockOffset=0;claim();assertEquals(before,manager.activate(owner).backup.snapshot())
     }
     @Test fun keystoreEncryptsTokensAndKeepsOwnershipAfterLogoutAndProcessStyleRecreation():Unit=runBlocking {
         val protected=KeystoreAuthVault(base)

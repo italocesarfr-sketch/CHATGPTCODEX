@@ -14,8 +14,7 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
     private val mutex=Mutex()
     private val epoch=java.util.concurrent.atomic.AtomicLong()
     private var operationEpoch=0L
-    private suspend fun serialized(block:suspend()->Unit) {
-        val requested=epoch.get()
+    private suspend fun serialized(requested:Long=epoch.get(),block:suspend()->Unit) {
         mutex.withLock { if(requested!=epoch.get())return@withLock;operationEpoch=requested;block() }
     }
     private fun mutate(block:()->Unit):Boolean=synchronized(epoch){if(operationEpoch!=epoch.get())false else{block();true}}
@@ -58,18 +57,19 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
         } catch(e:CancellationException){throw e}
         catch(_:Exception){publish(AuthState(false,message="Não foi possível abrir a proteção local. Os registros foram preservados.",storageFailure=true))}
     }
-    private suspend fun action(block:suspend()->Unit)=serialized {
+    private suspend fun action(requested:Long=epoch.get(),block:suspend()->Unit)=serialized(requested) {
         publish(mutable.value.copy(loading=true,message=""))
         try {block()} catch(e:CancellationException){throw e}
         catch(e:Exception){publish(mutable.value.copy(loading=false,message=when(e){is AuthFailure->e.message.orEmpty();else->"Não foi possível concluir. Os dados foram preservados."}))}
     }
     suspend fun login(email:String,password:String) {
-        synchronized(epoch) {
-            epoch.incrementAndGet() // Explicit credentials supersede a delayed automatic restore of another account.
+        val requested=synchronized(epoch) {
+            val request=epoch.incrementAndGet() // Bind this exact credential request, even if another thread logs out before it acquires the mutex.
             try {vault.clearSession();recoverySession=null;mutable.value=AuthState(loading=true)}
             catch(_:Exception){mutable.value=AuthState(false,message="Não foi possível abrir a proteção local.",storageFailure=true);return}
+            request
         }
-        action {
+        action(requested) {
             AuthPolicy.credentials(email.trim(),password)
             val session=client.login(email.trim(),password);session.user.validate()
             store(secrets().copy(session=session));publish(AuthState(false,session.user))
@@ -123,7 +123,7 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
     fun legacyOwner():String?=secrets().legacyOwner
     suspend fun bindLegacy(user:AuthUser)=serialized {
         user.validate();require(user.id==AuthConfig.LEGACY_OWNER_ID) {"Esta conta não está autorizada a vincular os dados anteriores."}
-        check(mutable.value.user?.id==user.id)
+        check(canUse(user.id)){"Revalide a sessão antes de vincular os dados anteriores."}
         val owner=secrets().legacyOwner;require(owner==null||owner==user.id)
         check(mutate{vault.bindOwner(user.id)})
         publish(mutable.value.copy(message="Dados anteriores vinculados à sua conta."))

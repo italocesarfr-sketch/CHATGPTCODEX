@@ -129,4 +129,15 @@ class AuthSecurityTest {
         assertFalse(AuthPolicy.offlineAllowed(session().copy(lastSeen=instant+120000),instant))
         assertFalse(AuthPolicy.offlineAllowed(session(),instant+AuthPolicy.OFFLINE_MILLIS))
     }
+    @Test fun expiredAdmissionCannotPersistLegacyOwnershipEvenBeforeTheNextPeriodicTick():Unit=runBlocking {
+        val owner=user.copy(id=AuthConfig.LEGACY_OWNER_ID)
+        val vault=Vault(AuthSecrets(session=session().copy(user=owner)))
+        var current=instant
+        val auth=AuthController(Client(),vault){current};auth.restore()
+        assertEquals(owner,auth.state.value.user)
+        current+=AuthPolicy.OFFLINE_MILLIS
+        assertFalse(auth.canUse(owner.id))
+        assertThrows(IllegalStateException::class.java){runBlocking{auth.bindLegacy(owner)}}
+        assertNull(vault.value.legacyOwner)
+    }
 }

@@ -39,7 +39,7 @@ class AccountWorkspaces(private val base:Context,private val auth:AuthController
     fun hasLegacy()=base.getDatabasePath("diario.db").exists()
     fun needsClaim(user:AuthUser)=hasLegacy()&&auth.legacyOwner()==null&&user.id==AuthConfig.LEGACY_OWNER_ID
     suspend fun activate(user:AuthUser)=mutex.withLock {
-        user.validate();check(auth.state.value.user?.id==user.id)
+        user.validate();check(auth.canUse(user.id)){"Revalide a sessão antes de abrir os registros."}
         check(!needsClaim(user)){"Confirme a vinculação dos dados anteriores."}
         if(active?.user?.id!=user.id){active?.shutdown();active=AccountWorkspace(base,user,auth.legacyOwner()==user.id)}
         current()
@@ -47,7 +47,7 @@ class AccountWorkspaces(private val base:Context,private val auth:AuthController
     suspend fun lock()=mutex.withLock{active?.shutdown();active=null;withContext(Dispatchers.Main.immediate){AccountClipboard.clear(base)}}
     /** Called only after the system credential result and explicit owner/backup consent. No row is reassigned. */
     suspend fun claim(user:AuthUser,backupUri:Uri,password:CharArray)=mutex.withLock {
-        check(auth.state.value.user?.id==user.id&&needsClaim(user))
+        check(auth.canUse(user.id)&&needsClaim(user))
         check(user.id==AuthConfig.LEGACY_OWNER_ID)
         withContext(Dispatchers.IO) {
             val old=AccountWorkspace(base,user,true)
