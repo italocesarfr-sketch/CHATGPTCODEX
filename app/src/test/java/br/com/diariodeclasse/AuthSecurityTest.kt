@@ -111,6 +111,12 @@ class AuthSecurityTest {
         val original="FJ • Atestado médico\nHistórico legítimo com nota 0 e pendente".toByteArray()
         val password="Senha-backup-ficticia-2026".toCharArray()
         val sealed=AccountBackup.seal(original,user.id,password)
+        // Public synthetic interoperability fixture; no real credential or school record.
+        java.io.File("build/auth-backup-validation").apply{mkdirs()}.let { folder ->
+            java.io.File(folder,"synthetic.noctua").writeBytes(sealed)
+            java.io.File(folder,"expected.txt").writeBytes(original)
+            java.io.File(folder,"unicode-password.noctua").writeBytes(AccountBackup.seal(original,user.id,"Senha-fictícia-ç-2026".toCharArray()))
+        }
         assertTrue(AccountBackup.protected(sealed));assertFalse(sealed.toString(Charsets.UTF_8).contains("Histórico"))
         assertArrayEquals(original,AccountBackup.open(sealed,user.id,password))
         assertThrows(AuthFailure::class.java){AccountBackup.open(sealed,"22222222-2222-4222-8222-222222222222",password)}

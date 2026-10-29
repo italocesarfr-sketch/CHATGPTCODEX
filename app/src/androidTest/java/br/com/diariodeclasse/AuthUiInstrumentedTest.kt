@@ -75,12 +75,14 @@ class AuthUiInstrumentedTest {
         }
     }
     @Test fun aValidRecoveryCodeOnlyOpensPasswordResetAndRequiresLoginAfterSaving():Unit=runBlocking {
-        auth.recover("professor@example.invalid")
+        tag("entry-forgot").performScrollTo().performClick()
+        type("entry-email","professor@example.invalid");submit()
         val link=vault.value.pending!!;auth.callback("${link.redirect}&code=code-ficticio-valido")
         compose.waitUntil(5000){auth.state.value.recovery}
         tag("entry-email").assertDoesNotExist();tag("auth-confirm-password").assertExists();assertNull(auth.state.value.user)
         shot("nova-senha")
         type("entry-password","Nova-senha-ficticia-2026");type("auth-confirm-password","Nova-senha-ficticia-2026");submit()
         assertEquals(1,passwords);assertFalse(auth.state.value.recovery);assertNull(vault.value.session);tag("entry-email").assertExists()
+        compose.onNodeWithText("Entrar").assertExists();compose.onNodeWithText("Enviar recuperação").assertDoesNotExist()
     }
 }

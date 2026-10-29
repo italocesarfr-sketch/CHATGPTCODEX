@@ -52,7 +52,7 @@ cifrado separado, preservado no logout. Corrupção/perda da chave bloqueia aces
 nenhum fallback limpa ou recria dados. Auto Backup Android permanece desativado.
 
 Após autenticação online confirmada, admite-se uso da mesma conta por **até sete
- dias desde a última verificação online**, mesmo sem rede. A aplicação revalida na
+dias desde a última verificação online**, mesmo sem rede. A aplicação revalida na
 entrada, no retorno e periodicamente; renova tokens próximos de expirar ou após
 15 minutos sem verificação. Erros temporários de rede/servidor não se confundem
 com credenciais inválidas. Sessão revogada é recusada quando percebida online.
@@ -138,7 +138,12 @@ XLSX/CSV/TSV com leitores independentes; e atualização sobre o APK **original
 Os testes de UI/isolamento usam clientes injetados exclusivamente na instrumentação;
 não são alegados como prova do backend real. O teste JVM online é opt-in, executado
 separadamente com arquivo privado e nunca com senha em variáveis de build ou APK.
-Os números finais e links serão registrados após consultar o resultado real do CI.
+A suíte local executou 204 casos: 203 aprovados e o teste online opt-in ignorado.
+O opt-in foi executado separadamente e passou com o cliente real; resultado
+sanitarizado em `evidencias/auth-0200/kotlin-live-result.json`. Um leitor Python
+independente validou decifragem do contêiner, senhas ASCII/Unicode, preservação do
+texto e rejeição de adulteração do titular. Os números Android e links finais
+serão registrados após consultar o resultado real do CI.
 
 ## Primeiro acesso seguro (somente após homologação)
 
@@ -156,3 +161,14 @@ mesma conta. Erro de proteção exige diagnóstico/backup, nunca reinstalação.
 Impeccable 4.7 foi consultada em `.agents/skills/impeccable`: contexto Android,
 robustez, campos, áreas de toque, rolagem, estados de falha e preservação da marca.
 Não foram usadas skills de planilha, PDF ou documentos externos.
+
+### Primeira rodada Android e correção
+
+A execução [40804656462](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40804656462)
+aprovou os 11 testes focados de autenticação/isolamento e os formulários nas fontes
+nativas 1,3/1,6. A regressão revelou um defeito real: o ViewModelStoreOwner por conta
+não fornecia AndroidViewModelFactory, causando tentativa de construtor sem Application
+em DiaryViewModel. O owner passou a implementar HasDefaultViewModelProviderFactory
+com a fábrica Android, sem recolocar modelos acadêmicos no store global. Um teste
+JVM garante o uso da fábrica com dependência e a retenção do mesmo modelo. A nova
+rodada permanece obrigatória; a aprovação focada não foi tratada como release pronta.

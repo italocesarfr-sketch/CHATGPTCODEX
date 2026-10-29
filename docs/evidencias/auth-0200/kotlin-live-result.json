@@ -1,0 +1,17 @@
+{
+  "client": "SupabaseAuthClient / GoTrue HTTPS",
+  "tests": 1,
+  "passed": 1,
+  "skipped": 0,
+  "steps": [
+    "password login",
+    "server-verified confirmed identity",
+    "refresh",
+    "incorrect password rejected",
+    "logout",
+    "revoked refresh rejected"
+  ],
+  "xmlTimestamp": "2026-10-29T02:09:31",
+  "sourceCommit": "455870e3781a5952b2f2b3cd3e817b7c87f6c43e",
+  "scope": "Authorized test account; no academic data; excludes Android PKCE recovery end-to-end"
+}

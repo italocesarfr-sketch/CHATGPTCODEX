@@ -51,7 +51,7 @@ import kotlinx.coroutines.launch
         claimRequired -> LegacyClaim(app,user){ workspace=app.workspaces.activate(user) }
         failure.isNotEmpty() -> AuthPanel("Acesso indisponível"){Text(failure);TextButton(onClick={app.authScope.launch{app.auth.logout()}}){Text("Sair da conta")}}
         workspace?.user?.id==user.id && app.auth.canUse(user.id) -> key(user.id) {
-            val owner=containers.owner(user.id)
+            val owner=containers.owner(user.id,androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.getInstance(app))
             CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 val model:DiaryViewModel=viewModel()
                 DiaryApp(model)
@@ -78,8 +78,9 @@ import kotlinx.coroutines.launch
     var visible by remember{mutableStateOf(false)}
     val localScope=rememberCoroutineScope()
     val scope=(LocalContext.current.applicationContext as? DiaryApplication)?.authScope ?: localScope
+    LaunchedEffect(state.recovery){if(state.recovery)mode="login"}
     val current=if(state.recovery)"reset"else mode
-    fun back(){password="";confirmation="";mode="login";if(state.recovery)scope.launch{auth.logout()}}
+    fun back(){password="";confirmation="";visible=false;mode="login";if(state.recovery)scope.launch{auth.logout()}}
     androidx.activity.compose.BackHandler(current!="login"&&!state.loading){back()}
     fun submit() { val p=password;val c=confirmation;password="";confirmation="";scope.launch{
         when(current){"signup"->auth.signup(name,email,p,c);"forgot"->auth.recover(email);"reset"->auth.newPassword(p,c);else->auth.login(email,p)}
@@ -96,8 +97,8 @@ import kotlinx.coroutines.launch
         if(state.loading)LinearProgressIndicator(Modifier.fillMaxWidth())
         Button(onClick=::submit,enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-enter")) {Text(when(current){"signup"->"Criar conta";"forgot"->"Enviar recuperação";"reset"->"Salvar nova senha";else->"Entrar"})}
         if(current=="login") {
-            OutlinedButton(onClick={mode="signup"},enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-create")){Text("Criar conta")}
-            TextButton(onClick={mode="forgot"},enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-forgot")){Text("Esqueci minha senha")}
+            OutlinedButton(onClick={password="";confirmation="";visible=false;mode="signup"},enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-create")){Text("Criar conta")}
+            TextButton(onClick={password="";confirmation="";visible=false;mode="forgot"},enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-forgot")){Text("Esqueci minha senha")}
         } else TextButton(onClick=::back,enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("Voltar para entrar")}
     }
 }

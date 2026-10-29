@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
         val app=application as DiaryApplication
         val user=requireNotNull(app.auth.state.value.user)
         check(app.auth.canUse(user.id));app.workspaces.current()
-        return androidx.lifecycle.ViewModelProvider(this)[br.com.diariodeclasse.auth.AccountViewModels::class.java].owner(user.id)
+        return androidx.lifecycle.ViewModelProvider(this)[br.com.diariodeclasse.auth.AccountViewModels::class.java].owner(user.id,androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.getInstance(app))
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

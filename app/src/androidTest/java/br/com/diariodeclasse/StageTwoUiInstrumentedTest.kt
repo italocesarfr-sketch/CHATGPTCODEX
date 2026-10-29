@@ -140,9 +140,10 @@ class StageTwoUiInstrumentedTest {
         compose.waitUntil(5000) { runBlocking { app.repository.dao.schoolClass(a.id)?.name=="Turma Fictícia Editada UI" } }
         assertEquals(precise.copy(name="Turma Fictícia Editada UI"),app.repository.dao.schoolClass(a.id))
     }
-    @Test fun noNetworkCameraOrPhotoAccessIsRequested() {
+    @Test fun authUsesInternetWithoutCameraPhotoOrPublicStorageAccess() {
         val permissions = app.packageManager.getPackageInfo(app.packageName,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions.orEmpty().toSet()
-        assertFalse("android.permission.INTERNET" in permissions)
+        assertTrue("android.permission.INTERNET" in permissions)
+        assertEquals(0,app.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_USES_CLEARTEXT_TRAFFIC)
         assertFalse("android.permission.CAMERA" in permissions)
         assertFalse("android.permission.READ_MEDIA_IMAGES" in permissions)
         assertFalse("android.permission.READ_EXTERNAL_STORAGE" in permissions)

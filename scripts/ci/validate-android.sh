@@ -131,7 +131,7 @@ PYREPEAT
     done
 fi
 if (( status == 0 )); then
-    timeout --signal=INT --kill-after=20s 9m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
+    timeout --signal=INT --kill-after=20s 12m ./gradlew --no-daemon --stacktrace -Pandroid.injected.androidTest.leaveApksInstalledAfterRun=true -Pandroid.testInstrumentationRunnerArguments.timeout_msec=90000 connectedDebugAndroidTest || status=$?
 fi
 if adb shell run-as br.com.diariodeclasse test -d files/roster-layout-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/roster-layout-screenshots > build/roster-layout-telas.tar

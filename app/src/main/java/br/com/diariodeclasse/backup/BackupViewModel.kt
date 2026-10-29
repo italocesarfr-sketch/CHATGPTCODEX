@@ -13,6 +13,7 @@ data class BackupUiState(val busy: Boolean = false, val message: String = "", va
 class BackupViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as DiaryApplication
     private val manager = app.backupManager
+    private val commands = app.commands
     private val owner = app.workspace.user.id
     private val legacy = owner == br.com.diariodeclasse.auth.AuthConfig.LEGACY_OWNER_ID
     private val _state = MutableStateFlow(BackupUiState(hasSafetyCopy = manager.hasSafetyCopy()))
@@ -60,7 +61,7 @@ class BackupViewModel(application: Application) : AndroidViewModel(application) 
         val prepared = _state.value.prepared ?: return
         operation {
             val result = manager.restore(prepared, confirmation)
-            withContext(Dispatchers.Main) { app.commands.clearFailuresAfterRestore() }
+            withContext(Dispatchers.Main) { commands.clearFailuresAfterRestore() }
             BackupUiState(message = "Restauração concluída. Uma cópia dos dados anteriores está disponível para exportar. ${result.warning}", hasSafetyCopy = manager.hasSafetyCopy())
         }
     }
