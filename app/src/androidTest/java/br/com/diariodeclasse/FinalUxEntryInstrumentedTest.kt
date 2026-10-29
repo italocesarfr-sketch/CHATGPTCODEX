@@ -87,6 +87,19 @@ class FinalUxEntryInstrumentedTest {
         tag("entry-password").assertDoesNotExist()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
+    @Test fun logoutFromTheAccountMenuClosesAcademicAccessAndReentryKeepsTheSameSchoolData() {
+        val before=runBlocking{app.backupManager.snapshot()}
+        entered();tag("auth-account").performClick()
+        compose.onNodeWithText(fixtureUser.email).assertIsDisplayed()
+        shot("05-conta-autenticada")
+        tag("auth-logout").performClick()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("entry-enter").fetchSemanticsNodes().isNotEmpty()}
+        tag("nav-0").assertDoesNotExist();assertNull(app.auth.state.value.user)
+        assertThrows(IllegalStateException::class.java){app.workspaces.current()}
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        entered();assertEquals(before,runBlocking{app.backupManager.snapshot()})
+        assertEquals(AppSelection(2025,c.id),app.selectionStore.read())
+    }
     @Test fun backFromMainFinishesWithoutReturningToLoginAndPreservesSelection() {
         entered()
         InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()

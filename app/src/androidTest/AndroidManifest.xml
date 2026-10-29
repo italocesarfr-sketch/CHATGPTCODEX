@@ -1,4 +1,0 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Old APK seed phases use the standard runner, without loading a new Application subclass. -->
-    <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner" android:targetPackage="br.com.diariodeclasse" />
-</manifest>

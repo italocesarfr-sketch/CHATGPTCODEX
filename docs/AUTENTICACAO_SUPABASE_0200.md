@@ -172,3 +172,20 @@ em DiaryViewModel. O owner passou a implementar HasDefaultViewModelProviderFacto
 com a fábrica Android, sem recolocar modelos acadêmicos no store global. Um teste
 JVM garante o uso da fábrica com dependência e a retenção do mesmo modelo. A nova
 rodada permanece obrigatória; a aprovação focada não foi tratada como release pronta.
+
+### Segunda rodada
+
+A execução [40805762247](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40805762247)
+aprovou **203 JVM**, com um teste online opt-in ignorado, e **319 Android**, com
+seis sondas condicionais ignoradas na suíte comum. Também passaram fontes 1,3/1,6,
+exportações por leitor independente e escrita/leitura da sessão cifrada com
+reinício real do emulador. Não foi publicada release: a sonda de atualização
+legada parou porque AGP gera somente o runner configurado, sem o segundo componente
+AndroidJUnitRunner tentado no manifesto da instrumentação.
+
+O runner exclusivo de testes agora reconhece a API da Application do APK hospedeiro:
+usa a Application original na semente antiga e injeta o cliente fictício somente
+no APK novo. Não carrega a subclasse de testes contra a classe final antiga.
+As asserções de atualização continuam idênticas; o aplicativo de produção não
+contém esse runner. Uma verificação adicional percorre Sair pelo menu real e a
+reentrada, exigindo snapshot escolar e seleção preservados.

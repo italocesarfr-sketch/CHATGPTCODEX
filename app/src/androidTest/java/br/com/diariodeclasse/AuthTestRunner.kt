@@ -8,8 +8,12 @@ import kotlinx.coroutines.runBlocking
 
 /** This class exists only in the separate instrumentation APK, never in the app APK. */
 class AuthTestRunner:AndroidJUnitRunner() {
-    override fun newApplication(cl:ClassLoader,name:String,context:Context):Application =
-        super.newApplication(cl,AcademicTestApplication::class.java.name,context)
+    override fun newApplication(cl:ClassLoader,name:String,context:Context):Application {
+        // AGP emits one instrumentation component. Legacy seed APKs have a final
+        // DiaryApplication without auth; never load its new test subclass there.
+        val hasAuth=cl.loadClass(name).methods.any{it.name=="getAuth"}
+        return super.newApplication(cl,if(hasAuth)"br.com.diariodeclasse.AcademicTestApplication"else name,context)
+    }
 }
 class AcademicTestVault:AuthVault {
     var value=AuthSecrets(session=fixtureSession(),legacyOwner=fixtureUser.id)

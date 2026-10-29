@@ -12,7 +12,7 @@ NEW=app/build/outputs/apk/release/app-release.apk
 python3 scripts/check-apk-update.py "$OLD" "$NEW" --build-tools "$ANDROID_HOME/build-tools/35.0.0" > build/stable-upgrade/compatibilidade.txt
 adb install "$OLD"
 adb install -t "$RUNNER_TEMP/stable-instrumentation.apk"
-RUNNER=androidx.test.runner.AndroidJUnitRunner
+RUNNER=br.com.diariodeclasse.AuthTestRunner
 probe() {
     adb shell am instrument -w -e stableUpgradePhase "$1" -e class br.com.diariodeclasse.StableUpgradeProbeTest br.com.diariodeclasse.test/"$RUNNER" > "build/stable-upgrade/$2.txt"
     python3 - "build/stable-upgrade/$2.txt" <<'PY'
@@ -26,7 +26,6 @@ PY
 probe seed before
 adb shell am force-stop br.com.diariodeclasse
 adb install -r "$NEW"
-RUNNER=br.com.diariodeclasse.AuthTestRunner
 probe check after
 probe restore backup
 adb shell am force-stop br.com.diariodeclasse
