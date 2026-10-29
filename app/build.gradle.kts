@@ -15,9 +15,9 @@ android {
         applicationId = "br.com.diariodeclasse"
         minSdk = 26
         targetSdk = 35
-        versionCode = 37
-        versionName = "0.19.1"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        versionCode = 38
+        versionName = "0.20.0"
+        testInstrumentationRunner = "br.com.diariodeclasse.AuthTestRunner"
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions {

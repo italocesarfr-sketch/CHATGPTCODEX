@@ -149,6 +149,6 @@ abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
     abstract fun backupDao(): BackupDao
     companion object {
-        fun open(context: Context): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, "diario.db").addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10).build()
+        fun open(context: Context, name: String = "diario.db"): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10).build()
     }
 }

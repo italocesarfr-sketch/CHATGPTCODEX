@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /** Fila do processo: recriar Activity/ViewModel não cancela gravações já solicitadas.
  * Apenas o commit Room é durável; encerramento do processo antes dele não é prometido. */
 class DiaryCommands {
+    private var accepting = true
     private data class Command(val action: suspend () -> Unit, val done: (() -> Unit)?, val clear: Boolean, val context: String, val key: String)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val queue = Channel<Command>(Channel.UNLIMITED)
@@ -59,6 +60,7 @@ class DiaryCommands {
         }
     }
     fun act(done: (() -> Unit)? = null, clearError: Boolean = true, context: String = "", key: String = java.util.UUID.randomUUID().toString(), action: suspend () -> Unit) {
+        check(accepting) { "A sessão foi encerrada. Entre novamente." }
         pending.incrementAndGet(); _saving.value = true
         check(queue.trySend(Command(action, done, clearError, context, key)).isSuccess)
     }
@@ -70,5 +72,14 @@ class DiaryCommands {
         val completed = CompletableDeferred<Unit>()
         act(done = { completed.complete(Unit) }, clearError = false) {}
         completed.await()
+    }
+    suspend fun finish() {
+        if (!accepting) return
+        val completed = CompletableDeferred<Unit>()
+        accepting = false
+        pending.incrementAndGet(); _saving.value = true
+        queue.send(Command({}, { completed.complete(Unit) }, false, "", "logout-barrier"))
+        completed.await()
+        failed = null; failedAttendance.clear(); queue.close(); scope.cancel()
     }
 }

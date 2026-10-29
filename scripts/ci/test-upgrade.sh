@@ -17,8 +17,9 @@ python3 scripts/create-fixture-v1.py --database build/synthetic-v1.db
 adb push build/synthetic-v1.db /data/local/tmp/diario-synthetic-v1.db >/dev/null
 adb shell run-as br.com.diariodeclasse mkdir -p databases
 adb shell run-as br.com.diariodeclasse sh -c '"cat /data/local/tmp/diario-synthetic-v1.db > databases/diario.db"'
+RUNNER=androidx.test.runner.AndroidJUnitRunner
 probe() {
-    adb shell am instrument -w -e upgradeProbe true -e class br.com.diariodeclasse.UpgradeProbeTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "$1"
+    adb shell am instrument -w -e upgradeProbe true -e class br.com.diariodeclasse.UpgradeProbeTest br.com.diariodeclasse.test/"$RUNNER" > "$1"
     cat "$1"
     python3 - "$1" <<'PYTEST'
 import sys
@@ -29,6 +30,7 @@ PYTEST
 probe build/upgrade-before.txt
 python3 scripts/rescue-debug-data.py --serial "$DEVICE" --output build/synthetic-rescue
 adb install -r "$NEW"
+RUNNER=br.com.diariodeclasse.AuthTestRunner
 probe build/upgrade-after.txt
 # Compara a cópia recuperada com a fixture, sem publicar o banco binário.
 python3 - <<'PY'

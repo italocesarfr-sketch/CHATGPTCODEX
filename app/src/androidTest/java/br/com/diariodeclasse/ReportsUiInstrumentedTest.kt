@@ -201,7 +201,7 @@ class ReportsUiInstrumentedTest {
             app.repository.saveRecomposition(Recomposition(a.id,2,2.0,"2026-11-20"))
             app.repository.saveRecomposition(Recomposition(a.id,3,6.0,"2026-11-20"))
         }
-        val model=androidx.lifecycle.ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val model=androidx.lifecycle.ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000) {model.data.value.activities.any{it.id==q4.id} && model.data.value.recompositions.count{it.studentId==a.id}==3 && model.data.value.grades.any{it.activityId==q2.id && it.studentId==a.id && it.value==3.0}}
         compose.waitForIdle()
         row(a);compose.onNodeWithText("1. ${a.name}").performClick();waitText("Original das atividades: 0,00")

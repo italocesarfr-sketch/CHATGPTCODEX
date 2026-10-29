@@ -36,7 +36,7 @@ class ExportLifecycleUiInstrumentedTest {
         app.repository.setDayHours(c.id,"2026-08-10",2);app.repository.mark("${c.id}:2026-08-10:1",a.id,"P");app.repository.mark("${c.id}:2026-08-10:2",a.id,"FJ")
         app.repository.saveExportLayout(c.id,emptyList(),listOf(ExportLayout.studentRow(a,0),ExportLayout.studentRow(b,1).copy(manualHidden=true),ExportRow("blank:ui52",c.id,null,2)))
         app.selectionStore.write(AppSelection(2026,c.id));waitTag("class-selector")
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.selection.value?.classId==c.id&&vm.data.value.exportRows.any{it.classId==c.id}}
     }
     @After fun cleanup()=runBlocking {
@@ -73,7 +73,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-show-preview").performScrollTo().performClick();compose.onNodeWithTag("export-preview-0").assertIsDisplayed();shot("01-notas-previa")
         compose.onNodeWithTag("export-preview-close").performClick()
         compose.onNodeWithTag("export-copy").assertIsDisplayed().performClick()
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         val table=ExportProjection.build(vm.data.value,c,ExportOptions(term=3))
         assertEquals(SpreadsheetWriter.clipboard(table),clip());assertFalse(clip().contains(b.name));assertTrue(clip().contains(a.name))
         waitText("Dados copiados.")
@@ -130,7 +130,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         compose.onNodeWithText("Exportar TSV").assertIsDisplayed()
         compose.onNodeWithTag("export-copy").performClick()
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         val expected=ExportProjection.build(vm.data.value,c,ExportOptions(term=3,headers=false,callNumber=false))
         assertEquals(SpreadsheetWriter.clipboard(expected,true,true),clip())
         choose("Notas","Frequência");compose.onNodeWithText("Exportar XLSX").assertIsDisplayed()
@@ -205,7 +205,7 @@ class ExportLifecycleUiInstrumentedTest {
         waitTag("archived-${c.id}");compose.onNodeWithTag("archived-${c.id}").performClick();waitTag("archive-class")
     }
     private fun waitFinished() {
-        compose.waitUntil(10000){!ViewModelProvider(compose.activity)[DiaryViewModel::class.java].saving.value && compose.onAllNodesWithTag("archive-class").fetchSemanticsNodes().isEmpty()}
+        compose.waitUntil(10000){!ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java].saving.value && compose.onAllNodesWithTag("archive-class").fetchSemanticsNodes().isEmpty()}
     }
     private fun confirmDeletion() {
         compose.waitUntil(10000){isEnabled().matches(compose.onNodeWithTag("delete-class-confirm").fetchSemanticsNode())}
@@ -315,7 +315,7 @@ class ExportLifecycleUiInstrumentedTest {
         compose.onNodeWithTag("export-settings-done").assertIsDisplayed().performClick()
         compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 1º bimestre").assertExists()
         compose.onNodeWithTag("export-copy").performClick()
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         assertEquals(SpreadsheetWriter.clipboard(ExportProjection.build(vm.data.value,c,ExportOptions(term=1))),clip())
         compose.activityRule.scenario.recreate();waitTag("export-screen")
         compose.onNodeWithText("${c.name} • ${c.subject} • ${c.year} • 1º bimestre").assertExists()
@@ -330,7 +330,7 @@ class ExportLifecycleUiInstrumentedTest {
     @Test fun allFourTermsAndWholeYearAreRealAndScopedToEachModel() {
         runBlocking{app.repository.saveLessonRecord(LessonRecord("ui52-plan-terms",c.id,"2026-08-10","Título fictício","Descrição exata"))}
         val before=runBlocking{app.backupManager.snapshot()};openExport()
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         for(term in listOf(1,2,4,3)) {
             compose.onNodeWithTag("export-options").performScrollTo().performClick()
             val current=if(term==1)3 else if(term==2)1 else if(term==4)2 else 4

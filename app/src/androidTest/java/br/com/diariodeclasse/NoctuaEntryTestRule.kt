@@ -7,10 +7,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import org.junit.rules.ExternalResource
 
-/** Regressões existentes atravessam a entrada real, sem bypass de produção. */
+/** The separate instrumentation Application supplies a confirmed fictitious principal. */
 fun enterNoctuaRule(compose: AndroidComposeTestRule<*, MainActivity>) = object : ExternalResource() {
     override fun before() {
-        compose.onNodeWithTag("entry-enter").performScrollTo().performClick()
         compose.waitUntil(10000) { compose.onAllNodesWithTag("nav-0").fetchSemanticsNodes().isNotEmpty() }
     }
 }

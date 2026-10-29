@@ -22,7 +22,7 @@ class LessonRecordsUiInstrumentedTest {
     private val c=SchoolClass(id="ui53-c",name="Turma Fictícia Registros",subject="História",year=2026)
     private val h=c.copy(id="ui53-h",name="Turma Fictícia Destino")
     private val note=LessonRecord("ui53-record",c.id,"2026-08-12","Título fictício Áurea","Descrição livre\nAcentos, aspas \" e texto para o EducaDF.")
-    private val vm get()=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+    private val vm get()=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
     @Before fun setup()=runBlocking {
         app=compose.activity.application as DiaryApplication;previous=app.selectionStore.read()
         app.repository.saveClass(c,"2026-01-01");app.repository.saveClass(h,"2026-01-01");app.selectionStore.write(AppSelection(2026,c.id))

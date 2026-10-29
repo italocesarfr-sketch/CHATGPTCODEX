@@ -42,6 +42,8 @@ import java.io.File
 @Composable fun ExportScreen(data: DiarySnapshot, c: SchoolClass, initialTerm: Int, ready: Boolean = true,
     initialKind: SpreadsheetKind = SpreadsheetKind.NOTES, entryId: Int = 0, busyChanged: (Boolean) -> Unit) {
     val context = LocalContext.current
+    // Capture the owner at composition time: delayed IO must never use the next account's cache.
+    val account = (context.applicationContext as br.com.diariodeclasse.DiaryApplication).workspace
     val scope = rememberCoroutineScope()
     val feedback = remember { SnackbarHostState() }
     fun notify(text: String) { scope.launch { feedback.currentSnackbarData?.dismiss(); feedback.showSnackbar(text) } }
@@ -105,8 +107,8 @@ import java.io.File
             var file: File? = null
             try {
                 file = withContext(Dispatchers.IO) {
-                    if (p.share) SpreadsheetShare.prepare(context, frozen, format)
-                    else ExportFiles.prepare(File(context.cacheDir, "exports"), frozen, format)
+                    if (p.share) SpreadsheetShare.prepare(account.context, frozen, format)
+                    else ExportFiles.prepare(File(account.cache, "exports"), frozen, format)
                 }
                 if (p.share) context.startActivity(Intent.createChooser(SpreadsheetShare.intent(context, file), "Compartilhar planilha"))
                 else {
@@ -130,7 +132,7 @@ import java.io.File
             OutlinedButton(onClick = {
                 try {
                     val text = ExportPresentation.copy(requireNotNull(table), p); require(text.isNotEmpty())
-                    (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Noctua • ${c.name}", text))
+                    br.com.diariodeclasse.auth.AccountClipboard.copy(context,account.user.id,c.name,text)
                     notify(if (p.copyMode == "Dados completos") "Dados copiados." else "Somente notas copiadas.")
                 } catch (_: Exception) { error = "Não foi possível copiar os dados." }
             }, enabled = canExport, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp), modifier = actionModifier.heightIn(min = 48.dp).testTag("export-copy")) { Text("Copiar") }

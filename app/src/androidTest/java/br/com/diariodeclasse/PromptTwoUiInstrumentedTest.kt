@@ -42,7 +42,7 @@ class PromptTwoUiInstrumentedTest {
         app.repository.mark("${c.id}:2026-08-29:1",a.id,"FJ")
         app.selectionStore.write(AppSelection(2026,c.id));waitTag("class-selector")
         compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()}
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.lessons.count{it.classId==c.id}==3&&vm.data.value.grades.any{it.activityId==other.id&&it.value==7.5}&&vm.data.value.marks.any{it.studentId==a.id&&it.mark=="FJ"}}
     }
     @After fun clean()=runBlocking {

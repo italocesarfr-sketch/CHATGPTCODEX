@@ -46,7 +46,7 @@ class PostTwelveUiInstrumentedTest {
         app.repository.mark("${c.id}:2026-08-29:1",a.id,"FJ")
         app.selectionStore.write(AppSelection(2026,c.id));waitTag("class-selector")
         compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()}
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.lessons.count{it.classId==c.id}==3&&vm.data.value.grades.any{it.activityId==other.id&&it.value==7.5}&&vm.data.value.marks.any{it.studentId==a.id&&it.mark=="FJ"}}
     }
     @After fun clean()=runBlocking {
@@ -143,14 +143,14 @@ class PostTwelveUiInstrumentedTest {
         compose.onNodeWithText("Backup").performClick();waitText("Backup e restauração")
         compose.onAllNodesWithText("SHA-256",substring=true).assertCountEquals(0)
         compose.onAllNodesWithText("br.com.diariodeclasse",substring=true).assertCountEquals(0)
-        return ViewModelProvider(compose.activity)[BackupViewModel::class.java]
+        return ViewModelProvider(compose.activity.academicOwner)[BackupViewModel::class.java]
     }
     @Test fun backupSuccessIsVisibleOnlyAfterCloseAndWriteFlushCloseFailuresNeverSucceed() {
         val before=runBlocking{app.backupManager.snapshot()};val vm=openBackup()
         var closed=false;val stream=object:ByteArrayOutputStream(){override fun close(){assertFalse(vm.state.value.exportSucceeded);closed=true;super.close()}}
-        compose.runOnIdle{vm.exportTo({stream})}
+        compose.runOnIdle{vm.exportTo({stream},password="Backup-Ficticio-2026".toCharArray())}
         waitTag("backup-success");tag("backup-success").assertIsDisplayed();assertTrue(closed)
-        assertEquals(before,BackupCodec.decode(stream.toByteArray()).snapshot);shot("04-backup-confirmado")
+        assertEquals(before,BackupCodec.decode(br.com.diariodeclasse.auth.AccountBackup.open(stream.toByteArray(),fixtureUser.id,"Backup-Ficticio-2026".toCharArray())).snapshot);shot("04-backup-confirmado")
         compose.onNodeWithText("OK").performClick()
         for(stage in listOf("write","flush","close")) {
             val failing=object:java.io.OutputStream(){
@@ -158,7 +158,7 @@ class PostTwelveUiInstrumentedTest {
                 override fun flush(){if(stage=="flush")throw IOException("fixture flush")}
                 override fun close(){if(stage=="close")throw IOException("fixture close")}
             }
-            compose.runOnIdle{vm.exportTo({failing})}
+            compose.runOnIdle{vm.exportTo({failing},password="Backup-Ficticio-2026".toCharArray())}
             compose.waitUntil(10000){!vm.state.value.busy&&vm.state.value.message.startsWith("Não foi possível salvar o backup.")}
             tag("backup-success").assertDoesNotExist();assertFalse(vm.state.value.exportSucceeded)
             assertEquals(before,runBlocking{app.backupManager.snapshot()})
@@ -166,6 +166,7 @@ class PostTwelveUiInstrumentedTest {
     }
     @Test fun cancellingBackupPickerShowsNoSuccessAndChangesNoRecords() {
         val before=runBlocking{app.backupManager.snapshot()};val vm=openBackup()
+        compose.onNodeWithTag("backup-password").performScrollTo().performTextInput("Backup-Ficticio-2026")
         compose.onNodeWithText("Criar backup completo").performScrollTo().performClick()
         val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
         compose.waitUntil(10000){automation.rootInActiveWindow?.packageName?.toString()?.let{it!=app.packageName}==true}

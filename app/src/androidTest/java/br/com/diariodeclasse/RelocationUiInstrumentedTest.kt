@@ -101,7 +101,7 @@ class RelocationUiInstrumentedTest {
     @Test fun legacyActiveExitCanBeRepairedOnlyAfterExplicitConfirmation() {
         val stale=a.copy(left="2026-10-16")
         runBlocking {app.repository.dao.save(stale)}
-        val vm=androidx.lifecycle.ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=androidx.lifecycle.ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.students.any {it.id==a.id&&it.left==stale.left}}
         compose.onNodeWithText("Gerenciar alunos").performScrollTo().performClick();waitText("+ Adicionar aluno");editStudent()
         waitText("Esta matrícula está Ativa, mas possui saída")
@@ -156,7 +156,7 @@ class RelocationUiInstrumentedTest {
         val p=runBlocking{app.repository.previewRelocation(a.id,h.id,null,"2026-09-01").also {app.repository.confirmRelocation(it)}}
         val initial=runBlocking{app.repository.snapshot.first{it.loaded}}
         val page=mutableStateOf("frequency")
-        val vm=androidx.lifecycle.ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=androidx.lifecycle.ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.activity.runOnUiThread {compose.activity.setContent {MaterialTheme {
             val d by app.repository.snapshot.collectAsState(initial=initial)
             if(page.value=="frequency") FrequencyGrid(d,g,d.lessons.filter {it.classId==g.id},d.terms.first {it.classId==g.id&&it.number==3},true,mark={l,s,m->vm.act{app.repository.mark(l.id,s.id,m)}},options={},openDay={})

@@ -74,6 +74,7 @@ private val pages = listOf(
     var activityForm by remember { mutableStateOf(false) }
     var editingActivity by remember { mutableStateOf<Activity?>(null) }
     var showBackup by remember { mutableStateOf(false) }
+    var accountMenu by remember { mutableStateOf(false) }
     var invalidGrade by remember { mutableStateOf(false) }
     var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
     var navigating by remember { mutableStateOf(false) }
@@ -145,7 +146,15 @@ private val pages = listOf(
             }
         }, navigationIcon = {
             if (detail.isNotEmpty()) TextButton(onClick = { back() }, enabled = !navigating && !exportBusy,contentPadding=PaddingValues(8.dp)) { Text("‹ Voltar") }
-        }, actions = { TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = {
+        }, actions = {
+            Box {
+                IconButton(onClick={accountMenu=true},modifier=Modifier.size(48.dp).testTag("auth-account")){Icon(painterResource(R.drawable.ic_more_vert),"Conta")}
+                DropdownMenu(accountMenu,{accountMenu=false}) {
+                    DropdownMenuItem(text={Text((vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).auth.state.value.user?.email.orEmpty())},onClick={},enabled=false)
+                    DropdownMenuItem(text={Text("Sair da conta")},onClick={accountMenu=false;navigate {vm.logout()}},modifier=Modifier.testTag("auth-logout"))
+                }
+            }
+            TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = {
             if(importGuard != null || exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true
         }) { Text("Backup") } }) },
         bottomBar = { NavigationBar {

@@ -1,7 +1,7 @@
 name: Compilar APK Android
 on:
   push:
-    branches: [main]
+    branches: [main, auth/supabase-protected-workspaces]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   validation:
-    name: Horários — integridade, interface e regressão Android
+    name: Autenticação — isolamento, integridade e regressão Android
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -154,11 +154,15 @@ jobs:
             build/frequency-process-write.txt
             build/frequency-process-read.txt
             build/android-runner-diagnostic.txt
+            build/auth-focused.txt
+            build/auth-font-*.txt
+            build/auth-process-*.txt
+            build/auth-telas.tar
           if-no-files-found: ignore
   stable-update:
-    name: Release — atualização da Noctua 0.19.0 com a assinatura existente
+    name: Candidato — atualização da Noctua 0.19.1 com a assinatura existente
     needs: validation
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auth/supabase-protected-workspaces')
     environment: release
     permissions:
       contents: read
@@ -212,7 +216,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 40616867694
+          run-id: 40681663108
           name: noctua-etapa6-release
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
@@ -225,7 +229,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.19.0.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.19.1.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk
@@ -250,7 +254,7 @@ jobs:
           cp build/stable-upgrade/compatibilidade.txt app/build/outputs/apk/release/compatibilidade.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: noctua-etapa6-release
+          name: ${{ github.ref == 'refs/heads/main' && 'noctua-etapa6-release' || 'noctua-auth-homologacao' }}
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/release/app-release.apk.sha256

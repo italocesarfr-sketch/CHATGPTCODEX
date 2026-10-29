@@ -23,12 +23,12 @@ class FinalUxEntryInstrumentedTest {
     private val c=SchoolClass("ux14-entry-class",name="Turma Fictícia Entrada",subject="História",year=2025)
     @Before fun setup()=runBlocking {
         app=compose.activity.application as DiaryApplication;previous=app.selectionStore.read()
-        app.repository.saveClass(c,"2025-01-01");app.selectionStore.write(AppSelection(2025,c.id))
+        app.repository.saveClass(c,"2025-01-01");app.selectionStore.write(AppSelection(2025,c.id));app.auth.logout()
     }
     @After fun cleanup()=runBlocking {
         app.commands.awaitPendingWrites()
         app.repository.dao.schoolClass(c.id)?.let {val p=app.repository.previewClassDeletion(c.id);app.repository.deleteClass(p,p.confirmation)}
-        app.selectionStore.write(previous)
+        app.selectionStore.write(previous);(app as AcademicTestApplication).restoreFixtureUser()
     }
     private fun tag(v:String)=compose.onNodeWithTag(v)
     private fun shot(name:String) {
@@ -36,16 +36,19 @@ class FinalUxEntryInstrumentedTest {
         File(folder,"$name.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
     private fun hideKeyboard() {compose.activityRule.scenario.onActivity{a->(a.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(a.window.decorView.windowToken,0)}}
-    private fun entered() {tag("entry-enter").performScrollTo().performClick();compose.waitUntil(10000){compose.onAllNodesWithTag("nav-0").fetchSemanticsNodes().isNotEmpty()}}
-    @Test fun entryIsExplicitlyDemonstrativeAndEmptyCredentialsOpenTheExistingSelection() {
+    private fun entered() {tag("entry-email").performScrollTo().performTextReplacement(fixtureUser.email);tag("entry-password").performScrollTo().performTextReplacement("Fixture-Password-2026");tag("entry-enter").performScrollTo().performClick();compose.waitUntil(10000){compose.onAllNodesWithTag("nav-0").fetchSemanticsNodes().isNotEmpty()}}
+    @Test fun entryRequiresRealCredentialsAndRestoresTheExistingSelection() {
         val before=runBlocking{app.backupManager.snapshot()}
-        tag("demo-entry").assertExists();tag("entry-logo").assertIsDisplayed()
+        tag("entry-logo").assertIsDisplayed()
+        tag("entry-enter").performScrollTo().performClick()
+        compose.onNodeWithTag("nav-0").assertDoesNotExist()
+        compose.onNodeWithTag("auth-message").assertExists()
         @Suppress("DEPRECATION") val permissions=app.packageManager.getPackageInfo(app.packageName,android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions.orEmpty()
-        assertFalse(permissions.contains("android.permission.INTERNET"))
-        compose.onNodeWithText("Prévia de entrada • acesso livre, sem autenticação.").assertExists()
-        tag("entry-email").assertExists();tag("entry-password").assertExists();shot("01-entrada-demonstrativa")
+        assertTrue(permissions.contains("android.permission.INTERNET"))
+        compose.onNodeWithText("Prévia de entrada • acesso livre, sem autenticação.").assertDoesNotExist()
+        tag("entry-email").assertExists();tag("entry-password").assertExists();shot("01-autenticacao-real")
         entered();compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithText("2025 ▾").assertExists();tag("demo-entry").assertDoesNotExist()
+        compose.onNodeWithText("2025 ▾").assertExists();tag("entry-email").assertDoesNotExist()
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         compose.onNodeWithTag("nav-1").performClick()
         compose.onNodeWithTag("nav-1").assertContentDescriptionEquals("Horários / Chamada / Diário")
@@ -57,7 +60,7 @@ class FinalUxEntryInstrumentedTest {
         compose.onNodeWithText("‹ Voltar").performClick()
         compose.onNodeWithTag("export-organize").performScrollTo().performClick();compose.onNodeWithTag("export-layout-list").assertExists()
         compose.onNodeWithTag("export-cancel").performScrollTo().performClick()
-        compose.activityRule.scenario.recreate();tag("nav-0").assertExists();tag("demo-entry").assertDoesNotExist()
+        compose.activityRule.scenario.recreate();tag("nav-0").assertExists();tag("entry-email").assertDoesNotExist()
         assertEquals(AppSelection(2025,c.id),app.selectionStore.read())
     }
     @Test fun passwordVisibilityWorksButNeitherCredentialSurvivesRecreationOrChangesSchoolData() {
@@ -74,16 +77,17 @@ class FinalUxEntryInstrumentedTest {
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
         entered();assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
-    @Test fun createAndForgotOnlyShowFutureNoticeWithoutCreatingAccountsOrChangingData() {
+    @Test fun createAndForgotOpenFunctionalFormsWithoutChangingSchoolData() {
         val before=runBlocking{app.backupManager.snapshot()}
-        for(button in listOf("entry-create","entry-forgot")) {
-            tag(button).performScrollTo().performClick()
-            compose.waitUntil(10000){compose.onAllNodesWithText("Funcionalidade disponível em uma versão futura.").fetchSemanticsNodes().isNotEmpty()}
-            tag("demo-entry").assertExists();assertEquals(before,runBlocking{app.backupManager.snapshot()})
-            compose.waitUntil(10000){compose.onAllNodesWithText("Funcionalidade disponível em uma versão futura.").fetchSemanticsNodes().isEmpty()}
-        }
+        tag("entry-create").performScrollTo().performClick()
+        tag("auth-name").assertExists();tag("auth-confirm-password").assertExists()
+        compose.onNodeWithText("Voltar para entrar").performScrollTo().performClick()
+        tag("entry-forgot").performScrollTo().performClick()
+        compose.onNodeWithText("Enviar recuperação").assertExists()
+        tag("entry-password").assertDoesNotExist()
+        assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
-    @Test fun backFromMainFinishesWithoutReturningToDemonstrationAndNewLaunchIsOptionalAgain() {
+    @Test fun backFromMainFinishesWithoutReturningToLoginAndPreservesSelection() {
         entered()
         InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand("input keyevent KEYCODE_BACK").close()
         compose.waitUntil(10000){compose.activityRule.scenario.state==Lifecycle.State.DESTROYED}

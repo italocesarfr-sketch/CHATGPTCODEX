@@ -58,7 +58,7 @@ class ExportLayoutUiInstrumentedTest {
     private fun conclude(root:String="export-layout-list") {
         top(root);compose.onNodeWithTag("export-conclude").performClick();waitTag("export-organize")
         val persisted=runBlocking{app.repository.dao.exportRows(c.id)}
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.exportRows.filter{it.classId==c.id}==persisted}
     }
     private fun organize() {compose.onNodeWithTag("export-organize").performScrollTo().performClick();waitTag("export-layout-list")}
@@ -70,7 +70,7 @@ class ExportLayoutUiInstrumentedTest {
     @Test fun multipleSelectionSurvivesScrollingAndRecreationThenUnhidesWithoutChangingSchoolData() {
         val people=(3..22).map{n->a.copy(id="ui-exp-$n",personId="ui-exp-person-$n",number=n,name="Estudante Fictício Exportação ${n.toString().padStart(2,'0')}")}
         runBlocking{people.forEach{app.repository.saveStudent(it)}}
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.roster(c.id).size==22}
         val before=runBlocking{app.backupManager.snapshot()};reports();hideMode();toggle(a.id);toggle(people.last().id)
         compose.activityRule.scenario.recreate();waitTag("export-layout-list")
@@ -108,7 +108,7 @@ class ExportLayoutUiInstrumentedTest {
         val after=runBlocking{app.backupManager.snapshot()};assertEquals(before,after.copy(exportRows=emptyList()))
         assertEquals(listOf(b.id,null,a.id),runBlocking{app.repository.dao.exportRows(c.id)}.map{it.studentId})
         runBlocking{app.repository.saveStudent(a.copy(name="Estudante Fictício Renomeado"));app.repository.saveStudent(a.copy(id="ui-exp-new",personId="ui-exp-new-person",number=3,name="AAAA Estudante Fictício Novo"))}
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.roster(c.id).size==3}
         organize();val rows=runBlocking{app.repository.dao.exportRows(c.id)};assertEquals(listOf(b.id,null,a.id),rows.map{it.studentId})
         compose.activityRule.scenario.recreate();waitTag("export-layout-list")
@@ -117,7 +117,7 @@ class ExportLayoutUiInstrumentedTest {
     }
     @Test fun automaticallyExcludedSourceIsDistinctFromManualCheckboxAndDestinationStartsIncluded() {
         val p=runBlocking{app.repository.previewRelocation(a.id,h.id,null,"2026-09-01").also{app.repository.confirmRelocation(it)}}
-        val vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        val vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.data.value.relocations.any{it.sourceStudentId==a.id}}
         reports();compose.onNodeWithTag("report-options").performScrollTo().performClick();compose.onNodeWithTag("show-relocated").performScrollTo().performClick();hideMode()
         compose.onNodeWithTag("export-layout-list").performScrollToNode(hasTestTag("export-hide-toggle-${a.id}"));checkbox(a.id).assertIsOff()

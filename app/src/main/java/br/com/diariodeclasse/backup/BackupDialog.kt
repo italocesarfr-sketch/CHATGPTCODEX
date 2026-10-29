@@ -25,21 +25,37 @@ import java.time.LocalDate
     val state by vm.state.collectAsStateWithLifecycle()
     var ready by remember { mutableStateOf(false) }
     var confirmation by rememberSaveable { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var allowLegacy by rememberSaveable { mutableStateOf(false) }
+    var credentialMessage by remember { mutableStateOf("") }
+    val app = diary.getApplication<br.com.diariodeclasse.DiaryApplication>()
     LaunchedEffect(diary) { diary.awaitPendingWrites(); ready = true }
-    val create = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> if (uri != null) vm.export(uri, false) else vm.cancelled() }
-    val safety = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri -> if (uri != null) vm.export(uri, true) else vm.cancelled() }
-    val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) { confirmation = ""; vm.prepare(uri) } else vm.cancelled() }
+    val create = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri -> if (uri != null) vm.export(uri, false, password.toCharArray()) else vm.cancelled(); password="" }
+    val safety = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri -> if (uri != null) vm.export(uri, true, password.toCharArray()) else vm.cancelled(); password="" }
+    val open = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) { confirmation = ""; vm.prepare(uri,password.toCharArray(),allowLegacy) } else vm.cancelled();password="";allowLegacy=false }
+    val credential = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if(result.resultCode==android.app.Activity.RESULT_OK){allowLegacy=true;open.launch(arrayOf("application/json"))}
+    }
     val enabled = ready && !state.busy
     Dialog(onDismissRequest = { if (enabled) dismiss() }) {
         Surface(shape = MaterialTheme.shapes.large) {
             Column(Modifier.fillMaxWidth().heightIn(max = 700.dp).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {
                 Text("Backup e restauração", style = MaterialTheme.typography.titleLarge)
                 Text("Guarde o arquivo em um local protegido. Ele contém dados dos alunos.")
+                OutlinedTextField(password,{password=it},label={Text("Senha do backup")},visualTransformation=androidx.compose.ui.text.input.PasswordVisualTransformation(),singleLine=true,enabled=enabled,modifier=Modifier.fillMaxWidth().testTag("backup-password"))
+                Text("Use 12 ou mais caracteres para criar um backup. Guarde a senha: ela será necessária para restaurar.")
                 if (!ready || state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
                 if (state.message.isNotBlank() && !state.exportSucceeded) Text(state.message, Modifier.testTag("backup-message"))
-                Button(enabled = enabled, onClick = { create.launch("diario-backup-${LocalDate.now()}.json") }, modifier = Modifier.fillMaxWidth()) { Text("Criar backup completo") }
+                if (credentialMessage.isNotBlank()) Text(credentialMessage)
+                Button(enabled = enabled && password.length>=12, onClick = { create.launch("diario-backup-${LocalDate.now()}.noctua") }, modifier = Modifier.fillMaxWidth()) { Text("Criar backup completo") }
                 OutlinedButton(enabled = enabled, onClick = { open.launch(arrayOf("application/json", "text/*", "application/octet-stream")) }, modifier = Modifier.fillMaxWidth()) { Text("Selecionar backup para restaurar") }
-                if (state.hasSafetyCopy) OutlinedButton(enabled = enabled, onClick = { safety.launch("diario-copia-anterior-${LocalDate.now()}.json") }, modifier = Modifier.fillMaxWidth()) { Text("Exportar cópia anterior à restauração") }
+                if(app.workspace.user.id==br.com.diariodeclasse.auth.AuthConfig.LEGACY_OWNER_ID)TextButton(enabled=enabled,onClick={
+                    val guard=app.getSystemService(android.content.Context.KEYGUARD_SERVICE) as android.app.KeyguardManager
+                    val intent=if(guard.isDeviceSecure)guard.createConfirmDeviceCredentialIntent("Restaurar backup anterior",app.workspace.user.email)else null
+                    if(intent!=null){credentialMessage="";credential.launch(intent)}
+                    else credentialMessage="Configure um PIN ou senha de bloqueio no Android para restaurar um backup anterior."
+                }){Text("Restaurar backup anterior à autenticação")}
+                if (state.hasSafetyCopy) OutlinedButton(enabled = enabled && password.length>=12, onClick = { safety.launch("diario-copia-anterior-${LocalDate.now()}.noctua") }, modifier = Modifier.fillMaxWidth()) { Text("Exportar cópia anterior à restauração") }
                 state.prepared?.let { prepared ->
                     HorizontalDivider()
                     Text("Prévia do backup", style = MaterialTheme.typography.titleMedium)

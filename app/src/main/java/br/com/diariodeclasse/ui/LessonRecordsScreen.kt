@@ -30,11 +30,12 @@ import java.time.LocalDate
     var viewing by remember { mutableStateOf<LessonRecord?>(null) }
     var copied by remember { mutableStateOf<Pair<String, String>?>(null) }
     val context = LocalContext.current
+    val copyOwner = (context.applicationContext as br.com.diariodeclasse.DiaryApplication).workspace.user.id
     val rows = runCatching { LessonRecords.list(data.lessonRecords, school.id,
         from.takeIf { it.isNotBlank() }?.let(::iso), until.takeIf { it.isNotBlank() }?.let(::iso)) }
     fun copy(id: String, label: String, text: String) {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
+        br.com.diariodeclasse.auth.AccountClipboard.copy(context,copyOwner,label,text)
         copied = id to if (label == "Descrição") "Descrição copiada." else "Título copiado."
     }
     LazyColumn(Modifier.testTag("lesson-records-list"), contentPadding = PaddingValues(NoctuaSpace.page), verticalArrangement = Arrangement.spacedBy(NoctuaSpace.medium)) {

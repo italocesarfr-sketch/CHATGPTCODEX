@@ -34,7 +34,7 @@ class StageSixUiInstrumentedTest {
     private val h=c.copy(id="ui6-h",name="1º H Fictício")
     private val student=Student("ui6-s","ui6-p",c.id,"Estudante Fictício Nocturno",1,"2026-01-01")
     private val note=LessonRecord("ui6-r",c.id,"2026-08-06","Aula fictícia","Descrição livre para copiar.")
-    private val vm get()=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+    private val vm get()=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
     @Before fun setup()=runBlocking {
         app=compose.activity.application as DiaryApplication;previous=app.selectionStore.read()
         app.repository.saveClass(c,"2026-01-01");app.repository.saveClass(h,"2026-01-01");app.repository.saveStudent(student)

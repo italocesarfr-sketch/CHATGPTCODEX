@@ -8,7 +8,8 @@ mkdir -p build
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.FjFlowInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/fj-flow-focused.txt || status=$?
+./scripts/ci/validate-auth.sh focused
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.FjFlowInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/fj-flow-focused.txt || status=$?
 cat build/fj-flow-focused.txt
 if adb shell run-as br.com.diariodeclasse test -d files/fj-flow-screenshots; then
     adb exec-out run-as br.com.diariodeclasse tar -cf - files/fj-flow-screenshots > build/fj-flow-telas.tar
@@ -18,14 +19,14 @@ from pathlib import Path
 text=Path('build/fj-flow-focused.txt').read_text()
 assert 'OK (9 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYFJ
-timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RosterLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/roster-layout-focused.txt || status=$?
+timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RosterLayoutInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/roster-layout-focused.txt || status=$?
 cat build/roster-layout-focused.txt
 python3 - <<'PYROSTER' || status=1
 from pathlib import Path
 text=Path('build/roster-layout-focused.txt').read_text()
 assert 'OK (2 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text, text
 PYROSTER
-timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.StudentDeletionInstrumentedTest,br.com.diariodeclasse.StudentDeletionUiInstrumentedTest,br.com.diariodeclasse.StudentDeletionLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/student-deletion-focused.txt || status=$?
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.StudentDeletionInstrumentedTest,br.com.diariodeclasse.StudentDeletionUiInstrumentedTest,br.com.diariodeclasse.StudentDeletionLayoutInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/student-deletion-focused.txt || status=$?
 cat build/student-deletion-focused.txt
 python3 - <<'PYSTUDENT' || status=1
 from pathlib import Path
@@ -35,7 +36,7 @@ PYSTUDENT
 if (( status == 0 )); then
     for font in 1.3 1.6; do
         adb shell settings put system font_scale "$font"
-        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.StudentDeletionLayoutInstrumentedTest#confirmationPreservesLongNamesDiagnosisAndReachableActions br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/student-deletion-font-$font.txt" || status=$?
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.StudentDeletionLayoutInstrumentedTest#confirmationPreservesLongNamesDiagnosisAndReachableActions br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/student-deletion-font-$font.txt" || status=$?
         cat "build/student-deletion-font-$font.txt"
         python3 - "build/student-deletion-font-$font.txt" <<'PYSTUDENTFONT' || status=1
 import sys
@@ -46,7 +47,7 @@ PYSTUDENTFONT
     done
     adb shell settings put system font_scale 1.0
 fi
-timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.ClassificationsInstrumentedTest,br.com.diariodeclasse.ClassificationsUiInstrumentedTest,br.com.diariodeclasse.ClassificationsLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/classification-focused.txt || status=$?
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.ClassificationsInstrumentedTest,br.com.diariodeclasse.ClassificationsUiInstrumentedTest,br.com.diariodeclasse.ClassificationsLayoutInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/classification-focused.txt || status=$?
 cat build/classification-focused.txt
 python3 - <<'PYCLASSIFICATIONS' || status=1
 from pathlib import Path
@@ -56,7 +57,7 @@ PYCLASSIFICATIONS
 if (( status == 0 )); then
     for font in 1.3 1.6; do
         adb shell settings put system font_scale "$font"
-        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.ClassificationsLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/classification-font-$font.txt" || status=$?
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.ClassificationsLayoutInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/classification-font-$font.txt" || status=$?
         cat "build/classification-font-$font.txt"
         python3 - "build/classification-font-$font.txt" <<'PYCLASSFONT' || status=1
 import sys
@@ -67,7 +68,7 @@ PYCLASSFONT
     done
     adb shell settings put system font_scale 1.0
 fi
-timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.TimetableInstrumentedTest,br.com.diariodeclasse.TimetableUiInstrumentedTest,br.com.diariodeclasse.TimetableLayoutInstrumentedTest,br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/weekly-focused.txt || status=$?
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.TimetableInstrumentedTest,br.com.diariodeclasse.TimetableUiInstrumentedTest,br.com.diariodeclasse.TimetableLayoutInstrumentedTest,br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/weekly-focused.txt || status=$?
 cat build/weekly-focused.txt
 python3 - <<'PYWEEKLY' || status=1
 from pathlib import Path
@@ -79,7 +80,7 @@ PYWEEKLY
 if (( status == 0 )); then
     for font in 1.3 1.6; do
         adb shell settings put system font_scale "$font"
-        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/weekly-system-font-$font.txt" || status=$?
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.TimetableScopeLayoutInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/weekly-system-font-$font.txt" || status=$?
         cat "build/weekly-system-font-$font.txt"
         python3 - "build/weekly-system-font-$font.txt" <<'PYFONT' || status=1
 import sys
@@ -90,7 +91,7 @@ PYFONT
     done
     adb shell settings put system font_scale 1.0
 fi
-timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows,br.com.diariodeclasse.StageSixUiInstrumentedTest#smallPhoneAndLargeFontKeepFourNavigationLabelsAndAccessibleModeTargets,br.com.diariodeclasse.PostTwelveLayoutInstrumentedTest#reportAndImportActionsStayReachableAtSmallWidthsAndLargeFonts br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/ux14-layout-smoke.txt || status=$?
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#reportActionsHaveEqualBoundsOutlineAndAccessibleUntruncatedLabels,br.com.diariodeclasse.FinalUxLayoutInstrumentedTest#exportPreviewStartsEarlyAndActionsRemainReachableWithoutMutatingAnyRows,br.com.diariodeclasse.StageSixUiInstrumentedTest#smallPhoneAndLargeFontKeepFourNavigationLabelsAndAccessibleModeTargets,br.com.diariodeclasse.PostTwelveLayoutInstrumentedTest#reportAndImportActionsStayReachableAtSmallWidthsAndLargeFonts br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/ux14-layout-smoke.txt || status=$?
 cat build/ux14-layout-smoke.txt
 python3 - <<'PYSMOKE' || status=1
 from pathlib import Path
@@ -98,7 +99,7 @@ text=Path('build/ux14-layout-smoke.txt').read_text()
 assert 'OK (4 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAILED' not in text
 PYSMOKE
 if (( status == 0 )); then
-    timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RelocationConversionInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenUiInstrumentedTest,br.com.diariodeclasse.ExportLayoutInstrumentedTest#migrationFromDistributedV3PreservesEverySchoolTableAndMovement,br.com.diariodeclasse.HistoryDeletionInstrumentedTest#distributedSchemaSixMigratesAdditivelyWithoutChangingAnyOfItsThirteenTables,br.com.diariodeclasse.RelocationUiInstrumentedTest#confirmedMoveHidesSourceAndRefreshesDestinationReportsAcrossRecreation,br.com.diariodeclasse.RecompositionUiInstrumentedTest#reportsRefreshWithoutAddingRecompositionToActivitiesOrFourthTerm br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/functional15-focused.txt || status=$?
+    timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.RelocationConversionInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenInstrumentedTest,br.com.diariodeclasse.FunctionalFifteenUiInstrumentedTest,br.com.diariodeclasse.ExportLayoutInstrumentedTest#migrationFromDistributedV3PreservesEverySchoolTableAndMovement,br.com.diariodeclasse.HistoryDeletionInstrumentedTest#distributedSchemaSixMigratesAdditivelyWithoutChangingAnyOfItsThirteenTables,br.com.diariodeclasse.RelocationUiInstrumentedTest#confirmedMoveHidesSourceAndRefreshesDestinationReportsAcrossRecreation,br.com.diariodeclasse.RecompositionUiInstrumentedTest#reportsRefreshWithoutAddingRecompositionToActivitiesOrFourthTerm br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/functional15-focused.txt || status=$?
     cat build/functional15-focused.txt
     python3 - <<'PYFOCUSED' || status=1
 from pathlib import Path
@@ -107,7 +108,7 @@ assert 'OK (35 tests)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_F
 PYFOCUSED
 fi
 if (( status == 0 )); then
-    timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.ExportLifecycleUiInstrumentedTest,br.com.diariodeclasse.ReportsUiInstrumentedTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > build/minimal-export-focused.txt || status=$?
+    timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.ExportLifecycleUiInstrumentedTest,br.com.diariodeclasse.ReportsUiInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/minimal-export-focused.txt || status=$?
     cat build/minimal-export-focused.txt
     python3 - <<'PYMINIMAL' || status=1
 from pathlib import Path
@@ -119,7 +120,7 @@ fi
 # não é retry de falhas e a suíte completa abaixo permanece obrigatória.
 if (( status == 0 )); then
     for repetition in 1 2; do
-        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class 'br.com.diariodeclasse.FjPopupInstrumentedTest#firstTouchRecordRefreshAndDismissKeepTheSameAbsenceAndSolidSurface,br.com.diariodeclasse.ReportsUiInstrumentedTest#searchKeepsViewOrderAndSemesterAcrossRotationWithoutWritingSchoolRows' br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/fj-reports-repeat-$repetition.txt" || status=$?
+        timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class 'br.com.diariodeclasse.FjPopupInstrumentedTest#firstTouchRecordRefreshAndDismissKeepTheSameAbsenceAndSolidSurface,br.com.diariodeclasse.ReportsUiInstrumentedTest#searchKeepsViewOrderAndSemesterAcrossRotationWithoutWritingSchoolRows' br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/fj-reports-repeat-$repetition.txt" || status=$?
         cat "build/fj-reports-repeat-$repetition.txt"
         python3 - "build/fj-reports-repeat-$repetition.txt" <<'PYREPEAT' || status=1
 import sys
@@ -249,7 +250,7 @@ PY
 python3 scripts/validate-spreadsheets.py build/android-export-fixtures/files/etapa52-planilhas
 for phase in write read; do
     if [[ "$phase" == read ]]; then adb shell am force-stop br.com.diariodeclasse; fi
-    adb shell am instrument -w -e frequencyProbePhase "$phase" -e class br.com.diariodeclasse.FrequencyProcessProbeTest br.com.diariodeclasse.test/androidx.test.runner.AndroidJUnitRunner > "build/frequency-process-$phase.txt"
+    adb shell am instrument -w -e frequencyProbePhase "$phase" -e class br.com.diariodeclasse.FrequencyProcessProbeTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/frequency-process-$phase.txt"
     python3 - "$phase" <<'PYPROBE'
 import sys
 from pathlib import Path
@@ -258,6 +259,7 @@ assert 'OK (1 test)' in text and 'FAILURES' not in text and 'INSTRUMENTATION_FAI
 print('Sonda de frequência/reinício aprovada:',sys.argv[1])
 PYPROBE
 done
+./scripts/ci/validate-auth.sh process
 ./scripts/ci/test-upgrade.sh
 # A atualização release agora reutiliza a chave existente no job stable-update.
 # Não executar aqui o ensaio histórico que gerava novas chaves descartáveis.

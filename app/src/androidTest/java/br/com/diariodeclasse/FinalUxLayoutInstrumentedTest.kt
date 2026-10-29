@@ -48,7 +48,7 @@ class FinalUxLayoutInstrumentedTest {
             CompositionLocalProvider(LocalDensity provides Density(density,scale)) {
                 NoctuaTheme {Surface(Modifier.widthIn(max=320.dp).heightIn(max=560.dp).fillMaxSize().testTag("ux14-host")) {
                     when(screen) {
-                        "entry"->DemoEntryScreen{}
+                        "entry"->br.com.diariodeclasse.auth.AuthForm(br.com.diariodeclasse.auth.AuthState(false),app.auth)
                         "actions"->Box {ReportActions({organized++},{exported++},enabled)}
                         "export"->ExportScreen(data,c,3){}
                         else->ExportLayoutScreen(vm,data,c,ExportEditSession.start(data,c.id,"ORDER"),{},{},{})

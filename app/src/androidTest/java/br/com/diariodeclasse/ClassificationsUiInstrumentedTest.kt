@@ -26,7 +26,7 @@ class ClassificationsUiInstrumentedTest {
     @Before fun setup()=runBlocking {
         app=compose.activity.application as DiaryApplication;previous=app.selectionStore.read();app.commands.awaitPendingWrites()
         app.repository.saveClass(c,"2026-01-01");app.repository.saveStudent(s);app.repository.setDayHours(c.id,day,2)
-        app.selectionStore.write(AppSelection(2026,c.id));vm=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+        app.selectionStore.write(AppSelection(2026,c.id));vm=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
         compose.waitUntil(10000){vm.selection.value?.classId==c.id&&vm.data.value.lessons.count{it.classId==c.id}==2}
     }
     @After fun cleanup()=runBlocking {

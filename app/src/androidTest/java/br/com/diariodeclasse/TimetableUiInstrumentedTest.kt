@@ -24,7 +24,7 @@ class TimetableUiInstrumentedTest {
     private val c=SchoolClass(id="weekly-ui-c",name="Turma Fictícia Horários",subject="História",year=2026)
     private val h=c.copy(id="weekly-ui-h",name="Turma Fictícia B")
     private val day="2026-08-06"
-    private val vm get()=ViewModelProvider(compose.activity)[DiaryViewModel::class.java]
+    private val vm get()=ViewModelProvider(compose.activity.academicOwner)[DiaryViewModel::class.java]
     private fun tag(s:String)=compose.onNodeWithTag(s)
     private fun waitTag(s:String){compose.waitUntil(10000){compose.onAllNodesWithTag(s).fetchSemanticsNodes().isNotEmpty()}}
     @Before fun setup()=runBlocking {

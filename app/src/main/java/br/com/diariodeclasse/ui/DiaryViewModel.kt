@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.diariodeclasse.DiaryApplication
 import br.com.diariodeclasse.data.*
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     private val app = application as DiaryApplication
     val repository = app.repository
@@ -32,4 +33,8 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     fun act(done: (() -> Unit)? = null, clearError: Boolean = true, context: String = "", key: String = java.util.UUID.randomUUID().toString(), action: suspend () -> Unit) = commands.act(done, clearError, context, key, action)
     suspend fun awaitPendingWrites() = commands.awaitPendingWrites()
     fun message(text: String) { messages.trySend(text) }
+    fun logout() {
+        if(commands.error.value!=null || commands.attendanceError.value!=null){message("Resolva ou descarte as alterações não salvas antes de sair.");return}
+        app.authScope.launch { app.auth.logout() }
+    }
 }
