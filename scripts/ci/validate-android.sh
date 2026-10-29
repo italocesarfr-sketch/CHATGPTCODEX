@@ -5,6 +5,10 @@ set -euo pipefail
 [[ "$(adb get-serialno)" == emulator-* ]] || { echo 'Somente em emulador descartável.' >&2; exit 1; }
 status=0
 mkdir -p build
+# Validate the legacy runner before the longer regression. Discard only this
+# synthetic fixture afterwards, on the disposable emulator checked above.
+./scripts/ci/test-upgrade.sh
+adb shell pm clear br.com.diariodeclasse >/dev/null
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -260,6 +264,5 @@ print('Sonda de frequência/reinício aprovada:',sys.argv[1])
 PYPROBE
 done
 ./scripts/ci/validate-auth.sh process
-./scripts/ci/test-upgrade.sh
 # A atualização release agora reutiliza a chave existente no job stable-update.
 # Não executar aqui o ensaio histórico que gerava novas chaves descartáveis.

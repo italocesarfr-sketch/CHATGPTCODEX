@@ -189,3 +189,14 @@ no APK novo. Não carrega a subclasse de testes contra a classe final antiga.
 As asserções de atualização continuam idênticas; o aplicativo de produção não
 contém esse runner. Uma verificação adicional percorre Sair pelo menu real e a
 reentrada, exigindo snapshot escolar e seleção preservados.
+
+### Sincronização do preparo da fixture
+
+A rodada [40807879335](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40807879335)
+parou no `withTimeout` do preparo de `FunctionalFifteenUiInstrumentedTest`, antes
+dos passos da correção concorrente. O teste aguardava `vm.data.first` antes de
+instalar a composição. A preparação passou a instalar a composição e usar
+`compose.waitUntil`, dirigindo o relógio Main/Compose e exigindo aluno, vínculo e FJ
+da fixture completos. O prazo e todas as asserções da correção foram mantidos.
+A sonda legada foi antecipada no CI para diagnosticar seu runner antes da regressão
+longa; somente sua fixture descartável é limpa antes dos testes independentes.

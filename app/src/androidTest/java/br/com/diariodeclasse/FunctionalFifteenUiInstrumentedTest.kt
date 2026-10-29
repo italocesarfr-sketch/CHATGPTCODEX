@@ -16,8 +16,6 @@ import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.ui.*
 import br.com.diariodeclasse.ui.theme.NoctuaTheme
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeout
 import org.junit.*
 import org.junit.Assert.*
 import java.io.File
@@ -34,19 +32,20 @@ class FunctionalFifteenUiInstrumentedTest {
     private var screen by mutableStateOf("student")
     private var closed by mutableStateOf(false)
     private var font by mutableStateOf(1f)
-    @Before fun setup()=runBlocking {
+    @Before fun setup() {
         app=ApplicationProvider.getApplicationContext();vm=DiaryViewModel(app);store.put("fifteen",vm)
-        app.repository.saveClass(c,"2026-01-01");app.repository.saveStudent(s);app.repository.dao.save(l)
-        app.repository.mark(l.id,s.id,"FJ")
-        app.repository.confirmRelocation(app.repository.previewRelocation(s.id,null,"foi pro noturno","2026-10-25"))
-        withTimeout(10000) { vm.data.first { it.loaded && it.relocations.any { link -> link.sourceStudentId == s.id } } }
+        runBlocking {
+            app.repository.saveClass(c,"2026-01-01");app.repository.saveStudent(s);app.repository.dao.save(l)
+            app.repository.mark(l.id,s.id,"FJ")
+            app.repository.confirmRelocation(app.repository.previewRelocation(s.id,null,"foi pro noturno","2026-10-25"))
+        }
         compose.setContent {
             val d by vm.data.collectAsState();val density=LocalDensity.current.density
             CompositionLocalProvider(LocalDensity provides Density(density,font)) {
                 NoctuaTheme {Surface(Modifier.widthIn(max=360.dp).fillMaxSize()) {
                     when {
                         closed -> androidx.compose.material3.Text("Concluído")
-                        screen=="student" -> if(d.loaded)StudentForm(vm,c,d.students.first{it.id==s.id}){closed=true}
+                        screen=="student" -> if(d.loaded && d.students.any{it.id==s.id} && d.relocations.any{it.sourceStudentId==s.id})StudentForm(vm,c,d.students.first{it.id==s.id}){closed=true}
                         screen=="day" -> DayAttendanceScreen(vm,d,c,l.date,{}, {})
                         screen=="export" -> ExportScreen(d,c,4){}
                         screen=="plans" -> AttendanceExportScreen(d,c,4,{},true,plans=true){}
@@ -54,7 +53,10 @@ class FunctionalFifteenUiInstrumentedTest {
                 } }
             }
         }
-        compose.waitUntil(10000){vm.data.value.loaded}
+        // Drive Compose/Main while Room reaches the complete seeded snapshot. A
+        // blocking Flow.first before setContent could starve the test dispatcher.
+        compose.waitUntil(10000){vm.data.value.let { d -> d.loaded && d.students.any{it.id==s.id} &&
+            d.relocations.any{it.sourceStudentId==s.id} && d.marks.any{it.lessonId==l.id&&it.studentId==s.id&&it.mark=="FJ"} }}
     }
     @After fun cleanup()=runBlocking {
         store.clear();if(app.repository.dao.schoolClass(destination.id)!=null) {val extra=app.repository.previewClassDeletion(destination.id);app.repository.deleteClass(extra,extra.confirmation)};val preview=app.repository.previewClassDeletion(c.id);app.repository.deleteClass(preview,preview.confirmation)
