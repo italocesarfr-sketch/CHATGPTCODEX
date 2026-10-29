@@ -1,0 +1,23 @@
+{
+  "Android": {
+    "tests": 328,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 6,
+    "passed": 322
+  },
+  "JVM": {
+    "tests": 205,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 204
+  },
+  "sourceCommit": "c24a7d95d6e7230fce4daa518747cf95ff062e4d",
+  "runId": 40812203803,
+  "scope": "Approved common JVM/Android suites; opt-in backend and conditional probes reported separately; physical homologation pending",
+  "jobConclusions": {
+    "123244907495": "success",
+    "123249653186": "success"
+  }
+}

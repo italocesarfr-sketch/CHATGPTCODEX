@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "c24a7d95d6e7230fce4daa518747cf95ff062e4d",
+  "runId": 40812203803,
+  "artifactId": 12871771954,
+  "versionName": "0.20.0",
+  "versionCode": 38,
+  "applicationId": "br.com.diariodeclasse",
+  "apkSha256": "31dd1dfdd740658137aa2de7529070a1c7bce4a7342e620e10874310fb77353a",
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "signedOriginal": "0.19.1 / 37",
+  "stagesPassed": [
+    "before",
+    "after",
+    "backup",
+    "reopened",
+    "deleted-history",
+    "reopened-history",
+    "deleted-student",
+    "reopened-student",
+    "auth-isolation"
+  ],
+  "scope": "Synthetic academic fixtures on disposable emulator; physical recovery callback and owner credential consent remain manual"
+}

@@ -1,229 +1,314 @@
-# Autenticação real — candidato 0.20.0 / código 38
+# Supabase Auth — homologação da candidata 0.20.0 / código 38
 
-Estado: implementação em validação na branch `auth/supabase-protected-workspaces`.
-A release estável permanece 0.19.1. Este documento não atesta liberação para uso real.
+**CI e atualização assinada aprovados. Homologação física pendente.**
+A branch `main` permanece na estável **0.19.1 / código 37**. Não houve promoção
+para distribuição pública nem geração de outro APK nesta consolidação.
 
-## Arquitetura e limites
+## Identificação e artefatos
 
-O serviço `noctua-auth` é utilizado exclusivamente pelo GoTrue HTTPS (`/auth/v1`),
-com a URL e Publishable Key públicas fornecidas pelo proprietário. Não há acesso
-acadêmico ao Supabase, chave administrativa, senha armazenada, logger HTTP nem
-sincronização. `SupabaseAuthClient` usa HTTPS nativo, limites de resposta/tempo,
-identidade confirmada por GET `/user` e mensagens locais sem respostas sensíveis.
-Nenhuma dependência nova. Android 8+, Compose/Material 3 e arquitetura acadêmica
-preservados. Room **v10**, migrações e backup acadêmico **formato 12** inalterados.
+| Item | Referência verificada |
+| --- | --- |
+| Branch | `auth/supabase-protected-workspaces` |
+| Código do APK | [`c24a7d95d6e7230fce4daa518747cf95ff062e4d`](https://github.com/italocesarfr-sketch/CHATGPTCODEX/commit/c24a7d95d6e7230fce4daa518747cf95ff062e4d) |
+| Versão | 0.20.0 / versionCode 38 |
+| Identificador | `br.com.diariodeclasse` |
+| Actions | [40812203803 — aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803) |
+| Autenticação, isolamento e regressão | [Job 123244907495 — success](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/job/123244907495) |
+| Atualização assinada da 0.19.1 | [Job 123249653186 — success](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/job/123249653186) |
+| APK candidato assinado | [noctua-auth-homologacao — artefato 12871771954](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/artifacts/12871771954) |
+| Testes e capturas | [resultados-etapa6 — artefato 12870419947](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/artifacts/12870419947) |
+| Provas da atualização assinada | [resultados-atualizacao-release — artefato 12871099707](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/artifacts/12871099707) |
 
-`AuthController` serializa operações; uma geração invalida respostas atrasadas
-após logout ou novas credenciais. Recuperação não admite acesso acadêmico.
-`AuthRoot` só cria ViewModels/Room após autenticação e seleção do espaço autorizado;
-separa seus ViewModelStores por conta e mantém o mesmo store na rotação.
-`DiaryApplication` não abre a base escolar na inicialização não autenticada.
-Os clientes e identidades fictícios de regressão existem somente no APK separado
-de instrumentação. O APK de produção não oferece entrada demonstrativa.
+A revisão de retomada consultou as execuções mais recentes do repositório: não
+havia execução posterior a 40812203803. As falhas e o cancelamento anteriores
+foram superados por essa execução aprovada; não representam o estado atual.
 
-## Cadastro, entrada e recuperação
+O APK foi baixado do artefato existente e conferido novamente, sem recompilar.
+O `workflow_run.head_sha` dos artefatos corresponde ao commit acima. Seu SHA-256
+coincide com `apk-tested.sha256`, `identidade-apk.json` e o checksum publicado:
 
-- Cadastro: nome, e-mail, senha mínima de oito caracteres e confirmação; solicitação
-  real ao Supabase, seguida de confirmação por e-mail. Cadastro não abre o diário.
-- Entrada: campos obrigatórios; senha inválida, identidade não confirmada ou anônima
-  não admitem acesso. GET `/user` verifica a identidade do token obtido.
-- Recuperação: solicitação real, PKCE S256 e retorno
-  `br.com.diariodeclasse://auth/callback?state=...&code=...`.
-  A aplicação só aceita esquema/host/caminho exatos, estado aleatório próprio,
-  parâmetros únicos, código válido e prazo de 30 minutos. Verificador cifrado
-  neste aparelho; sem tokens implícitos, redirecionamento arbitrário ou logs.
-- Após o link, a sessão de recuperação fica em memória e só permite trocar senha.
-  Depois disso é necessário entrar novamente. Se o processo morrer durante essa
-  etapa, solicitar novo link; não existe desvio offline.
-- Logout: remove imediatamente a admissão local e tokens, tenta revogar a sessão
-  remotamente e fecha o espaço acadêmico. Falta de rede não restaura a admissão.
-  Não apaga dados escolares nem a titularidade já confirmada.
+```text
+APK SHA-256:
+31dd1dfdd740658137aa2de7529070a1c7bce4a7342e620e10874310fb77353a
 
-O proprietário informou a inclusão do retorno na lista do Supabase. Essa informação
-não equivale a inspeção administrativa nem prova de ida e volta no Android.
-Custom schemes podem ser interceptados por outro app; PKCE protege a troca do
-código. Links HTTPS verificados exigiriam domínio próprio e não foram inventados.
+Certificado SHA-256 (mesmo da 0.19.1 original):
+6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae
+```
 
-## Sessão offline
+Package, versionName e versionCode foram lidos do APK; a assinatura v2 foi
+verificada com `apksigner`. O APK é release, sem `debuggable`. O scanner e a revisão
+do código confirmaram ausência de entrada demonstrativa, clientes fictícios de
+instrumentação e chaves administrativas no cliente. A configuração incorporada
+contém somente a URL e a Publishable Key públicas autorizadas.
 
-Sessão, refresh token, estado PKCE e titularidade usam Android Keystore AES-GCM,
-AtomicFile e diretório privado `noBackupFilesDir`. A titularidade possui arquivo
-cifrado separado, preservado no logout. Corrupção/perda da chave bloqueia acesso;
-nenhum fallback limpa ou recria dados. Auto Backup Android permanece desativado.
+## Resultados consolidados
 
-Após autenticação online confirmada, admite-se uso da mesma conta por **até sete
-dias desde a última verificação online**, mesmo sem rede. A aplicação revalida na
-entrada, no retorno e periodicamente; renova tokens próximos de expirar ou após
-15 minutos sem verificação. Erros temporários de rede/servidor não se confundem
-com credenciais inválidas. Sessão revogada é recusada quando percebida online.
-Relógio voltando além da tolerância ou prazo esgotado bloqueia até revalidar.
-A política depende do relógio do aparelho; não é relógio seguro de hardware.
-Revogação remota não é detectável imediatamente sem conexão.
+| Verificação | Resultado da execução aprovada |
+| --- | --- |
+| JVM comum | **205 casos: 204 aprovados, 1 condicional ignorado, zero falhas/erros** |
+| Android comum | **328 casos: 322 aprovados, 6 condicionais ignorados, zero falhas/erros** |
+| Cliente Kotlin no Supabase real | **1 aprovado**, em execução opt-in separada; zero ignorados |
+| Foco autenticação, isolamento e entrada/saída | 18 aprovados; são repetições de casos da suíte Android, não somados ao total |
+| Fonte Android 1,3 e 1,6, largura 320 dp | 2 casos aprovados em cada escala, incluindo vinculação sem PIN |
+| Backup protegido | Leitor Python independente validou ASCII/Unicode, texto exato e rejeição de adulteração do titular |
+| Exportadores anteriores | XLSX, CSV e TSV; chamada, anual e planos validados por leitores independentes |
+| Room | Esquema v10 e migrações anteriores preservados; nenhum arquivo de esquema alterado |
 
-## Dados antigos e isolamento
+As contagens foram extraídas dos XMLs publicados, não da mensagem de progresso
+do Gradle. São **526 casos comuns aprovados**. O teste real de backend e as fases
+das sondas abaixo são relatados separadamente, sem somar repetições como novos casos.
 
-A conta do proprietário foi identificada por UUID imutável retornado no login real
-confirmado; o e-mail não é uma regra editável de titularidade. Outra conta abre
-somente uma base vazia própria. Não pode vincular nem consultar `diario.db` antigo.
+[Resumo dos XMLs](evidencias/auth-0200/ci-validation-result.json) ·
+[Integração Kotlin real](evidencias/auth-0200/kotlin-live-result.json) ·
+[Atualização assinada](evidencias/auth-0200/signed-upgrade-result.json).
 
-A primeira vinculação do proprietário exige cumulativamente:
+### Testes condicionais
 
-1. Conta autorizada confirmada e sessão válida.
-2. Consentimento explícito identificando o e-mail verificado.
-3. PIN/senha do bloqueio Android confirmado pelo próprio sistema.
-4. Escolha de destino e senha de backup com pelo menos 12 caracteres.
-5. Gravação completa, releitura, decifragem e comparação exata do backup e do
+O teste JVM `SupabaseLiveAuthTest` é ignorado na suíte comum porque depende de
+credencial autorizada em arquivo privado. Foi executado separadamente contra o
+Supabase real e passou. O cliente `SupabaseAuthClient.kt` utilizado nessa prova
+não foi alterado entre o commit da evidência e o commit do APK candidato.
+
+Os seis casos Android condicionais exigem argumentos específicos e, por isso,
+aparecem como ignorados na suíte comum:
+
+| Sonda | Execução específica e resultado |
+| --- | --- |
+| `UpgradeProbeTest` | Antes/depois da atualização da fixture v1: **2 fases aprovadas**, oito tabelas e resgate conferidos |
+| `FrequencyProcessProbeTest` | Escrita/leitura após encerramento do processo: **2 fases aprovadas** |
+| `AuthProcessProbeTest` | Escrita e leitura após **reinício real do emulador**: **2 fases aprovadas**, sessão cifrada, seleção e FJ/motivo preservados |
+| `StableUpgradeProbeTest` | **8 fases aprovadas** sobre o APK original 0.19.1: semente, atualização, backup/restauração, reabertura, exclusão de histórico e de aluno e respectivas reaberturas |
+| `AuthSignedUpgradeProbeTest` | **1 fase aprovada**: legado bloqueado antes da vinculação, backup verificado, titularidade, outra conta isolada e retorno à conta original |
+| `ReleaseContinuityProbeTest` | Ensaio histórico **não executado nesta rodada**; substituído neste workflow pela atualização real com o certificado permanente acima |
+
+A atualização assinada totaliza **nove fases aprovadas**, sem desinstalação.
+Os testes usam exclusivamente dados fictícios em emuladores descartáveis.
+
+## Arquitetura e preservação acadêmica
+
+`SupabaseAuthClient` usa a API GoTrue HTTPS (`/auth/v1`) do projeto `noctua-auth`.
+Não há envio de turmas, estudantes, notas, frequências, diários ou horários ao
+Supabase, nem sincronização acadêmica. Nenhuma dependência Android nova foi
+introduzida. Kotlin, Jetpack Compose/Material 3, Repository e Room permanecem.
+
+`AuthController` serializa operações e invalida respostas atrasadas após logout
+ou novas credenciais. A identidade é verificada por GET `/user`; não se confia
+apenas em um JWT decodificado ou no e-mail digitado. Não há logger HTTP, senha
+persistida, chave `service_role`/`sb_secret_` ou credencial administrativa no APK.
+
+`AuthRoot` só disponibiliza o espaço acadêmico após autenticação válida e as
+proteções de titularidade. Os ViewModels são separados por conta e retidos durante
+rotação. O logout esvazia seu store e fecha o espaço anterior; respostas antigas
+não podem reabrir a conta. `DiaryApplication` não abre Room antes da admissão.
+Clientes fictícios existem somente no APK separado de instrumentação, que não
+integra o artefato entregue ao proprietário.
+
+### Banco antigo e vinculação
+
+**Não houve migração de esquema para a autenticação.** Room continua v10,
+com todas as migrações anteriores. A sonda v1 validou a cadeia antiga; a atualização
+assinada original 0.19.1 → candidata validou v10 → v10, preservando snapshots
+acadêmicos, identidades e preferências. Não há migração destrutiva.
+
+A conta proprietária é identificada pelo UUID imutável obtido no login real
+confirmado da conta autorizada. Outra conta não pode assumir o legado.
+A primeira vinculação exige cumulativamente:
+
+1. Conta autorizada com e-mail confirmado e sessão ainda válida.
+2. Consentimento explícito, identificando o e-mail verificado na tela.
+3. Confirmação pelo bloqueio do próprio Android.
+4. Destino escolhido e senha de backup com pelo menos 12 caracteres.
+5. Backup completamente gravado, relido, decifrado e comparado aos bytes e ao
    snapshot original, antes de gravar atomicamente a titularidade.
 
-Sem bloqueio Android, cancelamento, erro de arquivo ou troca de identidade, a
-vinculação não é concluída. Os IDs e linhas originais não são copiados, renumerados
-ou reassociados. Para o proprietário o caminho continua `databases/diario.db`.
-Demais contas usam `databases/accounts/<SHA-256 do UUID>/diario.db`; seleção de
-ano/turma, cópias de segurança e cache também são separados. Ao trocar de conta,
-a fila de escritas anterior termina antes de fechar sua base. Nenhuma conta usa
-os ViewModels ou cópias de segurança da anterior.
+O direito de acesso é revalidado antes de ler/exportar o legado e antes de gravar
+a titularidade. Sessão expirada, ausência de PIN, cancelamento, troca de conta e
+falha de arquivo impedem a vinculação. Não se copiam, renumeram nem reassociam
+linhas de estudantes, matrículas, frequências ou históricos.
 
-Compartilhamentos internos ficam em cache por conta e o FileProvider revalida a
-conta atual em consulta e abertura. URIs de outra conta ou após logout são
-recusados. A área de transferência do Noctua é limpa ao bloquear/sair. Arquivos
-já compartilhados/salvos fora do aplicativo e backups legados em texto não podem
-ser recolhidos ou protegidos retroativamente; o professor deve guardá-los.
+Para o proprietário, o arquivo continua `databases/diario.db`. Para outras contas,
+usa-se `databases/accounts/<SHA-256 do UUID>/diario.db`. Seleção de ano/turma,
+cópias de segurança, cache e ViewModels também são separados. A fila de gravações
+anterior termina antes de fechar a base. O logout não apaga dados acadêmicos nem
+a titularidade já confirmada.
 
-## Backup portátil protegido
+Os testes verificaram notas zero e vínculos acadêmicos, recomposições, P/F/FJ/NR,
+motivo de FJ, remanejamentos, diário, grade semanal, preferências e reabertura.
+O acesso cruzado, a abertura prematura do legado e a restauração de backup
+protegido de outra conta foram recusados. As identidades entre duas contas foram
+injetadas na instrumentação; isso não é alegado como teste de dois usuários reais
+no backend. **Os dados reais do aparelho ainda precisam da conferência física.**
 
-Os dados acadêmicos continuam sendo serializados pelo BackupCodec 12 existente,
-mas o arquivo externo novo usa contêiner binário versionado 1, extensão `.noctua`:
+O FileProvider revalida a conta em consulta e abertura de exportações temporárias.
+URIs de outra conta ou após logout são recusados. Cópias já salvas/compartilhadas
+fora do app, inclusive backups legados em texto e conteúdo da área de transferência
+anterior à atualização, não podem ser protegidas retroativamente.
 
-- assinatura `NOCTUA-ACCOUNT-BACKUP-1\n`, tamanho do cabeçalho e JSON pequeno;
-- UUID proprietário, versão, sal aleatório e IV no cabeçalho;
-- AES-256-GCM, PBKDF2-HMAC-SHA256 com 600.000 iterações, sal de 16 bytes;
-- cabeçalho autenticado como AAD e ciphertext bruto (sem cópias base64 do payload);
-- entrada limitada a 33 MiB; payload acadêmico limitado a 32 MiB.
+### Sessão e uso offline
 
-A senha não é persistida e não é a senha da conta. É necessária na restauração,
-inclusive em outro aparelho com a mesma conta. **Senha de backup esquecida não
-pode ser recuperada.** Conta diferente, senha incorreta e arquivo adulterado são
-rejeitados antes de restaurar. Backups acadêmicos antigos continuam legíveis
-somente pela conta proprietária, com autorização do bloqueio Android; confirmação
-`RESTAURAR` e cópia de segurança anteriores permanecem. O fechamento/flush do
-arquivo precisa ter êxito antes da mensagem de sucesso.
+Sessão, refresh token e estado PKCE são cifrados com Android Keystore AES-GCM,
+AtomicFile e `noBackupFilesDir`. A titularidade possui arquivo cifrado separado e
+sobrevive ao logout. Corrupção/perda da chave bloqueia acesso; não limpa nem recria
+o banco. O Auto Backup Android continua desativado.
 
-## Evidência real já obtida (sem dados de alunos)
+Após autenticação online confirmada, a mesma conta pode trabalhar offline por
+**até sete dias desde a última verificação online**. O app revalida na entrada,
+no retorno e periodicamente; renova tokens próximos da expiração ou após
+15 minutos sem verificação. Falha temporária de rede/servidor não é tratada como
+credencial inválida. Revogação percebida online encerra a admissão local.
 
-Uma conta de teste autorizada, que também é a conta indicada para titularidade,
-foi cadastrada realmente, sem criar contas do piloto. O serviço aceitou cadastro;
-antes da confirmação recusou login com `email_not_confirmed`. Após o proprietário
-abrir o e-mail, login, GET `/user`, renovação e alteração autenticada de senha
-foram aceitos. Senha incorreta foi recusada. O cliente Kotlin real também executou
-login, verificação, refresh, logout e rejeição do refresh revogado.
+O prazo esgotado e o recuo do relógio além da tolerância exigem conexão para
+revalidar. A política depende do relógio do aparelho, não de relógio seguro de
+hardware. Revogação remota não pode ser detectada imediatamente sem internet.
+A persistência no Keystore e o acesso offline após reiniciar o emulador passaram;
+a indisponibilidade do backend foi simulada nesse teste.
 
-A recuperação PKCE foi aceita pelo serviço e o proprietário confirmou o recebimento
-da mensagem. **Troca do código pelo app instalado e definição de senha pelo link
-continuam pendentes de validação real.** Senha temporária automatizada, tokens e
-verificadores não constam do código, documentos, logs ou artefatos. Não excluir nem
-recriar a conta autorizada: sua identidade é vinculada ao UUID verificado.
+### Backups
 
-O SMTP personalizado/Resend e domínio de envio ainda não estão configurados.
-Entrega ao endereço autorizado não comprova entrega a qualquer destinatário.
-Não desativamos confirmação de e-mail ou outras proteções para aprovar testes.
+O **BackupCodec acadêmico continua no formato 12**, lendo os formatos anteriores.
+O arquivo externo novo é um contêiner binário versionado **1**, extensão `.noctua`:
+AES-256-GCM, PBKDF2-HMAC-SHA256 com 600.000 iterações, sal aleatório de 16 bytes,
+IV de 12 bytes e titularidade/cabeçalho autenticados como AAD. O payload mantém
+os registros acadêmicos originais. Limites: 32 MiB de payload e 33 MiB de entrada.
 
-## Validação automatizada
+A senha não é persistida nem enviada ao Supabase. É independente da senha da
+conta e necessária para restaurar, inclusive em outro aparelho com a mesma conta.
+**Senha de backup esquecida não pode ser recuperada.** Outra conta, senha errada
+ou adulteração são rejeitadas antes da restauração. O leitor independente validou
+o contêiner, incluindo senha Unicode e adulteração do titular.
 
-O CI deve executar JVM completa; regressão Android; isolamento entre duas contas;
-vinculação com backup verificado; Keystore/corrupção; negação de URI cruzada;
-formulários e fontes nativas 1,3/1,6; reinício real do emulador com sessão offline;
-XLSX/CSV/TSV com leitores independentes; e atualização sobre o APK **original
-0.19.1 / código 37** com assinatura permanente e snapshots escolares exatos.
+Backups antigos continuam restauráveis pela conta proprietária, com confirmação
+do bloqueio Android, prévia e confirmação `RESTAURAR`. A cópia de segurança anterior
+à restauração continua privada da conta. A mensagem de sucesso só aparece depois
+de gravar, concluir o flush e fechar o arquivo. Falha/cancelamento não indicam sucesso.
 
-Os testes de UI/isolamento usam clientes injetados exclusivamente na instrumentação;
-não são alegados como prova do backend real. O teste JVM online é opt-in, executado
-separadamente com arquivo privado e nunca com senha em variáveis de build ou APK.
-A suíte local executou 205 casos: 204 aprovados e o teste online opt-in ignorado.
-O opt-in foi executado separadamente e passou com o cliente real; resultado
-sanitarizado em `evidencias/auth-0200/kotlin-live-result.json`. Um leitor Python
-independente validou decifragem do contêiner, senhas ASCII/Unicode, preservação do
-texto e rejeição de adulteração do titular. Os números Android e links finais
-serão registrados após consultar o resultado real do CI.
+## Integração real com Supabase e retorno Android
 
-## Primeiro acesso seguro (somente após homologação)
+| Percurso | Evidência efetiva |
+| --- | --- |
+| Cadastro da conta autorizada | Aceito pelo serviço; nenhuma conta do piloto criada |
+| Login antes de confirmar o e-mail | Recusado com `email_not_confirmed` |
+| Confirmação do e-mail | Proprietário abriu a mensagem; confirmação posteriormente verificada no servidor, apesar do retorno antigo a localhost |
+| Login confirmado, identidade e refresh | Aprovados pelo cliente Kotlin real |
+| Senha incorreta | Recusada pelo serviço |
+| Logout e refresh revogado | Aprovados pelo cliente Kotlin real |
+| Atualização autenticada de senha via API | Aceita pelo serviço; não equivale ao percurso de recuperação pelo app |
+| Solicitação de recuperação PKCE | Aceita pelo serviço; proprietário confirmou o recebimento do e-mail |
+| Link → Android → nova senha → entrar | **Pendente de homologação física** |
 
-Antes de instalar, guarde backup da 0.19.1 estável em local seguro. Não desinstale
-nem limpe dados. No candidato instalado, use **Esqueci minha senha** para receber
-um link novo gerado pelo próprio aparelho e definir sua senha pessoal. O link da
-sondagem automatizada anterior não possui o verificador local do app.
+A evidência real utiliza uma única caixa autorizada. Os testes de UI, isolamento,
+expiração, concorrência e falhas usam clientes injetados; seus resultados não
+substituem as chamadas reais acima. Senhas temporárias, tokens e verificadores
+não constam dos documentos ou artefatos. O arquivo privado usado pela sondagem
+foi removido após os testes. Não exclua nem recrie a conta autorizada: seu UUID é
+usado para proteger a vinculação do legado.
 
-Entre com a conta autorizada confirmada. Configure o bloqueio Android se necessário,
-confirme a vinculação, salve e guarde o backup protegido e sua senha. Só depois
-os registros antigos são disponibilizados à conta. Um usuário diferente não pode
-assumi-los. O logout guarda o banco; para voltar aos dados é necessário entrar na
-mesma conta. Erro de proteção exige diagnóstico/backup, nunca reinstalação.
+### Callback e PKCE
 
-Impeccable 4.7 foi consultada em `.agents/skills/impeccable`: contexto Android,
-robustez, campos, áreas de toque, rolagem, estados de falha e preservação da marca.
-Não foram usadas skills de planilha, PDF ou documentos externos.
+O callback base no código e no manifesto é exatamente:
 
-### Primeira rodada Android e correção
+```text
+br.com.diariodeclasse://auth/callback
+```
 
-A execução [40804656462](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40804656462)
-aprovou os 11 testes focados de autenticação/isolamento e os formulários nas fontes
-nativas 1,3/1,6. A regressão revelou um defeito real: o ViewModelStoreOwner por conta
-não fornecia AndroidViewModelFactory, causando tentativa de construtor sem Application
-em DiaryViewModel. O owner passou a implementar HasDefaultViewModelProviderFactory
-com a fábrica Android, sem recolocar modelos acadêmicos no store global. Um teste
-JVM garante o uso da fábrica com dependência e a retenção do mesmo modelo. A nova
-rodada permanece obrigatória; a aprovação focada não foi tratada como release pronta.
+Cada solicitação acrescenta um `state` aleatório. O retorno esperado inclui
+`?state=...&code=...`. Esses parâmetros não mudam o esquema, host ou caminho do
+callback. O app exige o estado criado neste aparelho, parâmetros únicos, ausência
+de fragmentos e prazo de até 30 minutos. O verificador PKCE S256 é cifrado localmente.
+Links arbitrários, outros caminhos, tokens implícitos e estado desconhecido são
+recusados. A sessão de recuperação só abre a troca de senha, nunca os dados escolares;
+após salvar, é necessário entrar novamente. Se o processo morrer nessa etapa,
+solicite outro link.
 
-### Segunda rodada
+A inclusão do retorno no Supabase foi informada pelo proprietário. A configuração
+administrativa da allowlist não foi inspecionada com a chave pública. Na homologação,
+confirmar que ela permite o callback exato **preservando o `state` de query string**.
+Não substituir o callback por localhost nem remover a validação PKCE para contornar
+falhas. O percurso no aparelho é a prova ainda pendente dessa configuração.
 
-A execução [40805762247](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40805762247)
-aprovou **203 JVM**, com um teste online opt-in ignorado, e **319 Android**, com
-seis sondas condicionais ignoradas na suíte comum. Também passaram fontes 1,3/1,6,
-exportações por leitor independente e escrita/leitura da sessão cifrada com
-reinício real do emulador. Não foi publicada release: a sonda de atualização
-legada parou porque AGP gera somente o runner configurado, sem o segundo componente
-AndroidJUnitRunner tentado no manifesto da instrumentação.
+### SMTP
 
-O runner exclusivo de testes agora reconhece a API da Application do APK hospedeiro:
-usa a Application original na semente antiga e injeta o cliente fictício somente
-no APK novo. Não carrega a subclasse de testes contra a classe final antiga.
-As asserções de atualização continuam idênticas; o aplicativo de produção não
-contém esse runner. Uma verificação adicional percorre Sair pelo menu real e a
-reentrada, exigindo snapshot escolar e seleção preservados.
+SMTP personalizado ainda não operacional; Resend sem domínio de envio verificado,
+conforme configuração informada. A entrega ao endereço autorizado foi confirmada,
+mas **não comprova cadastro ou recuperação para qualquer destinatário externo**.
+A confirmação de e-mail não foi desativada e nenhum ajuste externo foi realizado
+para contornar limites. As cinco contas corporativas continuam fora desta etapa.
 
-### Sincronização do preparo da fixture
+## Roteiro seguro para homologação física
 
-A rodada [40807879335](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40807879335)
-parou no `withTimeout` do preparo de `FunctionalFifteenUiInstrumentedTest`, antes
-dos passos da correção concorrente. O teste aguardava `vm.data.first` antes de
-instalar a composição. A preparação passou a instalar a composição e usar
-`compose.waitUntil`, dirigindo o relógio Main/Compose e exigindo aluno, vínculo e FJ
-da fixture completos. O prazo e todas as asserções da correção foram mantidos.
-A sonda legada foi antecipada no CI para diagnosticar seu runner antes da regressão
-longa; somente sua fixture descartável é limpa antes dos testes independentes.
+1. **Antes de atualizar**, na 0.19.1, crie um backup completo e confirme que foi
+   salvo fora do armazenamento privado do aplicativo. Guarde-o em local protegido.
+2. Baixe o [ZIP do candidato assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/artifacts/12871771954),
+   extraia `app-release.apk` e instale como **atualização**. Não use o artefato debug,
+   não desinstale e não limpe os dados. Se o Android exigir desinstalação, interrompa
+   a instalação e informe somente a mensagem apresentada.
+3. Abra **Esqueci minha senha**, informe o e-mail já autorizado e solicite um
+   **link novo pelo próprio APK instalado**. Não crie outra conta para substituir
+   a existente. Os links das sondagens anteriores não têm o verificador local do app.
+4. Abra a mensagem **no mesmo aparelho** e toque no link dentro de 30 minutos.
+   Deve abrir **Nova senha** no Noctua. Defina uma senha pessoal de oito ou mais
+   caracteres, confirme e entre novamente. Se abrir localhost, outro navegador
+   sem retorno, ou uma mensagem de link inválido, registre somente a etapa/mensagem
+   e interrompa o percurso; não afrouxe as proteções.
+5. Na tela **Seus dados anteriores**, confira a conta, escolha uma senha de backup
+   com 12 ou mais caracteres e toque **Criar backup e vincular**. Confirme o PIN/senha
+   no diálogo do Android e salve o backup protegido. Sem bloqueio Android, configure-o
+   antes de continuar. Guarde o arquivo e sua senha separadamente do app.
+6. Após a vinculação, confira turmas/anos, matrículas, notas e recomposições,
+   P/F/FJ/NR e motivos, remanejamentos, diário, horários e preferências de planilha.
+   Use conferências de leitura; não exclua registros nem restaure um backup sobre
+   dados reais apenas para testar.
+7. Feche/reabra; confira a seleção de turma/ano. Teste **Sair da conta**, reentre
+   na mesma conta e confira os dados. Após autenticação válida, desligue a internet
+   temporariamente, reabra e confira o acesso offline; depois reconecte.
 
-### Revalidação no acesso ao legado
+Informe apenas quais etapas passaram ou onde parou. **Não envie senhas, PIN,
+códigos, tokens, links, backups ou dados reais de estudantes.**
 
-A consulta/criação do espaço e a vinculação verificam `canUse` imediatamente, não
-apenas a presença de um usuário na interface. A gravação da titularidade revalida
-o mesmo direito dentro da operação serializada. JVM e instrumentação cobrem a
-sessão que expira antes do próximo tick: sem leitura/exportação do legado nem
-arquivo de backup criado ou titularidade gravada. A geração de cada tentativa de
-login também é capturada antes da espera pelo mutex, protegendo a ordem entre
-credenciais novas, logout e respostas atrasadas de threads diferentes.
+## Pendências antes da liberação estável
 
-### Captura do menu e verificação da vinculação compacta
+- Percurso completo de recuperação no APK instalado, incluindo abertura do link.
+- Confirmação positiva do bloqueio Android e do salvamento pelo provedor de arquivos
+  no aparelho do proprietário. O bloqueio sem PIN, o backup verificado e as proteções
+  de titularidade já passaram no emulador.
+- Conferência dos dados reais após atualização/vinculação, reabertura e offline.
+- SMTP/domínio e entrega a destinatários externos para futura distribuição geral.
+- TalkBack e demais fabricantes/versões Android: testes automatizados em API 30;
+  verificação em outros aparelhos permanece manual.
 
-Na rodada [40810164185](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40810164185),
-as sondas legadas, os 12 casos focados de autenticação e a regressão de correções
-passaram. A suíte comum teve uma falha na captura do novo teste de saída: `onRoot()`
-era ambíguo entre a janela principal e o popup. A captura passou a selecionar
-explicitamente `isPopup()` quando presente, preservando os passos e asserções de
-logout/reentrada. Os cinco testes de entrada/saída passaram a integrar o grupo
-inicial, para falhar cedo sem executar a regressão longa inutilmente.
+Não há falha conhecida pendente na suíte obrigatória do commit validado. Essas
+pendências reais impedem tratar o candidato como release pública homologada.
+**Não promover automaticamente para `main`.** Nenhuma função pedagógica, conta
+corporativa, NOcTuA Escola ou sincronização acadêmica foi acrescentada nesta retomada.
 
-A vinculação recebeu também conferência de layout em 320 dp e fontes nativas,
-inclusive o bloqueio real do Android quando não há PIN configurado. Essa checagem
-não substitui a validação física positiva da credencial e do seletor de arquivos.
-Os campos de senha de backup usam teclado de senha e não oferecem sugestões de
-texto. O rótulo da vinculação foi encurtado, com a regra de 12 caracteres em ajuda
-curta, preservando leitura com fonte ampliada.
+## Arquivos, revisão e capturas
+
+[Lista dos arquivos alterados](evidencias/auth-0200/arquivos-alterados.txt).
+Os módulos principais são `auth/`, inicialização/navegação e integração de backup,
+cache/compartilhamento e ViewModels por conta. Entidades, cálculos, relatórios,
+exportadores e migrações acadêmicas não foram reformulados.
+
+A consolidação altera somente documentação e evidências. O APK permanece o mesmo
+artefato testado do commit c24a7d9. Não houve novo build, versão ou teste longo.
+
+Problemas anteriores resolvidos: fábrica Android dos ViewModels isolados; runner
+compatível com o APK antigo; espera da fixture dirigindo o Compose; e seleção da
+raiz correta ao capturar o popup de conta. As asserções de integridade foram
+preservadas e o CI posterior passou. Esses incidentes não são falhas atuais.
+
+Impeccable 4.7 foi consultada na implementação, em `.agents/skills/impeccable`,
+para contexto Android, robustez, campos, toque, rolagem, erros e preservação da marca.
+Não houve nova intervenção visual nesta consolidação.
+
+Capturas sem edição, em 320 dp e com dados fictícios. Mostram a área visível após
+rolagem quando necessária; o texto não foi reduzido para caber.
+
+| Entrada | Cadastro | Recuperação |
+| --- | --- | --- |
+| ![Entrar](evidencias/auth-0200/capturas/entrar.png) | ![Criar conta](evidencias/auth-0200/capturas/criar-conta.png) | ![Recuperar](evidencias/auth-0200/capturas/recuperar.png) |
+
+| Nova senha | Vinculação | Fonte 1,6 |
+| --- | --- | --- |
+| ![Nova senha](evidencias/auth-0200/capturas/nova-senha.png) | ![Vincular dados](evidencias/auth-0200/capturas/vincular.png) | ![Vinculação ampliada](evidencias/auth-0200/capturas/vincular-fonte-1.6.png) |
+
+![Conta e saída](evidencias/auth-0200/capturas/conta-sair.png)
