@@ -20,8 +20,9 @@ test_19_migration_is_reproducible_and_preserves_records (__main__.ClassSyncPostg
 test_20_owner_commits_are_ordered_before_cursor_can_advance (__main__.ClassSyncPostgresTest.test_20_owner_commits_are_ordered_before_cursor_can_advance) ... ok
 test_21_negative_cursor_is_rejected (__main__.ClassSyncPostgresTest.test_21_negative_cursor_is_rejected) ... ok
 test_22_all_tables_have_rls_and_no_public_write_grants (__main__.ClassSyncPostgresTest.test_22_all_tables_have_rls_and_no_public_write_grants) ... ok
+test_23_confirmation_is_checked_for_direct_reads_as_well_as_rpc (__main__.ClassSyncPostgresTest.test_23_confirmation_is_checked_for_direct_reads_as_well_as_rpc) ... ok
 
 ----------------------------------------------------------------------
-Ran 22 tests in 1.297s
+Ran 23 tests in 1.256s
 
 OK

@@ -35,14 +35,23 @@ REVOKE ALL ON public.noctua_sync_heads, public.noctua_class_bundles,
     public.noctua_class_versions, public.noctua_sync_receipts FROM PUBLIC, anon, authenticated;
 GRANT SELECT ON public.noctua_sync_heads, public.noctua_class_bundles,
     public.noctua_class_versions, public.noctua_sync_receipts TO authenticated;
+-- Check confirmation in server-owned Auth data, including direct SELECT access.
+-- No client metadata/email or caller-supplied UUID is used as an authority.
+CREATE OR REPLACE FUNCTION public.noctua_sync_principal()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+    SELECT u.id FROM auth.users u WHERE u.id=auth.uid()
+        AND u.email_confirmed_at IS NOT NULL AND NOT COALESCE(u.is_anonymous,false)
+$$;
+REVOKE ALL ON FUNCTION public.noctua_sync_principal() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.noctua_sync_principal() TO authenticated;
 DROP POLICY IF EXISTS own_rows ON public.noctua_sync_heads;
-CREATE POLICY own_rows ON public.noctua_sync_heads FOR SELECT TO authenticated USING(owner_id=(SELECT auth.uid()));
+CREATE POLICY own_rows ON public.noctua_sync_heads FOR SELECT TO authenticated USING(owner_id=(SELECT public.noctua_sync_principal()));
 DROP POLICY IF EXISTS own_rows ON public.noctua_class_bundles;
-CREATE POLICY own_rows ON public.noctua_class_bundles FOR SELECT TO authenticated USING(owner_id=(SELECT auth.uid()));
+CREATE POLICY own_rows ON public.noctua_class_bundles FOR SELECT TO authenticated USING(owner_id=(SELECT public.noctua_sync_principal()));
 DROP POLICY IF EXISTS own_rows ON public.noctua_class_versions;
-CREATE POLICY own_rows ON public.noctua_class_versions FOR SELECT TO authenticated USING(owner_id=(SELECT auth.uid()));
+CREATE POLICY own_rows ON public.noctua_class_versions FOR SELECT TO authenticated USING(owner_id=(SELECT public.noctua_sync_principal()));
 DROP POLICY IF EXISTS own_rows ON public.noctua_sync_receipts;
-CREATE POLICY own_rows ON public.noctua_sync_receipts FOR SELECT TO authenticated USING(owner_id=(SELECT auth.uid()));
+CREATE POLICY own_rows ON public.noctua_sync_receipts FOR SELECT TO authenticated USING(owner_id=(SELECT public.noctua_sync_principal()));
 
 CREATE OR REPLACE FUNCTION public.noctua_validate_class(p_id text,p_payload jsonb)
 RETURNS void LANGUAGE plpgsql SET search_path=pg_catalog AS $$

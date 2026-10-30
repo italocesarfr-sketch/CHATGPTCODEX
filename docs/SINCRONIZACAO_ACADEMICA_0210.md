@@ -41,7 +41,7 @@ Migração reproduzível: [`../supabase/migrations/202610300001_class_sync.sql`]
 - `noctua_class_versions`: versões aceitas imutáveis, incluindo a anterior à exclusão.
 - `noctua_sync_receipts`: operação UUID, requisição e resposta confirmada para reenvio idempotente.
 
-RLS habilitada nas quatro tabelas. `authenticated` só recebe SELECT com `owner_id=auth.uid()`. Não há INSERT/UPDATE/DELETE/TRUNCATE direto, nem acesso anônimo. As únicas gravações passam por `noctua_push_class`; `noctua_pull_classes` consulta a conta atual. As funções definidoras usam `search_path=pg_catalog`, objetos qualificados, verificam usuário confirmado/não anônimo em `auth.users`, e derivam o proprietário de `auth.uid()`. **Não existe parâmetro owner no RPC**. Nenhuma chave administrativa é incorporada ao Android.
+RLS habilitada nas quatro tabelas. `authenticated` só recebe SELECT com proprietário derivado de `auth.uid()` e confirmação do e-mail verificada no servidor, inclusive na consulta direta por RLS. Não há INSERT/UPDATE/DELETE/TRUNCATE direto, nem acesso anônimo. As únicas gravações passam por `noctua_push_class`; `noctua_pull_classes` consulta a conta atual. As funções definidoras usam `search_path=pg_catalog`, objetos qualificados, verificam usuário confirmado/não anônimo em `auth.users`, e derivam o proprietário de `auth.uid()`. **Não existe parâmetro owner no RPC**. Nenhuma chave administrativa é incorporada ao Android.
 
 O servidor valida campos/tipos, quatro bimestres, ano, datas sem sobreposição, escala e limite de 16 KiB por agregado. Não aceita campos de alunos escondidos no payload. A FK de versões conserva histórico; não há exclusão física via API.
 
@@ -89,7 +89,7 @@ Resultados locais efetivamente executados na primeira rodada desta branch:
 
 - `testDebugUnitTest`: **215 casos, 214 aprovados, 1 condicional ignorado, 0 falhas**. O condicional é a integração Auth real, que exige credencial privada; não foi repetido nem confundido com sincronização real.
 - `assembleDebug` e `assembleDebugAndroidTest`: compilação aprovada.
-- `scripts/test-sync-postgres.py`: **22 testes aprovados em PostgreSQL 17 local descartável**, com políticas RLS e funções reais, usuários sintéticos e `auth.uid()` de fixture. Não é uma validação de JWT ou Supabase hospedado.
+- `scripts/test-sync-postgres.py`: **23 testes aprovados em PostgreSQL 17 local descartável**, com políticas RLS e funções reais, usuários sintéticos e `auth.uid()` de fixture. Não é uma validação de JWT ou Supabase hospedado.
 - Consulta real, somente leitura da disponibilidade do RPC hospedado: **HTTP 404 / PGRST202**. Função `noctua_pull_classes` ainda ausente. Nenhum registro acadêmico foi enviado.
 
 Testes Android adicionados: fila transacional, rollback, reenvio/perda de ACK, alteração local durante envio, dois bancos por mesma conta, isolamento de conta, credenciais recusadas, concorrência/conflito, colisão de IDs, histórico protegido, exclusão vazia/tombstone, reinício, migração 10→11, backup e restauração pausada, saída durante envio, cancelamento, consentimento e fonte ampliada. O transporte desses testes é determinístico e fictício. Há uma sonda em dois processos para operação persistente. A regressão acadêmica e os leitores independentes de XLSX/CSV/TSV continuam obrigatórios no CI.

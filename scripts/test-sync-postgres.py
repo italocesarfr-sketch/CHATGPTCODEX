@@ -131,5 +131,11 @@ class ClassSyncPostgresTest(unittest.TestCase):
     def test_22_all_tables_have_rls_and_no_public_write_grants(self):
         self.assertEqual('4',execute("SELECT count(*) FROM pg_class WHERE relname IN ('noctua_sync_heads','noctua_class_bundles','noctua_class_versions','noctua_sync_receipts') AND relrowsecurity;"))
         self.assertEqual('0',execute("SELECT count(*) FROM information_schema.table_privileges WHERE table_name LIKE 'noctua_%' AND grantee IN ('authenticated','anon','PUBLIC') AND privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE');"))
+    def test_23_confirmation_is_checked_for_direct_reads_as_well_as_rpc(self):
+        self.push();execute(f"UPDATE auth.users SET email_confirmed_at=NULL WHERE id='{A}';")
+        for table in ['noctua_sync_heads','noctua_class_bundles','noctua_class_versions','noctua_sync_receipts']:
+            self.assertEqual('0',execute(f'SELECT count(*) FROM public.{table};',A))
+        execute('SELECT public.noctua_pull_classes(0);',A,fails=True)
+        self.assertEqual('1',execute('SELECT count(*) FROM public.noctua_class_bundles;'))
 
 if __name__=='__main__':unittest.main(verbosity=2)
