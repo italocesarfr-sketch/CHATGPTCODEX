@@ -255,12 +255,13 @@ jobs:
           EXPECTED_CERT: ${{ vars.DIARY_CERT_SHA256 }}
         run: |
           python3 - <<'PY'
-          import json,sys
+          import json,sys,os
           from pathlib import Path
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.20.0.json' if actual['versionName']=='0.20.0' else 'docs/baseline/noctua-release-0.19.1.json').read_text())
+          baseline='0.20.0' if os.environ['GITHUB_REF']=='refs/heads/sync/academic-foundation-0210' else '0.19.1'
+          expected=json.loads(Path(f'docs/baseline/noctua-release-{baseline}.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk
