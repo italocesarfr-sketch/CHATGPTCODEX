@@ -12,6 +12,8 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 
+const val SYNC_SCHEMA_IDENTITY = "ee981debed71dded9930914c905e6ff9"
+
 interface SafetyBackupStore {
     fun save(bytes: ByteArray): File
     fun latest(): File?
@@ -57,10 +59,10 @@ class BackupManager(
         private set
     private fun verifySchema() {
         db.openHelper.writableDatabase.query("PRAGMA user_version").use {
-            check(it.moveToFirst() && it.getInt(0) == 10) { "Versão do banco incompatível." }
+            check(it.moveToFirst() && it.getInt(0) == 11) { "Versão do banco incompatível." }
         }
         db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use {
-            check(it.moveToFirst() && it.getString(0) == BackupCodec.IDENTITY) { "Esquema do banco incompatível." }
+            check(it.moveToFirst() && it.getString(0) == SYNC_SCHEMA_IDENTITY) { "Esquema do banco incompatível." }
         }
     }
     private suspend fun readRows(): BackupSnapshot = BackupSnapshot(dao.classes(), dao.students(), dao.terms(), dao.lessons(),
@@ -93,6 +95,10 @@ class BackupManager(
             val safeguarded = copy.inputStream().use { BackupCodec.decode(BackupCodec.read(it)).snapshot }
             check(BackupCodec.fingerprint(safeguarded) == BackupCodec.fingerprint(current)) { "Cópia de segurança não validada." }
             // Chaves estrangeiras continuam ligadas; qualquer erro causa rollback integral.
+            // A restored academic snapshot must never replay pending cloud writes or remote deletions.
+            // Keep queue/conflict audit, but require a future explicit reconciliation before resuming.
+            db.openHelper.writableDatabase.execSQL("UPDATE sync_control SET enabled=0, applying=1, checked=0, message='RESTORE'")
+            db.openHelper.writableDatabase.execSQL("UPDATE sync_classes SET conflict=COALESCE(conflict,'RESTORE')")
             dao.removeTimetables(); dao.removeHistories(); dao.removeLessonRecords(); dao.removeClassArchives(); dao.removeExportRows(); dao.removeRelocations(); dao.removeRecompositions(); dao.removeMarks(); dao.removeGrades(); dao.removeDrafts(); dao.removeActivities()
             dao.removeLessons(); dao.removeTerms(); dao.removeStudents(); dao.removeClasses()
             dao.insertClasses(incoming.classes); dao.insertStudents(incoming.students); dao.insertTerms(incoming.terms)
@@ -102,6 +108,7 @@ class BackupManager(
                 check(!it.moveToFirst()) { "Vínculos inconsistentes." }
             }
             check(readRows() == incoming.copy(selection = null)) { "Verificação de restauração falhou." }
+            db.openHelper.writableDatabase.execSQL("UPDATE sync_control SET applying=0")
             RestoreResult(copy)
         }
         // O contexto visual é aplicado APÓS o commit escolar. Falhar aqui nunca desfaz

@@ -27,7 +27,7 @@ class FunctionalFifteenInstrumentedTest {
     private val day="2026-10-20"
     private val l=Lesson("fifteen-l",c.id,day,1,"REALIZADA")
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10).build()
+        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11).build()
         repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"fifteen-safety")),25,null)
     }
     @Before fun setup()=runBlocking { context.deleteDatabase(name);open();repo.saveClass(c,"2026-01-01");repo.saveStudent(s);repo.saveStudent(other);db.dao().save(l) }
@@ -156,7 +156,7 @@ class FunctionalFifteenInstrumentedTest {
         }
         open()
         val current=snapshot();assertEquals("old-s",current.students.single().id);assertEquals("FJ",current.marks.single().mark);assertTrue(current.relocations.single().corrections.isEmpty())
-        db.openHelper.writableDatabase.query("PRAGMA user_version").use{assertTrue(it.moveToFirst());assertEquals(10,it.getInt(0))}
+        db.openHelper.writableDatabase.query("PRAGMA user_version").use{assertTrue(it.moveToFirst());assertEquals(11,it.getInt(0))}
         assertTrue(backup.snapshot().timetables.isEmpty())
         val payload=BackupCodec.json.encodeToString(BackupSnapshot.serializer(),backup.snapshot())
         val old=BackupEnvelope("diario-de-classe-backup",8,"br.com.diariodeclasse",7,BackupCodec.V7_IDENTITY,"2026-10-21T00:00:00Z",24,null,BackupCodec.hash(payload.toByteArray()),payload)

@@ -1,10 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
-    <!-- Only Supabase Auth uses the network; academic data remains local. -->
+    <!-- Auth and explicitly enrolled class settings only; no automatic historical upload. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application android:name=".DiaryApplication" android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:theme="@style/Theme.Diary"
         android:allowBackup="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
+        <service android:name=".sync.ClassSyncJob" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true" />
         <provider android:name=".auth.AccountExportProvider"
             android:authorities="${applicationId}.exports" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/export_paths" />

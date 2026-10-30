@@ -7,6 +7,8 @@ import br.com.diariodeclasse.BuildConfig
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.ui.DiaryCommands
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
@@ -20,16 +22,26 @@ class AccountWorkspace(base:Context,val user:AuthUser,val legacy:Boolean):AutoCl
     val cache=File(base.cacheDir,"accounts/$namespace").apply{mkdirs()}
     val context=AccountContext(base,user.id,cache)
     val commands=DiaryCommands()
+    val syncMutex=Mutex()
     val selection=LocalSelectionStore(base,if(legacy)"diary-context"else"diary-context-$namespace")
     private val dbPath=if(legacy)base.getDatabasePath("diario.db")else File(base.getDatabasePath("diario.db").parentFile,"accounts/$namespace/diario.db")
     val database=DiaryDatabase.open(base,dbPath.also{check(it.parentFile!!.isDirectory||it.parentFile!!.mkdirs())}.absolutePath)
     val repository=DiaryRepository(database)
+    // Observed only while this account's workspace is alive; Room triggers create the durable work.
+    private val syncScope=kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob()+Dispatchers.IO)
+    init {
+        syncScope.launch {
+            database.syncDao().watchStates().collect { states ->
+                if(states.any{it.conflict==null && it.localVersion>it.acknowledged})br.com.diariodeclasse.sync.SyncJobs.soon(base)
+            }
+        }
+    }
     val backup=BackupManager(database,FileSafetyBackupStore(if(legacy)File(base.filesDir,"safety-backups")else File(base.filesDir,"accounts/$namespace/safety-backups")),BuildConfig.VERSION_CODE,InstallationIdentity.certificate(base),selection)
     suspend fun shutdown()=kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
         withContext(Dispatchers.Main.immediate){commands.finish()}
         withContext(Dispatchers.IO){close()}
     }
-    override fun close(){database.close();cache.deleteRecursively()}
+    override fun close(){syncScope.cancel();database.close();cache.deleteRecursively()}
 }
 
 class AccountWorkspaces(private val base:Context,private val auth:AuthController) {

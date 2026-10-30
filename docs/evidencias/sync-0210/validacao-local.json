@@ -1,0 +1,13 @@
+{
+  "tests": 215,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 1,
+  "scope": "JVM local; PostgreSQL em outro relatório; não comprova Supabase real",
+  "backendRpcProbe": {
+    "status": 404,
+    "code": "PGRST202",
+    "rpc": "noctua_pull_classes"
+  },
+  "android": "pendente CI"
+}

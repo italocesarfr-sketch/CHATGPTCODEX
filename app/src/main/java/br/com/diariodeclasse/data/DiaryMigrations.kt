@@ -70,3 +70,6 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
         db.execSQL("ALTER TABLE `marks` ADD COLUMN `reason` TEXT DEFAULT NULL")
     }
 }
+
+/** Aditiva: fila da primeira sincronização; nenhuma tabela acadêmica é reescrita. */
+val MIGRATION_10_11 = br.com.diariodeclasse.sync.SYNC_MIGRATION_10_11

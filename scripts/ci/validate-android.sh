@@ -266,3 +266,5 @@ done
 ./scripts/ci/validate-auth.sh process
 # A atualização release agora reutiliza a chave existente no job stable-update.
 # Não executar aqui o ensaio histórico que gerava novas chaves descartáveis.
+
+./scripts/ci/validate-sync.sh

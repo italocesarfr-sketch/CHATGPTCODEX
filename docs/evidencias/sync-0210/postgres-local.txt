@@ -1,0 +1,27 @@
+test_01_create_and_retrieve_by_same_identity (__main__.ClassSyncPostgresTest.test_01_create_and_retrieve_by_same_identity) ... ok
+test_02_other_owner_cannot_pull_or_select_rows (__main__.ClassSyncPostgresTest.test_02_other_owner_cannot_pull_or_select_rows) ... ok
+test_03_direct_ownership_forgery_is_rejected (__main__.ClassSyncPostgresTest.test_03_direct_ownership_forgery_is_rejected) ... ok
+test_04_direct_update_and_delete_are_rejected (__main__.ClassSyncPostgresTest.test_04_direct_update_and_delete_are_rejected) ... ok
+test_05_duplicate_operation_returns_same_receipt (__main__.ClassSyncPostgresTest.test_05_duplicate_operation_returns_same_receipt) ... ok
+test_06_reused_operation_with_different_payload_is_rejected (__main__.ClassSyncPostgresTest.test_06_reused_operation_with_different_payload_is_rejected) ... ok
+test_07_stale_revision_preserves_remote_and_reports_conflict (__main__.ClassSyncPostgresTest.test_07_stale_revision_preserves_remote_and_reports_conflict) ... ok
+test_08_two_devices_concurrently_compare_and_swap (__main__.ClassSyncPostgresTest.test_08_two_devices_concurrently_compare_and_swap) ... ok
+test_09_older_offline_operation_cannot_overwrite_newer_revision (__main__.ClassSyncPostgresTest.test_09_older_offline_operation_cannot_overwrite_newer_revision) ... ok
+test_10_tombstone_preserves_previous_version (__main__.ClassSyncPostgresTest.test_10_tombstone_preserves_previous_version) ... ok
+test_11_rollback_leaves_no_partial_receipt_or_revision (__main__.ClassSyncPostgresTest.test_11_rollback_leaves_no_partial_receipt_or_revision) ... ok
+test_12_cursor_returns_chronological_account_changes (__main__.ClassSyncPostgresTest.test_12_cursor_returns_chronological_account_changes) ... ok
+test_13_same_id_in_different_accounts_remains_separate (__main__.ClassSyncPostgresTest.test_13_same_id_in_different_accounts_remains_separate) ... ok
+test_14_unconfirmed_and_unknown_identity_are_rejected (__main__.ClassSyncPostgresTest.test_14_unconfirmed_and_unknown_identity_are_rejected) ... ok
+test_15_anonymous_and_no_identity_are_rejected (__main__.ClassSyncPostgresTest.test_15_anonymous_and_no_identity_are_rejected) ... ok
+test_16_malformed_class_is_rejected_atomically (__main__.ClassSyncPostgresTest.test_16_malformed_class_is_rejected_atomically) ... ok
+test_17_wrong_term_identity_overlap_or_count_is_rejected (__main__.ClassSyncPostgresTest.test_17_wrong_term_identity_overlap_or_count_is_rejected) ... ok
+test_18_unexpected_student_data_is_rejected (__main__.ClassSyncPostgresTest.test_18_unexpected_student_data_is_rejected) ... ok
+test_19_migration_is_reproducible_and_preserves_records (__main__.ClassSyncPostgresTest.test_19_migration_is_reproducible_and_preserves_records) ... ok
+test_20_owner_commits_are_ordered_before_cursor_can_advance (__main__.ClassSyncPostgresTest.test_20_owner_commits_are_ordered_before_cursor_can_advance) ... ok
+test_21_negative_cursor_is_rejected (__main__.ClassSyncPostgresTest.test_21_negative_cursor_is_rejected) ... ok
+test_22_all_tables_have_rls_and_no_public_write_grants (__main__.ClassSyncPostgresTest.test_22_all_tables_have_rls_and_no_public_write_grants) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 1.297s
+
+OK

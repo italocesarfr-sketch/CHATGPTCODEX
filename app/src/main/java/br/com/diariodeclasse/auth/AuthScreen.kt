@@ -46,7 +46,7 @@ import kotlinx.coroutines.launch
     }
     when {
         state.storageFailure -> AuthPanel("Dados protegidos") { Text(state.message);Text("Não desinstale nem limpe os dados do aplicativo. Guarde seu backup e procure suporte.") }
-        state.initializing -> AuthPanel("Conectando") { CircularProgressIndicator() }
+        state.initializing -> AuthPanel("Conectando") { CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally)) }
         user==null||state.recovery -> AuthForm(state,app.auth)
         claimRequired -> LegacyClaim(app,user){ workspace=app.workspaces.activate(user) }
         failure.isNotEmpty() -> AuthPanel("Acesso indisponível"){Text(failure);TextButton(onClick={app.authScope.launch{app.auth.logout()}}){Text("Sair da conta")}}
@@ -65,7 +65,7 @@ import kotlinx.coroutines.launch
         Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding(),contentAlignment=Alignment.Center) {
             Column(Modifier.widthIn(max=440.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
                 Image(painterResource(R.drawable.noctua_logo),"Logo oficial do Noctua",Modifier.size(88.dp).align(Alignment.CenterHorizontally).testTag("entry-logo"))
-                Text(title,style=MaterialTheme.typography.headlineMedium)
+                Text(title,style=MaterialTheme.typography.headlineMedium,modifier=if(title=="Conectando")Modifier.align(Alignment.CenterHorizontally)else Modifier)
                 content()
             }
         }
@@ -76,11 +76,12 @@ import kotlinx.coroutines.launch
     var email by remember{mutableStateOf("")};var name by remember{mutableStateOf("")}
     var password by remember{mutableStateOf("")};var confirmation by remember{mutableStateOf("")}
     var visible by remember{mutableStateOf(false)}
+    var confirmationVisible by remember{mutableStateOf(false)}
     val localScope=rememberCoroutineScope()
     val scope=(LocalContext.current.applicationContext as? DiaryApplication)?.authScope ?: localScope
     LaunchedEffect(state.recovery){if(state.recovery)mode="login"}
     val current=if(state.recovery)"reset"else mode
-    fun back(){password="";confirmation="";visible=false;mode="login";if(state.recovery)scope.launch{auth.logout()}}
+    fun back(){password="";confirmation="";visible=false;confirmationVisible=false;mode="login";if(state.recovery)scope.launch{auth.logout()}}
     androidx.activity.compose.BackHandler(current!="login"&&!state.loading){back()}
     fun submit() { val p=password;val c=confirmation;password="";confirmation="";scope.launch{
         when(current){"signup"->auth.signup(name,email,p,c);"forgot"->auth.recover(email);"reset"->auth.newPassword(p,c);else->auth.login(email,p)}
@@ -92,7 +93,8 @@ import kotlinx.coroutines.launch
         if(current!="forgot") {
             OutlinedTextField(password,{password=it},label={Text("Senha")},singleLine=true,visualTransformation=if(visible)VisualTransformation.None else PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),
                 trailingIcon={TextButton(onClick={visible=!visible},Modifier.heightIn(min=48.dp).testTag("entry-show-password")){Text(if(visible)"Ocultar"else"Mostrar")}},modifier=Modifier.fillMaxWidth().testTag("entry-password"),enabled=!state.loading)
-            if(current in listOf("signup","reset"))OutlinedTextField(confirmation,{confirmation=it},label={Text("Confirmar senha")},singleLine=true,visualTransformation=PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),modifier=Modifier.fillMaxWidth().testTag("auth-confirm-password"),enabled=!state.loading)
+            if(current in listOf("signup","reset"))OutlinedTextField(confirmation,{confirmation=it},label={Text("Confirmar senha")},singleLine=true,visualTransformation=if(confirmationVisible)VisualTransformation.None else PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),
+                trailingIcon={TextButton(onClick={confirmationVisible=!confirmationVisible},Modifier.heightIn(min=48.dp).testTag("auth-show-confirmation")){Text(if(confirmationVisible)"Ocultar"else"Mostrar")}},modifier=Modifier.fillMaxWidth().testTag("auth-confirm-password"),enabled=!state.loading)
         }
         if(state.loading)LinearProgressIndicator(Modifier.fillMaxWidth())
         Button(onClick=::submit,enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-enter")) {Text(when(current){"signup"->"Criar conta";"forgot"->"Enviar recuperação";"reset"->"Salvar nova senha";else->"Entrar"})}

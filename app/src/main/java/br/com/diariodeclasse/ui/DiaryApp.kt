@@ -75,6 +75,7 @@ private val pages = listOf(
     var editingActivity by remember { mutableStateOf<Activity?>(null) }
     var showBackup by remember { mutableStateOf(false) }
     var accountMenu by remember { mutableStateOf(false) }
+    var showSync by remember { mutableStateOf(false) }
     var invalidGrade by remember { mutableStateOf(false) }
     var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
     var navigating by remember { mutableStateOf(false) }
@@ -151,6 +152,7 @@ private val pages = listOf(
                 IconButton(onClick={accountMenu=true},modifier=Modifier.size(48.dp).testTag("auth-account")){Icon(painterResource(R.drawable.ic_more_vert),"Conta")}
                 DropdownMenu(accountMenu,{accountMenu=false}) {
                     DropdownMenuItem(text={Text((vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).auth.state.value.user?.email.orEmpty())},onClick={},enabled=false)
+                    DropdownMenuItem(text={Text("Sincronização de turmas • teste")},onClick={accountMenu=false;showSync=true},modifier=Modifier.testTag("open-sync"))
                     DropdownMenuItem(text={Text("Sair da conta")},onClick={accountMenu=false;navigate {vm.logout()}},modifier=Modifier.testTag("auth-logout"))
                 }
             }
@@ -259,6 +261,7 @@ private val pages = listOf(
         "As alterações deste registro ainda não foram salvas. Cancelar mantém o texto; confirmar descarta somente esta edição.",
         {pendingRecordNavigation=null}, {pendingRecordNavigation=null;action()}) }
     if (showBackup) BackupDialog(vm) { showBackup = false }
+    if (showSync) br.com.diariodeclasse.sync.SyncPanel((vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).workspace,data.classes){showSync=false}
     if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false },
         administrativeFinished = { notice ->
             classForm=false;page=0;detail=""

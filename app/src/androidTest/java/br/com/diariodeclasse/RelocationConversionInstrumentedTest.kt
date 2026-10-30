@@ -30,7 +30,7 @@ class RelocationConversionInstrumentedTest {
     private val early2=early.copy(id="convert-early-double",ordinal=2)
     private val wrong=early.copy(id="convert-wrong",date="2026-09-20")
     private val a=Activity("convert-a",x.id,"Atividade fictícia",date=early.date,term=3,maximum=5.0)
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10).build();repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"conversion-safety")),27,null)}
+    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11).build();repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"conversion-safety")),27,null)}
     @Before fun setup()=runBlocking {
         context.deleteDatabase(name);open()
         for(c in listOf(x,g,h))repo.saveClass(c,"2026-01-01")
@@ -104,7 +104,7 @@ class RelocationConversionInstrumentedTest {
         db.close();open();assertEquals(converted,snapshot())
         repo.saveStudent(other.copy(name="Nome fictício alterado"));backup.restore(backup.prepare(bytes.inputStream()),"RESTAURAR")
         assertEquals(converted,snapshot());assertEquals(prior,snapshot().relocations.single().corrections.take(prior.size))
-        db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id=42").use{assertTrue(it.moveToFirst());assertEquals(BackupCodec.IDENTITY,it.getString(0))}
+        db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id=42").use{assertTrue(it.moveToFirst());assertEquals(br.com.diariodeclasse.backup.SYNC_SCHEMA_IDENTITY,it.getString(0))}
     }
     @Test fun conversionHistoryAndReportsRemainAfterSuccessiveMovesAndClassDeletion()=runBlocking {
         val p=preview();repo.confirmRelocationCorrection(p);val target=p.target!!

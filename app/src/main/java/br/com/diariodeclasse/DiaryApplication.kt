@@ -13,6 +13,7 @@ open class DiaryApplication : Application() {
         super.onCreate()
         listOf("accounts","exports","exports-share").forEach{File(cacheDir,it).deleteRecursively()}
         authScope.launch { auth.restore() }
+        br.com.diariodeclasse.sync.SyncJobs.schedule(this)
     }
     open val auth by lazy { br.com.diariodeclasse.auth.AuthController(br.com.diariodeclasse.auth.SupabaseAuthClient(connected={
         val connectivity=getSystemService(CONNECTIVITY_SERVICE) as android.net.ConnectivityManager

@@ -1,3 +1,5 @@
+> Desenvolvimento experimental **0.21.0 / código 39**: [fundação de sincronização](docs/SINCRONIZACAO_ACADEMICA_0210.md). Somente turmas/bimestres com consentimento explícito. Supabase acadêmico ainda aguarda migração e prova real; mantenha backups. A `main` continua na 0.19.1.
+
 # Noctua
 
 Candidata de homologação: **0.20.0 / código 38**, na branch `auth/supabase-protected-workspaces`. **204 JVM e 322 Android aprovados**, integração Kotlin real separada e nove fases da atualização assinada sobre a 0.19.1 aprovadas. [APK candidato assinado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803/artifacts/12871771954) · [Actions aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803). **Recuperação por link, vinculação no aparelho e SMTP externo ainda pendentes de homologação; não é liberação pública.** `main` permanece na estável 0.19.1. [Evidências, arquitetura e roteiro seguro](docs/AUTENTICACAO_SUPABASE_0200.md).

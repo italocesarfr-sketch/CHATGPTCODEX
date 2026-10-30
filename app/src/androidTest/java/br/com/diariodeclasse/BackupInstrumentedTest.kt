@@ -101,7 +101,7 @@ class BackupInstrumentedTest {
     }
     @Test fun baselineSchemaOpensWithoutMigrationAndRetainsIdentity() = runBlocking {
         loadFixture()
-        db.openHelper.writableDatabase.query("PRAGMA user_version").use { assertTrue(it.moveToFirst());assertEquals(10,it.getInt(0)) }
-        db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use { assertTrue(it.moveToFirst());assertEquals(BackupCodec.IDENTITY,it.getString(0)) }
+        db.openHelper.writableDatabase.query("PRAGMA user_version").use { assertTrue(it.moveToFirst());assertEquals(11,it.getInt(0)) }
+        db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use { assertTrue(it.moveToFirst());assertEquals(br.com.diariodeclasse.backup.SYNC_SCHEMA_IDENTITY,it.getString(0)) }
     }
 }

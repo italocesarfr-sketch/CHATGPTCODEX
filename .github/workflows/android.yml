@@ -1,7 +1,7 @@
 name: Compilar APK Android
 on:
   push:
-    branches: [main, auth/supabase-protected-workspaces]
+    branches: [main, auth/supabase-protected-workspaces, sync/academic-foundation-0210]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -10,8 +10,31 @@ concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  sync-postgres:
+    name: Sincronização — PostgreSQL, RLS e concorrência (dados fictícios)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_sync_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/test-sync-postgres.py
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-fixture-only
+          PGDATABASE: noctua_sync_test
   validation:
-    name: Autenticação — isolamento, integridade e regressão Android
+    needs: sync-postgres
+    name: Autenticação e sincronização — isolamento, integridade e regressão Android
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -162,11 +185,14 @@ jobs:
             build/auth-font-*.txt
             build/auth-process-*.txt
             build/auth-telas.tar
+            build/sync-focused.txt
+            build/sync-process-*.txt
+            build/sync-telas.tar
           if-no-files-found: ignore
   stable-update:
     name: Candidato — atualização da Noctua 0.19.1 com a assinatura existente
     needs: validation
-    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auth/supabase-protected-workspaces')
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/auth/supabase-protected-workspaces' || github.ref == 'refs/heads/sync/academic-foundation-0210')
     environment: release
     permissions:
       contents: read
@@ -221,8 +247,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
-          run-id: 40681663108
-          name: noctua-etapa6-release
+          run-id: ${{ github.ref == 'refs/heads/sync/academic-foundation-0210' && '40812203803' || '40681663108' }}
+          name: ${{ github.ref == 'refs/heads/sync/academic-foundation-0210' && 'noctua-auth-homologacao' || 'noctua-etapa6-release' }}
           path: .stable-baseline
       - name: Verificar identidade da referência e do candidato
         env:
@@ -234,7 +260,7 @@ jobs:
           sys.path.insert(0,'scripts')
           from apk_identity import identity
           actual=identity('.stable-baseline/app-release.apk')
-          expected=json.loads(Path('docs/baseline/noctua-release-0.19.1.json').read_text())
+          expected=json.loads(Path('docs/baseline/noctua-release-0.20.0.json' if actual['versionName']=='0.20.0' else 'docs/baseline/noctua-release-0.19.1.json').read_text())
           assert all(actual[k]==expected[k] for k in ('apkSha256','certificateSha256'))
           PY
           python3 scripts/verify-release-certificate.py app/build/outputs/apk/release/app-release.apk
@@ -259,7 +285,7 @@ jobs:
           cp build/stable-upgrade/compatibilidade.txt app/build/outputs/apk/release/compatibilidade.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.ref == 'refs/heads/main' && 'noctua-etapa6-release' || 'noctua-auth-homologacao' }}
+          name: ${{ github.ref == 'refs/heads/main' && 'noctua-etapa6-release' || github.ref == 'refs/heads/sync/academic-foundation-0210' && 'noctua-sync-foundation-homologacao' || 'noctua-auth-homologacao' }}
           path: |
             app/build/outputs/apk/release/app-release.apk
             app/build/outputs/apk/release/app-release.apk.sha256

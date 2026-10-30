@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 import kotlinx.serialization.Serializable
 import br.com.diariodeclasse.backup.BackupDao
+import br.com.diariodeclasse.sync.*
 
 fun newId(): String = UUID.randomUUID().toString()
 
@@ -143,12 +144,14 @@ interface DiaryDao {
 }
 
 @Database(entities = [SchoolClass::class, Student::class, Term::class, Lesson::class,
-    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class, PreservedHistory::class, WeeklyTimetable::class], version = 10, exportSchema = true)
+    Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class, PreservedHistory::class, WeeklyTimetable::class,
+    SyncControl::class, SyncClassState::class, SyncOperation::class], version = 11, exportSchema = true)
 @TypeConverters(HistoricalConverters::class, RelocationCorrectionConverters::class, TimetableConverters::class)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
     abstract fun backupDao(): BackupDao
+    abstract fun syncDao(): SyncDao
     companion object {
-        fun open(context: Context, name: String = "diario.db"): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10).build()
+        fun open(context: Context, name: String = "diario.db"): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11).addCallback(object:Callback(){override fun onOpen(db:androidx.sqlite.db.SupportSQLiteDatabase){installSyncTriggers(db)}}).build()
     }
 }

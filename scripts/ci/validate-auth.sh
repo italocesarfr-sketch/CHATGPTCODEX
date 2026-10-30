@@ -17,7 +17,7 @@ PY
 if [[ "${1:-focused}" == focused ]]; then
     timeout --signal=INT --kill-after=10s 5m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.AuthIsolationInstrumentedTest,br.com.diariodeclasse.AuthUiInstrumentedTest,br.com.diariodeclasse.AuthClaimLayoutInstrumentedTest,br.com.diariodeclasse.FinalUxEntryInstrumentedTest "$RUNNER" > build/auth-focused.txt
     cat build/auth-focused.txt
-    check_result build/auth-focused.txt 18
+    check_result build/auth-focused.txt 19
     for font in 1.3 1.6; do
         adb shell settings put system font_scale "$font"
         timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.AuthUiInstrumentedTest#allFormsRemainScrollableAndReachableWithTheNativeFontScale,br.com.diariodeclasse.AuthClaimLayoutInstrumentedTest "$RUNNER" > "build/auth-font-$font.txt"

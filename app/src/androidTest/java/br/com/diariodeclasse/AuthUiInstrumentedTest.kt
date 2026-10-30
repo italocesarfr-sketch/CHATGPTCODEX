@@ -46,6 +46,18 @@ class AuthUiInstrumentedTest {
         val folder=File(app.filesDir,"auth-screenshots").apply{mkdirs()}
         File(folder,"$name.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
     }
+    @Test fun passwordAndConfirmationVisibilityAreIndependent(){
+        tag("entry-create").performScrollTo().performClick()
+        type("entry-password","Ficticia-2026");type("auth-confirm-password","Ficticia-2026")
+        tag("entry-show-password").performScrollTo().performClick()
+        tag("entry-password").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password).not())
+        tag("auth-confirm-password").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        tag("auth-show-confirmation").performScrollTo().performClick()
+        tag("auth-confirm-password").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password).not())
+        tag("entry-show-password").performScrollTo().performClick()
+        tag("entry-password").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password))
+        tag("auth-confirm-password").assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.Password).not())
+    }
     @Test fun blankAndIncorrectCredentialsNeverOpenAnAcademicScreenAndVisibilityStillWorks() {
         submit();assertNull(auth.state.value.user);tag("auth-message").assertExists()
         type("entry-email","professor@example.invalid");type("entry-password","incorreta-ficticia")

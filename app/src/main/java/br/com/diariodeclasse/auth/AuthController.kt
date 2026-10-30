@@ -85,7 +85,7 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
         AuthPolicy.email(email.trim())
         val link=PendingLink.create("recovery",now());store(secrets().copy(pending=link))
         client.recover(email.trim(),link)
-        publish(AuthState(false,message="Se houver uma conta, você receberá as instruções por e-mail."))
+        publish(AuthState(false,message="Solicitação recebida. Verifique seu e-mail."))
     }
     suspend fun callback(raw:String)=action {
         val pending=secrets().pending ?: throw AuthFailure(AuthFailure.Kind.LINK,"Solicite um novo link neste aparelho.")
@@ -116,6 +116,12 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
         saved?.let{withTimeoutOrNull(5000){runCatching{client.logout(it)}}}
     }
     fun canUse(userId:String):Boolean = mutable.value.user?.id==userId && runCatching{secrets().session?.let{it.user.id==userId&&AuthPolicy.offlineAllowed(it,now())}==true}.getOrDefault(false)
+    /** Academic network access always verifies a live session; offline grace only admits local data. */
+    internal suspend fun syncToken(userId:String):String {
+        tick()
+        check(canUse(userId) && !state.value.offline){"Revalide a sessão para sincronizar."}
+        return requireNotNull(secrets().session).also{check(it.user.id==userId && it.expiresAt>now())}.access
+    }
     fun closeExpiredView() {
         val user=mutable.value.user ?: return
         if(!canUse(user.id))mutable.value=AuthState(loading=true,initializing=true)
