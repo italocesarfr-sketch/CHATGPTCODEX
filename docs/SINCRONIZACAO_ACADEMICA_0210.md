@@ -85,10 +85,15 @@ Impeccable v4.7 do repositório foi consultada (`SKILL.md`, contexto do alvo, ha
 
 ## Validação e evidências
 
-Resultados locais efetivamente executados na primeira rodada desta branch:
+Resultados efetivamente conferidos na [execução aprovada 40988203896](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40988203896), commit de código `9ca36a32f69c2b98dfc6baea2afe298d1cab9fb2`:
 
 - `testDebugUnitTest`: **215 casos, 214 aprovados, 1 condicional ignorado, 0 falhas**. O condicional é a integração Auth real, que exige credencial privada; não foi repetido nem confundido com sincronização real.
-- `assembleDebug` e `assembleDebugAndroidTest`: compilação aprovada.
+- `assembleDebug`, `assembleDebugAndroidTest` e release assinado: compilação aprovada.
+- Suíte Android comum: **353 casos nos XMLs, 346 aprovados, 7 condicionais ignorados, 0 falhas/erros**. O console Gradle mostra 360 eventos, contando novamente os ignorados; o total adotado é o XML.
+- Sincronização focada: **23 casos aprovados** (subconjunto repetido, não somar aos 346): Room/engine, interface e encerramento repetido do workspace.
+- Sonda da fila: escrita e leitura em **dois processos**, mesmo UUID de operação preservado.
+- FJ, atividades, notas, remanejamentos, exclusões, horários, relatórios, restauração e isolamento de contas: regressão Android aprovada.
+- Leitores independentes aprovaram XLSX/CSV/TSV, planos de aula e backup protegido, incluindo Unicode e rejeição de adulteração.
 - `scripts/test-sync-postgres.py`: **23 testes aprovados em PostgreSQL 17 local descartável**, com políticas RLS e funções reais, usuários sintéticos e `auth.uid()` de fixture. Não é uma validação de JWT ou Supabase hospedado.
 - Consulta real, somente leitura da disponibilidade do RPC hospedado: **HTTP 404 / PGRST202**. Função `noctua_pull_classes` ainda ausente. Nenhum registro acadêmico foi enviado.
 
@@ -96,7 +101,43 @@ Testes Android adicionados: fila transacional, rollback, reenvio/perda de ACK, a
 
 A primeira execução [40986427305](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40986427305) aprovou PostgreSQL/JVM/compilação/leitores e as sondas de atualização legada, mas parou na regressão de autenticação por uma corrida real: fechar o Room antes de aguardar o fim da observação da fila causou conexão SQLite fechada. O encerramento agora cancela **e aguarda** o observador antes de fechar o banco, com teste de abertura/fechamento repetido e dados conferidos. Não se ignorou a exceção nem se retirou o teste.
 
-**Resultados Android finais, capturas e atualização assinada: aguardam a nova execução desta branch.** Não transferir a aprovação da 0.20.0 para o código novo. O workflow fará atualização sobre o APK 0.20.0 original assinado, sem desinstalar nem criar certificado. Artefatos desta branch são somente candidatos experimentais.
+Os três jobs da rodada final foram aprovados: PostgreSQL/RLS, autenticação/sincronização/regressão Android e candidato assinado. As duas rodadas intermediárias foram canceladas porque foram substituídas pela revisão final; não são falhas atuais. Uma seleção incorreta do campo de metadados do APK no workflow foi corrigida e conferida localmente antes do job assinado: o leitor fornece hash/certificado, e a versão da referência é escolhida pelo contexto da branch e confirmada pelo APK/hash original.
+
+### Condicionais Android
+
+| Caso fora da suíte comum | Evidência específica |
+|---|---|
+| `UpgradeProbeTest` | 2 fases aprovadas, base v1 original e atualização |
+| `FrequencyProcessProbeTest` | escrita/leitura após force-stop aprovadas |
+| `AuthProcessProbeTest` | escrita/leitura após reinício real do emulador aprovadas; transporte Auth fictício |
+| `SyncProcessProbeTest` | escrita/leitura após force-stop aprovadas, mesmo UUID pendente |
+| `StableUpgradeProbeTest` | 8 fases aprovadas no job com APK 0.20.0 original e assinatura permanente |
+| `AuthSignedUpgradeProbeTest` | vinculação legada, backup protegido e isolamento aprovados após atualização |
+| `ReleaseContinuityProbeTest` | sonda histórica não executada; substituída pela referência original e certificado permanente acima |
+
+O teste JVM `SupabaseLiveAuthTest` foi ignorado por não haver credencial privada para nova execução. Não se atribui a ele aprovação nesta branch. Testes locais de dois usuários usam identidades fictícias; as políticas SQL foram exercitadas em PostgreSQL real descartável, com `auth.uid()` de fixture. Nenhum desses resultados representa duas contas reais no Supabase hospedado.
+
+### Atualização e artefato assinado
+
+- Pacote `br.com.diariodeclasse`; 0.20.0/código 38 → **0.21.0/código 39**.
+- Referência SHA-256 `31dd1dfdd740658137aa2de7529070a1c7bce4a7342e620e10874310fb77353a`.
+- Candidato SHA-256 `717f98a9a34c6ea43dfd6f670a380f263cb2857df93579e94446f5eb75706750`.
+- Certificado comum `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`; assinatura v2 verificada, um assinante.
+- O APK baixado coincide com `apk-tested.sha256` e com o checksum publicado. Scanner não detectou chave administrativa, cliente fictício ou entrada demonstrativa em produção.
+- As nove fases conferiram snapshots/IDs/seleções, migração, backup/restauração, reabertura, históricos protegidos, exclusões seguras e vinculação/isolamento. Usaram somente dados fictícios em emulador, sem desinstalar a referência entre a semente e a atualização.
+- O rótulo herdado do job ainda menciona “0.19.1”; **a referência efetiva desta branch foi 0.20.0**, comprovada pelo hash e `compatibilidade.txt`, com código 38. Não é uma nova aprovação física do aparelho do proprietário.
+
+[APK candidato assinado — ZIP](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40988203896/artifacts/12949256095) • [provas da atualização](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40988203896/artifacts/12949266033) • [XMLs/capturas/regressão](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40988203896/artifacts/12948896051).
+
+É um candidato de **fundação experimental**, não liberação estável nem recomendação de substituir a instalação com dados reais antes da homologação. Guarde o backup completo protegido; não desinstale nem limpe o aplicativo. A `main` não foi promovida.
+
+### Capturas e limitações de interface
+
+[Turmas participantes/pendências](evidencias/sync-0210/capturas/turmas-pendentes.png) • [Teste desativado](evidencias/sync-0210/capturas/turmas-desativadas.png). São PNGs originais capturados em emulador Android, sem reconstrução ou edição.
+
+A inspeção confirmou texto legível, tema atual, ações separadas e rolagem. Os formulários Auth passaram em escala nativa 1.3/1.6. **A tentativa de ampliar `LocalDensity` no teste do novo diálogo não alterou a densidade da janela nativa**, como mostram as capturas; ela não é evidência de fonte Android 1.6 para esse painel. Falta homologar especificamente esse diálogo com ampliação nativa/fabricantes e TalkBack no aparelho. Não se declara essa verificação física aprovada.
+
+[Arquivos alterados](evidencias/sync-0210/arquivos-alterados.txt) • [contagens consolidadas](evidencias/sync-0210/validacao-ci.json) • [resultado SQL](evidencias/sync-0210/postgres-local.txt) • [identidade/atualização](evidencias/sync-0210/atualizacao-assinada.json).
 
 ## Configuração gratuita pendente e prova real
 

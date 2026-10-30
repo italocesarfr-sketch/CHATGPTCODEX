@@ -1,4 +1,4 @@
-> Desenvolvimento experimental **0.21.0 / código 39**: [fundação de sincronização](docs/SINCRONIZACAO_ACADEMICA_0210.md). Somente turmas/bimestres com consentimento explícito. Supabase acadêmico ainda aguarda migração e prova real; mantenha backups. A `main` continua na 0.19.1.
+> Desenvolvimento experimental **0.21.0 / código 39**: [fundação de sincronização](docs/SINCRONIZACAO_ACADEMICA_0210.md). Somente turmas/bimestres com consentimento explícito. [CI aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40988203896): 214 JVM, 346 Android e 23 PostgreSQL; atualização assinada 0.20.0→0.21.0 aprovada com dados fictícios. Supabase acadêmico ainda aguarda migração e prova real; mantenha backups. A `main` continua na 0.19.1.
 
 # Noctua
 

@@ -1,0 +1,84 @@
+{
+  "jvm": {
+    "tests": 215,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "xmlFiles": 32
+  },
+  "android": {
+    "tests": 353,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 7,
+    "xmlFiles": 1
+  },
+  "conditionalAndroid": [
+    {
+      "class": "br.com.diariodeclasse.AuthProcessProbeTest",
+      "test": "protectedSessionAndAcademicDataSurviveRebootWithoutAnOnlineBypass"
+    },
+    {
+      "class": "br.com.diariodeclasse.AuthSignedUpgradeProbeTest",
+      "test": "originalSignedDataStaysLockedUntilVerifiedOwnerBindingAndNeverAppearsInAnotherAccount"
+    },
+    {
+      "class": "br.com.diariodeclasse.FrequencyProcessProbeTest",
+      "test": "committedLastCellSurvivesProcessRestart"
+    },
+    {
+      "class": "br.com.diariodeclasse.ReleaseContinuityProbeTest",
+      "test": "releasePreservesSnapshotPreferencesAndBackupRoundTrip"
+    },
+    {
+      "class": "br.com.diariodeclasse.StableUpgradeProbeTest",
+      "test": "sameOwnerSignaturePreservesEveryRowPreferencesAndBackup"
+    },
+    {
+      "class": "br.com.diariodeclasse.SyncProcessProbeTest",
+      "test": "durableQueueAfterProcessDeath"
+    },
+    {
+      "class": "br.com.diariodeclasse.UpgradeProbeTest",
+      "test": "allSyntheticRowsSurviveInInstalledApp"
+    }
+  ],
+  "run": 40988203896,
+  "commit": "9ca36a32f69c2b98dfc6baea2afe298d1cab9fb2",
+  "postgres": {
+    "tests": 23,
+    "passed": 23,
+    "scope": "PostgreSQL 17 descartável com auth.uid de fixture; não Supabase real"
+  },
+  "syncFocused": {
+    "passed": 23,
+    "scope": "Room real, transporte fictício"
+  },
+  "syncProcess": {
+    "write": "passed",
+    "readAfterProcessDeath": "passed"
+  },
+  "cloud": {
+    "rpc": "noctua_pull_classes",
+    "http": 404,
+    "code": "PGRST202",
+    "academicDataUploaded": false
+  },
+  "jobs": {
+    "postgres": {
+      "id": 123844406226,
+      "result": "success"
+    },
+    "android": {
+      "id": 123844532845,
+      "result": "success"
+    },
+    "signedUpgrade": {
+      "id": 123849523979,
+      "result": "success"
+    }
+  },
+  "signedUpgradePhasesPassed": 9,
+  "supabaseAcademicReal": "não validado; RPC ausente; nenhuma matrícula/lançamento enviado",
+  "nativeDialogLargeFont": "pendente: LocalDensity do teste não modifica a janela Dialog; Auth native 1.3/1.6 aprovado"
+}

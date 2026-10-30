@@ -1,0 +1,23 @@
+{
+  "old": {
+    "apkSha256": "31dd1dfdd740658137aa2de7529070a1c7bce4a7342e620e10874310fb77353a",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "applicationId": "br.com.diariodeclasse",
+    "versionCode": 38
+  },
+  "new": {
+    "apkSha256": "717f98a9a34c6ea43dfd6f670a380f263cb2857df93579e94446f5eb75706750",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "applicationId": "br.com.diariodeclasse",
+    "versionCode": 39
+  },
+  "samePackage": true,
+  "sameCertificate": true,
+  "higherVersion": true,
+  "run": 40988203896,
+  "commit": "9ca36a32f69c2b98dfc6baea2afe298d1cab9fb2",
+  "versionName": "0.21.0",
+  "signedUpgradePhasesPassed": 9,
+  "scope": "emulador descartável; somente dados fictícios",
+  "artifactId": 12949256095
+}
