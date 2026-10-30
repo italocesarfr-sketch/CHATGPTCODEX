@@ -9,6 +9,9 @@ import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.ui.DiaryCommands
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
@@ -41,7 +44,12 @@ class AccountWorkspace(base:Context,val user:AuthUser,val legacy:Boolean):AutoCl
         withContext(Dispatchers.Main.immediate){commands.finish()}
         withContext(Dispatchers.IO){close()}
     }
-    override fun close(){syncScope.cancel();database.close();cache.deleteRecursively()}
+    override fun close(){
+        // Cancellation alone does not wait for an in-flight Room query. Closing its pool
+        // first can deliver an uncaught SQLite exception to the observer during logout.
+        runBlocking(Dispatchers.IO){syncScope.coroutineContext[Job]?.cancelAndJoin()}
+        database.close();cache.deleteRecursively()
+    }
 }
 
 class AccountWorkspaces(private val base:Context,private val auth:AuthController) {

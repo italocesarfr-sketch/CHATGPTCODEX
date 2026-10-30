@@ -43,11 +43,13 @@ class SyncUiInstrumentedTest {
     @Test fun optInIsExplicitAndDoesNotEnrollHistoricalClassesAutomatically():Unit=runBlocking {
         show(1f);compose.onNodeWithText("Ativar teste nesta conta").performScrollTo().performClick()
         compose.waitUntil(5000){runBlocking{workspace.database.syncDao().control()?.enabled==true}}
+        compose.waitUntil(5000){compose.onAllNodesWithText("Turma Fictícia • História • 2026").fetchSemanticsNodes().size==1}
         assertTrue(workspace.database.syncDao().states().isEmpty())
         compose.onNodeWithText("Turma Fictícia • História • 2026").performScrollTo().performClick()
         compose.onNodeWithText("Cancelar").performClick();assertTrue(workspace.database.syncDao().states().isEmpty())
         compose.onNodeWithText("Turma Fictícia • História • 2026").performScrollTo().performClick();compose.onNodeWithText("Participar").performClick()
         compose.waitUntil(5000){runBlocking{workspace.database.syncDao().states().isNotEmpty()}}
+        compose.waitUntil(5000){compose.onAllNodesWithText("Turma Fictícia • História • 2026 • participante").fetchSemanticsNodes().size==1}
         capture("turmas-pendentes")
     }
     @Test fun compactLargeFontHasScrollableAccessibleActions(){

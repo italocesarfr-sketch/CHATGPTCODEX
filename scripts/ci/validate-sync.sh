@@ -14,9 +14,9 @@ assert expected in text and all(x not in text for x in ('FAILURES','INSTRUMENTAT
 print('Fila e integridade aprovadas:',Path(sys.argv[1]).name)
 PY
 }
-timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e class br.com.diariodeclasse.ClassSyncInstrumentedTest,br.com.diariodeclasse.SyncUiInstrumentedTest "$RUNNER" > build/sync-focused.txt
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e class br.com.diariodeclasse.ClassSyncInstrumentedTest,br.com.diariodeclasse.SyncUiInstrumentedTest,br.com.diariodeclasse.SyncWorkspaceLifecycleTest "$RUNNER" > build/sync-focused.txt
 cat build/sync-focused.txt
-check_result build/sync-focused.txt 22
+check_result build/sync-focused.txt 23
 for phase in write read; do
   if [[ "$phase" == read ]]; then adb shell am force-stop br.com.diariodeclasse; fi
   adb shell am instrument -w -e syncProbePhase "$phase" -e class br.com.diariodeclasse.SyncProcessProbeTest "$RUNNER" > "build/sync-process-$phase.txt"

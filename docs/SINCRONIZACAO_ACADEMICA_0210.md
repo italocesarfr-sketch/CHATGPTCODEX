@@ -94,7 +94,9 @@ Resultados locais efetivamente executados na primeira rodada desta branch:
 
 Testes Android adicionados: fila transacional, rollback, reenvio/perda de ACK, alteração local durante envio, dois bancos por mesma conta, isolamento de conta, credenciais recusadas, concorrência/conflito, colisão de IDs, histórico protegido, exclusão vazia/tombstone, reinício, migração 10→11, backup e restauração pausada, saída durante envio, cancelamento, consentimento e fonte ampliada. O transporte desses testes é determinístico e fictício. Há uma sonda em dois processos para operação persistente. A regressão acadêmica e os leitores independentes de XLSX/CSV/TSV continuam obrigatórios no CI.
 
-**Resultados Android, capturas e atualização assinada: aguardam a execução desta branch.** Não transferir a aprovação da 0.20.0 para o código novo. O workflow fará atualização sobre o APK 0.20.0 original assinado, sem desinstalar nem criar certificado. Artefatos desta branch são somente candidatos experimentais.
+A primeira execução [40986427305](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40986427305) aprovou PostgreSQL/JVM/compilação/leitores e as sondas de atualização legada, mas parou na regressão de autenticação por uma corrida real: fechar o Room antes de aguardar o fim da observação da fila causou conexão SQLite fechada. O encerramento agora cancela **e aguarda** o observador antes de fechar o banco, com teste de abertura/fechamento repetido e dados conferidos. Não se ignorou a exceção nem se retirou o teste.
+
+**Resultados Android finais, capturas e atualização assinada: aguardam a nova execução desta branch.** Não transferir a aprovação da 0.20.0 para o código novo. O workflow fará atualização sobre o APK 0.20.0 original assinado, sem desinstalar nem criar certificado. Artefatos desta branch são somente candidatos experimentais.
 
 ## Configuração gratuita pendente e prova real
 
