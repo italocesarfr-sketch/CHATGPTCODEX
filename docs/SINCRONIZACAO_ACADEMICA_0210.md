@@ -1,3 +1,5 @@
+> Auditoria posterior: o código 39 foi superado por correções de pausa e sessão ativa. Consulte [a auditoria pré-instalação](AUDITORIA_PRE_INSTALACAO_0210.md) e não use o APK anterior no novo ensaio. Os resultados abaixo são o registro histórico da fundação.
+
 # 0.21.0 — Fundação da sincronização acadêmica (experimental)
 
 Base: `auth/supabase-protected-workspaces`, documentação `34bbcaf`, código de autenticação `c24a7d9`, CI aprovado [40812203803](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40812203803). A `main` permanece na 0.19.1. Desenvolvimento isolado em `sync/academic-foundation-0210`, versão 0.21.0 / código 39. Não é promoção estável nem sincronização acadêmica completa.

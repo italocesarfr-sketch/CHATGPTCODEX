@@ -1,0 +1,102 @@
+{
+  "scope": "Hosted negative probes only; no academic rows read or written; no authenticated account tested",
+  "results": [
+    {
+      "endpoint": "rpc/noctua_pull_classes",
+      "method": "POST",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": "42501",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_pull_classes",
+      "method": "POST",
+      "auth": "invalid-jwt",
+      "http": 401,
+      "code": "PGRST301",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_sync_principal",
+      "method": "POST",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": "42501",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_sync_principal",
+      "method": "POST",
+      "auth": "invalid-jwt",
+      "http": 401,
+      "code": "PGRST301",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_validate_class",
+      "method": "POST",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": "42501",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_validate_class",
+      "method": "POST",
+      "auth": "invalid-jwt",
+      "http": 401,
+      "code": "PGRST301",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_push_class",
+      "method": "POST",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": "42501",
+      "denied": true
+    },
+    {
+      "endpoint": "rpc/noctua_push_class",
+      "method": "POST",
+      "auth": "invalid-jwt",
+      "http": 401,
+      "code": "PGRST301",
+      "denied": true
+    },
+    {
+      "endpoint": "noctua_class_bundles?select=owner_id&limit=0",
+      "method": "HEAD",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": null,
+      "denied": true
+    },
+    {
+      "endpoint": "noctua_class_versions?select=owner_id&limit=0",
+      "method": "HEAD",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": null,
+      "denied": true
+    },
+    {
+      "endpoint": "noctua_sync_heads?select=owner_id&limit=0",
+      "method": "HEAD",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": null,
+      "denied": true
+    },
+    {
+      "endpoint": "noctua_sync_receipts?select=owner_id&limit=0",
+      "method": "HEAD",
+      "auth": "public-key-only",
+      "http": 401,
+      "code": null,
+      "denied": true
+    }
+  ],
+  "passed": 12
+}

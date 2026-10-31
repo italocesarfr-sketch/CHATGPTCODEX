@@ -11,6 +11,7 @@ from pathlib import Path
 import subprocess
 import unittest
 import uuid
+import time
 
 if os.environ.get('PGDATABASE') != 'noctua_sync_test' or os.environ.get('PGHOST') not in ('127.0.0.1', 'localhost', '/workspace/pg-local'):
     raise SystemExit('Requires an explicitly selected disposable LOCAL noctua_sync_test database.')
@@ -18,11 +19,16 @@ PSQL=os.environ.get('PSQL_BIN','psql')
 A='11111111-1111-4111-8111-111111111111'
 B='22222222-2222-4222-8222-222222222222'
 UNCONFIRMED='33333333-3333-4333-8333-333333333333'
-SQL=Path(__file__).resolve().parents[1]/'supabase/migrations/202610300001_class_sync.sql'
+ROOT=Path(__file__).resolve().parents[1]
+SQL=ROOT/'supabase/migrations/202610300001_class_sync.sql'
+GUARD=ROOT/'supabase/migrations/202610310001_sync_session_guard.sql'
+SESSION={owner:str(uuid.uuid5(uuid.NAMESPACE_URL,'noctua-fixture-session-'+owner)) for owner in (A,B,UNCONFIRMED)}
 
-def execute(sql, owner=None, role='authenticated', fails=False):
+def execute(sql, owner=None, role='authenticated', fails=False, claims=None):
     if owner is not None:
-        sql=f"SET ROLE {role}; SET request.jwt.claim.sub='{owner}';\n"+sql
+        jwt=claims if claims is not None else {'sub':owner,'role':role,'session_id':SESSION.get(owner,str(uuid.uuid4())),'exp':int(time.time())+3600}
+        encoded=json.dumps(jwt).replace("'","''")
+        sql=f"SET ROLE {role}; SET request.jwt.claim.sub='{owner}'; SET request.jwt.claims='{encoded}';\n"+sql
     result=subprocess.run([PSQL,'-XAtq','-v','ON_ERROR_STOP=1'],input=sql,text=True,capture_output=True)
     if fails:
         assert result.returncode != 0, 'Unsafe statement unexpectedly succeeded'
@@ -46,16 +52,19 @@ DO $$ BEGIN IF NOT EXISTS(SELECT FROM pg_roles WHERE rolname='anon') THEN CREATE
 IF NOT EXISTS(SELECT FROM pg_roles WHERE rolname='authenticated') THEN CREATE ROLE authenticated NOLOGIN; END IF; END $$;
 CREATE SCHEMA IF NOT EXISTS auth;
 CREATE TABLE IF NOT EXISTS auth.users(id uuid PRIMARY KEY,email_confirmed_at timestamptz,is_anonymous boolean);
+CREATE TABLE IF NOT EXISTS auth.sessions(id uuid PRIMARY KEY,user_id uuid NOT NULL,not_after timestamptz);
+CREATE OR REPLACE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS 'SELECT coalesce(nullif(current_setting(''request.jwt.claims'',true),''''),''{}'')::jsonb';
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS 'SELECT nullif(current_setting(''request.jwt.claim.sub'',true),'''')::uuid';
 GRANT USAGE ON SCHEMA auth TO authenticated,anon;
 GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated,anon;
 """)
-execute(SQL.read_text())
+execute(SQL.read_text()+GUARD.read_text())
 
 class ClassSyncPostgresTest(unittest.TestCase):
     def setUp(self):
-        execute('TRUNCATE public.noctua_sync_receipts,public.noctua_class_versions,public.noctua_class_bundles,public.noctua_sync_heads,auth.users;')
+        execute('TRUNCATE public.noctua_sync_receipts,public.noctua_class_versions,public.noctua_class_bundles,public.noctua_sync_heads,auth.users,auth.sessions;')
         execute(f"INSERT INTO auth.users VALUES('{A}',now(),false),('{B}',now(),false),('{UNCONFIRMED}',NULL,false);")
+        for owner,sid in SESSION.items():execute(f"INSERT INTO auth.sessions VALUES('{sid}','{owner}',NULL);")
     def push(self,value=None,base=0,op=None,owner=A,deleted=False):
         return json.loads(execute(statement(value or bundle(),base,op,deleted),owner))
     def pull(self,owner=A,after=0):return json.loads(execute(f'SELECT public.noctua_pull_classes({after});',owner))
@@ -121,7 +130,7 @@ class ClassSyncPostgresTest(unittest.TestCase):
     def test_18_unexpected_student_data_is_rejected(self):
         bad=bundle();bad['students']=[];execute(statement(bad),A,fails=True)
     def test_19_migration_is_reproducible_and_preserves_records(self):
-        self.push();before=self.pull();execute(SQL.read_text());self.assertEqual(before,self.pull())
+        self.push();before=self.pull();execute(SQL.read_text()+GUARD.read_text());self.assertEqual(before,self.pull())
     def test_20_owner_commits_are_ordered_before_cursor_can_advance(self):
         with concurrent.futures.ThreadPoolExecutor(2) as pool:
             a=pool.submit(execute,'BEGIN;'+statement(bundle('slow'))+'SELECT pg_sleep(0.2);COMMIT;',A)
@@ -137,5 +146,39 @@ class ClassSyncPostgresTest(unittest.TestCase):
             self.assertEqual('0',execute(f'SELECT count(*) FROM public.{table};',A))
         execute('SELECT public.noctua_pull_classes(0);',A,fails=True)
         self.assertEqual('1',execute('SELECT count(*) FROM public.noctua_class_bundles;'))
+
+    def test_24_revoked_session_blocks_rpc_and_direct_read_even_before_jwt_expiry(self):
+        self.push();execute(f"DELETE FROM auth.sessions WHERE id='{SESSION[A]}';")
+        self.assertEqual('',execute('SELECT public.noctua_sync_principal();',A))
+        execute('SELECT public.noctua_pull_classes(0);',A,fails=True)
+        execute(statement(bundle(name='Must not overwrite'),1),A,fails=True)
+        for table in ['noctua_sync_heads','noctua_class_bundles','noctua_class_versions','noctua_sync_receipts']:
+            self.assertEqual('0',execute(f'SELECT count(*) FROM public.{table};',A))
+        self.assertEqual('1',execute('SELECT count(*) FROM public.noctua_class_versions;'))
+    def test_25_expired_access_claim_is_rejected(self):
+        claims={'sub':A,'role':'authenticated','session_id':SESSION[A],'exp':int(time.time())-1}
+        execute(statement(bundle()),A,claims=claims,fails=True)
+    def test_26_session_of_another_identity_cannot_authorize_owner(self):
+        claims={'sub':A,'role':'authenticated','session_id':SESSION[B],'exp':int(time.time())+3600}
+        execute(statement(bundle()),A,claims=claims,fails=True)
+        self.assertEqual('',execute('SELECT public.noctua_sync_principal();',A,claims=claims))
+    def test_27_missing_malformed_session_and_role_are_rejected(self):
+        for sid,role in [(None,'authenticated'),('malformed','authenticated'),(SESSION[A],'anon')]:
+            claims={'sub':A,'role':role,'session_id':sid,'exp':int(time.time())+3600}
+            execute(statement(bundle()),A,claims=claims,fails=True)
+    def test_28_expired_server_session_is_rejected_without_deleting_history(self):
+        self.push();execute(f"UPDATE auth.sessions SET not_after=now()-interval '1 minute' WHERE id='{SESSION[A]}';")
+        execute('SELECT public.noctua_pull_classes(0);',A,fails=True)
+        self.assertEqual('1',execute('SELECT count(*) FROM public.noctua_class_versions;'))
+    def test_29_direct_writes_and_auxiliary_validator_stay_unavailable(self):
+        self.assertIn('permission denied',execute("SELECT public.noctua_validate_class('fixture','{}'::jsonb);",A,fails=True))
+        self.assertEqual('0',execute("SELECT count(*) FROM information_schema.column_privileges WHERE table_name LIKE 'noctua_%' AND grantee IN ('authenticated','anon','PUBLIC') AND privilege_type IN ('INSERT','UPDATE');"))
+
+    def test_30_revoking_one_device_does_not_revoke_another_device_of_same_owner(self):
+        self.push();second=str(uuid.uuid4());execute(f"INSERT INTO auth.sessions VALUES('{second}','{A}',NULL);")
+        execute(f"DELETE FROM auth.sessions WHERE id='{SESSION[A]}';")
+        claims={'sub':A,'role':'authenticated','session_id':second,'exp':int(time.time())+3600}
+        self.assertEqual(1,len(json.loads(execute('SELECT public.noctua_pull_classes(0);',A,claims=claims))))
+        execute('SELECT public.noctua_pull_classes(0);',A,fails=True)
 
 if __name__=='__main__':unittest.main(verbosity=2)

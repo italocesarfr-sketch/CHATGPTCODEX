@@ -115,6 +115,21 @@ class ClassSyncInstrumentedTest {
         seed();val op=store.prepare().single();val reply=Remote().push(owner,op);store.pause();store.accept(op,reply)
         assertEquals(op.id,db.syncDao().operations().single().id);assertEquals(0,db.syncDao().state(c.id)!!.acknowledged)
     }
+    @Test fun pauseDuringUploadStopsOtherClassesAndResumeUsesTheSameOperations():Unit=runBlocking {
+        seed();val other=c.copy(id="sync-other-fictitious",name="Outra Fictícia")
+        repo.saveClass(other,"2026-01-01");store.enroll(other.id)
+        val operations=store.prepare();val before=repo.readSnapshot();val remote=Remote()
+        val pausing=object:ClassSyncRemote by remote {
+            override suspend fun push(token:String,operation:SyncOperation):PushReply=remote.push(token,operation).also{store.pause()}
+        }
+        ClassSyncEngine(store,pausing,{owner},{true}).run()
+        assertFalse(store.enabled());assertEquals(1,remote.records.size)
+        assertEquals(operations.map{it.id}.toSet(),db.syncDao().operations().map{it.id}.toSet())
+        assertTrue(db.syncDao().states().all{it.acknowledged==0L});assertEquals(before,repo.readSnapshot())
+        store.enable();run(remote)
+        assertEquals(2,remote.records.size);assertEquals(2,remote.receipts.size);assertTrue(db.syncDao().operations().isEmpty())
+        assertEquals(before,repo.readSnapshot())
+    }
     @Test fun lossOfAdmissionDuringRequestKeepsOperationForIdempotentRetry():Unit=runBlocking {
         seed();var admitted=true;val remote=Remote()
         val wrapped=object:ClassSyncRemote by remote {

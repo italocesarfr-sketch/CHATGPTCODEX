@@ -5,7 +5,7 @@ import br.com.diariodeclasse.data.*
 import kotlinx.serialization.encodeToString
 
 /** Metadata lives in the very same account-specific Room transaction as academic writes. */
-class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()->Long=System::currentTimeMillis) {
+class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()->Long=System::currentTimeMillis):ClassSyncQueue {
     private val dao=db.syncDao()
     private suspend fun control():SyncControl {
         installSyncTriggers(db.openHelper.writableDatabase)
@@ -25,7 +25,7 @@ class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()-
         if(dao.state(id)==null)dao.save(SyncClassState(id,owner))
     }
     private suspend fun bundle(id:String):ClassBundle?=db.dao().schoolClass(id)?.let{ClassBundle(it,db.dao().periods(id))}
-    suspend fun prepare():List<SyncOperation> = db.withTransaction {
+    override suspend fun prepare():List<SyncOperation> = db.withTransaction {
         if(!control().enabled)return@withTransaction emptyList()
         val existing=dao.operations().map{it.classId}.toSet()
         for(state in dao.states()) {
@@ -37,8 +37,8 @@ class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()-
         }
         dao.operations().filter{dao.state(it.classId)?.conflict==null}.also { rows->check(rows.all{it.owner==owner}) }
     }
-    suspend fun attempt(operation:SyncOperation)=db.withTransaction {control();dao.attempt(operation.id)}
-    suspend fun accept(operation:SyncOperation,reply:PushReply)=db.withTransaction {
+    override suspend fun attempt(operation:SyncOperation){db.withTransaction {control();dao.attempt(operation.id)}}
+    override suspend fun accept(operation:SyncOperation,reply:PushReply)=db.withTransaction {
         if(!control().enabled)return@withTransaction
         reply.record.validate()
         check(reply.operationId==operation.id && reply.record.id==operation.classId)
@@ -56,7 +56,7 @@ class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()-
         }
     }
     /** A fetched page is committed atomically, cursor included. A conflict preserves both payloads. */
-    suspend fun receive(records:List<RemoteClass>)=db.withTransaction {
+    override suspend fun receive(records:List<RemoteClass>)=db.withTransaction {
         val control=control();if(!control.enabled)return@withTransaction
         require(records.size<=100 && records.map{it.sequence}==records.map{it.sequence}.sorted().distinct())
         var cursor=control.cursor
@@ -94,7 +94,7 @@ class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()-
             data.drafts.any{it.classId==id} || data.classArchives.any{it.classId==id} || data.lessonRecords.any{it.classId==id} ||
             data.exportRows.any{it.classId==id} || data.histories.any{it.classId==id} || data.timetables.any{t->t.slots.any{it.classId==id}}
     }
-    suspend fun cursor():Long=db.withTransaction{control().cursor}
-    suspend fun enabled():Boolean=db.withTransaction{control().enabled}
-    suspend fun message(code:String,checked:Boolean=false)=db.withTransaction {dao.save(control().copy(message=code,checked=checked))}
+    override suspend fun cursor():Long=db.withTransaction{control().cursor}
+    override suspend fun enabled():Boolean=db.withTransaction{control().enabled}
+    override suspend fun message(code:String,checked:Boolean)=db.withTransaction {dao.save(control().copy(message=code,checked=checked))}
 }

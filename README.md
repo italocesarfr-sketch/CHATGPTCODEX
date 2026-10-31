@@ -1,3 +1,5 @@
+> **Auditoria 0.21.0:** o candidato código 39 exige correção. Código 40 e migração SQL adicional estão em validação. Consulte [a auditoria pré-instalação](docs/AUDITORIA_PRE_INSTALACAO_0210.md). A `main` permanece estável na 0.19.1; não instalar em aparelhos com dados reais para este ensaio.
+
 > Desenvolvimento experimental **0.21.0 / código 39**: [fundação de sincronização](docs/SINCRONIZACAO_ACADEMICA_0210.md). Somente turmas/bimestres com consentimento explícito. [CI aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/40988203896): 214 JVM, 346 Android e 23 PostgreSQL; atualização assinada 0.20.0→0.21.0 aprovada com dados fictícios. Supabase acadêmico ainda aguarda migração e prova real; mantenha backups. A `main` continua na 0.19.1.
 
 # Noctua

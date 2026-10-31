@@ -116,7 +116,7 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
         saved?.let{withTimeoutOrNull(5000){runCatching{client.logout(it)}}}
     }
     fun canUse(userId:String):Boolean = mutable.value.user?.id==userId && runCatching{secrets().session?.let{it.user.id==userId&&AuthPolicy.offlineAllowed(it,now())}==true}.getOrDefault(false)
-    /** Academic network access always verifies a live session; offline grace only admits local data. */
+    /** Only the admitted account's unexpired token; the academic server must also enforce active sessions. */
     internal suspend fun syncToken(userId:String):String {
         tick()
         check(canUse(userId) && !state.value.offline){"Revalide a sessão para sincronizar."}

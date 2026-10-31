@@ -16,7 +16,7 @@ PY
 }
 timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e class br.com.diariodeclasse.ClassSyncInstrumentedTest,br.com.diariodeclasse.SyncUiInstrumentedTest,br.com.diariodeclasse.SyncWorkspaceLifecycleTest "$RUNNER" > build/sync-focused.txt
 cat build/sync-focused.txt
-check_result build/sync-focused.txt 23
+check_result build/sync-focused.txt 24
 for phase in write read; do
   if [[ "$phase" == read ]]; then adb shell am force-stop br.com.diariodeclasse; fi
   adb shell am instrument -w -e syncProbePhase "$phase" -e class br.com.diariodeclasse.SyncProcessProbeTest "$RUNNER" > "build/sync-process-$phase.txt"

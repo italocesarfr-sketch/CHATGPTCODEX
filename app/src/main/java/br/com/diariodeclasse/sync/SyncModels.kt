@@ -37,4 +37,14 @@ interface ClassSyncRemote {
     suspend fun push(token:String, operation:SyncOperation):PushReply
     suspend fun pull(token:String, after:Long):List<RemoteClass>
 }
+/** Narrow engine boundary; Room remains the production implementation. */
+interface ClassSyncQueue {
+    suspend fun enabled():Boolean
+    suspend fun prepare():List<SyncOperation>
+    suspend fun attempt(operation:SyncOperation)
+    suspend fun accept(operation:SyncOperation,reply:PushReply)
+    suspend fun cursor():Long
+    suspend fun receive(records:List<RemoteClass>)
+    suspend fun message(code:String,checked:Boolean=false)
+}
 class SyncFailure(val code:String):Exception(code) // Only fixed non-personal codes; never raw backend messages.

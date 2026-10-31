@@ -43,25 +43,28 @@ class SupabaseClassSync:ClassSyncRemote {
         ClassBundle.wire.decodeFromString(rpc("noctua_pull_classes",token,buildJsonObject{put("p_after",after)}))
 }
 
-class ClassSyncEngine(private val store:ClassSyncStore,private val remote:ClassSyncRemote,
+class ClassSyncEngine(private val store:ClassSyncQueue,private val remote:ClassSyncRemote,
     private val session:suspend()->String,private val admitted:()->Boolean) {
     suspend fun run() {
-        if(!admitted() || !store.enabled())return
+        suspend fun allowed()=admitted() && store.enabled()
+        if(!allowed())return
         try {
-            val token=session() // Online verification required: cached offline admission cannot authorize a push.
+            val token=session() // Current account token; the server checks JWT expiry and the active Auth session.
+            if(!allowed())return
             for(operation in store.prepare()) {
-                if(!admitted())return
+                if(!allowed())return
                 store.attempt(operation)
+                if(!allowed())return
                 val reply=remote.push(token,operation)
-                if(!admitted())return
+                if(!allowed())return
                 store.accept(operation,reply)
             }
             repeat(20) {
-                if(!admitted())return
+                if(!allowed())return
                 val rows=remote.pull(token,store.cursor())
-                if(!admitted())return
+                if(!allowed())return
                 store.receive(rows)
-                if(rows.size<100){store.message("",checked=true);return}
+                if(rows.size<100){if(allowed())store.message("",checked=true);return}
             }
             store.message("PENDING") // Bound background work; next scheduled run continues at the durable cursor.
         }catch(e:kotlinx.coroutines.CancellationException){throw e}

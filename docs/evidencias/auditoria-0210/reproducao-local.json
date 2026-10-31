@@ -1,0 +1,17 @@
+{
+  "pauseBefore": {
+    "tests": 4,
+    "failures": 4
+  },
+  "pauseAfter": {
+    "tests": 4,
+    "failures": 0
+  },
+  "originalServerFixture": {
+    "scope": "Local PostgreSQL; SET ROLE authenticated; fictitious confirmed user; absent Auth session. Not a real hosted JWT test.",
+    "principalAcceptedWithoutSession": true,
+    "pushAccepted": true,
+    "pullCount": 1
+  },
+  "hostedOrdinaryAccounts": "pending; no credentials requested or available"
+}
