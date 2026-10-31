@@ -1,0 +1,65 @@
+{
+  "jvm": {
+    "tests": 219,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "passed": 218
+  },
+  "android": {
+    "tests": 354,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 7,
+    "passed": 347
+  },
+  "run": 41228898103,
+  "codeCommit": "36f58a239318c42f8293c6d0a4c7fa28747d865b",
+  "versionName": "0.21.0",
+  "versionCode": 40,
+  "postgres": {
+    "tests": 30,
+    "passed": 30,
+    "scope": "Local PostgreSQL fixture, ordinary roles; not hosted JWT integration"
+  },
+  "focusedSync": {
+    "passed": 24,
+    "scope": "Actual Room, deterministic remote"
+  },
+  "hosted": {
+    "negativeTestsPassed": 12,
+    "ordinaryAuthenticatedUsers": "pending",
+    "additionalSqlApplied": "awaiting owner confirmation"
+  },
+  "signedUpgrade": {
+    "passedPhases": 9,
+    "artifactId": 13053876323,
+    "baseline": "Original 0.20.0 code 38",
+    "candidateCode": 40
+  },
+  "jobs": {
+    "postgres": {
+      "id": 124618741937,
+      "result": "success"
+    },
+    "android": {
+      "id": 124618871563,
+      "result": "success"
+    },
+    "signedUpgrade": {
+      "id": 124622831790,
+      "result": "success"
+    }
+  },
+  "release": {
+    "artifactId": 13053517551,
+    "apkSha256": "18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae"
+  },
+  "decision": {
+    "original39": "REPROVADO — CORREÇÃO NECESSÁRIA",
+    "replacement40": "APROVADO COM RESSALVAS — separated fictitious test only after SQL deployment/inspection",
+    "hostedAuthenticatedIntegration": "pending",
+    "production": "not approved"
+  }
+}

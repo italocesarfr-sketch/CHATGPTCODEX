@@ -11,7 +11,9 @@ O arquivo é íntegro, assinado com o certificado permanente e compatível com a
 
 Não foi encontrada evidência de leitura pública ou de acesso de uma conta a outra. Isso **não** equivale a isolamento hospedado homologado entre duas contas comuns.
 
-Foi necessária uma correção do cliente; portanto o substituto mantém **versionName 0.21.0**, com **versionCode 40**. Não houve mudança visual, de Room, do backup ou de regra acadêmica nesta auditoria. O SQL complementar também deverá ser aplicado antes do ensaio. **CI do substituto: aguardando execução; não instalar enquanto não for aprovado.**
+Foi necessária uma correção do cliente; portanto o substituto mantém **versionName 0.21.0**, com **versionCode 40**. Não houve mudança visual, de Room, do backup ou de regra acadêmica nesta auditoria. O SQL complementar também deverá ser aplicado antes do ensaio. **CI do substituto aprovado:** [41228898103](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41228898103), código `36f58a239318c42f8293c6d0a4c7fa28747d865b`.
+
+**Substituto código 40: APROVADO COM RESSALVAS para ensaio em ambiente separado, condicionado à aplicação e conferência da migração SQL complementar.** A correção de servidor não foi aplicada por esta execução, e não houve confirmação do proprietário até o encerramento deste relatório. Não iniciar o ensaio antes de conferir os guards. Essa classificação não equivale a sincronização hospedada homologada ou produção estável.
 
 ## Evidências existentes conferidas
 
@@ -52,7 +54,7 @@ A mesma lógica do engine do código 39 foi exercitada em quatro testes JVM, com
 
 O engine agora revalida admissão **e habilitação** após obter a sessão, antes de cada requisição, após registrar a tentativa e antes de aceitar respostas/consultar a próxima página. Uma requisição que já começou pode terminar no servidor; pausa não desfaz retroativamente uma gravação em trânsito. Nenhuma nova requisição é iniciada depois que a pausa é observada. O recibo permite retomar com o mesmo UUID sem duplicar dados.
 
-Foi adicionado teste Android com duas turmas fictícias: pausar durante o primeiro envio, conservar as duas operações, impedir o segundo envio e retomar ambas sem duplicidade ou mudança acadêmica. Precisa passar no CI do código 40.
+Foi adicionado teste Android com duas turmas fictícias: pausar durante o primeiro envio, conservar as duas operações, impedir o segundo envio e retomar ambas sem duplicidade ou mudança acadêmica. Passou no CI do código 40, junto à regressão completa e à sonda de retomada após encerramento do processo.
 
 ### Revogação online
 
@@ -134,13 +136,13 @@ Não há credenciais privadas de teste disponíveis nesta execução, nem foi so
 
 Nesta correção, Room permanece **v11**, sem alteração de entidade ou migração local. Backup acadêmico **formato 12**, envelope criptografado, senha e vinculação legada permanecem intactos. Cada conta conserva seu banco e UUID; nenhuma turma entra na sincronização automaticamente. Nenhum aluno, nota, frequência, justificativa, diário ou matrícula é transmitido.
 
-O APK anterior já tinha atualização assinada 0.20.0→0.21.0/c39 aprovada com dados fictícios. O novo código 40 deve repetir a atualização assinada antes da entrega. A referência 0.19.1 tem mesmo pacote/certificado e Room v10, mas **não declarar 0.19.1→c40 instalado e aprovado sem teste direto**. O ensaio 0.19.1→0.20.0 antigo é evidência histórica, não prova transitiva suficiente.
+O APK anterior já tinha atualização assinada 0.20.0→0.21.0/c39 aprovada com dados fictícios. O novo código 40 repetiu a atualização assinada e aprovou as **nove fases**: semente na 0.20.0 original, atualização sem desinstalação, backup/restauração, reabertura, histórico protegido e exclusões com reabertura, vinculação e isolamento. Somente dados fictícios em emulador foram usados. A comparação somente de leitura do APK original 0.19.1/código 37 com o código 40 confirmou mesmo pacote/certificado e código superior. Não foi executada a instalação direta 0.19.1→c40: **essa preservação instalada permanece pendente**, embora ambos partam do Room v10. O ensaio 0.19.1→0.20.0 antigo é evidência histórica, não prova transitiva suficiente.
 
 Nenhuma instalação em aparelho do proprietário, restauração de banco real ou migração destrutiva foi executada por esta auditoria.
 
 ## Roteiro seguro do primeiro ensaio
 
-1. Aguardar o CI do código 40 e o artefato assinado indicado ao final deste relatório. Não usar o código 39 neste teste.
+1. Usar somente o candidato código 40 do CI aprovado indicado abaixo, após cumprir os passos de SQL. Não usar o código 39 neste teste.
 2. Como o SQL inicial já está instalado, aplicar **apenas a nova migração `202610310001_sync_session_guard.sql`**, em transação, pelo proprietário. Não reaplicar a migração antiga depois da nova: ela reinstalaria os guards antigos. Usar os arquivos na ordem versionada em instalações novas.
 3. Rodar a inspeção somente de leitura e conferir os resultados acima. Não é necessário compartilhar credenciais administrativas.
 4. Usar **dois ambientes separados do aparelho de trabalho**, sem dados acadêmicos reais. Não desinstalar/limpar a instalação 0.20.0 do proprietário.
@@ -154,3 +156,28 @@ Nenhuma instalação em aparelho do proprietário, restauração de banco real o
 12. Não restaurar backups ou apagar dados reais para testar. Manter o backup protegido atual; sincronização parcial não substitui recuperação integral.
 
 Pendente: ações A–F hospedadas com duas contas comuns; ampliação nativa da fonte do novo diálogo/TalkBack e teste de fabricantes. Nenhuma delas é declarada aprovada por esta auditoria.
+
+
+## Entrega consolidada
+
+- Branch: `sync/academic-foundation-0210`; `main` e branch Auth preservadas.
+- Código validado: [`36f58a239318c42f8293c6d0a4c7fa28747d865b`](https://github.com/italocesarfr-sketch/CHATGPTCODEX/commit/36f58a239318c42f8293c6d0a4c7fa28747d865b).
+- [CI aprovado 41228898103](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41228898103): PostgreSQL/RLS, regressão Android/JVM e atualização assinada.
+- JVM: **219 casos; 218 aprovados, 1 condicional ignorado, 0 falhas/erros**. O teste Auth real opt-in não foi repetido sem credencial privada.
+- Android comum: **354 casos nos XMLs; 347 aprovados, 7 condicionais fora da execução comum, 0 falhas/erros**. O console mostra 361 eventos por contar também os ignorados; vale o XML.
+- Focados de sincronização: **24 aprovados**, subconjunto repetido da suíte, não somar como testes únicos adicionais.
+- Condicionais: sonda de atualização legada em duas fases, frequência em dois processos, sessão após reboot do emulador e fila em dois processos aprovadas. No job assinado, oito fases de `StableUpgradeProbeTest` e uma de `AuthSignedUpgradeProbeTest` aprovadas. A sonda histórica `ReleaseContinuityProbeTest` não foi executada; foi substituída pelo APK original e certificado permanente.
+- PostgreSQL: **30 aprovados**, papéis comuns e Auth de fixture. Hospedado: **12 recusas anônimas/JWT inválido aprovadas**, sem linhas escolares lidas ou escritas. Duas contas comuns reais: **pendente**.
+- Backup protegido e exportadores: leitores independentes aprovados. Nenhuma alteração no formato, criptografia, fórmulas ou tabelas acadêmicas.
+- Novo APK: **0.21.0/código 40**, `br.com.diariodeclasse`, assinatura v2, um assinante.
+- SHA-256 APK: `18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73`; coincide com checksum publicado e `apk-tested.sha256`.
+- Certificado SHA-256: `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`, igual ao original 0.20.0. Scanner aprovado, sem chave administrativa, cliente fictício ou login demonstrativo detectado.
+- [APK substituto assinado — ZIP](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41228898103/artifacts/13053517551) • [provas da atualização](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41228898103/artifacts/13053876323) • [XMLs/regressão](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41228898103/artifacts/13052758416).
+
+O título herdado do job assinado ainda diz 0.19.1; a referência efetiva usada foi a **0.20.0 original**, comprovada pelo SHA-256/código 38 em `compatibilidade.txt`. Não se interpreta o rótulo como teste direto da 0.19.1.
+
+[Reproduções](evidencias/auditoria-0210/reproducao-local.json) • [SQL local](evidencias/auditoria-0210/postgres-30.txt) • [negativos hospedados](evidencias/auditoria-0210/hosted-negative.json) • [CI](evidencias/auditoria-0210/validacao-ci.json) • [atualização](evidencias/auditoria-0210/atualizacao-assinada.json).
+
+Arquivos de produção alterados: `SupabaseClassSync.kt` (guard entre requisições), `ClassSyncStore.kt`/`SyncModels.kt` (fronteira de fila testável; mesmo Room), comentário de `AuthController.kt` (política real de verificação), `app/build.gradle.kts` (código 40). Testes: `ClassSyncPauseTest.kt`, `ClassSyncInstrumentedTest.kt`, `validate-sync.sh`, `test-sync-postgres.py`. Auditoria: `audit-sync-hosted.py`, nova migração SQL e consulta de metadados somente de leitura. A [lista completa](evidencias/auditoria-0210/arquivos-alterados.txt) inclui documentação e evidências.
+
+**Decisão final:** não reutilizar o APK código 39. O novo código 40 passou na validação automatizada e na atualização assinada; liberar apenas o ensaio fictício separado, após a correção SQL e a inspeção de metadados. Não promover `main`, não instalar em aparelhos de trabalho e não anunciar recuperação acadêmica completa pela nuvem.

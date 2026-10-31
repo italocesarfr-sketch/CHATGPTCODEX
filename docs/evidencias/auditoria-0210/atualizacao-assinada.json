@@ -1,0 +1,25 @@
+{
+  "old": {
+    "apkSha256": "31dd1dfdd740658137aa2de7529070a1c7bce4a7342e620e10874310fb77353a",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "applicationId": "br.com.diariodeclasse",
+    "versionCode": 38
+  },
+  "new": {
+    "apkSha256": "18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73",
+    "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+    "applicationId": "br.com.diariodeclasse",
+    "versionCode": 40
+  },
+  "samePackage": true,
+  "sameCertificate": true,
+  "higherVersion": true,
+  "run": 41228898103,
+  "codeCommit": "36f58a239318c42f8293c6d0a4c7fa28747d865b",
+  "releaseArtifact": 13053517551,
+  "upgradeArtifact": 13053876323,
+  "versionName": "0.21.0",
+  "versionCode": 40,
+  "signedPhasesPassed": 9,
+  "scope": "Disposable emulator and fictitious academic records; no owner device touched"
+}

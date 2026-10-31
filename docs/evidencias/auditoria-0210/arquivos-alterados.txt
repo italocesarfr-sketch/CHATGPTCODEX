@@ -1,0 +1,22 @@
+Correções auditadas: 4f3b2f2 → 36f58a2
+README.md
+app/build.gradle.kts
+app/src/androidTest/java/br/com/diariodeclasse/ClassSyncInstrumentedTest.kt
+app/src/main/java/br/com/diariodeclasse/auth/AuthController.kt
+app/src/main/java/br/com/diariodeclasse/sync/ClassSyncStore.kt
+app/src/main/java/br/com/diariodeclasse/sync/SupabaseClassSync.kt
+app/src/main/java/br/com/diariodeclasse/sync/SyncModels.kt
+app/src/test/java/br/com/diariodeclasse/ClassSyncPauseTest.kt
+docs/AUDITORIA_PRE_INSTALACAO_0210.md
+docs/SINCRONIZACAO_ACADEMICA_0210.md
+docs/evidencias/auditoria-0210/hosted-negative.json
+docs/evidencias/auditoria-0210/postgres-30.txt
+docs/evidencias/auditoria-0210/reproducao-local.json
+scripts/audit-sync-hosted.py
+scripts/ci/validate-sync.sh
+scripts/test-sync-postgres.py
+supabase/audit/20261031_readonly.sql
+supabase/migrations/202610310001_sync_session_guard.sql
+
+Consolidação: docs/AUDITORIA_PRE_INSTALACAO_0210.md, README.md e docs/evidencias/auditoria-0210/.
+Nenhum código de app/SQL/workflow foi alterado após o CI aprovado.
