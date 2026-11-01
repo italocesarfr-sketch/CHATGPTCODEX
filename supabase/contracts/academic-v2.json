@@ -1,0 +1,410 @@
+{
+  "protocol": 2,
+  "roomVersion": 11,
+  "entities": {
+    "classes": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "name": "string",
+        "stage": "string",
+        "subject": "string",
+        "year": "integer",
+        "shift": "string",
+        "schedule": "string",
+        "duration": "integer",
+        "scale": "number",
+        "low": "number",
+        "high": "number",
+        "countJustified": "boolean",
+        "startPresent": "boolean"
+      },
+      "references": [],
+      "unique": []
+    },
+    "students": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "personId": "string",
+        "classId": "string",
+        "name": "string",
+        "number": "integer",
+        "joined": "string",
+        "left": "string?",
+        "status": "string",
+        "notes": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "terms": {
+      "key": [
+        "classId",
+        "number"
+      ],
+      "fields": {
+        "classId": "string",
+        "number": "integer",
+        "start": "string",
+        "end": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "lessons": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "classId": "string",
+        "date": "string",
+        "ordinal": "integer",
+        "state": "string",
+        "note": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": [
+        [
+          "classId",
+          "date",
+          "ordinal"
+        ]
+      ]
+    },
+    "marks": {
+      "key": [
+        "lessonId",
+        "studentId"
+      ],
+      "fields": {
+        "lessonId": "string",
+        "studentId": "string",
+        "mark": "string",
+        "reason": "string?"
+      },
+      "references": [
+        {
+          "fields": [
+            "lessonId"
+          ],
+          "kind": "lessons",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "activities": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "classId": "string",
+        "name": "string",
+        "type": "string",
+        "date": "string",
+        "term": "integer",
+        "maximum": "number",
+        "description": "string",
+        "notes": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "grades": {
+      "key": [
+        "activityId",
+        "studentId"
+      ],
+      "fields": {
+        "activityId": "string",
+        "studentId": "string",
+        "value": "number?"
+      },
+      "references": [
+        {
+          "fields": [
+            "activityId"
+          ],
+          "kind": "activities",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "import_drafts": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "classId": "string",
+        "name": "string",
+        "number": "integer?",
+        "position": "integer",
+        "page": "integer",
+        "reason": "string",
+        "reviewed": "boolean",
+        "allowHomonym": "boolean"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "recompositions": {
+      "key": [
+        "studentId",
+        "term"
+      ],
+      "fields": {
+        "studentId": "string",
+        "term": "integer",
+        "value": "number?",
+        "date": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "relocations": {
+      "key": [
+        "sourceStudentId"
+      ],
+      "fields": {
+        "sourceStudentId": "string",
+        "targetStudentId": "string?",
+        "effectiveDate": "string",
+        "externalTarget": "string?",
+        "corrections": "array"
+      },
+      "references": [
+        {
+          "fields": [
+            "sourceStudentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "targetStudentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": [
+        [
+          "targetStudentId"
+        ]
+      ]
+    },
+    "export_rows": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "classId": "string",
+        "studentId": "string?",
+        "position": "integer",
+        "manualHidden": "boolean"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": [
+        [
+          "classId",
+          "position"
+        ],
+        [
+          "studentId"
+        ]
+      ]
+    },
+    "class_archives": {
+      "key": [
+        "classId"
+      ],
+      "fields": {
+        "classId": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "lesson_records": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "classId": "string",
+        "date": "string",
+        "title": "string",
+        "description": "string"
+      },
+      "references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique": []
+    },
+    "preserved_histories": {
+      "key": [
+        "classId"
+      ],
+      "fields": {
+        "classId": "string",
+        "content": "object"
+      },
+      "references": [],
+      "unique": []
+    },
+    "weekly_timetables": {
+      "key": [
+        "id"
+      ],
+      "fields": {
+        "id": "string",
+        "year": "integer",
+        "effective": "string",
+        "revision": "integer",
+        "createdAt": "string",
+        "slots": "array"
+      },
+      "references": [],
+      "unique": [
+        [
+          "year",
+          "effective",
+          "revision"
+        ]
+      ]
+    }
+  }
+}
