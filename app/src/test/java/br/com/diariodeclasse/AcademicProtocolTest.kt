@@ -32,7 +32,7 @@ class AcademicProtocolTest {
         val old=rows(before);return AcademicRecords.delta(old,rows(after),old.associate { it.identity to 1L })
     }
     private fun review(before: BackupSnapshot, local: BackupSnapshot, remote: BackupSnapshot, conflicts: Set<AcademicKey> = emptySet()) =
-        AcademicMerge.review(rows(before),rows(local),delta(before,remote),conflicts)
+        AcademicMerge.review(rows(before),rows(local),delta(before,remote),rows(before).associate { it.identity to 1L },conflicts)
     private fun fails(block: () -> Unit) { try { block();fail("Unsafe input accepted") } catch (_: IllegalArgumentException) {} }
 
     @Test fun roundTripKeepsEveryStoredFieldWithoutSelectionOrDerivedResults() {
@@ -100,14 +100,14 @@ class AcademicProtocolTest {
     }
     @Test fun invalidDeletionLeavesEntireCandidateUnapplied() {
         val before=data();val classRow=rows().first { it.kind=="classes" }
-        val result=AcademicMerge.review(rows(),rows(),listOf(AcademicChange(classRow.kind,classRow.key,1,null)))
+        val result=AcademicMerge.review(rows(),rows(),listOf(AcademicChange(classRow.kind,classRow.key,1,null)),rows().associate { it.identity to 1L })
         assertNull(result.candidate);assertTrue(result.invalidGraph);assertEquals(before,data())
     }
     @Test fun tombstoneAndRepeatedDeletionProduceNoDuplicateRow() {
         val before=data();val after=before.copy(marks=before.marks.dropLast(1));val changes=delta(before,after)
         assertNull(changes.single().payload)
-        assertEquals(after.canonical(),AcademicMerge.review(rows(before),rows(before),changes).candidate)
-        assertEquals(after.canonical(),AcademicMerge.review(rows(before),rows(after),changes).candidate)
+        assertEquals(after.canonical(),AcademicMerge.review(rows(before),rows(before),changes,rows(before).associate { it.identity to 1L }).candidate)
+        assertEquals(after.canonical(),AcademicMerge.review(rows(before),rows(after),changes,rows(before).associate { it.identity to 1L }).candidate)
     }
     @Test fun newRowConflictingWithUntrackedLocalIdIsNotOverwritten() {
         val before=data().copy(lessonRecords=emptyList());val local=data()
@@ -138,6 +138,15 @@ class AcademicProtocolTest {
         fails { AcademicRecords.snapshot(all+first) }
         fails { AcademicRecords.snapshot(all.map { if(it==first)it.copy(kind="unknown")else it }) }
         fails { AcademicRecords.snapshot(all.map { if(it==first)it.copy(key=buildJsonObject { put("id","another") })else it }) }
+    }
+    @Test fun previewCannotUseAnUnknownOrSupersededBaseRevision() {
+        val before=data();val remote=before.copy(classes=listOf(school.copy(name="Remota")))
+        val known=rows(before).associate { it.identity to 1L };val change=delta(before,remote).single()
+        val result=AcademicMerge.review(rows(before),rows(before),listOf(change.copy(base=2)),known)
+        assertNull(result.candidate);assertEquals("BASE_REVISION_CHANGED",result.conflicts.single().reason)
+        fails { AcademicMerge.review(rows(before),rows(before),listOf(change),emptyMap()) }
+        val missing=AcademicMerge.review(emptyList(),rows(before),listOf(change),emptyMap())
+        assertNull(missing.candidate);assertEquals("BASE_REVISION_CHANGED",missing.conflicts.single().reason)
     }
     @Test fun storedDraftAndArchiveAreExplicitRowsNotStudentImports() {
         val value=data().copy(classArchives=listOf(ClassArchive(school.id)))

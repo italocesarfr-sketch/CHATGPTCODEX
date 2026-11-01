@@ -57,7 +57,7 @@ class AcademicProtocolRoomTest {
         val before=ClassLifecycle.snapshot(repo.readSnapshot()).canonical();val rows=AcademicRecords.rows(before)
         val changed=before.copy(classes=listOf(school.copy(name="Remoto")))
         val changes=AcademicRecords.delta(rows,AcademicRecords.rows(changed),rows.associate { it.identity to 1L })
-        val review=AcademicMerge.review(rows,rows,changes,changes.map { it.identity }.toSet())
+        val review=AcademicMerge.review(rows,rows,changes,rows.associate { it.identity to 1L },changes.map { it.identity }.toSet())
         assertNull(review.candidate);assertEquals("PRESERVED_CONFLICT",review.conflicts.single().reason)
         assertEquals(before,ClassLifecycle.snapshot(repo.readSnapshot()).canonical())
         assertEquals(conflict,db.syncDao().state(school.id)!!.conflict)

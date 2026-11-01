@@ -131,16 +131,21 @@ data class AcademicReview(val candidate: BackupSnapshot?, val conflicts: List<Ac
 /** Pure review, no writes. A caller must revalidate revisions/graph in its future Room transaction. */
 object AcademicMerge {
     fun review(base: List<AcademicRow>, local: List<AcademicRow>, changes: List<AcademicChange>,
-        preservedConflicts: Set<AcademicKey> = emptySet()): AcademicReview {
+        revisions: Map<AcademicKey, Long>, preservedConflicts: Set<AcademicKey> = emptySet()): AcademicReview {
         fun index(rows: List<AcademicRow>) = rows.associateBy { it.identity }.also {
             require(it.size == rows.size); rows.forEach { row -> row.validateIdentity() }
         }
         val original = index(base); val proposed = index(local).toMutableMap()
+        require(original.keys.all { (revisions[it] ?: 0) > 0 })
         require(changes.map { it.identity }.distinct().size == changes.size)
         val conflicts = mutableListOf<AcademicConflict>()
         changes.forEach { change ->
             change.validate()
             val key = change.identity; val b = original[key]?.payload; val l = proposed[key]?.payload; val r = change.payload
+            if (change.base != (revisions[key] ?: 0L)) {
+                conflicts += AcademicConflict(key, "BASE_REVISION_CHANGED", b, l, r)
+                return@forEach
+            }
             val remoteDiffers = r != b
             val next = when {
                 key in preservedConflicts -> null
