@@ -22,6 +22,24 @@ fun AcademicState.identity():AcademicKey = AcademicKey(kind,buildJsonObject {
 
 /** Domain transition guards supplement (not replace) the existing full snapshot validator. */
 object PhaseBGuard {
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    fun payload(change:AcademicChange) {
+        val value=change.payload ?: return
+        val descriptor=when(change.kind){"classes"->SchoolClass.serializer().descriptor;"terms"->Term.serializer().descriptor;"students"->Student.serializer().descriptor;else->throw SyncFailure("UNSUPPORTED")}
+        require(value.keys==(0 until descriptor.elementsCount).map{descriptor.getElementName(it)}.toSet())
+        for(i in 0 until descriptor.elementsCount) {
+            val d=descriptor.getElementDescriptor(i);val v=value.getValue(descriptor.getElementName(i))
+            if(v==JsonNull){require(d.isNullable);continue}
+            require(v is JsonPrimitive)
+            require(when(d.kind){
+                kotlinx.serialization.descriptors.PrimitiveKind.STRING->v.isString
+                kotlinx.serialization.descriptors.PrimitiveKind.INT->!v.isString&&v.intOrNull!=null
+                kotlinx.serialization.descriptors.PrimitiveKind.DOUBLE->!v.isString&&v.doubleOrNull?.isFinite()==true
+                kotlinx.serialization.descriptors.PrimitiveKind.BOOLEAN->!v.isString&&v.booleanOrNull!=null
+                else->false
+            })
+        }
+    }
     fun validate(before:BackupSnapshot,after:BackupSnapshot,changes:List<AcademicChange>) {
         BackupCodec.validate(after)
         val changedClasses=changes.filter{it.kind=="classes"||it.kind=="terms"}.map{
@@ -30,6 +48,7 @@ object PhaseBGuard {
         val oldClasses=before.classes.associateBy{it.id};val oldStudents=before.students.associateBy{it.id}
         changes.forEach { change ->
             require(change.kind in phaseBKinds)
+            payload(change)
             when(change.kind) {
                 "classes" -> after.classes.firstOrNull{it.id==change.key.getValue("id").jsonPrimitive.content}?.let { c ->
                     require(oldClasses[c.id]?.year?.let{it==c.year}!=false)
@@ -161,6 +180,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             if(blocked())return@withTransaction false
             require(page.sequence==c.cursor+1)
             if(page.records.any{it.kind !in phaseBKinds})throw SyncFailure("UNSUPPORTED")
+            page.records.forEach{PhaseBGuard.payload(it.change())}
             val before=snapshot();val local=AcademicRecords.rows(before)
             val states=dao.states();check(states.all{it.owner==owner})
             val pending=dao.pending().singleOrNull()
