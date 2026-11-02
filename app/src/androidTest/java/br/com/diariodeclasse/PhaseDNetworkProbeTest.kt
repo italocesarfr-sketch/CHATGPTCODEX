@@ -37,12 +37,18 @@ class PhaseDNetworkProbeTest {
     private suspend fun snapshot()=ClassLifecycle.snapshot(w.repository.readSnapshot()).canonical()
     private suspend fun edit(text:String){val j=w.repository.dao.lessonRecord(journalId)!!;w.repository.dao.save(j.copy(description=text))}
     private suspend fun journal()=w.repository.dao.lessonRecord(journalId)!!.description
-    private fun shot(label:String,expectedStatus:String?=null)=compose.academicCapture(app,"phased-network",label,expectedStatus) {
-        runBlocking { kotlinx.coroutines.withTimeout(2000) {
-            val c=store.dao.control()
-            "stage=${c?.stage} message=${c?.message} cursor=${c?.cursor} enabled=${c?.enabled} checked=${c?.checked}\n"+
-                "outbox=${store.dao.pending().size} inbox=${store.dao.incoming().size}"
-        } }
+    private suspend fun shot(label:String,expectedStatus:String?=null) {
+        // Snapshot assertions and pixels share the account mutex with polling. A new
+        // legitimate poll cannot change SYNCING between the wait and the assertion.
+        w.syncMutex.withLock {
+            compose.academicCapture(app,"phased-network",label,expectedStatus) {
+                runBlocking { kotlinx.coroutines.withTimeout(2000) {
+                    val c=store.dao.control()
+                    "stage=${c?.stage} message=${c?.message} cursor=${c?.cursor} enabled=${c?.enabled} checked=${c?.checked}\n"+
+                        "outbox=${store.dao.pending().size} inbox=${store.dao.incoming().size}"
+                } }
+            }
+        }
     }
     @Test fun fifteenAcademicTypesOnIndependentInstallations():Unit=runBlocking {
         val phase=InstrumentationRegistry.getArguments().getString("phaseBNetworkPhase")

@@ -158,3 +158,16 @@ preservam evidências também quando o roteiro aborta.
 Build debug/instrumentação aprovados; JVM 261 casos, 260 aprovados e um LiveAuth
 condicional ignorado, zero falhas. Regressão Android completa e fluxo D aguardam
 nova execução. Nenhuma alteração Room, backup, SQL ou regra acadêmica nesta correção.
+
+Rodada `41518744662`, código `55b6f08`: C HTTP 13/13 passou, assim como Room D
+13/13 e a regressão nativa do conflito. Captura real C confirmou texto de conflito,
+sem spinner, retry e ampliação D desabilitados. Artefato `13176413973` conserva
+os resultados e pixels.
+
+A rodada alcançou D, mas falhou na captura após o reenvio confirmado. Diagnósticos
+mostraram `ACTIVE_D`, `cursor=1`, `checked=true`, outbox/inbox vazias e mensagem
+SYNCING: uma nova consulta legítima começou entre a espera e a asserção de enabled.
+A captura C/D agora usa o mesmo mutex da conta durante espera/asserções/pixels.
+Não pausa a sincronização nem altera persistência; apenas serializa a observação
+com o polling. Mantém enabled nos estados permitidos e disabled explícito em
+conflito, sem sleeps ou aumento de timeout. Nova rodada completa ainda necessária.
