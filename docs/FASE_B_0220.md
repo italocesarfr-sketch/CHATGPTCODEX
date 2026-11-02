@@ -290,3 +290,12 @@ scripts/test-phase-b-postgres.py
 scripts/validate-auth-apk.py
 supabase/migrations/202611020001_phase_b_fence.sql
 ```
+
+## Revisão compartilhada durante a fase C
+
+A revisão posterior encontrou dois defeitos conservadores no store/engine comum:
+novas tentativas sobre conflito podiam deixar o spinner ativo, e diferenças de
+notação numérica JSONB podiam gerar falso conflito. Corrigidos em `36f86f1` e
+`f76a18e`, sem apagar variantes ou mudar hashes de recibos. A regressão B foi
+reexecutada junto à [validação final C](FASE_C_0220.md), workflow `41466557420` aprovado.
+A entrega B continua validada localmente, sem homologação hospedada/assinada implícita.

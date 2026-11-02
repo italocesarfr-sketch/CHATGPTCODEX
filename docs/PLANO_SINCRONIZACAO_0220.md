@@ -110,3 +110,12 @@ A implementação posterior, migração Room 11→12 e barreira SQL v1/v2 estão
 registradas em [FASE_B_0220.md](FASE_B_0220.md). Os trechos acima que descrevem
 a ausência de transporte referem-se à entrega A. Não habilitar contas reais
 antes das homologações pendentes; o conflito legado continua preservado.
+
+## Continuidade da fase C
+
+As oito entidades das fases B/C têm captura Room, transporte HTTP e recuperação
+em dois emuladores comprovados localmente. Workflow `41466557420` aprovado;
+[implementação, provas e limites C](FASE_C_0220.md). Room permanece v12; a migração
+SQL C ainda não foi aplicada no projeto hospedado. D/E, migração real, atualização
+assinada original e homologação física permanecem pendentes. Não confundir essas
+evidências com sincronização completa, backup integral ou liberação de produção.
