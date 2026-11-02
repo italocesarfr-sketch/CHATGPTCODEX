@@ -103,3 +103,10 @@ disponível nesta execução. Não criar contas adicionais nem aplicar SQL hospe
 automaticamente. Entregar migrações revisáveis, resultados locais e pendências claras.
 Sem B–E aprovadas, manter versão instalada/candidata 0.21.0, sem APK 0.22.0 anunciado
 como sincronização completa.
+
+## Continuidade da fase B
+
+A implementação posterior, migração Room 11→12 e barreira SQL v1/v2 estão
+registradas em [FASE_B_0220.md](FASE_B_0220.md). Os trechos acima que descrevem
+a ausência de transporte referem-se à entrega A. Não habilitar contas reais
+antes das homologações pendentes; o conflito legado continua preservado.

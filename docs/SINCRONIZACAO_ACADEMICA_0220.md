@@ -6,6 +6,8 @@ Branch `sync/academic-complete-0220`, derivada de `340f6194259b` (código da can
 0.21.0/c40 em `36f58a239318`). O plano completo está em
 [PLANO_SINCRONIZACAO_0220.md](PLANO_SINCRONIZACAO_0220.md).
 
+> Este documento registra a entrega da fase A. A integração Android posterior e seus resultados estão em [FASE_B_0220.md](FASE_B_0220.md). As limitações abaixo descrevem a fase A e o APK 0.21.0, não uma aprovação da fase B.
+
 ## Estado do produto
 
 A 0.21.0 continua sincronizando apenas configuração de turmas e seus quatro
