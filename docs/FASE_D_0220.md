@@ -115,3 +115,11 @@ e repetiu o mesmo UUID com confirmação idêntica; 32 verificações HTTP negat
 RLS/RPC/sessão passaram. **Ainda não substitui os dois AVDs nem valida Supabase Auth
 hospedado.** A autorização D ganhou rótulo conjunto de checkbox/descrição para
 acessibilidade; novo cenário Android exercita esse consentimento real.
+
+Prova Android ampliada para 21 etapas HTTP: além do bootstrap dos quinze tipos,
+executa pelo repositório real um novo remanejamento interno e uma nova vigência de
+horários; confere hashes acadêmicos iguais nos dois AVDs e depois exclui a origem
+preservando duas matrículas remanejadas no histórico. O foco Room tem 13 cenários,
+incluindo falha SQLite depois da escrita de um pai: rollback integral, lote bruto
+na inbox e cursor preservado após reabrir. Essas provas aguardam o resultado do CI;
+não foram declaradas aprovadas apenas por compilar.

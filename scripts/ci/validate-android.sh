@@ -39,7 +39,7 @@ cat build/phased-focused.txt
 python3 - <<'PYPHASED'
 from pathlib import Path
 text=Path('build/phased-focused.txt').read_text()
-assert 'OK (12 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+assert 'OK (13 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASED
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"

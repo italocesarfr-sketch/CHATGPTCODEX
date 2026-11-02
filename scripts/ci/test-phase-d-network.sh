@@ -38,6 +38,15 @@ probe "$primary" d-independent-local primary
 probe "$secondary" d-independent-remote secondary
 adb -s "$primary" shell svc wifi enable; adb -s "$primary" shell svc data enable
 probe "$primary" d-merge primary
+probe "$primary" d-new-timetable primary
+probe "$secondary" d-observe-timetable secondary
+probe "$secondary" d-new-relocation secondary
+probe "$primary" d-observe-relocation primary
+for side in primary secondary; do
+ device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+ adb -s "$device" exec-out run-as br.com.diariodeclasse cat files/phased-movement-hash.txt > "build/phased-network/$side-movement.sha256"
+done
+cmp build/phased-network/primary-movement.sha256 build/phased-network/secondary-movement.sha256
 probe "$primary" d-delete-source primary
 probe "$secondary" d-observe-deletion secondary
 for side in primary secondary; do
@@ -54,4 +63,4 @@ for side in primary secondary; do
  adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phased-network > "build/phased-network/$side-captures.tar"
 done
 python3 scripts/test-phase-d-http.py | tee build/phased-network/http-security.txt
-printf '%s\n' '17 Android HTTP phases D passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt
+printf '%s\n' '21 Android HTTP phases D passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt

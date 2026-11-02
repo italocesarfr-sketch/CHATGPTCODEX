@@ -98,6 +98,18 @@ class PhaseDRoomTest {
         assertFalse(store.receive(AcademicPage(newId(),cursor+1,listOf(link.copy(revision=2,payload=null),journal.copy(revision=2,payload=JsonObject(journal.payload!!+("description" to JsonPrimitive("Não aplicar"))))))))
         assertEquals(before,rows());assertEquals(cursor,store.cursor());assertEquals(1,store.dao.incoming().size)
     }
+    @Test fun sqliteFailureAfterParentWriteRollsBackEntireIncomingPage():Unit=runBlocking {
+        seed();val before=rows();val cursor=store.cursor()
+        db.openHelper.writableDatabase.execSQL("CREATE TRIGGER fail_d_journal BEFORE UPDATE ON lesson_records BEGIN SELECT RAISE(ABORT, 'synthetic receiver interruption'); END")
+        val school=remote.rows.values.first{it.kind=="classes"}
+        val journal=remote.rows.values.first{it.kind=="lesson_records"}
+        val page=AcademicPage(newId(),cursor+1,listOf(school.copy(revision=2,payload=JsonObject(school.payload!!+("name" to JsonPrimitive("Never commit half")))),
+            journal.copy(revision=2,payload=JsonObject(journal.payload!!+("description" to JsonPrimitive("Never commit half"))))))
+        assertFalse(store.receive(page));assertEquals(before,rows());assertEquals(cursor,store.cursor())
+        assertEquals(AcademicRecords.json.encodeToString(AcademicPage.serializer(),page),store.dao.incoming().single().body)
+        db.close();db=DiaryDatabase.open(context,name)
+        assertEquals(before,rows());assertEquals(cursor,store.cursor());assertEquals(1,store.dao.incoming().size)
+    }
     @Test fun confirmedTimetableAndAuditMutationRemainBlocked():Unit=runBlocking {
         seed();val before=rows();repo.dao.save(fixture.timetables.first().copy(createdAt="2026-10-02T00:00:00Z"))
         try{store.prepare();fail()}catch(_:IllegalArgumentException){}

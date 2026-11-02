@@ -104,16 +104,49 @@ class PhaseDNetworkProbeTest {
             "d-independent-local"->{synced();offline();w.repository.dao.save(snapshot().drafts.single().copy(reviewed=false));assertNotNull(store.prepare())}
             "d-independent-remote"->{synced();w.repository.archiveClass("d-source",false);synced()}
             "d-merge"->{synced();assertFalse(snapshot().drafts.single().reviewed);assertTrue(snapshot().classArchives.isEmpty());assertEquals(PhaseDFixture.read().relocations,snapshot().relocations);shot("07-d-independentes")}
+            "d-new-timetable"->{
+                synced();val before=w.repository.readSnapshot();val slots=before.timetables.single{it.id=="d-t2"}.slots
+                val target=before.classes.single{it.id=="d-target"}
+                val added=WeeklySlot(classId=target.id,weekday=5,ordinal=2,className=target.name,subject=target.subject,shift=target.shift)
+                w.repository.confirmTimetable(w.repository.previewTimetable(2026,"2026-11-03",slots+added));synced()
+                assertEquals(3,snapshot().timetables.size);assertEquals(ClassLifecycle.snapshot(before).canonical().marks,snapshot().marks)
+            }
+            "d-observe-timetable"->{
+                waitFor{snapshot().timetables.size==3};synced()
+                val s=snapshot();assertTrue(s.timetables.containsAll(PhaseDFixture.read().timetables))
+                assertEquals(listOf(2),Timetables.planned(s.diarySnapshot(),"d-target","2026-11-06").map{it.ordinal})
+                assertEquals(listOf(1),Timetables.planned(s.diarySnapshot(),"d-source","2026-10-15").map{it.ordinal})
+                assertEquals(PhaseDFixture.read().canonical().lessons,s.lessons)
+                shot("08-d-nova-vigencia")
+            }
+            "d-new-relocation"->{
+                synced();val before=snapshot()
+                val preview=w.repository.previewRelocation("ds2","d-target",null,"2026-11-10")
+                w.repository.confirmRelocation(preview);synced()
+                val after=snapshot();assertEquals(before.marks,after.marks);assertEquals(before.grades,after.grades)
+                assertEquals("Remanejado",w.repository.dao.student("ds2")!!.status)
+                val link=after.relocations.single{it.sourceStudentId=="ds2"}
+                assertEquals("2026-11-10",w.repository.dao.student(link.targetStudentId!!)!!.joined)
+                File(app.filesDir,"phased-movement-hash.txt").writeText(BackupCodec.fingerprint(after));shot("09-d-remanejamento")
+            }
+            "d-observe-relocation"->{
+                waitFor{snapshot().relocations.any{it.sourceStudentId=="ds2"}};synced()
+                val s=snapshot();val link=s.relocations.single{it.sourceStudentId=="ds2"};val source=s.students.single{it.id=="ds2"}
+                val target=s.students.single{it.id==link.targetStudentId}
+                assertEquals(source.personId,target.personId);assertEquals("2026-11-09",source.left);assertEquals("2026-11-10",target.joined)
+                assertEquals(2,s.students.count{it.classId=="d-target"});assertEquals(PhaseDFixture.read().canonical().marks,s.marks)
+                File(app.filesDir,"phased-movement-hash.txt").writeText(BackupCodec.fingerprint(s));shot("10-d-movimentacao-recebida")
+            }
             "d-delete-source"->{
                 synced();val before=w.repository.readSnapshot();val preview=w.repository.previewClassDeletion("d-source");assertNull(preview.blockedReason)
                 w.repository.deleteClass(preview,preview.confirmation);synced();val after=w.repository.readSnapshot();ClassLifecycle.verifyPreservedResults(before,after)
-                assertEquals(setOf("d-past","d-source"),after.histories.map{it.classId}.toSet());assertEquals(1,after.students.size)
+                assertEquals(setOf("d-past","d-source"),after.histories.map{it.classId}.toSet());assertEquals(2,after.students.size)
                 assertEquals(2,after.academic().relocations.single{it.sourceStudentId=="ds1"}.corrections.size)
                 File(app.filesDir,"phased-deleted-hash.txt").writeText(BackupCodec.fingerprint(snapshot()));shot("08-d-historico")
             }
             "d-observe-deletion"->{
                 waitFor{w.repository.dao.schoolClass("d-source")==null};synced();val s=snapshot()
-                assertEquals(setOf("d-past","d-source"),s.histories.map{it.classId}.toSet());assertEquals(1,s.students.size)
+                assertEquals(setOf("d-past","d-source"),s.histories.map{it.classId}.toSet());assertEquals(2,s.students.size)
                 assertEquals(2,s.diarySnapshot().academic().relocations.single{it.sourceStudentId=="ds1"}.corrections.size)
                 assertEquals(s,BackupCodec.decode(BackupCodec.encode(s,42,null)).snapshot.canonical())
                 File(app.filesDir,"phased-deleted-hash.txt").writeText(BackupCodec.fingerprint(s));shot("09-d-historico-recebido")
