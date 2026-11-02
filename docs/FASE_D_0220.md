@@ -1,202 +1,273 @@
 # 0.22.0 — fase D: cadeia acadêmica e históricos
 
-Branch `sync/academic-complete-0220`, base C `258e4ceb4da9`, código C validado
-`c2e92f5c6cea`, workflow `41466557420`. Main e candidata 0.21.0 preservadas.
+Branch `sync/academic-complete-0220`; base C `258e4ceb4da9`, validada em
+`41466557420`. Código D em validação `9717146b6b5c63ac9aa560f57ac778efed654858`.
+Desenvolvimento **0.22.0-dev-d / código 43**. Main e candidata 0.21.0 preservadas.
 
-## Plano e critérios de segurança
+## Estado e evidências
 
-Ampliar a mesma fila Room v12, transporte RPC e motor incremental para
-`lesson_records`, `relocations`, `weekly_timetables`, `class_archives`,
-`preserved_histories`, `export_rows` e `import_drafts`. Não criar uma segunda fila.
+As provas D passaram na primeira tentativa do workflow
+[41527729515](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515),
+mas a execução integral ainda aguarda a repetição do job interrompido pelo emulador
+na sonda de reinício. **Ainda não é aprovação final do CI.** Não promover como
+estável nem instalar no aparelho do proprietário.
 
-1. Validar recursivamente os DTOs persistidos, sem preencher IDs/defaults ausentes.
-2. Capturar as quinze tabelas na transação escolar, somente no escopo D autorizado.
-3. Receber lotes completos com validação de cadeia, auditorias e revisões imutáveis;
-   aplicar filhos/pais sem cascatas e avançar cursor apenas depois do commit.
-4. Ampliar SQL com escopo próprio e validação profunda, mantendo RLS, sessão,
-   titularidade derivada e bloqueio dos clientes B/C antigos.
-5. Testar Room, PostgreSQL/PostgREST e dois emuladores independentes; manter toda
-   regressão anterior e verificar relatórios, backup e textos sem reescrita.
+Artefato da primeira tentativa:
+[resultados-etapa6 / 13182257116](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515/artifacts/13182257116).
+SHA-256 do ZIP: `eb541f86044e63f3a56f1e9097e0839ae8175f43c0deaba977f6ad3214d59ad3`.
+A tabela usa XMLs e saídas efetivamente inspecionados, sem somar novamente os
+mesmos testes executados em foco e na regressão.
 
-A fase permanece **em implementação, sem aprovação local D** até executar todas
-as provas. Não confundir o contrato/codec de quinze tipos com sincronização validada.
-Nenhuma migração hospedada, conta real, instalação física ou release está autorizada.
+| Verificação local automatizada | Resultado da primeira tentativa |
+|---|---|
+| JVM, XMLs `testDebugUnitTest` | 261 casos: 260 aprovados, 1 condicional, 0 falhas/erros |
+| Android completo, XML `TEST-emulator-5554 - 11-_app-.xml` | 402 casos: 392 aprovados, 10 condicionais, 0 falhas/erros |
+| PostgreSQL protocolo A / B / C / D | 38 / 18 / 20 / 27 aprovados |
+| Room em foco A / B / C / D | 3 / 12 / 10 / 15 aprovados |
+| Painel: conflito e carregamento persistente | 2 aprovados |
+| HTTP Android B / C / D, dois AVDs | 10 / 13 / 24 etapas aprovadas |
+| Interrupção real durante recebimento D | Morte exigida, rollback e replay aprovados |
+| HTTP/RLS D e segurança B | 32 e 9 verificações aprovadas |
+| Leitor independente dos arquivos gerados no Android | 3 XLSX, 3 CSV e 9 TSV aprovados |
+| Largura compacta 320 dp / fontes nativas 1,3 e 1,6 | B/C/D aprovados, capturas reais inspecionadas |
+| Frequência após reinício do processo | escrita/leitura aprovadas |
+| Autenticação após reinício do emulador | escrita aprovada; leitura não executada: emulador indisponível após reboot |
 
-## Limites preservados
+A contagem Android é a do XML final. O progresso do Gradle chegou a mostrar
+412/402, mas o XML contém 402 casos; esse contador transitório não foi usado.
+O JVM condicional é o teste LiveAuth, sem credenciais reais nesta execução.
+Os dez condicionais Android são sondas que exigem argumentos/instalações próprias:
+AuthProcess, AuthSignedUpgrade, FrequencyProcess, PhaseBNetwork, PhaseCNetwork,
+PhaseDNetwork, ReleaseContinuity, StableUpgrade, SyncProcess e UpgradeProbe.
+As sondas B/C/D, frequência e referência de atualização são executadas também
+pelos roteiros dedicados; isso não transforma as sondas de assinatura permanente
+não executadas em testes aprovados.
 
-Bootstrap/lote até 256 registros e 1 MiB, sem divisão de remanejamento ou histórico.
-Acervos maiores continuam bloqueados. Reconciliação assistida, staging maior e
-migração de dados reais pertencem à fase E, que não será iniciada nesta rodada.
-Backups, criptografia, isolamento, IDs e regras acadêmicas permanecem intactos.
+O PostgreSQL v1 tem 30 verificações aprovadas, preservadas na execução. As provas
+locais não equivalem a Supabase Auth hospedado nem a homologação física.
 
-## Continuidade
+## Implementação
 
-Registrar aqui commits, resultados efetivos, falhas, workflow e ponto exato de
-retomada ao consolidar cada entrega. Supabase hospedado e homologação física
-continuam pendentes, independentemente dos testes descartáveis locais.
+As quinze entidades usam a mesma fila, engine, RPC e coordenador B/C. Sete tipos
+adicionados: `lesson_records`, `relocations`, `weekly_timetables`, `class_archives`,
+`preserved_histories`, `export_rows`, `import_drafts`. Não há envio de Room/backup
+inteiro, arquitetura paralela, cálculo novo ou deduplicação por nome.
 
-## Marco de implementação (validação Android ainda pendente)
+- Gatilhos INSERT/UPDATE/DELETE capturam alterações na própria transação escolar.
+- Outbox conserva UUID, corpo, versões e tentativas até recibo real confirmado.
+- Inbox conserva a página bruta em caso de conflito ou grafo inválido; cursor não
+  avança. Recebimento, upserts, exclusões explícitas, recibo e cursor são atômicos.
+- Validação recursiva exige campos/IDs mesmo quando o DTO Kotlin tem defaults.
+  Não se geram identidades ao recuperar. Os serializers Room normalizam somente
+  a comparação tipada; textos e digest da página bruta permanecem intactos.
+- Remanejamento exige origem, destino quando interno, pessoa, datas e cadeia
+  consistente. Calendários/escala/FJ, ciclos, recomposição por linhagem e auditorias
+  seguem os validadores existentes. Não se recebe matrícula remanejada isolada.
+- Auditorias são prefixos imutáveis inclusive ao mover o vínculo para um histórico.
+  Remanejamento interno confirmado não pode ser alterado unilateralmente.
+- Históricos são fragmentos autossuficientes ligados a matrículas preservadas.
+  Não viram turmas/alunos vivos artificialmente. Dados históricos não são
+  reescritos nem perdem aulas sem marcação ainda cobertas pela matrícula.
+- Horários preservam revisões, slots e retratos de turmas excluídas, inclusive
+  legados de fim de semana/períodos acima do sexto. Revisões confirmadas são imutáveis.
+- Reordenação usa posições temporárias negativas apenas nas linhas alteradas,
+  dentro da transação. IDs e linhas inalteradas não recebem UPDATE/DELETE; todas
+  as restrições únicas continuam ativas. Após commit só há posições finais válidas.
 
-Cliente ampliado na arquitetura existente: quinze gatilhos transacionais, chaves
-compostas estáveis, validação recursiva de todos os campos persistidos, serializers
-Room, mesma outbox/inbox/recibos e aplicação atômica. Reordenação usa posições
-negativas temporárias apenas nas linhas alteradas; IDs e linhas intactas permanecem
-intocados. Valores temporários não deixam a transação nem entram na fila.
+A exclusão confirmada de turma segue `ClassLifecycle`: registros exclusivos
+indicados na prévia são tombstonados, inclusive o diário daquela origem; vínculos
+acadêmicos necessários às matrículas remanejadas sobrevivem nos históricos.
+Não se inventam campos novos em HistoricalContent nem se alteram regras de exclusão.
+As versões remotas e os recibos anteriores permanecem disponíveis.
 
-Escopo 4: PREPARED_D durável, consentimento próprio, checagem de cursor, permissão
-administrativa de teste e bloqueios debug/workspace legado/UUID do proprietário
-preservados. Escritores B/C e tentativa de rebaixar D por `enable_academic_c` ficam
-bloqueados. Não existe ativação automática para dados reais.
+## Escopo e segurança
 
-Migração nova: `supabase/migrations/202611020003_phase_d_scope.sql`.
-Reutiliza as tabelas/RLS existentes; helpers privados com search_path fixo, sessão
-confirmada e principal derivado. Valida projeção viva+histórica sem recriar turmas
-excluídas, ligações, identidade, datas, ciclos, calendários, recomposições por
-linhagem, auditorias, registros retirados, horários imutáveis e disposição.
-A auditoria anterior continua protegida ao migrar de linha física para histórico.
+Migração aditiva `202611020003_phase_d_scope.sql`: escopo 4 por conta, RPCs
+`noctua_enable_academic_d`, `noctua_push_academic_d`, `noctua_pull_academic_d`.
+A consulta `noctua_academic_status_c` continua informando escopo/revisão.
 
-Room permanece 12 e esquema versionado idêntico; backup lógico 12 e criptografia
-não mudaram. Desenvolvimento `0.22.0-dev-d` / código 43, sem release estável.
+PREPARED_D é durável antes da rede; ACTIVE_D somente após confirmação. Exige
+consentimento próprio, ausência de inbox/outbox impeditivas, cursor conferido,
+admin allowlist de teste, debug, workspace não legado e UUID diferente do proprietário
+legado. Contadores C ainda locais podem integrar uma movimentação completa na
+transição; pedidos congelados/conflitos não são rebaseados ou apagados.
 
-Provas locais executadas neste marco:
+Clientes v1/B/C deixam de escrever depois da ampliação. A antiga autorização C
+agora também bloqueia o rebaixamento de D. RPCs derivam titularidade da sessão
+ativa/confirmada; não aceitam owner escolhido. Tabelas/RLS anteriores permanecem,
+sem DML direto. Helpers privados têm EXECUTE revogado e search_path fixo; nenhuma
+tabela temporária ou SQL dinâmico controlado pelo cliente. Nenhuma chave
+administrativa foi adicionada ao APK.
 
-- JVM: 259 casos, 258 aprovados, 1 LiveAuth condicional ignorado; zero falhas.
-- Build debug e APK de instrumentação: aprovados.
-- PostgreSQL descartável v1: 30/30; A: 37 aprovados e um teste de wire condicionado
-  ao caminho dos artefatos; B: 18/18; C: 20/20; D: 24/24.
-- Cenário D inclui 36 matrículas na origem, destino com identidade da mesma pessoa,
-  histórico anterior, FJ retirada com auditoria e conversão interna, zero/null,
-  P/F/FJ/NR, dois diários, slots legados de sábado/12º e demais sete tipos.
-- Inventário de APK: nenhuma chave administrativa, cliente fictício ou login
-  demonstrativo detectado no APK do aplicativo. Fixtures ficam no APK de testes.
-- Impeccable 4.7.0 lido: contexto, clareza e craft floor aplicados ao consentimento
-  e painel existentes; detector sem apontamentos. Inspeção de pixels ainda pendente.
+## Provas e cenário
 
-**Ainda não é aprovação da fase D.** Os testes Room/Android, dois AVDs, capturas e
-regressão do workflow precisam terminar. Testes locais usam Auth fictício; não
-comprovam duas contas reais no Supabase hospedado. Atualização assinada original
-0.21.0/c40 e homologação física permanecem pendentes; não instalar APK debug no
-celular do proprietário.
+Fixture inicial de 171 linhas dos quinze tipos: duas turmas vivas, oito bimestres,
+36 matrículas na origem e uma no destino, três aulas, 71 frequências P/F/FJ/NR,
+atividades Produção textual, 36 notas zero/null/0,0001/positivas, recomposição zero,
+FJ retirada com auditoria, conversão externa→interna, histórico anterior, dois
+diários com acentos/texto longo/quebras, duas vigências, arquivamento, disposição
+com linha vazia/ocultação e rascunho revisado. Histórico embute a cadeia anterior
+sem recriar a turma excluída.
 
-## Implantação hospedada — apenas roteiro, nada executado
+HTTP local é PostgreSQL/PostgREST real com JWTs/Auth fictícios, **não Supabase
+Auth hospedado**. O teste não usa credenciais administrativas no cliente Android.
 
-Preservar migrações v1 e guard de sessão já instalados. Após revisão/autorização,
-aplicar A `202611010001_academic_protocol.sql`, B
-`202611020001_phase_b_fence.sql`, C `202611020002_phase_c_scope.sql`, D
-`202611020003_phase_d_scope.sql`, uma vez, nessa ordem. Não reaplicar A/B/C por cima
-de D. Verificar grants/RLS e só então autorizar contas de teste. Não há autorização
-para executar esse roteiro no projeto hospedado nesta tarefa.
+Roteiro Android: dois AVDs, consentimento pela interface, bootstrap, resposta perdida,
+reenvio do mesmo UUID, recuperação exata, reordenação, edição inversa/offline,
+reconexão sem reiniciar, alterações independentes, nova vigência, novo remanejamento,
+exclusão da origem com resultados acadêmicos/hashes preservados e conflito de diário.
 
-Contingência: pausar teste e revogar `allowed` da conta fictícia; preservar filas,
-versões, recibos, perfis e bancos. Não rebaixar escopo, apagar conflito ou restaurar
-SQL antigo. Migração de dados reais e reconciliação pertencem à fase E.
+Recebimento interrompido: checkpoint exclusivo de debug termina o processo após
+escrita de um pai e antes do commit. O script exige morte do processo e marcador;
+na reabertura confere hash/cursor originais, teste pausado e inbox vazia, depois
+retoma a página real. São 24 etapas normais e uma interrupção intencional; o crash
+não é aprovação por ignorar uma falha. O sincronizador normal passa checkpoint
+nulo e builds release rejeitam sua instalação. Há ainda rollback por falha SQLite,
+com lote bruto conservado na inbox após reabrir.
 
-Marco salvo em `325432b34b38af76f27ee6a9324da7b509552b54` e publicado na mesma
-branch. Rodada Android iniciada; resultados ainda não aprovados. Provas adicionais
-preparadas: consentimento D pela interface real, reordenação via HTTP nos dois AVDs,
-remoção de linha vazia, conflito de layout e verificação de que a linha inalterada
-não recebe UPDATE/DELETE durante uma troca de posições.
+## Correções da retomada e evidências
 
-As RPCs novas são `noctua_enable_academic_d`, `noctua_push_academic_d` e
-`noctua_pull_academic_d`; a consulta existente `noctua_academic_status_c` informa
-`academicScope=4`. Não é necessário criar uma segunda consulta de estado.
-`supabase/checks/phase_d_readonly.sql` permite conferir catálogo e permissões,
-sem consultar conteúdo acadêmico. Não substitui ensaio entre contas comuns.
+| Commit | Mudança comprovada |
+|---|---|
+| `55b6f08a9fd8` | Estado de conflito único para texto, spinner e retry; regressões de estado e captura com diagnóstico |
+| `8be79ca612cd` | Captura C/D adquire o mesmo mutex por conta que o polling, evitando corrida entre espera e assert |
+| `01f849281aa7` | Flows Room lembrados por workspace; carregamento distinto de protocolo inexistente |
+| `9717146b6b5c` | Gatilho registra apenas metadado inexistente antes de incrementar a versão; regressões pelo repositório real |
 
-Reforço posterior: históricos confirmados aceitam apenas a poda de componentes
-sem matrícula preservada, conforme o domínio; não recebem dados inventados nem
-perdem aulas/atividades ainda cobertas pelo período de matrícula. Duplicação de
-período de aula no histórico também é rejeitada no servidor.
+No workflow original `41505368680`, o teste já havia comprovado o conflito e
+falhou porque a captura exigia `academic-retry` habilitado. O produto precisa de
+conferência do conflito antes de repetir uma operação incompatível: nesse estado,
+**Conflito preservado**, sem spinner, retry desabilitado. Não se habilita reenvio
+artificial nem se apagam variantes/cursores. O painel usava critérios diferentes
+para texto e spinner/botão; agora usa a mesma condição, inclusive quando a inbox
+chega antes da emissão do controle Room. A regressão prova esses estados e que
+novas tentativas bloqueadas não geram novos envios.
 
-Resultados locais após esses reforços: JVM 260 casos, 259 aprovados e um LiveAuth
-condicional ignorado; PostgreSQL D 27/27; A reexecutada com os artefatos wire:
-38/38. HTTP real local enviou e recuperou 171 linhas dos quinze tipos, editou diário
-e repetiu o mesmo UUID com confirmação idêntica; 32 verificações HTTP negativas de
-RLS/RPC/sessão passaram. **Ainda não substitui os dois AVDs nem valida Supabase Auth
-hospedado.** A autorização D ganhou rótulo conjunto de checkbox/descrição para
-acessibilidade; novo cenário Android exercita esse consentimento real.
+Rodadas seguintes produziram diagnósticos distintos, tratados sem ampliar timeout:
 
-Prova Android ampliada para 21 etapas HTTP: além do bootstrap dos quinze tipos,
-executa pelo repositório real um novo remanejamento interno e uma nova vigência de
-horários; confere hashes acadêmicos iguais nos dois AVDs e depois exclui a origem
-preservando duas matrículas remanejadas no histórico. O foco Room tem 13 cenários,
-incluindo falha SQLite depois da escrita de um pai: rollback integral, lote bruto
-na inbox e cursor preservado após reabrir. Essas provas aguardam o resultado do CI;
-não foram declaradas aprovadas apenas por compilar.
+- `41518744662`: polling legítimo iniciou entre a espera e a captura D. O mutex
+  torna observação e pixels uma verificação consistente; a engine não é desativada.
+- `41521165297`: controle ACTIVE_D/OFFLINE persistido, mas árvore exibiu ação v1.
+  A recriação de Flows e a confusão entre nulo inicial/ausência de configuração
+  permitiam essa troca. A regressão nativa força vinte recomposições e comprova
+  que o painel D não retorna ao v1 nem ao carregamento após ficar pronto.
+- `41524730086`: bootstrap D recuperou os quinze tipos, mas reordenação local
+  encontrou `UNIQUE sync_academic_records(kind,key1,key2)`. No SQLite, o
+  `INSERT OR ABORT` exterior prevalecia sobre o `INSERT OR IGNORE` do gatilho.
+  O novo `INSERT ... SELECT ... WHERE NOT EXISTS` evita a colisão sem remover
+  a chave única, excluir metadados ou reinicializar versões. Testes usam
+  `DiaryRepository.saveExportLayout` e `saveLessonRecord`, incluindo OR ABORT.
+  A normalização existente da disposição segue a ordem da lista; os testes
+  passaram a fornecer a lista na ordem desejada, sem mudar essa regra.
+- `41527729515`, tentativa 1: C 13/13, D 24 etapas + morte controlada, Room D 15,
+  HTTP D 32 e regressão completa passaram. Após a escrita da sonda AuthProcess,
+  `adb reboot` foi seguido de espera vencida (exit 124), sem conexão à porta 5554.
+  Não houve falha JUnit. Repetido somente o job que falhou, no mesmo SHA, para
+  verificar o reinício; a causa da indisponibilidade do processo emulador ainda
+  não está demonstrada pelos logs existentes.
 
-A prova de processo D agora inclui encerramento intencional **após escrever um pai
-e antes de confirmar a transação de recebimento**. Checkpoint disponível somente
-em debug, sem entrada externa e sem uso no sincronizador normal. O roteiro exige
-relato de morte do processo e marcador gravado; após reabrir, confere hash/cursor
-originais, teste pausado e inbox vazia, antes de retomar e aplicar a página real.
-São 24 etapas HTTP normais e uma etapa de encerramento intencional/rollback, além
-das 32 verificações HTTP de segurança. A etapa intencional não é um teste ignorado
-nem substitui a regressão completa; sem rollback/replay correto o roteiro falha.
-A compilação passou; a execução dessa prova ainda depende do workflow final.
+Evidências D: `build/phased-network/summary.txt`, arquivos `primary-d-*` e
+`secondary-d-*`, `kill-checkpoint.txt`, `primary-d-crash-receive.txt`,
+`primary-d-recover-receive.txt` e `http-security.txt`. O crash contém
+`Process crashed`, o checkpoint confirma escrita de pai antes do cursor, e a
+etapa seguinte exige rollback exato e replay. Não foi contado como ignorado.
 
-## Retomada: correção do CI 41505368680
+Hashes acadêmicos iguais nos dois bancos independentes:
 
-HEAD inicial `624530b81fea`, sem alterações locais de código. Logs/artefato
-`13170908876` consultados: B HTTP terminou, C chegou a `c-observe-conflict` e
-confirmou variantes/cursor antes de falhar na captura, que exigia retry habilitado.
-Room D 13/13 passou; o transporte D não foi alcançado nesse workflow.
+- Após a nova movimentação: `5cd88ef894c304abb5137857615f4c6709bd2f47b741b03d446fb5dcbaf1e565`.
+- Após exclusão com histórico preservado: `d1f7bed22f74c497a7a0219d9e4bf149889c1f6cf2641ccced3549a1aa8a5457`.
 
-O painel tinha critérios diferentes: o texto priorizava inbox/outbox de conflito,
-mas spinner/botão olhavam a mensagem do controle isoladamente. As consultas Room
-independentes podem expor conflito antes da última mensagem de controle. Um teste
-novo reproduz deterministicamente essa combinação, sem sleeps nem timeout maior.
-O artefato antigo não trazia captura/árvore do instante da falha; não se presume
-que um atraso maior provaria correção.
+Capturas reais estão em `build/phasec-layout.tar`, `build/phased-layout.tar`,
+`build/phasec-network/primary-captures.tar` e nos dois arquivos `*-captures.tar`
+D. Incluem recuperação, reordenação, recebimento retomado, nova movimentação,
+histórico e conflito. Impeccable 4.7.0 foi consultado/aplicado ao contexto nativo,
+clareza do estado e revisão visual; detector sem apontamentos. Não houve redesenho.
 
-Política explícita: conflito exige conferência; retry fica desabilitado, texto
-Conflito preservado, sem spinner. A engine permanece bloqueada, sem reenviar ou
-avançar cursor; teste Room C verifica contador de envios inalterado em tentativas
-repetidas. Capture C/D agora exige esse estado exato, botão visível e desabilitado,
-e conserva screenshot, semântica e metadados sem dados pessoais se falhar. Traps
-preservam evidências também quando o roteiro aborta.
+## Persistência e compatibilidade
 
-Build debug/instrumentação aprovados; JVM 261 casos, 260 aprovados e um LiveAuth
-condicional ignorado, zero falhas. Regressão Android completa e fluxo D aguardam
-nova execução. Nenhuma alteração Room, backup, SQL ou regra acadêmica nesta correção.
+Room **12**, hash `f7a581230efcfacc6e9659189abb0448`, mesma migração aditiva 11→12.
+Não houve nova mudança de esquema. Backup lógico **12**, criptografia, isolamento
+por conta, package `br.com.diariodeclasse` e configuração de assinatura inalterados.
+Restauração continua pausando a sincronização para reconciliação explícita futura.
 
-Rodada `41518744662`, código `55b6f08`: C HTTP 13/13 passou, assim como Room D
-13/13 e a regressão nativa do conflito. Captura real C confirmou texto de conflito,
-sem spinner, retry e ampliação D desabilitados. Artefato `13176413973` conserva
-os resultados e pixels.
+Atualização original assinada 0.21.0/c40: pendente; a referência de atualização do
+CI usa chave descartável e não comprova o certificado permanente. APK debug só em
+ambiente separado, nunca sobre a instalação do proprietário. Nenhuma release ou
+promoção para main foi feita.
 
-A rodada alcançou D, mas falhou na captura após o reenvio confirmado. Diagnósticos
-mostraram `ACTIVE_D`, `cursor=1`, `checked=true`, outbox/inbox vazias e mensagem
-SYNCING: uma nova consulta legítima começou entre a espera e a asserção de enabled.
-A captura C/D agora usa o mesmo mutex da conta durante espera/asserções/pixels.
-Não pausa a sincronização nem altera persistência; apenas serializa a observação
-com o polling. Mantém enabled nos estados permitidos e disabled explícito em
-conflito, sem sleeps ou aumento de timeout. Nova rodada completa ainda necessária.
+## Implantação hospedada e contingência
 
-Rodada `41521165297`, código `8be79ca`: C voltou a passar. D parou na captura
-inicial com `ACTIVE_D`, OFFLINE, outbox=1 e inbox=0 no Room, mas a árvore exibiu o
-painel legado (`academic-enable`) em vez do painel D. Isso distinguiu a falha de
-leitura inicial da corrida de polling anterior; não foi falha de gravação/envio.
+Nada foi aplicado ao Supabase hospedado. Preservar v1 e proteção de sessão já
+instaladas. Após revisão/aprovação administrativa, aplicar uma vez e nesta ordem:
+A `202611010001_academic_protocol.sql`, B `202611020001_phase_b_fence.sql`,
+C `202611020002_phase_c_scope.sql`, D `202611020003_phase_d_scope.sql`.
+Não reaplicar A/B/C por cima de D.
 
-`SyncPanel` recriava seis produtores Flow durante recomposições e usava null tanto
-para leitura pendente quanto para ausência de controle acadêmico. Os produtores
-agora são lembrados por DAO/workspace, combinados em modelos de leitura tipados,
-e o diálogo distingue carregamento de ausência. Não mostra ações v1 antes de
-concluir a leitura do estado. Novo teste nativo usa Room isolado, 100 metadados e
-20 recomposições do pai para verificar painel D e bloqueio de conflito estáveis.
-Build/JVM passaram; nova regressão Android completa ainda pendente.
+`supabase/checks/phase_d_readonly.sql` confere catálogo/grants/constraint, sem
+conteúdo acadêmico. Não é prova de isolamento hospedado. Autorizar apenas contas
+fictícias aprovadas e testar duas sessões comuns contra API direta e RPCs antes
+de qualquer ensaio físico. Não usar o celular principal.
 
-Rodada `41524730086`, código `01f8492`: painel/readiness e C passaram; D completou
-bootstrap e recuperação no segundo AVD, chegando à reordenação pelo repositório.
-Falha real: `UNIQUE sync_academic_records(kind,key1,key2)` ao reinserir IDs de linhas
-já capturadas. Em SQLite, OR ABORT do escritor externo prevalece sobre OR IGNORE
-no gatilho. A transação falhou integralmente, sem apagar registros.
+Se falhar: pausar teste e revogar allowed da conta fictícia; conservar perfis,
+versões, recibos, filas e bancos. Corrigir aditivamente, sem rebaixar escopo,
+restaurar SQL antigo ou remover conflitos.
 
-A captura agora faz INSERT...SELECT...WHERE NOT EXISTS seguido do incremento,
-sem tentar inserir novamente a chave existente. Compatível com SQLite Android
-antigo; não depende de UPSERT SQL recente. Nenhuma PK/unique foi removida, nenhuma
-base/counter/UUID foi reiniciada. Triggers atualizados na abertura, Room continua12.
-Reprodução SQLite local confirmou causa e rollback; regressões Room adicionadas
-para reposicionar/reinserir layout e editar diário via UPDATE OR ABORT. Foco D
-ampliado para15 casos. Roteiro usa a ordem solicitada real da API ExportLayout
-(normalização da lista), preservando suas regras. Build/JVM aprovados; aguardando
-nova execução Android completa. Nenhuma migração hospedada foi alterada/executada.
+## Limites e fase E
+
+- Até 256 registros por lote/bootstrap, 1 MiB por pedido e 512 KiB por payload no
+  servidor. Não fragmentar remanejamento/histórico. Acervos maiores continuam
+  bloqueados; staging/volumes reais dependem da fase E.
+- Conflitos conservam variantes, mas a conferência/resolução assistida e a
+  reconciliação após restauração continuam pendentes.
+- Migração do proprietário/v1 e conflito físico legado não foram resolvidos
+  automaticamente. Dados reais não foram inscritos, enviados, apagados ou instalados.
+- Supabase hospedado, duas contas Auth reais e homologação física permanecem
+  pendentes. Catálogo administrativo e fixtures não substituem essas provas.
+- Backup administrativo independente e recuperação após incidente precisam ser
+  comprovados antes de mudar o mecanismo atual de backup/criptografia.
+
+A fase E não foi iniciada. Nenhuma funcionalidade NOcTuA Escola foi implementada.
+
+## Arquivos alterados na fase D e correções desta retomada
+
+Relação contra a base C `258e4ceb4da9`:
+
+- `.github/workflows/android.yml`
+- `app/build.gradle.kts`
+- `app/src/androidTest/assets/phase-d.json`
+- `app/src/androidTest/java/br/com/diariodeclasse/AcademicConflictPanelTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/AcademicNetworkCapture.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseBPanelLayoutTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseBRoomTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseCNetworkProbeTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseCPanelLayoutTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseCRoomTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseDNetworkProbeTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseDPanelLayoutTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseDRoomTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/SyncPanelReadinessTest.kt`
+- `app/src/main/java/br/com/diariodeclasse/data/Database.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/SyncPanel.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicDatabase.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicEngine.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicPanel.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicStore.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicTransport.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/PhaseDGuard.kt`
+- `app/src/test/java/br/com/diariodeclasse/PhaseCStatusTest.kt`
+- `app/src/test/java/br/com/diariodeclasse/PhaseDGuardTest.kt`
+- `docs/FASE_D_0220.md`
+- `scripts/ci/test-phase-b-network.sh`
+- `scripts/ci/test-phase-c-network.sh`
+- `scripts/ci/test-phase-d-network.sh`
+- `scripts/ci/validate-android.sh`
+- `scripts/phase-b-http-fixture.py`
+- `scripts/test-academic-postgres.py`
+- `scripts/test-phase-b-postgres.py`
+- `scripts/test-phase-c-postgres.py`
+- `scripts/test-phase-d-http.py`
+- `scripts/test-phase-d-postgres.py`
+- `supabase/checks/phase_d_readonly.sql`
+- `supabase/migrations/202611020003_phase_d_scope.sql`
