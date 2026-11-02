@@ -13,7 +13,7 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
     c?.stage=="RESTORE"->"Pausado após restauração"
     pending.any{it.conflict!=null} || incoming.isNotEmpty()->"Conflito preservado"
     c?.message=="SYNCING"->"Sincronizando"
-    c?.stage=="PREPARED"->when(c.message){"SETUP"->"Aguarda configuração do teste";"OFFLINE","NETWORK"->"Aguardando internet";else->"Transição pendente"}
+    c?.stage in listOf("PREPARED","PREPARED_C")->when(c?.message){"CONFLICT","GRAPH","UNSUPPORTED"->"Conflito preservado";"SETUP"->"Aguarda configuração do teste";"OFFLINE","NETWORK"->"Aguardando internet";else->"Transição pendente"}
     c?.enabled!=true->"Teste pausado"
     c.message=="OFFLINE"->"Aguardando internet"
     c.message=="SESSION"->"Acesso ao teste indisponível"
@@ -30,7 +30,8 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
             if(c.message=="SYNCING")CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp)
             Text(academicLabel(c,states,pending,incoming),Modifier.weight(1f).testTag("academic-status").semantics{liveRegion=LiveRegionMode.Polite})
         }
-        Text("Turmas, bimestres e alunos. Notas, chamadas e diário ainda ficam neste aparelho. Mantenha o backup.")
+        Text(if(c.stage.endsWith("_C"))"Turmas, bimestres, alunos, avaliações e frequência. Diário, horários e remanejamentos ainda ficam neste aparelho. Mantenha o backup."
+            else "Turmas, bimestres e alunos. Notas, chamadas e diário ainda ficam neste aparelho. Mantenha o backup.")
         if(incoming.isNotEmpty() || pending.any{it.conflict!=null})Text("As versões foram preservadas. A conferência é necessária antes de retomar.")
         if(c.stage=="RESTORE")Text("Confira os dados restaurados antes de reconciliar a fila.")
         else {

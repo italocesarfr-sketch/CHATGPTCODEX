@@ -41,11 +41,14 @@ data class AcademicApplied(@PrimaryKey val sequence:Long,val owner:String,val op
 
 fun installAcademicTriggers(db:SupportSQLiteDatabase) {
     // Two distinct key columns, no ambiguous concatenation and no dependency on optional SQLite JSON1.
-    for(table in listOf("classes","terms","students")) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
-        val key1=if(table=="terms")"$ref.classId" else "$ref.id"
-        val key2=if(table=="terms")"CAST($ref.number AS TEXT)" else "''"
+    for(table in listOf("classes","terms","students","activities","grades","lessons","marks","recompositions")) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
+        val key1=when(table){"terms"->"$ref.classId";"grades"->"$ref.activityId";"marks"->"$ref.lessonId";"recompositions"->"$ref.studentId";else->"$ref.id"}
+        val key2=when(table){"terms"->"CAST($ref.number AS TEXT)";"grades","marks"->"$ref.studentId";"recompositions"->"CAST($ref.term AS TEXT)";else->"''"}
+        val stages=if(table in setOf("classes","terms","students"))"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C'"else"'PREPARED_C','ACTIVE_C'"
+        // Replace only our own capture trigger definition; no academic row is modified.
+        db.execSQL("DROP TRIGGER IF EXISTS academic_${table}_${event.lowercase()}")
         db.execSQL("""CREATE TRIGGER IF NOT EXISTS academic_${table}_${event.lowercase()} AFTER $event ON $table
-            WHEN EXISTS(SELECT 1 FROM sync_academic_control WHERE id=1 AND stage IN ('PREPARED','ACTIVE') AND applying=0)
+            WHEN EXISTS(SELECT 1 FROM sync_academic_control WHERE id=1 AND stage IN ($stages) AND applying=0)
             BEGIN
               INSERT OR IGNORE INTO sync_academic_records(kind,key1,key2,owner,localVersion,acknowledged,revision,base)
               SELECT '$table',$key1,$key2,owner,0,0,0,NULL FROM sync_academic_control WHERE id=1;

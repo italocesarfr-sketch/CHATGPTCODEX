@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.*
 
-/** Protocol preparation only. Not installed in Room, scheduled or sent by the v1 client. */
+/** Shared record contract. Only the explicitly enabled scope is captured/sent by the v2 client. */
 enum class AcademicKind(val wire: String, val primaryKey: List<String>) {
     CLASSES("classes", listOf("id")), TERMS("terms", listOf("classId", "number")),
     STUDENTS("students", listOf("id")), LESSONS("lessons", listOf("id")),
@@ -128,7 +128,7 @@ data class AcademicConflict(val identity: AcademicKey, val reason: String,
     val base: JsonObject?, val local: JsonObject?, val remote: JsonObject?)
 data class AcademicReview(val candidate: BackupSnapshot?, val conflicts: List<AcademicConflict>, val invalidGraph: Boolean = false)
 
-/** Pure review, no writes. A caller must revalidate revisions/graph in its future Room transaction. */
+/** Pure review, no writes. A caller must revalidate revisions/graph in its Room transaction. */
 object AcademicMerge {
     fun review(base: List<AcademicRow>, local: List<AcademicRow>, changes: List<AcademicChange>,
         revisions: Map<AcademicKey, Long>, preservedConflicts: Set<AcademicKey> = emptySet()): AcademicReview {

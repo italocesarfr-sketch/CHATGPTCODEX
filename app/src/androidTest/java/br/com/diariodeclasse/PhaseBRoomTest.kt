@@ -26,10 +26,14 @@ class PhaseBRoomTest {
     private val store get()=AcademicStore(db,owner)
     private val c=SchoolClass("phaseb-class",name="Turma Fictícia",subject="História",year=2026)
     private val students=(1..36).map{Student("phaseb-$it","person-$it",c.id,"Estudante Fictício ${it.toString().padStart(2,'0')}",it,"2026-01-01")}
-    private class Remote:AcademicRemote {
+    internal class Remote:AcademicRemote {
         val rows=mutableMapOf<AcademicKey,AcademicVersion>();val pages=mutableListOf<AcademicPage>()
         val receipts=mutableMapOf<String,AcademicPushReply>();var fail=false;var lost=false;var pushes=0
-        override suspend fun status(token:String)=AcademicProtocolStatus(2,0,JsonArray(emptyList()),true)
+        var scope=2
+        override suspend fun status(token:String)=AcademicProtocolStatus(2,0,JsonArray(emptyList()),true,scope,pages.size.toLong())
+        override suspend fun enableC(token:String,expectedSequence:Long):AcademicProtocolStatus{check(expectedSequence==pages.size.toLong());scope=3;return status(token)}
+        override suspend fun pushC(token:String,batch:AcademicBatch)=push(token,batch)
+        override suspend fun pullC(token:String,after:Long)=pull(token,after)
         override suspend fun activate(token:String,expected:AcademicProtocolStatus)=status(token)
         override suspend fun pull(token:String,after:Long):List<AcademicPage>{if(fail)throw SyncFailure("NETWORK");return pages.filter{it.sequence>after}.take(1)}
         override suspend fun push(token:String,batch:AcademicBatch):AcademicPushReply {

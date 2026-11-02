@@ -68,3 +68,6 @@ for side in primary secondary; do
   adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phaseb-network > "build/phaseb-network/$side-captures.tar"
 done
 printf '%s\n' '10 Android HTTP phases passed on two independent emulators. PostgreSQL/PostgREST local; Auth JWT fixtures, not hosted Supabase.' > build/phaseb-network/summary.txt
+
+# Expand only after preserving B screenshots and conflict evidence.
+./scripts/ci/test-phase-c-network.sh "$primary" "$secondary"

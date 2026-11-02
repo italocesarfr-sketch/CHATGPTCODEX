@@ -34,7 +34,7 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
                 for(signal in signals) {
                     delay(250) // Coalesce a burst of table invalidations, never delay persistence.
                     val c=workspace.database.academicDao().control() ?: continue
-                    if(c.stage !in listOf("ACTIVE","PREPARED") || c.stage=="ACTIVE"&&!c.enabled)continue
+                    if(c.stage !in listOf("ACTIVE","PREPARED","ACTIVE_C","PREPARED_C") || c.stage in listOf("ACTIVE","ACTIVE_C")&&!c.enabled)continue
                     val application=app ?: continue
                     run(application,workspace)
                     val after=workspace.database.academicDao().control() ?: continue
@@ -63,8 +63,8 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
             if(!admitted(app,w))return@withLock
             val store=AcademicStore(w.database,w.user.id)
             if(!online(w.context)){store.message("OFFLINE");return@withLock}
-            if(store.stage()=="PREPARED") {
-                try{engine(app,w).activate()}catch(e:CancellationException){throw e}
+            if(store.stage() in listOf("PREPARED","PREPARED_C")) {
+                try{if(store.stage()=="PREPARED_C")engine(app,w).activateC()else engine(app,w).activate()}catch(e:CancellationException){throw e}
                 catch(e:Exception){store.message((e as? br.com.diariodeclasse.sync.SyncFailure)?.code ?: "RETRY");return@withLock}
             }
             engine(app,w).run()

@@ -10,13 +10,23 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 val phaseBKinds=setOf("classes","terms","students")
+val phaseCKinds=phaseBKinds+setOf("activities","grades","lessons","marks","recompositions")
 private fun AcademicKey.parts():Pair<String,String> = when(kind) {
     "terms" -> key.getValue("classId").jsonPrimitive.content to key.getValue("number").jsonPrimitive.int.toString()
-    "classes","students" -> key.getValue("id").jsonPrimitive.content to ""
+    "grades" -> key.getValue("activityId").jsonPrimitive.content to key.getValue("studentId").jsonPrimitive.content
+    "marks" -> key.getValue("lessonId").jsonPrimitive.content to key.getValue("studentId").jsonPrimitive.content
+    "recompositions" -> key.getValue("studentId").jsonPrimitive.content to key.getValue("term").jsonPrimitive.int.toString()
+    "classes","students","activities","lessons" -> key.getValue("id").jsonPrimitive.content to ""
     else -> throw SyncFailure("UNSUPPORTED")
 }
 fun AcademicState.identity():AcademicKey = AcademicKey(kind,buildJsonObject {
-    if(kind=="terms"){put("classId",key1);put("number",key2.toInt())}else put("id",key1)
+    when(kind){
+        "terms"->{put("classId",key1);put("number",key2.toInt())}
+        "grades"->{put("activityId",key1);put("studentId",key2)}
+        "marks"->{put("lessonId",key1);put("studentId",key2)}
+        "recompositions"->{put("studentId",key1);put("term",key2.toInt())}
+        else->put("id",key1)
+    }
 })
 @Serializable private data class SentVersion(val kind:String,val key1:String,val key2:String,val version:Long)
 
@@ -25,7 +35,10 @@ object PhaseBGuard {
     @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
     fun payload(change:AcademicChange) {
         val value=change.payload ?: return
-        val descriptor=when(change.kind){"classes"->SchoolClass.serializer().descriptor;"terms"->Term.serializer().descriptor;"students"->Student.serializer().descriptor;else->throw SyncFailure("UNSUPPORTED")}
+        val descriptor=when(change.kind){"classes"->SchoolClass.serializer().descriptor;"terms"->Term.serializer().descriptor;"students"->Student.serializer().descriptor;
+            "activities"->Activity.serializer().descriptor;"grades"->Grade.serializer().descriptor;
+            "lessons"->Lesson.serializer().descriptor;"marks"->Attendance.serializer().descriptor;
+            "recompositions"->Recomposition.serializer().descriptor;else->throw SyncFailure("UNSUPPORTED")}
         require(value.keys==(0 until descriptor.elementsCount).map{descriptor.getElementName(it)}.toSet())
         for(i in 0 until descriptor.elementsCount) {
             val d=descriptor.getElementDescriptor(i);val v=value.getValue(descriptor.getElementName(i))
@@ -40,20 +53,26 @@ object PhaseBGuard {
             })
         }
     }
-    fun validate(before:BackupSnapshot,after:BackupSnapshot,changes:List<AcademicChange>) {
+    fun validate(before:BackupSnapshot,after:BackupSnapshot,changes:List<AcademicChange>,allowed:Set<String> = phaseBKinds) {
         BackupCodec.validate(after)
         val changedClasses=changes.filter{it.kind=="classes"||it.kind=="terms"}.map{
             it.key.getValue(if(it.kind=="classes")"id"else"classId").jsonPrimitive.content}.toSet()
         after.classes.filter{it.id in changedClasses}.forEach{ClassBundle(it,after.terms.filter{t->t.classId==it.id}).validate()}
         val oldClasses=before.classes.associateBy{it.id};val oldStudents=before.students.associateBy{it.id}
         changes.forEach { change ->
-            require(change.kind in phaseBKinds)
+            require(change.kind in allowed)
             payload(change)
             when(change.kind) {
                 "classes" -> after.classes.firstOrNull{it.id==change.key.getValue("id").jsonPrimitive.content}?.let { c ->
                     require(oldClasses[c.id]?.year?.let{it==c.year}!=false)
                     if(c.id !in oldClasses)require(before.histories.none{it.classId==c.id} && before.timetables.none{r->r.slots.any{it.classId==c.id}})
                     ClassBundle(c,after.terms.filter{it.classId==c.id}).validate()
+                }
+                "activities" -> after.activities.firstOrNull{it.id==change.key.getValue("id").jsonPrimitive.content}?.let{a->
+                    require(before.activities.firstOrNull{it.id==a.id}?.classId?.let{it==a.classId}!=false)
+                }
+                "lessons" -> after.lessons.firstOrNull{it.id==change.key.getValue("id").jsonPrimitive.content}?.let{l->
+                    require(before.lessons.firstOrNull{it.id==l.id}?.classId?.let{it==l.classId}!=false)
                 }
                 "students" -> after.students.firstOrNull{it.id==change.key.getValue("id").jsonPrimitive.content}?.let { s ->
                     val old=oldStudents[s.id]
@@ -75,10 +94,12 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     val dao=db.academicDao()
     init {require(java.util.UUID.fromString(owner).toString()==owner)}
     private suspend fun control():AcademicControl?=dao.control()?.also{check(it.owner==owner)}
-    suspend fun active()=db.withTransaction {control()?.let{it.stage=="ACTIVE"&&it.enabled}==true}
+    suspend fun active()=db.withTransaction {control()?.let{it.stage in listOf("ACTIVE","ACTIVE_C")&&it.enabled}==true}
     suspend fun stage()=db.withTransaction {control()?.stage}
     private suspend fun snapshot()=ClassLifecycle.snapshot(DiaryRepository(db).readSnapshot())
-    private fun core(rows:List<AcademicRow>)=rows.filter{it.kind in phaseBKinds}
+    suspend fun scope()=db.withTransaction {if(control()?.stage?.endsWith("_C")==true)3 else 2}
+    private suspend fun kinds()=if(scope()==3)phaseCKinds else phaseBKinds
+    private suspend fun core(rows:List<AcademicRow>):List<AcademicRow>{val allowed=kinds();return rows.filter{it.kind in allowed}}
     private suspend fun state(key:AcademicKey):AcademicState {
         val (a,b)=key.parts()
         return dao.states().firstOrNull{it.kind==key.kind&&it.key1==a&&it.key2==b}?.also{check(it.owner==owner)}
@@ -115,8 +136,28 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         val before=requireNotNull(control());check(before.stage in listOf("PREPARED","ACTIVE"))
         dao.save(before.copy(stage="ACTIVE",enabled=true,message="PENDING",checked=false));seed()
     }
+    /** Separate consent: an APK update alone never enrolls previously local evaluations. */
+    suspend fun prepareC(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.testAllowed && remote.academicScope in 2..3)
+        val c=requireNotNull(control());check(c.stage in listOf("PREPARED","ACTIVE","PREPARED_C","ACTIVE_C"))
+        check(!blocked() && dao.pending().isEmpty())
+        if(!c.stage.endsWith("_C")) {
+            check(dao.states().none{it.localVersion>it.acknowledged}){"Sincronize as pendências B antes de ampliar."}
+        }
+        // Even a retry may not silently adopt a newly changed B head.
+        if(remote.academicScope==2 && c.cursor!=remote.academicSequence)throw SyncFailure("CONFLICT")
+        val local=snapshot();val rows=AcademicRecords.rows(local).filter{it.kind in phaseCKinds}
+        PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},phaseCKinds)
+        require(rows.size<=256)
+        dao.save(c.copy(stage="PREPARED_C",enabled=false,message="PENDING",checked=false));seed()
+    }
+    suspend fun activateC(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.academicScope==3 && remote.testAllowed)
+        val c=requireNotNull(control());check(c.stage in listOf("PREPARED_C","ACTIVE_C"))
+        dao.save(c.copy(stage="ACTIVE_C",enabled=true,message="PENDING",checked=false));seed()
+    }
     suspend fun pause()=db.withTransaction {control()?.let{dao.save(it.copy(enabled=false,message="PAUSED"))}}
-    suspend fun resume()=db.withTransaction {val c=requireNotNull(control());check(c.stage=="ACTIVE");dao.save(c.copy(enabled=true,message="PENDING"))}
+    suspend fun resume()=db.withTransaction {val c=requireNotNull(control());check(c.stage in listOf("ACTIVE","ACTIVE_C"));dao.save(c.copy(enabled=true,message="PENDING"))}
     suspend fun message(value:String,checked:Boolean?=null)=db.withTransaction {
         control()?.let{dao.save(it.copy(message=value,checked=checked ?: it.checked))}
     }
@@ -135,7 +176,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             states.filter{it.localVersion>it.acknowledged}.forEach{dao.save(it.copy(acknowledged=it.localVersion))}
             return@withTransaction null
         }
-        PhaseBGuard.validate(current,current,changes)
+        PhaseBGuard.validate(current,current,changes,kinds())
         val batch=AcademicBatch(newId(),changes);batch.validate()
         val raw=AcademicRecords.json.encodeToString(batch);require(raw.toByteArray().size<=1024*1024)
         val versions=changes.map {r->val s=state(r.identity);SentVersion(s.kind,s.key1,s.key2,s.localVersion)}
@@ -170,7 +211,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     suspend fun receive(page:AcademicPage):Boolean {
         try {page.validate();return db.withTransaction {
             val c=control() ?: return@withTransaction false
-            if(!c.enabled || c.stage!="ACTIVE")return@withTransaction false
+            if(!c.enabled || c.stage !in listOf("ACTIVE","ACTIVE_C"))return@withTransaction false
             val digest=BackupCodec.hash(AcademicRecords.canonical(AcademicRecords.json.encodeToJsonElement(page)).toByteArray())
             if(page.sequence<=c.cursor) {
                 val receipt=requireNotNull(dao.applied(page.sequence))
@@ -179,7 +220,8 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             }
             if(blocked())return@withTransaction false
             require(page.sequence==c.cursor+1)
-            if(page.records.any{it.kind !in phaseBKinds})throw SyncFailure("UNSUPPORTED")
+            val allowed=kinds()
+            if(page.records.any{it.kind !in allowed})throw SyncFailure("UNSUPPORTED")
             page.records.forEach{PhaseBGuard.payload(it.change())}
             val before=snapshot();val local=AcademicRecords.rows(before)
             val states=dao.states();check(states.all{it.owner==owner})
@@ -204,14 +246,15 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
                 val review=AcademicMerge.review(base,local,changes,fresh.filter{it.revision>0}.associate{it.identity() to it.revision})
                 if(review.conflicts.isNotEmpty())throw SyncFailure("CONFLICT")
                 val candidate=review.candidate ?: throw SyncFailure("GRAPH")
-                PhaseBGuard.validate(before,candidate,changes)
+                PhaseBGuard.validate(before,candidate,changes,kinds())
                 dao.save(c.copy(applying=true))
                 apply(candidate,changes)
                 db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{check(!it.moveToFirst())}
                 check(snapshot().canonical()==candidate.canonical())
+                val candidateRows=core(AcademicRecords.rows(candidate)).associateBy{it.identity}
                 changes.forEach {r->
                     val s=state(r.identity)
-                    val candidateRow=core(AcademicRecords.rows(candidate)).firstOrNull{it.identity==r.identity}
+                    val candidateRow=candidateRows[r.identity]
                     val converged=candidateRow?.payload==r.payload
                     dao.save(s.copy(revision=r.base+1,base=r.payload?.let{AcademicRecords.canonical(it)},
                         acknowledged=if(converged)s.localVersion else s.acknowledged))
@@ -224,7 +267,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             // This transaction runs only after the academic transaction rolled back completely.
             db.withTransaction {
                 val c=control() ?: return@withTransaction
-                if(c.stage!="ACTIVE")return@withTransaction
+                if(c.stage !in listOf("ACTIVE","ACTIVE_C"))return@withTransaction
                 val raw=AcademicRecords.json.encodeToString(page)
                 val old=dao.incoming().firstOrNull{it.sequence==page.sequence}
                 if(old==null)dao.insert(AcademicIncoming(page.sequence,owner,raw,(e as? SyncFailure)?.code ?: "GRAPH"))
@@ -240,10 +283,15 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         candidate.classes.filter{AcademicKind.CLASSES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
         candidate.terms.filter{AcademicKind.TERMS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
         candidate.students.filter{AcademicKind.STUDENTS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        for(kind in listOf("students","terms","classes"))changes.filter{it.kind==kind&&it.payload==null}.forEach{r->
+        candidate.lessons.filter{AcademicKind.LESSONS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
+        candidate.activities.filter{AcademicKind.ACTIVITIES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
+        candidate.marks.filter{AcademicKind.MARKS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
+        candidate.grades.filter{AcademicKind.GRADES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
+        candidate.recompositions.filter{AcademicKind.RECOMPOSITIONS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
+        for(kind in listOf("grades","marks","recompositions","activities","lessons","students","terms","classes"))changes.filter{it.kind==kind&&it.payload==null}.forEach{r->
             val (a,b)=r.identity.parts()
-            if(kind=="terms")sql.execSQL("DELETE FROM terms WHERE classId=? AND number=?",arrayOf(a,b))
-            else sql.execSQL("DELETE FROM $kind WHERE id=?",arrayOf(a))
+            val columns=when(kind){"terms"->"classId=? AND number=?";"grades"->"activityId=? AND studentId=?";"marks"->"lessonId=? AND studentId=?";"recompositions"->"studentId=? AND term=?";else->"id=?"}
+            sql.execSQL("DELETE FROM $kind WHERE $columns",if(kind in setOf("terms","grades","marks","recompositions"))arrayOf(a,b)else arrayOf(a))
         }
     }
 }

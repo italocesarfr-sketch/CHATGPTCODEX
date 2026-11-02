@@ -87,6 +87,16 @@ jobs:
           createdb noctua_phase_b_test
           python3 scripts/test-phase-b-postgres.py 2>&1 | tee build/phaseb-postgres.txt
           ./scripts/ci/start-phase-b-postgrest.sh
+      - name: Fase C — escopo, dependências e conflitos (PostgreSQL descartável)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: noctua_phase_c_test
+        run: |
+          createdb noctua_phase_c_test
+          python3 scripts/test-phase-c-postgres.py 2>&1 | tee build/phasec-postgres.txt
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -186,6 +196,11 @@ jobs:
             build/phaseb-font-*.txt
             build/phaseb-layout.tar
             build/phaseb-network/
+            build/phasec-network/
+            build/phasec-postgres.txt
+            build/phasec-focused.txt
+            build/phasec-font-*.txt
+            build/phasec-layout.tar
             build/phaseb-postgrest/server.log
             build/functional15-telas.tar
             build/functional15-focused.txt

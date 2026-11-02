@@ -57,7 +57,7 @@ class AcademicTestApplication:DiaryApplication() {
     override val auth get()=networkAuth ?: ordinaryAuth
     fun configurePhaseB(phase:String,secondary:Boolean){
         PhaseBNetworkHarness.phase=phase;PhaseBNetworkHarness.secondary=secondary
-        networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(legacyOwner=null)}).also{runBlocking{it.restore()}}
+        networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(session=fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token()),legacyOwner=null)}).also{runBlocking{it.restore()}}
     }
     override fun academicRemote()=if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.

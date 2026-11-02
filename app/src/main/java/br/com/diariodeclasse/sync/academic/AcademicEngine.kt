@@ -12,7 +12,14 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
         val status=remote.status(token);check(admitted())
         store.prepareConsent(status)
         val fenced=if(status.protocol==1)remote.activate(token,status)else status
-        check(admitted());store.activate(fenced)
+        check(admitted())
+        if(fenced.academicScope==3){store.prepareC(fenced);store.activateC(fenced)}else store.activate(fenced)
+    }
+    suspend fun activateC() {
+        check(admitted());val token=session();check(admitted());val status=remote.status(token);check(admitted())
+        store.prepareC(status)
+        val activated=if(status.academicScope==3)status else remote.enableC(token,status.academicSequence)
+        check(admitted());store.activateC(activated)
     }
     suspend fun run() {
         suspend fun allowed()=admitted()&&store.active()
@@ -25,7 +32,7 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 var caughtUp=false
                 for(pageTurn in 0 until 32) {
                     if(!allowed() || store.blocked())return
-                    val pages=remote.pull(token,store.cursor());if(!allowed())return
+                    val pages=if(store.scope()==3)remote.pullC(token,store.cursor())else remote.pull(token,store.cursor());if(!allowed())return
                     require(pages.size<=1)
                     if(pages.isEmpty()){caughtUp=true;break}
                     if(!store.receive(pages.single()))return
@@ -35,7 +42,8 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 val pending=store.prepare()
                 if(pending==null){store.message("",checked=true);return}
                 store.attempt(pending);if(!allowed())return
-                val reply=remote.push(token,AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body))
+                val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body)
+                val reply=if(store.scope()==3)remote.pushC(token,batch)else remote.push(token,batch)
                 if(!allowed())return
                 store.accept(pending,reply)
                 if(store.blocked())return
