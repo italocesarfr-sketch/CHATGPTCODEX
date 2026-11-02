@@ -103,7 +103,29 @@ class OfficialBrandInstrumentedTest {
             }
             node?.let {return it};SystemClock.sleep(80)
         }
+        runCatching { automation.takeScreenshot()?.let { save("diagnostico-launcher",it);it.recycle() } }
         throw AssertionError(message)
+    }
+    private fun launcherView(root:AccessibilityNodeInfo?,id:String):AccessibilityNodeInfo? =
+        listOf("com.android.launcher3","com.google.android.apps.nexuslauncher").asSequence()
+            .flatMap { pkg->root?.findAccessibilityNodeInfosByViewId("$pkg:id/$id").orEmpty().asSequence() }
+            .firstOrNull{it.isVisibleToUser}
+    private fun scrollable(root:AccessibilityNodeInfo?):AccessibilityNodeInfo? {
+        if(root==null)return null
+        if(root.isScrollable&&root.isVisibleToUser)return root
+        for(i in 0 until root.childCount)scrollable(root.getChild(i))?.let{return it}
+        return null
+    }
+    private fun drawerIcon():AccessibilityNodeInfo {
+        repeat(8) {
+            val apps=waitNode("A lista de aplicativos não abriu") {launcherView(automation.rootInActiveWindow,"apps_view")}
+            label(apps)?.let{return it}
+            val list=scrollable(apps)
+            if(list==null||!list.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD))
+                return waitNode("Noctua não apareceu na lista de apps do launcher") {label(launcherView(automation.rootInActiveWindow,"apps_view"))}
+            automation.waitForIdle(250,5000)
+        }
+        return waitNode("Noctua não apareceu após percorrer a lista de apps") {label(launcherView(automation.rootInActiveWindow,"apps_view"))}
     }
     private fun label(root:AccessibilityNodeInfo?)=root?.findAccessibilityNodeInfosByText("Noctua")?.firstOrNull {it.isVisibleToUser && (it.text?.toString()=="Noctua" || it.contentDescription?.toString()=="Noctua")}
     @Test fun launcherHomeAndAndroidAppSettingsDisplayTheOfficialInstalledIcon() {
@@ -111,17 +133,18 @@ class OfficialBrandInstrumentedTest {
         automation.serviceInfo=automation.serviceInfo.apply {flags=flags or AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS}
         try {
             context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            waitNode("O launcher Android não abriu") {automation.rootInActiveWindow?.takeIf {it.packageName.toString().contains("launcher")}}
+            shell("input keyevent KEYCODE_HOME")
+            waitNode("O launcher Android não abriu a área inicial") {launcherView(automation.rootInActiveWindow,"workspace")}
+            automation.waitForIdle(250,5000)
             val screen=automation.takeScreenshot()!!;val width=screen.width;val height=screen.height;screen.recycle()
             shell("input swipe ${width/2} ${height*9/10} ${width/2} ${height/5} 450")
-            val icon=waitNode("Noctua não apareceu na lista de apps do launcher") {label(automation.rootInActiveWindow)}
+            val icon=drawerIcon()
             save("02-launcher-lista-apps",automation.takeScreenshot()!!)
             val bounds=Rect();icon.getBoundsInScreen(bounds)
             shell("input draganddrop ${bounds.centerX()} ${bounds.centerY()} ${width*3/4} ${height*45/100} 1400")
             waitNode("O ícone do Noctua deve estar na tela inicial") {
                 val root=automation.rootInActiveWindow
-                val workspace=root?.findAccessibilityNodeInfosByViewId("com.android.launcher3:id/workspace")?.firstOrNull()
-                    ?:root?.findAccessibilityNodeInfosByViewId("com.google.android.apps.nexuslauncher:id/workspace")?.firstOrNull()
+                val workspace=launcherView(root,"workspace")
                 label(workspace)
             }
             save("03-launcher-tela-inicial",automation.takeScreenshot()!!)
