@@ -11,12 +11,15 @@ import kotlinx.serialization.json.*
 
 val phaseBKinds=setOf("classes","terms","students")
 val phaseCKinds=phaseBKinds+setOf("activities","grades","lessons","marks","recompositions")
+val phaseDKinds=AcademicKind.entries.map{it.wire}.toSet()
 private fun AcademicKey.parts():Pair<String,String> = when(kind) {
     "terms" -> key.getValue("classId").jsonPrimitive.content to key.getValue("number").jsonPrimitive.int.toString()
     "grades" -> key.getValue("activityId").jsonPrimitive.content to key.getValue("studentId").jsonPrimitive.content
     "marks" -> key.getValue("lessonId").jsonPrimitive.content to key.getValue("studentId").jsonPrimitive.content
     "recompositions" -> key.getValue("studentId").jsonPrimitive.content to key.getValue("term").jsonPrimitive.int.toString()
-    "classes","students","activities","lessons" -> key.getValue("id").jsonPrimitive.content to ""
+    "relocations" -> key.getValue("sourceStudentId").jsonPrimitive.content to ""
+    "class_archives","preserved_histories" -> key.getValue("classId").jsonPrimitive.content to ""
+    "classes","students","activities","lessons","lesson_records","weekly_timetables","export_rows","import_drafts" -> key.getValue("id").jsonPrimitive.content to ""
     else -> throw SyncFailure("UNSUPPORTED")
 }
 fun AcademicState.identity():AcademicKey = AcademicKey(kind,buildJsonObject {
@@ -25,6 +28,8 @@ fun AcademicState.identity():AcademicKey = AcademicKey(kind,buildJsonObject {
         "grades"->{put("activityId",key1);put("studentId",key2)}
         "marks"->{put("lessonId",key1);put("studentId",key2)}
         "recompositions"->{put("studentId",key1);put("term",key2.toInt())}
+        "relocations"->put("sourceStudentId",key1)
+        "class_archives","preserved_histories"->put("classId",key1)
         else->put("id",key1)
     }
 })
@@ -35,23 +40,41 @@ object PhaseBGuard {
     @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
     fun payload(change:AcademicChange) {
         val value=change.payload ?: return
-        val descriptor=when(change.kind){"classes"->SchoolClass.serializer().descriptor;"terms"->Term.serializer().descriptor;"students"->Student.serializer().descriptor;
-            "activities"->Activity.serializer().descriptor;"grades"->Grade.serializer().descriptor;
-            "lessons"->Lesson.serializer().descriptor;"marks"->Attendance.serializer().descriptor;
-            "recompositions"->Recomposition.serializer().descriptor;else->throw SyncFailure("UNSUPPORTED")}
-        require(value.keys==(0 until descriptor.elementsCount).map{descriptor.getElementName(it)}.toSet())
-        for(i in 0 until descriptor.elementsCount) {
-            val d=descriptor.getElementDescriptor(i);val v=value.getValue(descriptor.getElementName(i))
-            if(v==JsonNull){require(d.isNullable);continue}
-            require(v is JsonPrimitive)
-            require(when(d.kind){
-                kotlinx.serialization.descriptors.PrimitiveKind.STRING->v.isString
-                kotlinx.serialization.descriptors.PrimitiveKind.INT->!v.isString&&v.intOrNull!=null
-                kotlinx.serialization.descriptors.PrimitiveKind.DOUBLE->!v.isString&&v.doubleOrNull?.isFinite()==true
-                kotlinx.serialization.descriptors.PrimitiveKind.BOOLEAN->!v.isString&&v.booleanOrNull!=null
-                else->false
-            })
+        validateValue(value,serializer(change.kind).descriptor)
+    }
+    /** Every nested persisted field is required, even when Kotlin has a convenient default. */
+    @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+    private fun validateValue(value:JsonElement,d:kotlinx.serialization.descriptors.SerialDescriptor) {
+        if(value==JsonNull){require(d.isNullable);return}
+        when(d.kind) {
+            kotlinx.serialization.descriptors.StructureKind.CLASS -> {
+                require(value is JsonObject)
+                require(value.keys==(0 until d.elementsCount).map{d.getElementName(it)}.toSet())
+                for(i in 0 until d.elementsCount)validateValue(value.getValue(d.getElementName(i)),d.getElementDescriptor(i))
+            }
+            kotlinx.serialization.descriptors.StructureKind.LIST -> {
+                require(value is JsonArray);value.forEach{validateValue(it,d.getElementDescriptor(0))}
+            }
+            else -> {
+                require(value is JsonPrimitive)
+                require(when(d.kind){
+                    kotlinx.serialization.descriptors.PrimitiveKind.STRING->value.isString
+                    kotlinx.serialization.descriptors.PrimitiveKind.INT->!value.isString&&value.intOrNull!=null
+                    kotlinx.serialization.descriptors.PrimitiveKind.DOUBLE->!value.isString&&value.doubleOrNull?.isFinite()==true
+                    kotlinx.serialization.descriptors.PrimitiveKind.BOOLEAN->!value.isString&&value.booleanOrNull!=null
+                    else->false
+                })
+            }
         }
+    }
+    private fun serializer(kind:String):kotlinx.serialization.KSerializer<out Any> = when(kind) {
+        "classes"->SchoolClass.serializer();"terms"->Term.serializer();"students"->Student.serializer()
+        "activities"->Activity.serializer();"grades"->Grade.serializer();"lessons"->Lesson.serializer()
+        "marks"->Attendance.serializer();"recompositions"->Recomposition.serializer()
+        "lesson_records"->LessonRecord.serializer();"relocations"->Relocation.serializer()
+        "weekly_timetables"->WeeklyTimetable.serializer();"class_archives"->ClassArchive.serializer()
+        "preserved_histories"->PreservedHistory.serializer();"export_rows"->ExportRow.serializer()
+        "import_drafts"->ImportDraft.serializer();else->throw SyncFailure("UNSUPPORTED")
     }
     /** PostgreSQL JSONB may render 1.0E-4 as 0.00010. Compare the actual Room types,
      * while retaining the original wire page for receipts/inbox. Strict shape comes first. */
@@ -60,12 +83,7 @@ object PhaseBGuard {
         val value=change.payload ?: return change
         fun <T> typed(serializer:kotlinx.serialization.KSerializer<T>)=
             AcademicRecords.json.encodeToJsonElement(serializer,AcademicRecords.json.decodeFromJsonElement(serializer,value)).jsonObject
-        val result=when(change.kind){
-            "classes"->typed(SchoolClass.serializer());"terms"->typed(Term.serializer());"students"->typed(Student.serializer())
-            "activities"->typed(Activity.serializer());"grades"->typed(Grade.serializer());"lessons"->typed(Lesson.serializer())
-            "marks"->typed(Attendance.serializer());"recompositions"->typed(Recomposition.serializer())
-            else->throw SyncFailure("UNSUPPORTED")
-        }
+        val result=typed(serializer(change.kind))
         return change.copy(payload=result).also{it.validate()}
     }
     fun validate(before:BackupSnapshot,after:BackupSnapshot,changes:List<AcademicChange>,allowed:Set<String> = phaseBKinds) {
@@ -74,6 +92,7 @@ object PhaseBGuard {
             it.key.getValue(if(it.kind=="classes")"id"else"classId").jsonPrimitive.content}.toSet()
         after.classes.filter{it.id in changedClasses}.forEach{ClassBundle(it,after.terms.filter{t->t.classId==it.id}).validate()}
         val oldClasses=before.classes.associateBy{it.id};val oldStudents=before.students.associateBy{it.id}
+        if(allowed==phaseDKinds)PhaseDGuard.validate(before,after)
         changes.forEach { change ->
             require(change.kind in allowed)
             payload(change)
@@ -96,8 +115,10 @@ object PhaseBGuard {
                     require(s.status=="Ativo" || s.left!=null)
                     if(old==null)require(before.histories.none{h->h.content.students.any{it.id==s.id}})
                     // A moved enrollment without its chain would be an incomplete recovery in phase B.
-                    require(s.status!="Remanejado")
-                    require(before.diarySnapshot().academic().relocations.none{it.sourceStudentId==s.id || it.targetStudentId==s.id})
+                    if(allowed!=phaseDKinds) {
+                        require(s.status!="Remanejado")
+                        require(before.diarySnapshot().academic().relocations.none{it.sourceStudentId==s.id || it.targetStudentId==s.id})
+                    }
                 }
             }
         }
@@ -109,11 +130,11 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     val dao=db.academicDao()
     init {require(java.util.UUID.fromString(owner).toString()==owner)}
     private suspend fun control():AcademicControl?=dao.control()?.also{check(it.owner==owner)}
-    suspend fun active()=db.withTransaction {control()?.let{it.stage in listOf("ACTIVE","ACTIVE_C")&&it.enabled}==true}
+    suspend fun active()=db.withTransaction {control()?.let{it.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D")&&it.enabled}==true}
     suspend fun stage()=db.withTransaction {control()?.stage}
     private suspend fun snapshot()=ClassLifecycle.snapshot(DiaryRepository(db).readSnapshot())
-    suspend fun scope()=db.withTransaction {if(control()?.stage?.endsWith("_C")==true)3 else 2}
-    private suspend fun kinds()=if(scope()==3)phaseCKinds else phaseBKinds
+    suspend fun scope()=db.withTransaction {when(control()?.stage?.substringAfterLast("_")){"D"->4;"C"->3;else->2}}
+    private suspend fun kinds()=when(scope()){4->phaseDKinds;3->phaseCKinds;else->phaseBKinds}
     private suspend fun core(rows:List<AcademicRow>):List<AcademicRow>{val allowed=kinds();return rows.filter{it.kind in allowed}}
     private suspend fun state(key:AcademicKey):AcademicState {
         val (a,b)=key.parts()
@@ -132,8 +153,9 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         check(remote.testAllowed){"Conta não autorizada para o teste acadêmico."}
         val old=control();check(old?.stage !in listOf("RESTORE","BLOCKED"))
         check(db.syncDao().states().none{it.conflict!=null} && db.syncDao().operations().isEmpty())
-        val local=snapshot();val rows=core(AcademicRecords.rows(local))
-        PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)})
+        val local=snapshot();val initialKinds=if(remote.academicScope==4)phaseDKinds else phaseBKinds
+        val rows=AcademicRecords.rows(local).filter{it.kind in initialKinds}
+        PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},initialKinds)
         require(rows.size<=256) // No partial, unvalidated initial bootstrap for larger collections.
         if(remote.protocol==1)for(value in remote.v1) {
             val record=ClassBundle.wire.decodeFromJsonElement<RemoteClass>(value)
@@ -171,8 +193,25 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         val c=requireNotNull(control());check(c.stage in listOf("PREPARED_C","ACTIVE_C"))
         dao.save(c.copy(stage="ACTIVE_C",enabled=true,message="PENDING",checked=false));seed()
     }
+    /** A separate durable consent; existing C counters may be dirty due to a complete movement. */
+    suspend fun prepareD(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.testAllowed && remote.academicScope in 3..4)
+        val c=requireNotNull(control());check(c.stage in listOf("PREPARED","ACTIVE","PREPARED_C","ACTIVE_C","PREPARED_D","ACTIVE_D"))
+        check(!blocked() && dao.pending().isEmpty())
+        if(remote.academicScope==3 && c.cursor!=remote.academicSequence)throw SyncFailure("CONFLICT")
+        val local=snapshot();val rows=AcademicRecords.rows(local)
+        PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},phaseDKinds)
+        require(rows.size<=256)
+        require(AcademicRecords.json.encodeToString(rows).toByteArray().size<=1024*1024)
+        dao.save(c.copy(stage="PREPARED_D",enabled=false,message="PENDING",checked=false));seed()
+    }
+    suspend fun activateD(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.academicScope==4 && remote.testAllowed)
+        val c=requireNotNull(control());check(c.stage in listOf("PREPARED_D","ACTIVE_D"))
+        dao.save(c.copy(stage="ACTIVE_D",enabled=true,message="PENDING",checked=false));seed()
+    }
     suspend fun pause()=db.withTransaction {control()?.let{dao.save(it.copy(enabled=false,message="PAUSED"))}}
-    suspend fun resume()=db.withTransaction {val c=requireNotNull(control());check(c.stage in listOf("ACTIVE","ACTIVE_C"));dao.save(c.copy(enabled=true,message="PENDING"))}
+    suspend fun resume()=db.withTransaction {val c=requireNotNull(control());check(c.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"));dao.save(c.copy(enabled=true,message="PENDING"))}
     suspend fun message(value:String,checked:Boolean?=null)=db.withTransaction {
         control()?.let{dao.save(it.copy(message=value,checked=checked ?: it.checked))}
     }
@@ -192,6 +231,12 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             return@withTransaction null
         }
         PhaseBGuard.validate(current,current,changes,kinds())
+        if(scope()==4) {
+            // Bases are the last acknowledged records, not a replacement database. They may
+            // omit local changes/new rows, so only compare immutable parts against current.
+            val acknowledged=AcademicRecords.snapshot(base)
+            PhaseDGuard.immutable(acknowledged,current)
+        }
         val batch=AcademicBatch(newId(),changes);batch.validate()
         val raw=AcademicRecords.json.encodeToString(batch);require(raw.toByteArray().size<=1024*1024)
         val versions=changes.map {r->val s=state(r.identity);SentVersion(s.kind,s.key1,s.key2,s.localVersion)}
@@ -226,7 +271,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     suspend fun receive(page:AcademicPage):Boolean {
         try {page.validate();return db.withTransaction {
             val c=control() ?: return@withTransaction false
-            if(!c.enabled || c.stage !in listOf("ACTIVE","ACTIVE_C"))return@withTransaction false
+            if(!c.enabled || c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"))return@withTransaction false
             val digest=BackupCodec.hash(AcademicRecords.canonical(AcademicRecords.json.encodeToJsonElement(page)).toByteArray())
             if(page.sequence<=c.cursor) {
                 val receipt=requireNotNull(dao.applied(page.sequence))
@@ -282,7 +327,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             // This transaction runs only after the academic transaction rolled back completely.
             db.withTransaction {
                 val c=control() ?: return@withTransaction
-                if(c.stage !in listOf("ACTIVE","ACTIVE_C"))return@withTransaction
+                if(c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"))return@withTransaction
                 val raw=AcademicRecords.json.encodeToString(page)
                 val old=dao.incoming().firstOrNull{it.sequence==page.sequence}
                 if(old==null)dao.insert(AcademicIncoming(page.sequence,owner,raw,(e as? SyncFailure)?.code ?: "GRAPH"))
@@ -294,19 +339,39 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     }
     private suspend fun apply(candidate:BackupSnapshot,changes:List<AcademicChange>) {
         val keys=changes.map{it.identity}.toSet();val sql=db.openHelper.writableDatabase
-        // Upserts keep primary keys; only explicitly deleted enabled records are removed, children first.
-        candidate.classes.filter{AcademicKind.CLASSES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.terms.filter{AcademicKind.TERMS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.students.filter{AcademicKind.STUDENTS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.lessons.filter{AcademicKind.LESSONS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.activities.filter{AcademicKind.ACTIVITIES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.marks.filter{AcademicKind.MARKS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.grades.filter{AcademicKind.GRADES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        candidate.recompositions.filter{AcademicKind.RECOMPOSITIONS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
-        for(kind in listOf("grades","marks","recompositions","activities","lessons","students","terms","classes"))changes.filter{it.kind==kind&&it.payload==null}.forEach{r->
+        // Park only rows whose positions change. Unchanged rows and IDs remain untouched.
+        // Negative positions are private transaction-local values; the final graph is validated
+        // before/after and no cursor, observer or outbox sees this intermediate state.
+        val existing= snapshot().exportRows.associateBy{it.id}
+        val exportKeys=changes.filter{it.kind=="export_rows"&&it.payload!=null}.map{it.key.getValue("id").jsonPrimitive.content}.toSet()
+        candidate.exportRows.filter{it.id in exportKeys && existing[it.id]?.position?.let{old->old!=it.position}==true}
+            .forEachIndexed{index,r->sql.execSQL("UPDATE export_rows SET position=? WHERE id=?",arrayOf(-index-1,r.id))}
+        val deletes=listOf("export_rows","relocations","grades","marks","recompositions","lesson_records","import_drafts",
+            "class_archives","activities","lessons","students","terms","classes","preserved_histories","weekly_timetables")
+        for(kind in deletes)changes.filter{it.kind==kind&&it.payload==null}.forEach{r->
             val (a,b)=r.identity.parts()
-            val columns=when(kind){"terms"->"classId=? AND number=?";"grades"->"activityId=? AND studentId=?";"marks"->"lessonId=? AND studentId=?";"recompositions"->"studentId=? AND term=?";else->"id=?"}
+            val columns=when(kind){"terms"->"classId=? AND number=?";"grades"->"activityId=? AND studentId=?";
+                "marks"->"lessonId=? AND studentId=?";"recompositions"->"studentId=? AND term=?";
+                "relocations"->"sourceStudentId=?";"class_archives","preserved_histories"->"classId=?";else->"id=?"}
             sql.execSQL("DELETE FROM $kind WHERE $columns",if(kind in setOf("terms","grades","marks","recompositions"))arrayOf(a,b)else arrayOf(a))
         }
+        fun <T> selected(rows:List<T>,serializer:kotlinx.serialization.KSerializer<T>,kind:AcademicKind)=
+            rows.filter{kind.key(AcademicRecords.json.encodeToJsonElement(serializer,it).jsonObject) in keys}
+        selected(candidate.classes,SchoolClass.serializer(),AcademicKind.CLASSES).forEach{db.dao().save(it)}
+        selected(candidate.terms,Term.serializer(),AcademicKind.TERMS).forEach{db.dao().save(it)}
+        selected(candidate.students,Student.serializer(),AcademicKind.STUDENTS).forEach{db.dao().save(it)}
+        selected(candidate.lessons,Lesson.serializer(),AcademicKind.LESSONS).forEach{db.dao().save(it)}
+        selected(candidate.activities,Activity.serializer(),AcademicKind.ACTIVITIES).forEach{db.dao().save(it)}
+        selected(candidate.marks,Attendance.serializer(),AcademicKind.MARKS).forEach{db.dao().save(it)}
+        selected(candidate.grades,Grade.serializer(),AcademicKind.GRADES).forEach{db.dao().save(it)}
+        selected(candidate.recompositions,Recomposition.serializer(),AcademicKind.RECOMPOSITIONS).forEach{db.dao().save(it)}
+        selected(candidate.lessonRecords,LessonRecord.serializer(),AcademicKind.JOURNAL).forEach{db.dao().save(it)}
+        selected(candidate.relocations,Relocation.serializer(),AcademicKind.RELOCATIONS).forEach{db.dao().save(it)}
+        selected(candidate.timetables,WeeklyTimetable.serializer(),AcademicKind.TIMETABLES).forEach{db.dao().save(it)}
+        selected(candidate.classArchives,ClassArchive.serializer(),AcademicKind.ARCHIVES).forEach{db.dao().save(it)}
+        selected(candidate.drafts,ImportDraft.serializer(),AcademicKind.DRAFTS).forEach{db.dao().save(it)}
+        db.dao().saveHistories(selected(candidate.histories,PreservedHistory.serializer(),AcademicKind.HISTORIES))
+        selected(candidate.exportRows,ExportRow.serializer(),AcademicKind.EXPORT_ROWS).forEach{db.dao().save(it)}
+
     }
 }

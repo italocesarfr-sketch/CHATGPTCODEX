@@ -23,6 +23,9 @@ import java.net.URL
 @Serializable data class AcademicPushReply(val operation:String,val accepted:Boolean,val sequence:Long?,val conflicts:JsonArray)
 @Serializable data class AcademicProtocolStatus(val protocol:Int,val v1Sequence:Long,val v1:JsonArray,val testAllowed:Boolean=false,val academicScope:Int=2,val academicSequence:Long=0)
 interface AcademicRemote {
+    suspend fun enableD(token:String,expectedSequence:Long):AcademicProtocolStatus=throw SyncFailure("SETUP")
+    suspend fun pushD(token:String,batch:AcademicBatch):AcademicPushReply=throw SyncFailure("SETUP")
+    suspend fun pullD(token:String,after:Long):List<AcademicPage> = throw SyncFailure("SETUP")
     suspend fun enableC(token:String,expectedSequence:Long):AcademicProtocolStatus=throw SyncFailure("SETUP")
     suspend fun pushC(token:String,batch:AcademicBatch):AcademicPushReply=throw SyncFailure("SETUP")
     suspend fun pullC(token:String,after:Long):List<AcademicPage> = throw SyncFailure("SETUP")
@@ -56,6 +59,11 @@ class SupabaseAcademicSync internal constructor(private val endpoint:String,priv
         }catch(_:IOException){throw SyncFailure("NETWORK")}finally{connection.disconnect()}
     }
     override suspend fun status(token:String)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_academic_status_c",token,buildJsonObject{}))
+    override suspend fun enableD(token:String,expectedSequence:Long)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_enable_academic_d",token,buildJsonObject{put("p_expected_sequence",expectedSequence)}))
+    override suspend fun pushD(token:String,batch:AcademicBatch):AcademicPushReply {
+        batch.validate();return AcademicRecords.json.decodeFromString(rpc("noctua_push_academic_d",token,buildJsonObject{put("p_operation",batch.operation);put("p_changes",AcademicRecords.json.encodeToJsonElement(batch.changes))}))
+    }
+    override suspend fun pullD(token:String,after:Long):List<AcademicPage> = AcademicRecords.json.decodeFromString(rpc("noctua_pull_academic_d",token,buildJsonObject{put("p_after",after)}))
     override suspend fun enableC(token:String,expectedSequence:Long)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_enable_academic_c",token,buildJsonObject{put("p_expected_sequence",expectedSequence)}))
     override suspend fun pushC(token:String,batch:AcademicBatch):AcademicPushReply {
         batch.validate();return AcademicRecords.json.decodeFromString(rpc("noctua_push_academic_c",token,buildJsonObject{put("p_operation",batch.operation);put("p_changes",AcademicRecords.json.encodeToJsonElement(batch.changes))}))

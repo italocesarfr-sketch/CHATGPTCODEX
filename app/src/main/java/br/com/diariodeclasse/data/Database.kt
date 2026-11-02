@@ -122,6 +122,11 @@ interface DiaryDao {
     @Update suspend fun updateHistory(value: PreservedHistory): Int
     @Upsert suspend fun saveHistories(values: List<PreservedHistory>)
     @Query("DELETE FROM preserved_histories WHERE classId = :classId") suspend fun removeHistory(classId: String)
+    @Upsert suspend fun save(value: LessonRecord)
+    @Upsert suspend fun save(value: Relocation)
+    @Upsert suspend fun save(value: WeeklyTimetable)
+    @Upsert suspend fun save(value: ClassArchive)
+    @Upsert suspend fun save(value: ExportRow)
     @Upsert suspend fun save(value: Recomposition)
     @Query("DELETE FROM recompositions WHERE studentId = :studentId AND term = :term") suspend fun deleteRecomposition(studentId: String, term: Int)
     @Upsert suspend fun save(value: SchoolClass)

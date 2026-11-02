@@ -31,6 +31,9 @@ class PhaseBRoomTest {
         val receipts=mutableMapOf<String,AcademicPushReply>();var fail=false;var lost=false;var pushes=0
         var scope=2
         override suspend fun status(token:String)=AcademicProtocolStatus(2,0,JsonArray(emptyList()),true,scope,pages.size.toLong())
+        override suspend fun enableD(token:String,expectedSequence:Long):AcademicProtocolStatus{check(expectedSequence==pages.size.toLong());scope=4;return status(token)}
+        override suspend fun pushD(token:String,batch:AcademicBatch)=push(token,batch)
+        override suspend fun pullD(token:String,after:Long)=pull(token,after)
         override suspend fun enableC(token:String,expectedSequence:Long):AcademicProtocolStatus{check(expectedSequence==pages.size.toLong());scope=3;return status(token)}
         override suspend fun pushC(token:String,batch:AcademicBatch)=push(token,batch)
         override suspend fun pullC(token:String,after:Long)=pull(token,after)

@@ -2,7 +2,7 @@
 """Local disposable phase C/RLS; no hosted project or real Auth accounts."""
 import os,importlib.util,json,uuid,unittest,concurrent.futures
 from pathlib import Path
-if os.environ.get('PGDATABASE')!='noctua_phase_c_test':raise SystemExit('Disposable noctua_phase_c_test required')
+if os.environ.get('PGDATABASE')not in ('noctua_phase_c_test','noctua_phase_d_test'):raise SystemExit('Disposable noctua_phase_c_test required')
 spec=importlib.util.spec_from_file_location('phaseb',Path(__file__).with_name('test-phase-b-postgres.py'))
 b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
 f=b.f;execute=b.execute;A=b.A;B=b.B;literal=b.literal

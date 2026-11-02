@@ -13,13 +13,19 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
         store.prepareConsent(status)
         val fenced=if(status.protocol==1)remote.activate(token,status)else status
         check(admitted())
-        if(fenced.academicScope==3){store.prepareC(fenced);store.activateC(fenced)}else store.activate(fenced)
+        if(fenced.academicScope==4){store.prepareD(fenced);store.activateD(fenced)}else if(fenced.academicScope==3){store.prepareC(fenced);store.activateC(fenced)}else store.activate(fenced)
     }
     suspend fun activateC() {
         check(admitted());val token=session();check(admitted());val status=remote.status(token);check(admitted())
         store.prepareC(status)
         val activated=if(status.academicScope==3)status else remote.enableC(token,status.academicSequence)
         check(admitted());store.activateC(activated)
+    }
+    suspend fun activateD() {
+        check(admitted());val token=session();check(admitted());val status=remote.status(token);check(admitted())
+        store.prepareD(status)
+        val activated=if(status.academicScope==4)status else remote.enableD(token,status.academicSequence)
+        check(admitted());store.activateD(activated)
     }
     suspend fun run() {
         suspend fun allowed()=admitted()&&store.active()
@@ -35,7 +41,7 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 for(pageTurn in 0 until 32) {
                     if(!allowed())return
                     if(store.blocked()){store.message("CONFLICT");return}
-                    val pages=if(store.scope()==3)remote.pullC(token,store.cursor())else remote.pull(token,store.cursor());if(!allowed())return
+                    val pages=when(store.scope()){4->remote.pullD(token,store.cursor());3->remote.pullC(token,store.cursor());else->remote.pull(token,store.cursor())};if(!allowed())return
                     require(pages.size<=1)
                     if(pages.isEmpty()){caughtUp=true;break}
                     if(!store.receive(pages.single()))return
@@ -46,7 +52,7 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 if(pending==null){store.message("",checked=true);return}
                 store.attempt(pending);if(!allowed())return
                 val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body)
-                val reply=if(store.scope()==3)remote.pushC(token,batch)else remote.push(token,batch)
+                val reply=when(store.scope()){4->remote.pushD(token,batch);3->remote.pushC(token,batch);else->remote.push(token,batch)}
                 if(!allowed())return
                 store.accept(pending,reply)
                 if(store.blocked())return

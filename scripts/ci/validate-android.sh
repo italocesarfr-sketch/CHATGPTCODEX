@@ -34,6 +34,13 @@ from pathlib import Path
 text=Path('build/phasec-focused.txt').read_text()
 assert 'OK (10 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASEC
+timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e class br.com.diariodeclasse.PhaseDRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phased-focused.txt
+cat build/phased-focused.txt
+python3 - <<'PYPHASED'
+from pathlib import Path
+text=Path('build/phased-focused.txt').read_text()
+assert 'OK (10 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYPHASED
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"
     adb shell am force-stop br.com.diariodeclasse
@@ -60,6 +67,19 @@ PYPHASECFONT
 done
 adb shell settings put system font_scale 1.0
 adb exec-out run-as br.com.diariodeclasse tar -cf - files/phasec-layout > build/phasec-layout.tar
+for font in 1.3 1.6; do
+    adb shell settings put system font_scale "$font"
+    adb shell am force-stop br.com.diariodeclasse
+    timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseDPanelLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phased-font-$font.txt"
+    python3 - "$font" <<'PYPHASECFONT'
+from pathlib import Path
+import sys
+text=Path('build/phased-font-'+sys.argv[1]+'.txt').read_text()
+assert 'OK (1 test)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYPHASECFONT
+done
+adb shell settings put system font_scale 1.0
+adb exec-out run-as br.com.diariodeclasse tar -cf - files/phased-layout > build/phased-layout.tar
 # Prove the changed network path before the long regression/reboot probes.
 # Each capture is archived before clearing only the already guarded synthetic AVD.
 phase_c_primary_device="$(adb get-serialno)"

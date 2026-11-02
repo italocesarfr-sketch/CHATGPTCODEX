@@ -71,3 +71,5 @@ printf '%s\n' '10 Android HTTP phases passed on two independent emulators. Postg
 
 # Expand only after preserving B screenshots and conflict evidence.
 ./scripts/ci/test-phase-c-network.sh "$primary" "$secondary"
+
+./scripts/ci/test-phase-d-network.sh "$primary" "$secondary"

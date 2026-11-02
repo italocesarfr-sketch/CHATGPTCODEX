@@ -1,0 +1,1446 @@
+{
+  "classes": [
+    {
+      "id": "d-source",
+      "name": "Turma fictícia d-source",
+      "stage": "Médio",
+      "subject": "História",
+      "year": 2026,
+      "shift": "Matutino",
+      "schedule": "0,0,0,0,0,0,0",
+      "duration": 50,
+      "scale": 10.0,
+      "low": 5.0,
+      "high": 7.0,
+      "countJustified": true,
+      "startPresent": false
+    },
+    {
+      "id": "d-target",
+      "name": "Turma fictícia d-target",
+      "stage": "Médio",
+      "subject": "História",
+      "year": 2026,
+      "shift": "Matutino",
+      "schedule": "0,0,0,0,0,0,0",
+      "duration": 50,
+      "scale": 10.0,
+      "low": 5.0,
+      "high": 7.0,
+      "countJustified": true,
+      "startPresent": false
+    }
+  ],
+  "students": [
+    {
+      "id": "ds1",
+      "personId": "d-person-chain",
+      "classId": "d-source",
+      "name": "Estudante fictício ds1",
+      "number": 1,
+      "joined": "2026-07-01",
+      "left": "2026-10-31",
+      "status": "Remanejado",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds2",
+      "personId": "person-ds2",
+      "classId": "d-source",
+      "name": "Estudante fictício ds2",
+      "number": 2,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds3",
+      "personId": "person-ds3",
+      "classId": "d-source",
+      "name": "Estudante fictício ds3",
+      "number": 3,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds4",
+      "personId": "person-ds4",
+      "classId": "d-source",
+      "name": "Estudante fictício ds4",
+      "number": 4,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds5",
+      "personId": "person-ds5",
+      "classId": "d-source",
+      "name": "Estudante fictício ds5",
+      "number": 5,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds6",
+      "personId": "person-ds6",
+      "classId": "d-source",
+      "name": "Estudante fictício ds6",
+      "number": 6,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds7",
+      "personId": "person-ds7",
+      "classId": "d-source",
+      "name": "Estudante fictício ds7",
+      "number": 7,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds8",
+      "personId": "person-ds8",
+      "classId": "d-source",
+      "name": "Estudante fictício ds8",
+      "number": 8,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds9",
+      "personId": "person-ds9",
+      "classId": "d-source",
+      "name": "Estudante fictício ds9",
+      "number": 9,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds10",
+      "personId": "person-ds10",
+      "classId": "d-source",
+      "name": "Estudante fictício ds10",
+      "number": 10,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds11",
+      "personId": "person-ds11",
+      "classId": "d-source",
+      "name": "Estudante fictício ds11",
+      "number": 11,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds12",
+      "personId": "person-ds12",
+      "classId": "d-source",
+      "name": "Estudante fictício ds12",
+      "number": 12,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds13",
+      "personId": "person-ds13",
+      "classId": "d-source",
+      "name": "Estudante fictício ds13",
+      "number": 13,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds14",
+      "personId": "person-ds14",
+      "classId": "d-source",
+      "name": "Estudante fictício ds14",
+      "number": 14,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds15",
+      "personId": "person-ds15",
+      "classId": "d-source",
+      "name": "Estudante fictício ds15",
+      "number": 15,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds16",
+      "personId": "person-ds16",
+      "classId": "d-source",
+      "name": "Estudante fictício ds16",
+      "number": 16,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds17",
+      "personId": "person-ds17",
+      "classId": "d-source",
+      "name": "Estudante fictício ds17",
+      "number": 17,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds18",
+      "personId": "person-ds18",
+      "classId": "d-source",
+      "name": "Estudante fictício ds18",
+      "number": 18,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds19",
+      "personId": "person-ds19",
+      "classId": "d-source",
+      "name": "Estudante fictício ds19",
+      "number": 19,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds20",
+      "personId": "person-ds20",
+      "classId": "d-source",
+      "name": "Estudante fictício ds20",
+      "number": 20,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds21",
+      "personId": "person-ds21",
+      "classId": "d-source",
+      "name": "Estudante fictício ds21",
+      "number": 21,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds22",
+      "personId": "person-ds22",
+      "classId": "d-source",
+      "name": "Estudante fictício ds22",
+      "number": 22,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds23",
+      "personId": "person-ds23",
+      "classId": "d-source",
+      "name": "Estudante fictício ds23",
+      "number": 23,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds24",
+      "personId": "person-ds24",
+      "classId": "d-source",
+      "name": "Estudante fictício ds24",
+      "number": 24,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds25",
+      "personId": "person-ds25",
+      "classId": "d-source",
+      "name": "Estudante fictício ds25",
+      "number": 25,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds26",
+      "personId": "person-ds26",
+      "classId": "d-source",
+      "name": "Estudante fictício ds26",
+      "number": 26,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds27",
+      "personId": "person-ds27",
+      "classId": "d-source",
+      "name": "Estudante fictício ds27",
+      "number": 27,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds28",
+      "personId": "person-ds28",
+      "classId": "d-source",
+      "name": "Estudante fictício ds28",
+      "number": 28,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds29",
+      "personId": "person-ds29",
+      "classId": "d-source",
+      "name": "Estudante fictício ds29",
+      "number": 29,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds30",
+      "personId": "person-ds30",
+      "classId": "d-source",
+      "name": "Estudante fictício ds30",
+      "number": 30,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds31",
+      "personId": "person-ds31",
+      "classId": "d-source",
+      "name": "Estudante fictício ds31",
+      "number": 31,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds32",
+      "personId": "person-ds32",
+      "classId": "d-source",
+      "name": "Estudante fictício ds32",
+      "number": 32,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds33",
+      "personId": "person-ds33",
+      "classId": "d-source",
+      "name": "Estudante fictício ds33",
+      "number": 33,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds34",
+      "personId": "person-ds34",
+      "classId": "d-source",
+      "name": "Estudante fictício ds34",
+      "number": 34,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds35",
+      "personId": "person-ds35",
+      "classId": "d-source",
+      "name": "Estudante fictício ds35",
+      "number": 35,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "ds36",
+      "personId": "person-ds36",
+      "classId": "d-source",
+      "name": "Estudante fictício ds36",
+      "number": 36,
+      "joined": "2026-01-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    },
+    {
+      "id": "d-target-student",
+      "personId": "d-person-chain",
+      "classId": "d-target",
+      "name": "Estudante fictício d-target-student",
+      "number": 1,
+      "joined": "2026-11-01",
+      "left": null,
+      "status": "Ativo",
+      "notes": "Observação preservada"
+    }
+  ],
+  "terms": [
+    {
+      "classId": "d-source",
+      "number": 1,
+      "start": "2026-01-01",
+      "end": "2026-03-31"
+    },
+    {
+      "classId": "d-source",
+      "number": 2,
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    {
+      "classId": "d-source",
+      "number": 3,
+      "start": "2026-07-01",
+      "end": "2026-09-30"
+    },
+    {
+      "classId": "d-source",
+      "number": 4,
+      "start": "2026-10-01",
+      "end": "2026-12-31"
+    },
+    {
+      "classId": "d-target",
+      "number": 1,
+      "start": "2026-01-01",
+      "end": "2026-03-31"
+    },
+    {
+      "classId": "d-target",
+      "number": 2,
+      "start": "2026-04-01",
+      "end": "2026-06-30"
+    },
+    {
+      "classId": "d-target",
+      "number": 3,
+      "start": "2026-07-01",
+      "end": "2026-09-30"
+    },
+    {
+      "classId": "d-target",
+      "number": 4,
+      "start": "2026-10-01",
+      "end": "2026-12-31"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "d-l1",
+      "classId": "d-source",
+      "date": "2026-08-10",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": ""
+    },
+    {
+      "id": "d-l2",
+      "classId": "d-source",
+      "date": "2026-08-10",
+      "ordinal": 2,
+      "state": "REALIZADA",
+      "note": ""
+    },
+    {
+      "id": "d-removed",
+      "classId": "d-source",
+      "date": "2026-11-02",
+      "ordinal": 1,
+      "state": "REALIZADA",
+      "note": ""
+    }
+  ],
+  "marks": [
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds1",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds2",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds3",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds4",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds5",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds6",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds7",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds8",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds9",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds10",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds11",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds12",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds13",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds14",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds15",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds16",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds17",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds18",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds19",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds20",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds21",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds22",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds23",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds24",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds25",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds26",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds27",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds28",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds29",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds30",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds31",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds32",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds33",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds34",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds35",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l1",
+      "studentId": "ds36",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds1",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds2",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds3",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds4",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds5",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds6",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds7",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds8",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds9",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds10",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds11",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds12",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds13",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds14",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds15",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds16",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds17",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds18",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds19",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds20",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds21",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds22",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds23",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds24",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds25",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds26",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds27",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds28",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds29",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds30",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds31",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds32",
+      "mark": "NR",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds33",
+      "mark": "P",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds34",
+      "mark": "F",
+      "reason": null
+    },
+    {
+      "lessonId": "d-l2",
+      "studentId": "ds35",
+      "mark": "FJ",
+      "reason": "Acompanhamento médico"
+    }
+  ],
+  "activities": [
+    {
+      "id": "d-a1",
+      "classId": "d-source",
+      "name": "Produção fictícia",
+      "type": "Produção textual",
+      "date": "2026-08-10",
+      "term": 3,
+      "maximum": 10.0,
+      "description": "Conteúdo exato; ação & reflexão\nSegunda linha",
+      "notes": ""
+    },
+    {
+      "id": "d-a2",
+      "classId": "d-source",
+      "name": "Produção fictícia",
+      "type": "Produção textual",
+      "date": "2026-08-12",
+      "term": 3,
+      "maximum": 10.0,
+      "description": "Conteúdo exato; ação & reflexão\nSegunda linha",
+      "notes": ""
+    }
+  ],
+  "grades": [
+    {
+      "activityId": "d-a1",
+      "studentId": "ds1",
+      "value": 0.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds2",
+      "value": null
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds3",
+      "value": 0.0001
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds4",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds5",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds6",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds7",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds8",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds9",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds10",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds11",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds12",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds13",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds14",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds15",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds16",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds17",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds18",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds19",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds20",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds21",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds22",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds23",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds24",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds25",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds26",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds27",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds28",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds29",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds30",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds31",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds32",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds33",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds34",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds35",
+      "value": 7.0
+    },
+    {
+      "activityId": "d-a1",
+      "studentId": "ds36",
+      "value": 7.0
+    }
+  ],
+  "drafts": [
+    {
+      "id": "d-draft",
+      "classId": "d-target",
+      "name": "Importação fictícia pendente",
+      "number": null,
+      "position": 0,
+      "page": 0,
+      "reason": "Conferir",
+      "reviewed": true,
+      "allowHomonym": false
+    }
+  ],
+  "selection": null,
+  "recompositions": [
+    {
+      "studentId": "ds1",
+      "term": 3,
+      "value": 0.0,
+      "date": "2026-09-30"
+    }
+  ],
+  "relocations": [
+    {
+      "sourceStudentId": "ds1",
+      "targetStudentId": "d-target-student",
+      "effectiveDate": "2026-11-01",
+      "externalTarget": null,
+      "corrections": [
+        {
+          "id": "d-audit-correction",
+          "confirmedAt": "2026-11-02T12:00:00Z",
+          "previousDate": "2026-11-05",
+          "effectiveDate": "2026-11-01",
+          "previousTarget": "Destino externo inicial",
+          "externalTarget": "Destino externo corrigido",
+          "removed": [
+            {
+              "lesson": {
+                "id": "d-removed",
+                "classId": "d-source",
+                "date": "2026-11-02",
+                "ordinal": 1,
+                "state": "REALIZADA",
+                "note": ""
+              },
+              "attendance": {
+                "lessonId": "d-removed",
+                "studentId": "ds1",
+                "mark": "FJ",
+                "reason": "Atestado médico"
+              }
+            }
+          ],
+          "operation": "CORRECAO_EXTERNA",
+          "sourceStudentId": null,
+          "targetStudentId": null,
+          "targetClassId": null,
+          "targetLabel": null
+        },
+        {
+          "id": "d-audit-conversion",
+          "confirmedAt": "2026-11-02T12:00:00Z",
+          "previousDate": "2026-11-01",
+          "effectiveDate": "2026-11-01",
+          "previousTarget": "Destino externo corrigido",
+          "externalTarget": null,
+          "removed": [],
+          "operation": "CONVERSAO_INTERNA",
+          "sourceStudentId": "ds1",
+          "targetStudentId": "d-target-student",
+          "targetClassId": "d-target",
+          "targetLabel": "Turma fictícia destino • História • 2026"
+        }
+      ]
+    }
+  ],
+  "exportRows": [
+    {
+      "id": "student:ds1",
+      "classId": "d-source",
+      "studentId": "ds1",
+      "position": 0,
+      "manualHidden": true
+    },
+    {
+      "id": "blank:d-blank",
+      "classId": "d-source",
+      "studentId": null,
+      "position": 1,
+      "manualHidden": false
+    },
+    {
+      "id": "student:ds2",
+      "classId": "d-source",
+      "studentId": "ds2",
+      "position": 2,
+      "manualHidden": false
+    }
+  ],
+  "classArchives": [
+    {
+      "classId": "d-source"
+    }
+  ],
+  "lessonRecords": [
+    {
+      "id": "d-journal",
+      "classId": "d-source",
+      "date": "2026-08-10",
+      "title": "Ação & reflexão; História",
+      "description": "Texto exato com acentos.\nSegunda linha.\n\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\nConteúdo longo; copiar & colar.\n"
+    },
+    {
+      "id": "d-journal-target",
+      "classId": "d-target",
+      "date": "2026-11-02",
+      "title": "Destino fictício",
+      "description": "Diário no destino\nSem alterar a chamada."
+    }
+  ],
+  "histories": [
+    {
+      "classId": "d-past",
+      "content": {
+        "school": {
+          "id": "d-past",
+          "name": "Turma fictícia d-past",
+          "stage": "Médio",
+          "subject": "História",
+          "year": 2026,
+          "shift": "Matutino",
+          "schedule": "0,0,0,0,0,0,0",
+          "duration": 50,
+          "scale": 10.0,
+          "low": 5.0,
+          "high": 7.0,
+          "countJustified": true,
+          "startPresent": false
+        },
+        "students": [
+          {
+            "id": "d-historical-student",
+            "personId": "d-person-chain",
+            "classId": "d-past",
+            "name": "Estudante fictício d-historical-student",
+            "number": 1,
+            "joined": "2026-01-01",
+            "left": "2026-06-30",
+            "status": "Remanejado",
+            "notes": "Observação preservada"
+          }
+        ],
+        "terms": [
+          {
+            "classId": "d-past",
+            "number": 1,
+            "start": "2026-01-01",
+            "end": "2026-03-31"
+          },
+          {
+            "classId": "d-past",
+            "number": 2,
+            "start": "2026-04-01",
+            "end": "2026-06-30"
+          },
+          {
+            "classId": "d-past",
+            "number": 3,
+            "start": "2026-07-01",
+            "end": "2026-09-30"
+          },
+          {
+            "classId": "d-past",
+            "number": 4,
+            "start": "2026-10-01",
+            "end": "2026-12-31"
+          }
+        ],
+        "lessons": [
+          {
+            "id": "d-hl",
+            "classId": "d-past",
+            "date": "2026-04-10",
+            "ordinal": 1,
+            "state": "REALIZADA",
+            "note": ""
+          }
+        ],
+        "marks": [
+          {
+            "lessonId": "d-hl",
+            "studentId": "d-historical-student",
+            "mark": "FJ",
+            "reason": "Outro"
+          }
+        ],
+        "activities": [
+          {
+            "id": "d-ha",
+            "classId": "d-past",
+            "name": "Produção fictícia",
+            "type": "Produção textual",
+            "date": "2026-04-10",
+            "term": 2,
+            "maximum": 10.0,
+            "description": "Conteúdo exato; ação & reflexão\nSegunda linha",
+            "notes": ""
+          }
+        ],
+        "grades": [
+          {
+            "activityId": "d-ha",
+            "studentId": "d-historical-student",
+            "value": 0.0
+          }
+        ],
+        "recompositions": [
+          {
+            "studentId": "d-historical-student",
+            "term": 1,
+            "value": 7.0,
+            "date": "2026-03-30"
+          }
+        ],
+        "relocations": [
+          {
+            "sourceStudentId": "d-historical-student",
+            "targetStudentId": "ds1",
+            "effectiveDate": "2026-07-01",
+            "externalTarget": null,
+            "corrections": []
+          }
+        ]
+      }
+    }
+  ],
+  "timetables": [
+    {
+      "id": "d-t1",
+      "year": 2026,
+      "effective": "2026-01-01",
+      "revision": 1,
+      "createdAt": "2026-10-01T00:00:00Z",
+      "slots": [
+        {
+          "id": "d-slot-1",
+          "classId": "d-source",
+          "weekday": 4,
+          "ordinal": 1,
+          "className": "Turma fictícia d-source",
+          "subject": "História",
+          "shift": "Matutino"
+        },
+        {
+          "id": "d-slot-legacy",
+          "classId": "d-past",
+          "weekday": 6,
+          "ordinal": 12,
+          "className": "Turma fictícia d-past",
+          "subject": "História",
+          "shift": "Vespertino"
+        }
+      ]
+    },
+    {
+      "id": "d-t2",
+      "year": 2026,
+      "effective": "2026-11-01",
+      "revision": 1,
+      "createdAt": "2026-11-01T00:00:00Z",
+      "slots": [
+        {
+          "id": "d-slot-2",
+          "classId": "d-source",
+          "weekday": 3,
+          "ordinal": 1,
+          "className": "Turma fictícia d-source",
+          "subject": "História",
+          "shift": "Matutino"
+        },
+        {
+          "id": "d-slot-legacy",
+          "classId": "d-past",
+          "weekday": 6,
+          "ordinal": 12,
+          "className": "Turma fictícia d-past",
+          "subject": "História",
+          "shift": "Vespertino"
+        }
+      ]
+    }
+  ]
+}

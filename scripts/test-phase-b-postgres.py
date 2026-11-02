@@ -2,7 +2,7 @@
 """Disposable PostgreSQL phase B. Auth claims are fixtures, not hosted Supabase sessions."""
 import os,importlib.util,json,uuid,concurrent.futures,unittest
 from pathlib import Path
-if os.environ.get('PGDATABASE') not in ('noctua_phase_b_test','noctua_phase_c_test'):raise SystemExit('Requires disposable noctua_phase_b_test')
+if os.environ.get('PGDATABASE') not in ('noctua_phase_b_test','noctua_phase_c_test','noctua_phase_d_test'):raise SystemExit('Requires disposable noctua_phase_b_test')
 spec=importlib.util.spec_from_file_location('academic_fixture',Path(__file__).with_name('test-academic-postgres.py'))
 f=importlib.util.module_from_spec(spec);spec.loader.exec_module(f)
 execute=f.execute;literal=f.literal;A=f.A;B=f.B

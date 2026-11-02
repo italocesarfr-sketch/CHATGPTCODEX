@@ -41,10 +41,10 @@ data class AcademicApplied(@PrimaryKey val sequence:Long,val owner:String,val op
 
 fun installAcademicTriggers(db:SupportSQLiteDatabase) {
     // Two distinct key columns, no ambiguous concatenation and no dependency on optional SQLite JSON1.
-    for(table in listOf("classes","terms","students","activities","grades","lessons","marks","recompositions")) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
-        val key1=when(table){"terms"->"$ref.classId";"grades"->"$ref.activityId";"marks"->"$ref.lessonId";"recompositions"->"$ref.studentId";else->"$ref.id"}
+    for(table in AcademicKind.entries.map{it.wire}) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
+        val key1=when(table){"terms","class_archives","preserved_histories"->"$ref.classId";"relocations"->"$ref.sourceStudentId";"grades"->"$ref.activityId";"marks"->"$ref.lessonId";"recompositions"->"$ref.studentId";else->"$ref.id"}
         val key2=when(table){"terms"->"CAST($ref.number AS TEXT)";"grades","marks"->"$ref.studentId";"recompositions"->"CAST($ref.term AS TEXT)";else->"''"}
-        val stages=if(table in setOf("classes","terms","students"))"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C'"else"'PREPARED_C','ACTIVE_C'"
+        val stages=when(table){in phaseBKinds->"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D'";in phaseCKinds->"'PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D'";else->"'PREPARED_D','ACTIVE_D'"}
         // Replace only our own capture trigger definition; no academic row is modified.
         db.execSQL("DROP TRIGGER IF EXISTS academic_${table}_${event.lowercase()}")
         db.execSQL("""CREATE TRIGGER IF NOT EXISTS academic_${table}_${event.lowercase()} AFTER $event ON $table
