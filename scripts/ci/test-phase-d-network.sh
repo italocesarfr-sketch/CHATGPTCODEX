@@ -29,6 +29,8 @@ adb -s "$primary" shell svc wifi enable; adb -s "$primary" shell svc data enable
 probe "$primary" d-lost primary
 probe "$primary" d-retry primary
 probe "$secondary" d-recover secondary
+probe "$secondary" d-reorder-secondary secondary
+probe "$primary" d-observe-reorder primary
 probe "$secondary" d-edit-secondary secondary
 probe "$primary" d-observe-secondary primary
 probe "$primary" d-offline-reconnect primary
@@ -51,4 +53,4 @@ for side in primary secondary; do
  device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
  adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phased-network > "build/phased-network/$side-captures.tar"
 done
-printf '%s\n' '15 Android HTTP phases D passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt
+printf '%s\n' '17 Android HTTP phases D passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt

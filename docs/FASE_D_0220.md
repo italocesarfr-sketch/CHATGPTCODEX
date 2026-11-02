@@ -90,3 +90,15 @@ para executar esse roteiro no projeto hospedado nesta tarefa.
 Contingência: pausar teste e revogar `allowed` da conta fictícia; preservar filas,
 versões, recibos, perfis e bancos. Não rebaixar escopo, apagar conflito ou restaurar
 SQL antigo. Migração de dados reais e reconciliação pertencem à fase E.
+
+Marco salvo em `325432b34b38af76f27ee6a9324da7b509552b54` e publicado na mesma
+branch. Rodada Android iniciada; resultados ainda não aprovados. Provas adicionais
+preparadas: consentimento D pela interface real, reordenação via HTTP nos dois AVDs,
+remoção de linha vazia, conflito de layout e verificação de que a linha inalterada
+não recebe UPDATE/DELETE durante uma troca de posições.
+
+As RPCs novas são `noctua_enable_academic_d`, `noctua_push_academic_d` e
+`noctua_pull_academic_d`; a consulta existente `noctua_academic_status_c` informa
+`academicScope=4`. Não é necessário criar uma segunda consulta de estado.
+`supabase/checks/phase_d_readonly.sql` permite conferir catálogo e permissões,
+sem consultar conteúdo acadêmico. Não substitui ensaio entre contas comuns.

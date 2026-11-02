@@ -51,7 +51,13 @@ class PhaseDNetworkProbeTest {
         when(phase) {
             "d-seed"->{
                 assertTrue(snapshot().classes.isEmpty())
-                w.syncMutex.withLock{val e=AcademicCoordinator.engine(app,w);e.activate();e.run();e.activateC();e.activateD()}
+                w.syncMutex.withLock{val e=AcademicCoordinator.engine(app,w);e.activate();e.run();e.activateC()}
+                compose.onNodeWithTag("auth-account").performClick();compose.onNodeWithTag("open-sync").performClick()
+                compose.onNodeWithTag("academic-enable-d").performClick()
+                compose.onNodeWithText("Ampliar teste").assertIsNotEnabled()
+                compose.onNode(isToggleable()).performClick()
+                compose.onNodeWithText("Ampliar teste").performClick()
+                waitFor{store.stage()=="ACTIVE_D"};compose.onNodeWithText("Concluído").performClick()
                 offline();PhaseDFixture.insert(w.database,PhaseDFixture.read())
                 val pending=store.prepare()!!;val changes=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body).changes
                 assertEquals(phaseDKinds,changes.map{it.kind}.toSet());assertEquals(PhaseDFixture.read().canonical(),snapshot())
@@ -75,6 +81,22 @@ class PhaseDNetworkProbeTest {
                 val row=AcademicRecords.rows(snapshot()).first{it.kind=="lesson_records"}
                 assertFalse(client.pushD(other,AcademicBatch(newId(),listOf(AcademicChange(row.kind,row.key,1,row.payload)))).accepted)
                 assertTrue(client.pullD(other,0).isEmpty());shot("03-d-recuperado")
+            }
+            "d-reorder-secondary"->{
+                synced();val before=w.repository.dao.exportRows("d-source")
+                val requested=before.map{it.copy(position=when(it.position){0->2;2->0;else->1})}
+                w.repository.saveExportLayout("d-source",before,requested);synced()
+                assertEquals("student:ds2",w.repository.dao.exportRows("d-source").first().id)
+                shot("04-d-planilha-reordenada")
+            }
+            "d-observe-reorder"->{
+                waitFor{w.repository.dao.exportRows("d-source").first().id=="student:ds2"};synced()
+                val layout=w.repository.dao.exportRows("d-source")
+                assertEquals("blank:d-blank",layout[1].id);assertFalse(layout[1].manualHidden)
+                assertEquals("student:ds1",layout[2].id);assertTrue(layout[2].manualHidden)
+                assertEquals(37,layout.size);assertEquals(36,w.repository.dao.roster("d-source").size)
+                assertEquals(PhaseDFixture.read().canonical().marks,snapshot().marks)
+                shot("05-d-planilha-recebida")
             }
             "d-edit-secondary"->{synced();edit("Edição inversa; ação & reflexão\nNo segundo dispositivo.");synced();shot("04-d-inverso")}
             "d-observe-secondary"->{waitFor{journal().startsWith("Edição inversa")};synced();assertEquals(PhaseDFixture.read().canonical().marks,snapshot().marks);shot("05-d-recebido")}

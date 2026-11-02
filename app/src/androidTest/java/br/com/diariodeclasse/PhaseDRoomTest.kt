@@ -64,6 +64,26 @@ class PhaseDRoomTest {
         assertFalse(store.blocked());assertEquals(before.copy(exportRows=changed).canonical(),rows())
         db.openHelper.writableDatabase.query("SELECT n FROM untouched_layout_probe").use{assertTrue(it.moveToFirst());assertEquals(0,it.getInt(0))}
     }
+    @Test fun removalOfBlankAndReorderingMultipleRowsKeepsAcademicRecords():Unit=runBlocking {
+        seed();val before=rows();val changed=before.exportRows.filter{it.studentId!=null}.map{it.copy(position=if(it.studentId=="ds2")0 else 1)}
+        val edits=changed.map{r->val p=AcademicRecords.json.encodeToJsonElement(ExportRow.serializer(),r).jsonObject;AcademicChange("export_rows",AcademicKind.EXPORT_ROWS.key(p).key,1,p)}+
+            AcademicChange("export_rows",buildJsonObject{put("id","blank:d-blank")},1,null)
+        remote.pushD(owner,AcademicBatch(newId(),edits));engine().run()
+        assertFalse(store.blocked());assertEquals(before.copy(exportRows=changed).canonical(),rows())
+    }
+    @Test fun concurrentLayoutPreservesLocalPositionsAndWholeRemoteBatch():Unit=runBlocking {
+        seed();val cursor=store.cursor()
+        db.withTransaction {
+            db.openHelper.writableDatabase.execSQL("UPDATE export_rows SET position=-1 WHERE id='student:ds1'")
+            db.openHelper.writableDatabase.execSQL("UPDATE export_rows SET position=0 WHERE id='student:ds2'")
+            db.openHelper.writableDatabase.execSQL("UPDATE export_rows SET position=2 WHERE id='student:ds1'")
+        }
+        assertNotNull(store.prepare());val before=rows()
+        val edits=fixture.exportRows.filter{it.id!="student:ds1"}.map{r->val p=AcademicRecords.json.encodeToJsonElement(ExportRow.serializer(),r.copy(position=if(r.studentId==null)2 else 1)).jsonObject;AcademicChange("export_rows",AcademicKind.EXPORT_ROWS.key(p).key,1,p)}
+        remote.pushD(owner,AcademicBatch(newId(),edits));engine().run()
+        assertEquals(cursor,store.cursor());assertEquals(before,rows());assertNotNull(store.pending())
+        assertEquals(1,store.dao.incoming().size);assertTrue(store.dao.incoming().single().body.contains("blank:d-blank"))
+    }
     @Test fun concurrentDiaryPreservesLocalRemoteAndCursor():Unit=runBlocking {
         seed();val cursor=store.cursor();val journal=fixture.lessonRecords.first();repo.dao.save(journal.copy(description="Local"))
         val p=AcademicRecords.json.encodeToJsonElement(LessonRecord.serializer(),journal.copy(description="Remoto")).jsonObject
