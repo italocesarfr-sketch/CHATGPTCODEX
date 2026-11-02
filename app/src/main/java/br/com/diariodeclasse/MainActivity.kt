@@ -31,7 +31,9 @@ class MainActivity : ComponentActivity() {
         val app=application as DiaryApplication
         setContent { NoctuaTheme { AuthRoot(app) } }
         receiveCallback(intent)
-        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { while(true){app.auth.tick();delay(60_000)} } }
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { while(true){app.auth.tick()
+            runCatching{app.workspaces.current().academicCoordinator.request()}
+            delay(60_000)} } }
     }
     override fun onStart(){super.onStart();val app=application as DiaryApplication;app.auth.closeExpiredView()
         runCatching{app.workspaces.current().academicCoordinator.request()}}
