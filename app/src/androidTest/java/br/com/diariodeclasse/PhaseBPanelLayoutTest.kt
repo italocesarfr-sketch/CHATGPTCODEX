@@ -21,15 +21,16 @@ import java.io.File
 class PhaseBPanelLayoutTest {
     @get:Rule val compose=createComposeRule()
     @Test fun truthfulStatesAndActionsFitCompactWidthAndNativeFont() {
-        var code by mutableStateOf("");var measured=0f
+        var code by mutableStateOf("");val measured=java.util.concurrent.atomic.AtomicReference(0f)
         compose.setContent {NoctuaTheme{Surface(Modifier.width(320.dp).height(560.dp)) {
-            measured=LocalDensity.current.fontScale
+            measured.set(LocalDensity.current.fontScale)
             Column(Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
                 AcademicPanelContent(AcademicControl(owner="fixture",stage="ACTIVE",enabled=true,checked=true,message=code),emptyList(),emptyList(),emptyList(),false,{},{},{})
             }
         }}}
         val expected=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")?.toFloat() ?: 1f
-        assertEquals(expected,measured,0.01f)
+        compose.waitUntil(10000){kotlin.math.abs(measured.get()-expected)<0.01f}
+        assertEquals(expected,measured.get(),0.01f)
         for((value,label) in listOf("" to "Sincronizado","SYNCING" to "Sincronizando","OFFLINE" to "Aguardando internet","RETRY" to "Falha temporária","CONFLICT" to "Conflito preservado","PENDING" to "Pendente de envio")) {
             compose.runOnIdle{code=value};compose.onNodeWithTag("academic-status").performScrollTo().assertTextEquals(label).assertIsDisplayed()
             compose.onNodeWithTag("academic-retry").performScrollTo().assertHeightIsAtLeast(48.dp)

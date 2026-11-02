@@ -36,6 +36,7 @@ assert 'OK (10 tests)' in text and all(x not in text for x in ('FAILURES','INSTR
 PYPHASEC
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"
+    adb shell am force-stop br.com.diariodeclasse
     timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseBPanelLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phaseb-font-$font.txt"
     python3 - "$font" <<'PYPHASEBFONT'
 from pathlib import Path
@@ -48,6 +49,7 @@ adb shell settings put system font_scale 1.0
 adb exec-out run-as br.com.diariodeclasse tar -cf - files/phaseb-layout > build/phaseb-layout.tar
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"
+    adb shell am force-stop br.com.diariodeclasse
     timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseCPanelLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phasec-font-$font.txt"
     python3 - "$font" <<'PYPHASECFONT'
 from pathlib import Path
@@ -58,6 +60,12 @@ PYPHASECFONT
 done
 adb shell settings put system font_scale 1.0
 adb exec-out run-as br.com.diariodeclasse tar -cf - files/phasec-layout > build/phasec-layout.tar
+# Prove the changed network path before the long regression/reboot probes.
+# Each capture is archived before clearing only the already guarded synthetic AVD.
+phase_c_primary_device="$(adb get-serialno)"
+./scripts/ci/test-phase-b-network.sh
+export ANDROID_SERIAL="$phase_c_primary_device"
+adb -s "$phase_c_primary_device" shell pm clear br.com.diariodeclasse >/dev/null
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.FjFlowInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/fj-flow-focused.txt || status=$?
 cat build/fj-flow-focused.txt
 if adb shell run-as br.com.diariodeclasse test -d files/fj-flow-screenshots; then
@@ -313,4 +321,3 @@ done
 # Não executar aqui o ensaio histórico que gerava novas chaves descartáveis.
 
 ./scripts/ci/validate-sync.sh
-./scripts/ci/test-phase-b-network.sh
