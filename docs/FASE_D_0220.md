@@ -102,3 +102,16 @@ As RPCs novas são `noctua_enable_academic_d`, `noctua_push_academic_d` e
 `academicScope=4`. Não é necessário criar uma segunda consulta de estado.
 `supabase/checks/phase_d_readonly.sql` permite conferir catálogo e permissões,
 sem consultar conteúdo acadêmico. Não substitui ensaio entre contas comuns.
+
+Reforço posterior: históricos confirmados aceitam apenas a poda de componentes
+sem matrícula preservada, conforme o domínio; não recebem dados inventados nem
+perdem aulas/atividades ainda cobertas pelo período de matrícula. Duplicação de
+período de aula no histórico também é rejeitada no servidor.
+
+Resultados locais após esses reforços: JVM 260 casos, 259 aprovados e um LiveAuth
+condicional ignorado; PostgreSQL D 27/27; A reexecutada com os artefatos wire:
+38/38. HTTP real local enviou e recuperou 171 linhas dos quinze tipos, editou diário
+e repetiu o mesmo UUID com confirmação idêntica; 32 verificações HTTP negativas de
+RLS/RPC/sessão passaram. **Ainda não substitui os dois AVDs nem valida Supabase Auth
+hospedado.** A autorização D ganhou rótulo conjunto de checkbox/descrição para
+acessibilidade; novo cenário Android exercita esse consentimento real.

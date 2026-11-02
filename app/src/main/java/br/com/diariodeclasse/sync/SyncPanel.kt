@@ -2,6 +2,8 @@ package br.com.diariodeclasse.sync
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -119,8 +121,9 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     if(consentD)AlertDialog(onDismissRequest={consentD=false},title={Text("Incluir diário e históricos?")},text={
         Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text("Diários, remanejamentos, horários, históricos, disposição de planilhas e rascunhos desta conta serão enviados. Clientes anteriores deixarão de sincronizar. Use somente dados fictícios e mantenha o backup.")
-            Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
-                Checkbox(fictitiousD,{fictitiousD=it});Text("Esta conta contém somente dados fictícios.",Modifier.weight(1f))
+            Row(Modifier.fillMaxWidth().heightIn(min=48.dp).toggleable(value=fictitiousD,role=Role.Checkbox,onValueChange={fictitiousD=it}),
+                verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                Checkbox(fictitiousD,null);Text("Esta conta contém somente dados fictícios.",Modifier.weight(1f))
             }
         }
     },dismissButton={TextButton({consentD=false}){Text("Cancelar")}},confirmButton={TextButton({

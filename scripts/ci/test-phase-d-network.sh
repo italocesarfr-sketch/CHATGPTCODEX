@@ -53,4 +53,5 @@ for side in primary secondary; do
  device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
  adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phased-network > "build/phased-network/$side-captures.tar"
 done
+python3 scripts/test-phase-d-http.py | tee build/phased-network/http-security.txt
 printf '%s\n' '17 Android HTTP phases D passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt

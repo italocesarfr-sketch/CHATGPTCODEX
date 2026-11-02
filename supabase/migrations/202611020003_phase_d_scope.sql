@@ -104,6 +104,9 @@ BEGIN
     RAISE EXCEPTION 'conflicting timetable slots'; END IF;
   END IF;
  END LOOP;
+ IF EXISTS(SELECT FROM jsonb_array_elements(rows) WHERE value->>'kind'='lessons'
+  GROUP BY value->'payload'->>'classId',value->'payload'->>'date',value->'payload'->>'ordinal' HAVING count(*)>1) THEN
+  RAISE EXCEPTION 'duplicate historical or live lesson period'; END IF;
  IF EXISTS(SELECT FROM jsonb_array_elements(rows) WHERE value->>'kind'='students'
   GROUP BY value->'payload'->>'classId',value->'payload'->>'number' HAVING count(*)>1) THEN RAISE EXCEPTION 'duplicate roster number'; END IF;
  IF EXISTS(SELECT FROM jsonb_array_elements(rows) r CROSS JOIN LATERAL jsonb_array_elements(r.value->'payload'->'slots') s
@@ -219,11 +222,15 @@ BEGIN
   IF next IS NOT NULL AND (next->'content'->'school' IS DISTINCT FROM h->'content'->'school' OR
    next->'content'->'terms' IS DISTINCT FROM h->'content'->'terms') THEN RAISE EXCEPTION 'historical class context is immutable'; END IF;
   FOREACH kind IN ARRAY ARRAY['students','lessons','activities','marks','grades','recompositions'] LOOP
+   IF next IS NOT NULL AND NOT((next->'content'->kind) <@ (h->'content'->kind)) THEN RAISE EXCEPTION 'preserved fragment cannot be rewritten'; END IF;
    FOR r IN SELECT * FROM jsonb_array_elements(h->'content'->kind) LOOP
     k:=public.noctua_academic_key(kind,r);current:=public.noctua_d_get(p_after,kind,k);
     IF current IS NOT NULL AND current IS DISTINCT FROM r THEN RAISE EXCEPTION 'preserved academic record is immutable'; END IF;
     IF kind IN('marks','grades','recompositions') AND current IS NULL AND public.noctua_d_get(p_after,'students',jsonb_build_object('id',r->>'studentId')) IS NOT NULL THEN
      RAISE EXCEPTION 'historical enrollment still needs its academic record'; END IF;
+    IF kind IN('lessons','activities') AND current IS NULL AND EXISTS(SELECT FROM jsonb_array_elements(p_after) WHERE value->>'kind'='students' AND
+     value->'payload'->>'classId'=r->>'classId' AND value->'payload'->>'joined'<=r->>'date' AND
+     (value->'payload'->'left'='null' OR value->'payload'->>'left'>=r->>'date')) THEN RAISE EXCEPTION 'historical enrollment still needs its lesson or activity'; END IF;
     IF kind='students' AND current IS NOT NULL AND next IS NULL THEN RAISE EXCEPTION 'historical enrollment cannot become live'; END IF;
    END LOOP;
   END LOOP;

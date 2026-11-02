@@ -38,6 +38,13 @@ class PhaseDGuardTest {
         val folder=java.io.File("build/academic-phase-d-validation").apply{mkdirs()}
         java.io.File(folder,"source-deletion.json").writeText(AcademicRecords.json.encodeToString(kotlinx.serialization.builtins.ListSerializer(AcademicChange.serializer()),changes))
     }
+    @Test fun historicalUnmarkedLessonStillBelongsToRetainedEnrollmentPeriod() {
+        val data=BackupCodec.json.decodeFromString<BackupSnapshot>(java.io.File("src/androidTest/assets/phase-d.json").readText()).canonical()
+        val h=data.histories.single();val lesson=Lesson("empty-historical","d-past","2026-04-11",1,"REALIZADA")
+        val before=data.copy(histories=listOf(h.copy(content=h.content.copy(lessons=h.content.lessons+lesson))))
+        BackupCodec.validate(before)
+        assertBlocked{PhaseDGuard.immutable(before,data)}
+    }
     @Test fun allFifteenCompositeIdentitiesAreStable() {
         assertEquals(15,phaseDKinds.size)
         for((kind,field) in listOf("relocations" to "sourceStudentId","class_archives" to "classId","preserved_histories" to "classId","weekly_timetables" to "id","lesson_records" to "id","export_rows" to "id","import_drafts" to "id")) {

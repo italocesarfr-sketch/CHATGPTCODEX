@@ -33,12 +33,23 @@ object PhaseDGuard {
         }
         before.histories.forEach { h ->
             val kept=after.histories.singleOrNull{it.classId==h.classId}
-            if(kept!=null)require(kept.content.school==h.content.school && kept.content.terms.sortedBy{it.number}==h.content.terms.sortedBy{it.number})
+            if(kept!=null) {
+                require(kept.content.school==h.content.school && kept.content.terms.sortedBy{it.number}==h.content.terms.sortedBy{it.number})
+                require(kept.content.students.all{it in h.content.students} && kept.content.lessons.all{it in h.content.lessons} &&
+                    kept.content.activities.all{it in h.content.activities} && kept.content.marks.all{it in h.content.marks} &&
+                    kept.content.grades.all{it in h.content.grades} && kept.content.recompositions.all{it in h.content.recompositions})
+            }
             h.content.students.forEach { student ->
                 next.students.singleOrNull{it.id==student.id}?.let { require(it==student && kept!=null) }
             }
-            h.content.lessons.forEach{r->next.lessons.singleOrNull{it.id==r.id}?.let{require(it==r)}}
-            h.content.activities.forEach{r->next.activities.singleOrNull{it.id==r.id}?.let{require(it==r)}}
+            h.content.lessons.forEach{r->
+                val found=next.lessons.singleOrNull{it.id==r.id}
+                if(found!=null)require(found==r)else require(next.students.none{it.classId==r.classId&&it.enrolled(r.date)})
+            }
+            h.content.activities.forEach{r->
+                val found=next.activities.singleOrNull{it.id==r.id}
+                if(found!=null)require(found==r)else require(next.students.none{it.classId==r.classId&&it.enrolled(r.date)})
+            }
             val retained=next.students.map{it.id}.toSet()
             h.content.marks.filter{it.studentId in retained}.forEach{r->require(r in next.marks)}
             h.content.grades.filter{it.studentId in retained}.forEach{r->require(r in next.grades)}

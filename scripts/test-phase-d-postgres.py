@@ -102,4 +102,14 @@ class PhaseDPostgresTest(unittest.TestCase):
   enable();self.assertTrue(len(rows())<256)
   execute(statement(rows()+[f.change('lesson_records',dict(SNAP['lessonRecords'][0],id=f'extra-{i}'))for i in range(256)]),A,fails=True)
   self.assertEqual([],pull())
+ def test_25_unmarked_historical_lesson_is_still_preserved_for_enrollment(self):
+  enable();s=copy.deepcopy(SNAP);s['histories'][0]['content']['lessons'].append(dict(s['histories'][0]['content']['lessons'][0],id='empty-historical',date='2026-04-11'))
+  self.assertTrue(push(rows(s))['accepted'])
+  execute(statement([f.change('preserved_histories',SNAP['histories'][0],1)]),A,fails=True);self.assertEqual(1,len(pull()))
+ def test_26_confirmed_history_cannot_gain_fabricated_academic_records(self):
+  self.seed();h=copy.deepcopy(SNAP['histories'][0]);h['content']['lessons'].append(dict(h['content']['lessons'][0],id='invented',date='2026-04-11'))
+  execute(statement([f.change('preserved_histories',h,1)]),A,fails=True);self.assertEqual(1,len(pull()))
+ def test_27_historical_lesson_period_cannot_be_duplicated_under_another_id(self):
+  enable();s=copy.deepcopy(SNAP);h=s['histories'][0];h['content']['lessons'].append(dict(h['content']['lessons'][0],id='duplicate-period'))
+  self.reject(s)
 if __name__=='__main__':unittest.main(verbosity=2)
