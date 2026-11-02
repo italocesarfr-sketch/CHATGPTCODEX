@@ -51,7 +51,7 @@ class PhaseCNetworkProbeTest {
         for(n in 1..36)assertEquals(student(n).personId,w.repository.dao.student(student(n).id)!!.personId)
         assertEquals(2,w.repository.readSnapshot().activities.size);assertEquals(2,w.repository.readSnapshot().lessons.size)
         assertEquals(71,w.repository.readSnapshot().marks.size);assertEquals(36,w.repository.readSnapshot().grades.size)
-        assertEquals(0.0,grade(1)!!,0.0);assertNull(grade(4))
+        assertEquals(0.0,grade(1)!!,0.0);assertEquals(0.0001,grade(2)!!,0.0);assertNull(grade(4))
         assertTrue(w.repository.dao.activityGrades("c-net-a1").none{it.studentId==student(36).id})
         val marks=w.repository.dao.attendance("c-net-l1").associateBy{it.studentId}
         assertEquals("P",marks.getValue(student(1).id).mark);assertEquals("F",marks.getValue(student(2).id).mark)
@@ -77,7 +77,7 @@ class PhaseCNetworkProbeTest {
                     w.repository.dao.save(Activity("c-net-a1",school.id,"Produção fictícia",type="Produção textual",date="2026-08-10",term=3,maximum=7.5))
                     w.repository.dao.save(Activity("c-net-a2",school.id,"Trabalho fictício",type="Trabalho",date="2026-08-11",term=3,maximum=10.0))
                     for(n in 1..36){
-                        if(n!=36)w.repository.dao.save(Grade("c-net-a1",student(n).id,when(n%4){0->null;1->0.0;else->5.0}))
+                        if(n!=36)w.repository.dao.save(Grade("c-net-a1",student(n).id,if(n==2)0.0001 else when(n%4){0->null;1->0.0;else->5.0}))
                         for(h in 1..2)if(h!=2||n!=36){val m=listOf("NR","P","F","FJ")[n%4]
                             w.repository.dao.save(Attendance("c-net-l$h",student(n).id,m,if(m=="FJ")"Outro"else null))}
                     }

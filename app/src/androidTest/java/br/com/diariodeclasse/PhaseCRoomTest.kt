@@ -107,4 +107,21 @@ class PhaseCRoomTest {
         assertEquals("PREPARED_C",store.stage());assertEquals(before,repo.readSnapshot());assertEquals(3,store.scope()) // C consent is durable; server expansion is still blocked.
     }
 
+    @Test fun decimalWireReplayPreservesFrozenOperationAndRawReceiptDigest():Unit=runBlocking {
+        seedB();seedC();engine().activateC();engine().run();repo.dao.save(Grade("ca",students[0].id,0.0001))
+        val op=store.prepare()!!;val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(op.body)
+        remote.pushC(owner,batch) // Server commits; its reply is lost.
+        val page=remote.pages.last();val wire=page.copy(records=page.records.map{r->r.copy(payload=JsonObject(r.payload!!+("value" to AcademicRecords.json.parseToJsonElement("0.00010"))))})
+        remote.pages[remote.pages.lastIndex]=wire
+        assertTrue(store.receive(wire));assertNull(store.pending());assertTrue(store.receive(wire))
+        assertEquals(0.0001,repo.dao.activityGrades("ca").single{it.studentId==students[0].id}.value!!,0.0)
+        assertTrue(store.dao.incoming().isEmpty());assertEquals(wire.sequence,store.cursor())
+        val n="decimal-receiver-${newId()}.db";val second=DiaryDatabase.open(context,n)
+        try {
+            val receiver=AcademicStore(second,owner);engine(receiver).activate();engine(receiver).run()
+            assertEquals(0.0001,second.dao().activityGrades("ca").single{it.studentId==students[0].id}.value!!,0.0)
+            assertTrue(receiver.dao.incoming().isEmpty())
+        }finally{second.close();context.deleteDatabase(n)}
+    }
+
 }

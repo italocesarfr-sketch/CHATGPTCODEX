@@ -27,4 +27,17 @@ class PhaseCStatusTest {
         assertNotEquals(AcademicRecords.json.encodeToJsonElement(Grade.serializer(),zero),p)
         assertEquals(buildJsonObject{put("studentId","s");put("term",3)},AcademicState("recompositions","s","3","fixture").identity().key)
     }
+    @Test fun postgresDecimalRepresentationUsesRoomTypesWithoutChangingTextOrIdentity() {
+        val local=AcademicRecords.json.encodeToJsonElement(Grade.serializer(),Grade("a","s",0.0001)).jsonObject
+        val wire=AcademicRecords.json.parseToJsonElement("""{"activityId":"a","studentId":"s","value":0.00010}""").jsonObject
+        assertNotEquals(local,wire) // Reproduces the raw JSON mismatch seen through PostgREST.
+        val normalized=PhaseBGuard.normalized(AcademicChange("grades",AcademicKind.GRADES.key(wire).key,1,wire))
+        assertEquals(local,normalized.payload);assertEquals("s",normalized.key["studentId"]!!.jsonPrimitive.content)
+        val title="Produção: ação & reflexão\nSegunda linha"
+        val activity=Activity("a","c",title,type="Produção textual",date="2026-08-10",term=3,maximum=0.0001,description=title)
+        val a=AcademicRecords.json.encodeToJsonElement(Activity.serializer(),activity).jsonObject
+        val pg=JsonObject(a+("maximum" to AcademicRecords.json.parseToJsonElement("0.00010")))
+        assertEquals(a,PhaseBGuard.normalized(AcademicChange("activities",AcademicKind.ACTIVITIES.key(pg).key,1,pg)).payload)
+    }
+
 }

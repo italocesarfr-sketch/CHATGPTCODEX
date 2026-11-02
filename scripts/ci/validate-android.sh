@@ -32,7 +32,7 @@ cat build/phasec-focused.txt
 python3 - <<'PYPHASEC'
 from pathlib import Path
 text=Path('build/phasec-focused.txt').read_text()
-assert 'OK (9 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+assert 'OK (10 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASEC
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"

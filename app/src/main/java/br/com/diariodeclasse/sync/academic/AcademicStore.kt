@@ -53,6 +53,21 @@ object PhaseBGuard {
             })
         }
     }
+    /** PostgreSQL JSONB may render 1.0E-4 as 0.00010. Compare the actual Room types,
+     * while retaining the original wire page for receipts/inbox. Strict shape comes first. */
+    fun normalized(change:AcademicChange):AcademicChange {
+        payload(change)
+        val value=change.payload ?: return change
+        fun <T> typed(serializer:kotlinx.serialization.KSerializer<T>)=
+            AcademicRecords.json.encodeToJsonElement(serializer,AcademicRecords.json.decodeFromJsonElement(serializer,value)).jsonObject
+        val result=when(change.kind){
+            "classes"->typed(SchoolClass.serializer());"terms"->typed(Term.serializer());"students"->typed(Student.serializer())
+            "activities"->typed(Activity.serializer());"grades"->typed(Grade.serializer());"lessons"->typed(Lesson.serializer())
+            "marks"->typed(Attendance.serializer());"recompositions"->typed(Recomposition.serializer())
+            else->throw SyncFailure("UNSUPPORTED")
+        }
+        return change.copy(payload=result).also{it.validate()}
+    }
     fun validate(before:BackupSnapshot,after:BackupSnapshot,changes:List<AcademicChange>,allowed:Set<String> = phaseBKinds) {
         BackupCodec.validate(after)
         val changedClasses=changes.filter{it.kind=="classes"||it.kind=="terms"}.map{
@@ -222,17 +237,17 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             require(page.sequence==c.cursor+1)
             val allowed=kinds()
             if(page.records.any{it.kind !in allowed})throw SyncFailure("UNSUPPORTED")
-            page.records.forEach{PhaseBGuard.payload(it.change())}
+            val records=page.records.map{it.copy(payload=PhaseBGuard.normalized(it.change()).payload)}
             val before=snapshot();val local=AcademicRecords.rows(before)
             val states=dao.states();check(states.all{it.owner==owner})
             val pending=dao.pending().singleOrNull()
             if(pending?.id==page.operation) {
                 val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body)
-                require(page.records.size==batch.changes.size && page.records.all{r->batch.changes.any{it.identity==r.identity&&it.base+1==r.revision&&it.payload==r.payload}})
+                require(records.size==batch.changes.size && records.all{r->batch.changes.any{it.identity==r.identity&&it.base+1==r.revision&&it.payload==r.payload}})
                 accept(pending,AcademicPushReply(page.operation,true,page.sequence,JsonArray(emptyList())))
             }
             val fresh=dao.states()
-            val changes=page.records.mapNotNull {r->
+            val changes=records.mapNotNull {r->
                 val s=fresh.firstOrNull{it.identity()==r.identity}
                 if(s!=null && r.revision==s.revision) {
                     require(r.payload==s.base?.let{AcademicRecords.json.parseToJsonElement(it)})
@@ -279,7 +294,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     }
     private suspend fun apply(candidate:BackupSnapshot,changes:List<AcademicChange>) {
         val keys=changes.map{it.identity}.toSet();val sql=db.openHelper.writableDatabase
-        // Upserts keep primary keys; only explicitly deleted B records are removed, children first.
+        // Upserts keep primary keys; only explicitly deleted enabled records are removed, children first.
         candidate.classes.filter{AcademicKind.CLASSES.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
         candidate.terms.filter{AcademicKind.TERMS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
         candidate.students.filter{AcademicKind.STUDENTS.key(AcademicRecords.json.encodeToJsonElement(it).jsonObject) in keys}.forEach{db.dao().save(it)}
