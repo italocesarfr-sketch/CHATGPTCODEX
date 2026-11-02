@@ -10,6 +10,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.DiaryDatabase
 import br.com.diariodeclasse.data.MIGRATION_10_11
+import br.com.diariodeclasse.data.MIGRATION_11_12
 import br.com.diariodeclasse.data.MIGRATION_9_10
 import br.com.diariodeclasse.data.MIGRATION_8_9
 import br.com.diariodeclasse.data.MIGRATION_7_8
