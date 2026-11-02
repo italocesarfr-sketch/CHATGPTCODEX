@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Only the disposable emulator gateway; production remains HTTPS-only. -->
+    <application android:networkSecurityConfig="@xml/debug_network_security" />
+</manifest>

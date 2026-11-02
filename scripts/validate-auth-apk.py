@@ -6,6 +6,7 @@ from pathlib import Path
 apk = Path(sys.argv[1])
 forbidden = [b'AcademicTestApplication', b'PrincipalTestClient', b'Fixture-Password-2026',
              b'fixture-access-not-real', b'fixture-refresh-not-real', b'DemoEntryScreen',
+             b'PhaseBNetworkHarness', b'noctua-phase-b-disposable-jwt-secret',
              b'NoctuaStart', b'sb_secret_']
 with zipfile.ZipFile(apk) as z:
     for name in z.namelist():

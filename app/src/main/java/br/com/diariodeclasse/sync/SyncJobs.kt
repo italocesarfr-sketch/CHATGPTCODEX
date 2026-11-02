@@ -37,6 +37,10 @@ class ClassSyncJob:JobService() {
                 val user=state.user ?: return@launch
                 if(state.recovery || app.workspaces.needsClaim(user) || !app.auth.canUse(user.id))return@launch
                 val workspace=app.workspaces.activate(user)
+                if(workspace.database.academicDao().control()!=null) {
+                    br.com.diariodeclasse.sync.academic.AcademicCoordinator.run(app,workspace)
+                    return@launch
+                }
                 val store=ClassSyncStore(workspace.database,user.id)
                 workspace.syncMutex.withLock {
                     ClassSyncEngine(store,SupabaseClassSync(),{app.auth.syncToken(user.id)},
@@ -44,7 +48,7 @@ class ClassSyncJob:JobService() {
                 }
             }catch(e:CancellationException){throw e}
             catch(_:Exception){ /* Preserve queue; periodic retry. Never log tokens or academic payloads. */ }
-            finally { jobFinished(params,false) }
+            finally { tasks.remove(params.jobId);jobFinished(params,false) }
         }
         return true
     }

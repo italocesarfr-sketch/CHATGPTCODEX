@@ -13,7 +13,7 @@ import unittest
 import uuid
 import time
 
-if os.environ.get('PGDATABASE') != 'noctua_academic_test' or os.environ.get('PGHOST') not in ('127.0.0.1', 'localhost', '/workspace/pg-local'):
+if os.environ.get('PGDATABASE') not in ('noctua_academic_test','noctua_phase_b_test') or os.environ.get('PGHOST') not in ('127.0.0.1', 'localhost', '/workspace/pg-local'):
     raise SystemExit('Requires an explicitly selected disposable LOCAL noctua_academic_test database.')
 PSQL=os.environ.get('PSQL_BIN','psql')
 A='11111111-1111-4111-8111-111111111111'

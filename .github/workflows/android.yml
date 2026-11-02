@@ -75,6 +75,18 @@ jobs:
           PGPASSWORD: local-fixture-only
           PGDATABASE: noctua_academic_test
           ROOM_WIRE_PATH: app/build/academic-protocol-validation
+      - name: Fase B — barreira de protocolo e PostgreSQL descartável
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-fixture-only
+          PGDATABASE: noctua_phase_b_test
+        run: |
+          set -euo pipefail
+          createdb noctua_phase_b_test
+          python3 scripts/test-phase-b-postgres.py 2>&1 | tee build/phaseb-postgres.txt
+          ./scripts/ci/start-phase-b-postgrest.sh
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -168,6 +180,13 @@ jobs:
             app/build/academic-protocol-validation/
             build/academic-postgres.txt
             build/academic-protocol-focused.txt
+            build/phaseb-postgres.txt
+            build/phaseb-http.txt
+            build/phaseb-focused.txt
+            build/phaseb-font-*.txt
+            build/phaseb-layout.tar
+            build/phaseb-network/
+            build/phaseb-postgrest/server.log
             build/functional15-telas.tar
             build/functional15-focused.txt
             build/minimal-export-focused.txt
@@ -214,6 +233,10 @@ jobs:
             build/sync-process-*.txt
             build/sync-telas.tar
           if-no-files-found: ignore
+      - name: Encerrar apenas o PostgREST descartável
+        if: always()
+        run: |
+          if [[ -f build/phaseb-postgrest/server.pid ]]; then kill "$(cat build/phaseb-postgrest/server.pid)" || true; fi
   stable-update:
     name: Candidato — atualização da Noctua 0.19.1 com a assinatura existente
     needs: validation

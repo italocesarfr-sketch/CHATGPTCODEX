@@ -156,7 +156,7 @@ class FunctionalFifteenInstrumentedTest {
         }
         open()
         val current=snapshot();assertEquals("old-s",current.students.single().id);assertEquals("FJ",current.marks.single().mark);assertTrue(current.relocations.single().corrections.isEmpty())
-        db.openHelper.writableDatabase.query("PRAGMA user_version").use{assertTrue(it.moveToFirst());assertEquals(11,it.getInt(0))}
+        db.openHelper.writableDatabase.query("PRAGMA user_version").use{assertTrue(it.moveToFirst());assertEquals(12,it.getInt(0))}
         assertTrue(backup.snapshot().timetables.isEmpty())
         val payload=BackupCodec.json.encodeToString(BackupSnapshot.serializer(),backup.snapshot())
         val old=BackupEnvelope("diario-de-classe-backup",8,"br.com.diariodeclasse",7,BackupCodec.V7_IDENTITY,"2026-10-21T00:00:00Z",24,null,BackupCodec.hash(payload.toByteArray()),payload)

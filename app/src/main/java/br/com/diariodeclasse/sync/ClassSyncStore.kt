@@ -14,6 +14,7 @@ class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()-
         return value
     }
     suspend fun enable()=db.withTransaction {
+        check(db.academicDao().control()==null){"A conta está em transição para o protocolo acadêmico."}
         val before=control();check(before.message!="RESTORE"){"Confira a restauração antes de retomar."}
         dao.save(before.copy(enabled=true,message="",checked=false))
     }
@@ -95,6 +96,6 @@ class ClassSyncStore(val db:DiaryDatabase, val owner:String, private val now:()-
             data.exportRows.any{it.classId==id} || data.histories.any{it.classId==id} || data.timetables.any{t->t.slots.any{it.classId==id}}
     }
     override suspend fun cursor():Long=db.withTransaction{control().cursor}
-    override suspend fun enabled():Boolean=db.withTransaction{control().enabled}
+    override suspend fun enabled():Boolean=db.withTransaction{control().enabled && db.academicDao().control()==null}
     override suspend fun message(code:String,checked:Boolean)=db.withTransaction {dao.save(control().copy(message=code,checked=checked))}
 }

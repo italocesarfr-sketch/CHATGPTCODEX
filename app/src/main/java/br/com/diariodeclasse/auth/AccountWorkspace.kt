@@ -32,10 +32,16 @@ class AccountWorkspace(base:Context,val user:AuthUser,val legacy:Boolean):AutoCl
     val repository=DiaryRepository(database)
     // Observed only while this account's workspace is alive; Room triggers create the durable work.
     private val syncScope=kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob()+Dispatchers.IO)
+    val academicCoordinator=br.com.diariodeclasse.sync.academic.AcademicCoordinator(base,this,syncScope)
     init {
         syncScope.launch {
             database.syncDao().watchStates().collect { states ->
                 if(states.any{it.conflict==null && it.localVersion>it.acknowledged})br.com.diariodeclasse.sync.SyncJobs.soon(base)
+            }
+        }
+        syncScope.launch {
+            database.academicDao().watchStates().collect { states ->
+                if(states.any{it.localVersion>it.acknowledged})academicCoordinator.request()
             }
         }
     }
@@ -47,8 +53,9 @@ class AccountWorkspace(base:Context,val user:AuthUser,val legacy:Boolean):AutoCl
     override fun close(){
         // Cancellation alone does not wait for an in-flight Room query. Closing its pool
         // first can deliver an uncaught SQLite exception to the observer during logout.
-        runBlocking(Dispatchers.IO){syncScope.coroutineContext[Job]?.cancelAndJoin()}
-        database.close();cache.deleteRecursively()
+        academicCoordinator.close()
+        runBlocking(Dispatchers.IO){syncScope.coroutineContext[Job]?.cancelAndJoin();syncMutex.withLock{database.close()}}
+        cache.deleteRecursively()
     }
 }
 
@@ -61,7 +68,7 @@ class AccountWorkspaces(private val base:Context,private val auth:AuthController
     suspend fun activate(user:AuthUser)=mutex.withLock {
         user.validate();check(auth.canUse(user.id)){"Revalide a sessão antes de abrir os registros."}
         check(!needsClaim(user)){"Confirme a vinculação dos dados anteriores."}
-        if(active?.user?.id!=user.id){active?.shutdown();active=AccountWorkspace(base,user,auth.legacyOwner()==user.id)}
+        if(active?.user?.id!=user.id){active?.shutdown();active=AccountWorkspace(base,user,auth.legacyOwner()==user.id);active!!.academicCoordinator.request()}
         current()
     }
     suspend fun lock()=mutex.withLock{active?.shutdown();active=null;withContext(Dispatchers.Main.immediate){AccountClipboard.clear(base)}}

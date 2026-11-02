@@ -33,7 +33,8 @@ class MainActivity : ComponentActivity() {
         receiveCallback(intent)
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) { while(true){app.auth.tick();delay(60_000)} } }
     }
-    override fun onStart(){super.onStart();(application as DiaryApplication).auth.closeExpiredView()}
+    override fun onStart(){super.onStart();val app=application as DiaryApplication;app.auth.closeExpiredView()
+        runCatching{app.workspaces.current().academicCoordinator.request()}}
     override fun onNewIntent(intent:Intent){super.onNewIntent(intent);receiveCallback(intent)}
     private fun receiveCallback(intent:Intent?) {
         val raw=intent?.dataString ?: return

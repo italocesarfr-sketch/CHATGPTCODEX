@@ -8,6 +8,19 @@ import kotlinx.coroutines.runBlocking
 
 /** This class exists only in the separate instrumentation APK, never in the app APK. */
 class AuthTestRunner:AndroidJUnitRunner() {
+    private var phaseB=false
+    override fun onCreate(arguments:android.os.Bundle) {
+        arguments.getString("phaseBNetworkPhase")?.let { phase ->
+            phaseB=true
+            PhaseBNetworkHarness.phase=phase
+            PhaseBNetworkHarness.secondary=arguments.getString("phaseBDevice")=="secondary"
+        }
+        super.onCreate(arguments)
+    }
+    override fun onStart() {
+        if(phaseB)(targetContext.applicationContext as AcademicTestApplication).configurePhaseB()
+        super.onStart()
+    }
     override fun newApplication(cl:ClassLoader,name:String,context:Context):Application {
         // AGP emits one instrumentation component. Legacy seed APKs have a final
         // DiaryApplication without auth; never load its new test subclass there.
@@ -37,9 +50,14 @@ class AcademicTestClient:AuthClient {
 }
 class AcademicTestApplication:DiaryApplication() {
     private val fixtureVault=AcademicTestVault()
-    override val auth by lazy{AuthController(AcademicTestClient(),fixtureVault)}
+    private val ordinaryAuth by lazy{AuthController(AcademicTestClient(),fixtureVault)}
+    private var networkAuth:AuthController?=null
+    override val auth get()=networkAuth ?: ordinaryAuth
+    fun configurePhaseB(){networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(legacyOwner=null)}).also{runBlocking{it.restore()}}}
+    override fun academicRemote()=if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.
     // Production DiaryApplication has no such override or test credentials.
-    override val workspace by lazy{AccountWorkspace(this,fixtureUser,true)}
+    private val fixtureWorkspace by lazy{AccountWorkspace(this,fixtureUser,true)}
+    override val workspace get()=if(PhaseBNetworkHarness.phase!=null)workspaces.current()else fixtureWorkspace
     fun restoreFixtureUser()=runBlocking {auth.logout();auth.login(fixtureUser.email,"Fixture-Password-2026")}
 }

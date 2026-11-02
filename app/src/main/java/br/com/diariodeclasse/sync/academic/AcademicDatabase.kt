@@ -1,0 +1,65 @@
+package br.com.diariodeclasse.sync.academic
+
+import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import kotlinx.coroutines.flow.Flow
+
+@Entity(tableName="sync_academic_control")
+data class AcademicControl(@PrimaryKey val id:Int=1,val owner:String,val stage:String="PREPARED",
+    val enabled:Boolean=false,val cursor:Long=0,val applying:Boolean=false,val message:String="PENDING",val checked:Boolean=false)
+@Entity(tableName="sync_academic_records",primaryKeys=["kind","key1","key2"])
+data class AcademicState(val kind:String,val key1:String,val key2:String="",val owner:String,
+    val localVersion:Long=1,val acknowledged:Long=0,val revision:Long=0,val base:String?=null)
+@Entity(tableName="sync_academic_outbox")
+data class AcademicPending(@PrimaryKey val id:String,val owner:String,val body:String,val versions:String,
+    val createdAt:Long,val attempts:Int=0,val conflict:String?=null)
+@Entity(tableName="sync_academic_inbox")
+data class AcademicIncoming(@PrimaryKey val sequence:Long,val owner:String,val body:String,val reason:String)
+@Entity(tableName="sync_academic_applied")
+data class AcademicApplied(@PrimaryKey val sequence:Long,val owner:String,val operation:String,val digest:String)
+
+@Dao interface AcademicDao {
+    @Query("SELECT * FROM sync_academic_control WHERE id=1") suspend fun control():AcademicControl?
+    @Query("SELECT * FROM sync_academic_control WHERE id=1") fun watchControl():Flow<AcademicControl?>
+    @Upsert suspend fun save(value:AcademicControl)
+    @Query("SELECT * FROM sync_academic_records ORDER BY kind,key1,key2") suspend fun states():List<AcademicState>
+    @Query("SELECT * FROM sync_academic_records ORDER BY kind,key1,key2") fun watchStates():Flow<List<AcademicState>>
+    @Upsert suspend fun save(value:AcademicState)
+    @Query("SELECT * FROM sync_academic_outbox ORDER BY createdAt,id") suspend fun pending():List<AcademicPending>
+    @Query("SELECT * FROM sync_academic_outbox ORDER BY createdAt,id") fun watchPending():Flow<List<AcademicPending>>
+    @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicPending)
+    @Query("UPDATE sync_academic_outbox SET attempts=attempts+1 WHERE id=:id") suspend fun attempt(id:String)
+    @Query("UPDATE sync_academic_outbox SET conflict=:reason WHERE id=:id") suspend fun conflict(id:String,reason:String)
+    @Query("DELETE FROM sync_academic_outbox WHERE id=:id") suspend fun acknowledge(id:String)
+    @Query("SELECT * FROM sync_academic_inbox ORDER BY sequence") suspend fun incoming():List<AcademicIncoming>
+    @Query("SELECT * FROM sync_academic_inbox ORDER BY sequence") fun watchIncoming():Flow<List<AcademicIncoming>>
+    @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicIncoming)
+    @Query("SELECT * FROM sync_academic_applied WHERE sequence=:sequence") suspend fun applied(sequence:Long):AcademicApplied?
+    @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicApplied)
+}
+
+fun installAcademicTriggers(db:SupportSQLiteDatabase) {
+    // Two distinct key columns, no ambiguous concatenation and no dependency on optional SQLite JSON1.
+    for(table in listOf("classes","terms","students")) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
+        val key1=if(table=="terms")"$ref.classId" else "$ref.id"
+        val key2=if(table=="terms")"CAST($ref.number AS TEXT)" else "''"
+        db.execSQL("""CREATE TRIGGER IF NOT EXISTS academic_${table}_${event.lowercase()} AFTER $event ON $table
+            WHEN EXISTS(SELECT 1 FROM sync_academic_control WHERE id=1 AND stage IN ('PREPARED','ACTIVE') AND applying=0)
+            BEGIN
+              INSERT OR IGNORE INTO sync_academic_records(kind,key1,key2,owner,localVersion,acknowledged,revision,base)
+              SELECT '$table',$key1,$key2,owner,0,0,0,NULL FROM sync_academic_control WHERE id=1;
+              UPDATE sync_academic_records SET localVersion=localVersion+1 WHERE kind='$table' AND key1=$key1 AND key2=$key2;
+            END""".trimIndent())
+    }
+}
+val ACADEMIC_MIGRATION_11_12=object:Migration(11,12) {
+    override fun migrate(db:SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_control (id INTEGER NOT NULL, owner TEXT NOT NULL, stage TEXT NOT NULL, enabled INTEGER NOT NULL, cursor INTEGER NOT NULL, applying INTEGER NOT NULL, message TEXT NOT NULL, checked INTEGER NOT NULL, PRIMARY KEY(id))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_records (kind TEXT NOT NULL, key1 TEXT NOT NULL, key2 TEXT NOT NULL, owner TEXT NOT NULL, localVersion INTEGER NOT NULL, acknowledged INTEGER NOT NULL, revision INTEGER NOT NULL, base TEXT, PRIMARY KEY(kind,key1,key2))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_outbox (id TEXT NOT NULL, owner TEXT NOT NULL, body TEXT NOT NULL, versions TEXT NOT NULL, createdAt INTEGER NOT NULL, attempts INTEGER NOT NULL, conflict TEXT, PRIMARY KEY(id))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_inbox (sequence INTEGER NOT NULL, owner TEXT NOT NULL, body TEXT NOT NULL, reason TEXT NOT NULL, PRIMARY KEY(sequence))")
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_applied (sequence INTEGER NOT NULL, owner TEXT NOT NULL, operation TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(sequence))")
+        installAcademicTriggers(db)
+    }
+}

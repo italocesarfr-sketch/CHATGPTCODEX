@@ -20,6 +20,25 @@ from pathlib import Path
 text=Path('build/academic-protocol-focused.txt').read_text()
 assert 'OK (3 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYACADEMIC
+timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e class br.com.diariodeclasse.PhaseBRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phaseb-focused.txt
+cat build/phaseb-focused.txt
+python3 - <<'PYPHASEB'
+from pathlib import Path
+text=Path('build/phaseb-focused.txt').read_text()
+assert 'OK (12 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYPHASEB
+for font in 1.3 1.6; do
+    adb shell settings put system font_scale "$font"
+    timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseBPanelLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phaseb-font-$font.txt"
+    python3 - "$font" <<'PYPHASEBFONT'
+from pathlib import Path
+import sys
+text=Path('build/phaseb-font-'+sys.argv[1]+'.txt').read_text()
+assert 'OK (1 test)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYPHASEBFONT
+done
+adb shell settings put system font_scale 1.0
+adb exec-out run-as br.com.diariodeclasse tar -cf - files/phaseb-layout > build/phaseb-layout.tar
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.FjFlowInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/fj-flow-focused.txt || status=$?
 cat build/fj-flow-focused.txt
 if adb shell run-as br.com.diariodeclasse test -d files/fj-flow-screenshots; then
@@ -275,3 +294,4 @@ done
 # Não executar aqui o ensaio histórico que gerava novas chaves descartáveis.
 
 ./scripts/ci/validate-sync.sh
+./scripts/ci/test-phase-b-network.sh

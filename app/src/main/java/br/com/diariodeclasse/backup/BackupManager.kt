@@ -12,7 +12,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 
-const val SYNC_SCHEMA_IDENTITY = "ee981debed71dded9930914c905e6ff9"
+const val SYNC_SCHEMA_IDENTITY = "f7a581230efcfacc6e9659189abb0448"
 
 interface SafetyBackupStore {
     fun save(bytes: ByteArray): File
@@ -59,7 +59,7 @@ class BackupManager(
         private set
     private fun verifySchema() {
         db.openHelper.writableDatabase.query("PRAGMA user_version").use {
-            check(it.moveToFirst() && it.getInt(0) == 11) { "Versão do banco incompatível." }
+            check(it.moveToFirst() && it.getInt(0) == 12) { "Versão do banco incompatível." }
         }
         db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use {
             check(it.moveToFirst() && it.getString(0) == SYNC_SCHEMA_IDENTITY) { "Esquema do banco incompatível." }
@@ -99,6 +99,8 @@ class BackupManager(
             // Keep queue/conflict audit, but require a future explicit reconciliation before resuming.
             db.openHelper.writableDatabase.execSQL("UPDATE sync_control SET enabled=0, applying=1, checked=0, message='RESTORE'")
             db.openHelper.writableDatabase.execSQL("UPDATE sync_classes SET conflict=COALESCE(conflict,'RESTORE')")
+            db.openHelper.writableDatabase.execSQL("UPDATE sync_academic_control SET enabled=0, applying=1, stage='RESTORE', checked=0, message='RESTORE'")
+            db.openHelper.writableDatabase.execSQL("UPDATE sync_academic_outbox SET conflict=COALESCE(conflict,'RESTORE')")
             dao.removeTimetables(); dao.removeHistories(); dao.removeLessonRecords(); dao.removeClassArchives(); dao.removeExportRows(); dao.removeRelocations(); dao.removeRecompositions(); dao.removeMarks(); dao.removeGrades(); dao.removeDrafts(); dao.removeActivities()
             dao.removeLessons(); dao.removeTerms(); dao.removeStudents(); dao.removeClasses()
             dao.insertClasses(incoming.classes); dao.insertStudents(incoming.students); dao.insertTerms(incoming.terms)
@@ -109,6 +111,7 @@ class BackupManager(
             }
             check(readRows() == incoming.copy(selection = null)) { "Verificação de restauração falhou." }
             db.openHelper.writableDatabase.execSQL("UPDATE sync_control SET applying=0")
+            db.openHelper.writableDatabase.execSQL("UPDATE sync_academic_control SET applying=0")
             RestoreResult(copy)
         }
         // O contexto visual é aplicado APÓS o commit escolar. Falhar aqui nunca desfaz

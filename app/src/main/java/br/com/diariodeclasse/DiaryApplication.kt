@@ -8,6 +8,7 @@ import br.com.diariodeclasse.data.LocalSelectionStore
 import br.com.diariodeclasse.data.DiaryDatabase
 import br.com.diariodeclasse.data.DiaryRepository
 open class DiaryApplication : Application() {
+    open fun academicRemote():br.com.diariodeclasse.sync.academic.AcademicRemote = br.com.diariodeclasse.sync.academic.SupabaseAcademicSync()
     val authScope=kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob()+kotlinx.coroutines.Dispatchers.Main.immediate)
     override fun onCreate() {
         super.onCreate()
