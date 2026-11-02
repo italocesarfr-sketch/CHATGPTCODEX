@@ -24,6 +24,8 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
     suspend fun run() {
         suspend fun allowed()=admitted()&&store.active()
         if(!allowed())return
+        // A retry/foreground signal must not leave a blocked inbox looking busy forever.
+        if(store.blocked()){store.message("CONFLICT");return}
         try {
             store.message("SYNCING")
             val token=session();if(!allowed())return
@@ -31,7 +33,8 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 // Recovery first: a clean installation must not interpret remote records as deletions.
                 var caughtUp=false
                 for(pageTurn in 0 until 32) {
-                    if(!allowed() || store.blocked())return
+                    if(!allowed())return
+                    if(store.blocked()){store.message("CONFLICT");return}
                     val pages=if(store.scope()==3)remote.pullC(token,store.cursor())else remote.pull(token,store.cursor());if(!allowed())return
                     require(pages.size<=1)
                     if(pages.isEmpty()){caughtUp=true;break}

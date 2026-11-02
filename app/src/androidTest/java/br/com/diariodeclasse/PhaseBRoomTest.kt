@@ -106,6 +106,8 @@ class PhaseBRoomTest {
         remote.push(owner,AcademicBatch(newId(),listOf(AcademicChange(r.kind,r.key,r.revision,JsonObject(r.payload!!+("name" to JsonPrimitive("Remoto")))))))
         engine(remote).run();assertEquals(cursor,store.cursor());assertEquals("Local",repo.dao.schoolClass(c.id)!!.name)
         assertEquals(1,store.dao.incoming().size);assertEquals("CONFLICT",store.dao.incoming().single().reason)
+        repeat(2){engine(remote).run();assertEquals("CONFLICT",store.dao.control()!!.message)}
+        assertEquals(cursor,store.cursor());assertEquals("Local",repo.dao.schoolClass(c.id)!!.name)
     }
     @Test fun independentStudentEditsMergeAndKeepOfficialNumbers():Unit=runBlocking {
         seed();val remote=Remote();engine(remote).activate();engine(remote).run()

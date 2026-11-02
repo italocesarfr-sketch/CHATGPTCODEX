@@ -76,6 +76,8 @@ class PhaseCRoomTest {
         remote.pushC(owner,AcademicBatch(newId(),listOf(AcademicChange(r.kind,r.key,r.revision,JsonObject(r.payload!!+("value" to JsonPrimitive(5.0)))))))
         engine().run();assertEquals(cursor,store.cursor());assertEquals(3.0,repo.dao.activityGrades("ca").single{it.studentId==students[0].id}.value!!,0.0)
         assertEquals(1,store.dao.incoming().size);assertTrue(store.dao.incoming().single().body.contains("5.0"))
+        repeat(2){engine().run();assertEquals("CONFLICT",store.dao.control()!!.message)}
+        assertEquals(cursor,store.cursor());assertEquals(3.0,repo.dao.activityGrades("ca").single{it.studentId==students[0].id}.value!!,0.0)
     }
     @Test fun invalidGradeRejectsEntirePageIncludingUnrelatedClassRename():Unit=runBlocking {
         seedB();seedC();engine().activateC();engine().run();val cursor=store.cursor();val before=repo.readSnapshot()

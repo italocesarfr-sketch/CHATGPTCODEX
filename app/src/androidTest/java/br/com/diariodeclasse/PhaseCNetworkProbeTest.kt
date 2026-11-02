@@ -40,6 +40,8 @@ class PhaseCNetworkProbeTest {
     private suspend fun edit(n:Int,value:Double){w.repository.dao.save(Grade("c-net-a1",student(n).id,value))}
     private fun shot(label:String){
         compose.onNodeWithTag("auth-account").performClick();compose.onNodeWithTag("open-sync").performClick()
+        compose.waitUntil(5000){compose.onAllNodesWithTag("academic-retry").fetchSemanticsNodes().singleOrNull()?.config?.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled)==false}
+        compose.onNodeWithTag("academic-retry").assertIsEnabled()
         val dir=File(app.filesDir,"phasec-network").apply{mkdirs()}
         File(dir,"$label.png").outputStream().use{compose.onNode(isDialog()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
         compose.onNodeWithText("Concluído").performClick()
@@ -121,6 +123,8 @@ class PhaseCNetworkProbeTest {
                 waitFor{store.dao.incoming().isNotEmpty()};assertEquals(1.0,grade(1)!!,0.0);assertNotNull(store.pending())
                 val page=AcademicRecords.json.decodeFromString<AcademicPage>(store.dao.incoming().single().body)
                 assertTrue(page.sequence>store.cursor());assertTrue(page.records.any{it.kind=="grades"&&it.payload?.get("value")?.jsonPrimitive?.doubleOrNull==2.0})
+                w.syncMutex.withLock{repeat(2){AcademicCoordinator.engine(app,w).run()}}
+                assertEquals("CONFLICT",store.dao.control()!!.message)
                 assertNotNull(w.repository.dao.lessonRecord("c-net-journal"));shot("08-c-conflito")
             }
             else->error("Unknown phase")
