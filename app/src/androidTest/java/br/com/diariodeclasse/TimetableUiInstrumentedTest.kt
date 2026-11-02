@@ -117,7 +117,15 @@ class TimetableUiInstrumentedTest {
         seed()
         runBlocking{app.repository.confirmTimetable(app.repository.previewTimetable(2026,"2026-11-01",emptyList()))}
         val before=runBlocking{app.backupManager.snapshot()}
-        weekly();tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        compose.waitUntil(10000){vm.data.value.timetables.sortedBy{it.id}==before.timetables.sortedBy{it.id}}
+        weekly()
+        // Edit the original two-period revision, regardless of today's date. After Nov 1,
+        // opening today's intentionally empty revision correctly starts with no periods.
+        tag("timetable-history").performClick()
+        tag("validity-2026-01-01").performScrollTo().performClick()
+        tag("timetable-history").performScrollTo().performClick()
+        tag("weekday-4").performClick();tag("add-weekly-hours").performClick()
+        tag("weekly-period-1").assertIsSelected();tag("weekly-period-2").assertIsSelected()
         tag("weekly-period-3").performScrollTo().performClick()
         tag("timetable-effective").assertDoesNotExist()
         tag("timetable-scope-TODAY").assertExists();tag("timetable-scope-YEAR").performScrollTo().performClick()

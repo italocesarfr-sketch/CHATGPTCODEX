@@ -167,6 +167,7 @@ jobs:
             app/build/auth-backup-validation/
             app/build/academic-protocol-validation/
             build/academic-postgres.txt
+            build/academic-protocol-focused.txt
             build/functional15-telas.tar
             build/functional15-focused.txt
             build/minimal-export-focused.txt

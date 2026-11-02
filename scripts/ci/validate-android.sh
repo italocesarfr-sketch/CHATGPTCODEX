@@ -13,6 +13,13 @@ adb shell pm clear br.com.diariodeclasse >/dev/null
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 ./scripts/ci/validate-auth.sh focused
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.AcademicProtocolRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/academic-protocol-focused.txt
+cat build/academic-protocol-focused.txt
+python3 - <<'PYACADEMIC'
+from pathlib import Path
+text=Path('build/academic-protocol-focused.txt').read_text()
+assert 'OK (3 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYACADEMIC
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e timeout_msec 90000 -e class br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.FjFlowInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/fj-flow-focused.txt || status=$?
 cat build/fj-flow-focused.txt
 if adb shell run-as br.com.diariodeclasse test -d files/fj-flow-screenshots; then
