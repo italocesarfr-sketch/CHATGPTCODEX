@@ -8,17 +8,19 @@ import kotlinx.coroutines.runBlocking
 
 /** This class exists only in the separate instrumentation APK, never in the app APK. */
 class AuthTestRunner:AndroidJUnitRunner() {
-    private var phaseB=false
+    private var phaseB:String?=null
+    private var secondary=false
     override fun onCreate(arguments:android.os.Bundle) {
         arguments.getString("phaseBNetworkPhase")?.let { phase ->
-            phaseB=true
-            PhaseBNetworkHarness.phase=phase
-            PhaseBNetworkHarness.secondary=arguments.getString("phaseBDevice")=="secondary"
+            phaseB=phase
+            secondary=arguments.getString("phaseBDevice")=="secondary"
         }
         super.onCreate(arguments)
     }
     override fun onStart() {
-        if(phaseB)(targetContext.applicationContext as AcademicTestApplication).configurePhaseB()
+        // No static reference to the new Application: the baseline v1 Application is final.
+        phaseB?.let{phase->val app=targetContext.applicationContext
+            app.javaClass.getMethod("configurePhaseB",String::class.java,Boolean::class.javaPrimitiveType).invoke(app,phase,secondary)}
         super.onStart()
     }
     override fun newApplication(cl:ClassLoader,name:String,context:Context):Application {
@@ -53,7 +55,10 @@ class AcademicTestApplication:DiaryApplication() {
     private val ordinaryAuth by lazy{AuthController(AcademicTestClient(),fixtureVault)}
     private var networkAuth:AuthController?=null
     override val auth get()=networkAuth ?: ordinaryAuth
-    fun configurePhaseB(){networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(legacyOwner=null)}).also{runBlocking{it.restore()}}}
+    fun configurePhaseB(phase:String,secondary:Boolean){
+        PhaseBNetworkHarness.phase=phase;PhaseBNetworkHarness.secondary=secondary
+        networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(legacyOwner=null)}).also{runBlocking{it.restore()}}
+    }
     override fun academicRemote()=if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.
     // Production DiaryApplication has no such override or test credentials.
