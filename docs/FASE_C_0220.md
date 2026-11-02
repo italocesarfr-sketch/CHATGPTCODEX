@@ -22,7 +22,10 @@ Base B validada `78aff91aa9d1`, consolidada em `aad093b`. Mesma branch
 
 ## Estado
 
-Implementação em andamento. Ainda não declarar C validada.
+Implementação e integração C passaram no ambiente automatizado local em
+`41450420056` / `9eb5c8ae85275523a493ba8985018e5135a6c189`. A revisão das capturas
+identificou um estado visual de conflito corrigido depois; sua nova validação (incluindo normalização numérica) está
+em andamento. Não há homologação hospedada/física nem release estável.
 
 ## Implementação e limites atuais
 
@@ -101,3 +104,78 @@ estágio nem apagar metadados para contornar o bloqueio.
   testes longos aprovados sem necessidade; se falhar, investigar antes de nova entrega.
 - Não aplicar SQL hospedado, não instalar no celular principal, não promover main,
   não gerar release nem iniciar D. Preservar conflitos e capturas B.
+
+## Conferência administrativa somente de leitura
+
+Após uma futura implantação aprovada, executar
+[`supabase/checks/phase_c_readonly.sql`](../supabase/checks/phase_c_readonly.sql).
+Ele abre transação somente de leitura e lista RLS, políticas, grants e RPCs, sem
+conteúdo acadêmico, UUIDs de contas ou segredos. Esperado: todas as tabelas protegidas,
+nenhum INSERT/UPDATE/DELETE direto para authenticated, RPCs públicas C executáveis
+somente pelo cliente autenticado, aliases privados não executáveis por ele, nenhum
+EXECUTE anônimo e search_path fixo. academic_scope deve começar em 2; só o consentimento
+C o eleva a 3. O script foi executado apenas no PostgreSQL C descartável.
+
+Esse inventário administrativo **não comprova isolamento hospedado**. Ainda será
+necessário repetir com duas sessões Auth comuns autorizadas, incluindo SELECT direto
+na API e chamadas RPC. Não solicitar tokens, senhas nem chaves administrativas no chat.
+
+## Evidência C aprovada e correção identificada na revisão visual
+
+Workflow [41450420056](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41450420056)
+aprovado, SHA `9eb5c8ae85275523a493ba8985018e5135a6c189`.
+Artefato [13145816453](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41450420056/artifacts/13145816453),
+SHA-256 ZIP `41d2ad6a84705c8a60350a98fa09ee08b7967a98ed676f0f14e487b3e0b06d81`.
+
+- JVM XML: 247 casos, 246 aprovados, 1 condicional ignorado, zero falhas.
+- Android XML: 382 casos, 373 aprovados, 9 condicionais ignorados, zero falhas.
+- Room C focado: 9/9; fontes reais 1,3 e 1,6: aprovadas.
+- PostgreSQL C: 20/20; SQL A/B e regressão v1 também aprovados.
+- Rede Android B: 10/10 fases; C: 13/13 fases em dois AVDs independentes.
+- C enviou/recuperou 153 registros das oito entidades: turma, quatro bimestres,
+  36 matrículas, duas aulas, duas atividades, 36 notas (incluindo null/zero),
+  71 frequências (P/F/FJ/NR, com uma ocorrência ausente) e uma recomposição zero.
+- Reconexão no mesmo processo, resposta perdida/reenvio, edição inversa, edições
+  independentes, conflito de nota e diário local preservado foram comprovados.
+- Leitores independentes XLSX/CSV/TSV, backup/restauração, atualização da referência
+  com chave descartável e regressão anterior passaram. Certificado permanente não
+  foi usado para atualização: essa prova continua pendente.
+
+Os nove condicionais Android incluem o novo PhaseCNetworkProbe, executado nas 13
+invocações próprias, e os oito probes listados na auditoria B. Não somar novamente
+os testes focados à quantidade de casos únicos da regressão.
+
+A captura de conflito revelou um defeito alcançável no engine compartilhado: depois
+de preservar a inbox, uma nova chamada definia SYNCING e saía no bloqueio sem repor
+CONFLICT. Os dados/cursor estavam protegidos, mas o spinner podia ficar ativo e o
+botão aparentar ocupado. A correção `36f86f16b8af9c65243182e20ef3a53eda29d14c`
+reconhece o bloqueio antes de anunciar sincronização e mantém CONFLICT em tentativas
+repetidas. Regressões Room B/C conferem duas tentativas sem alterar variantes/cursor;
+a prova HTTP C confere também o estado e botão no painel real.
+
+Nova validação: [41454219396](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41454219396),
+SHA `36f86f16b8af9c65243182e20ef3a53eda29d14c`, ainda em execução.
+As imagens anteriores comprovam os dados, mas a captura com spinner não deve ser
+usada como resultado visual final; conferir as novas capturas antes de encerrar.
+
+## Último estado para retomada
+
+Código mais recente: `f76a18e265ad79ffcef4e2319eb2ea671a004412`.
+CI atual: [41456687871](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41456687871).
+Substitui a validação `41454219396`, cancelada automaticamente pelo novo código.
+A execução aprovada anterior `41450420056` continua evidência da integração das oito
+entidades, mas ainda não cobre as duas correções de auditoria posteriores.
+
+Além do spinner, uma sonda HTTP real local reproduziu outro defeito: PostgreSQL
+JSONB devolve `1.0E-4` como `0.00010`. A comparação JSON literal podia bloquear uma
+operação semanticamente idêntica. `PhaseBGuard.normalized` primeiro exige todos os
+campos e seus tipos; depois usa os próprios serializers Room para comparar o payload.
+Não gera identidades, reescreve textos nem muda cálculos. O lote bruto continua
+intacto na inbox e no digest/recibo; o algoritmo de hash histórico não foi alterado.
+
+Um novo teste JVM preserva números/texto/identidade; um teste Room verifica resposta
+perdida, recepção repetida com digest bruto e recuperação em banco independente.
+A nota 0,0001 também passou a integrar os 153 registros da prova HTTP entre AVDs.
+Teste JVM focado (3 casos) e compilação da instrumentação passaram localmente.
+A suíte Room C agora tem **10 casos**; verificar `phasec-focused.txt` e as 13 fases
+HTTP no novo CI. Não usar as contagens esperadas como aprovação antes dos XMLs.
