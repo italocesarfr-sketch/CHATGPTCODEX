@@ -84,3 +84,20 @@ Se o head B mudar durante a ativação C, a tentativa fica preservada em PREPARE
 e bloqueada por conflito, sem adotar a nova revisão silenciosamente. A reconciliação
 assistida dessa transição concorrente ainda exige etapa posterior; não rebaixar o
 estágio nem apagar metadados para contornar o bloqueio.
+
+## Continuidade da validação
+
+- Código C: `3d54d01c71f8031e47a62ea51a8b2f3cf679f56d`.
+- Ajuste do serviço descartável no CI: `994afeb6e1c8d7dca8ebaa98c05a7ba475550a1a`.
+- Execução em conferência: [41449090966](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41449090966).
+  JVM, compilação, testes SQL e leitores independentes passaram; Android ainda em
+  execução. Consultar o resultado real antes de classificar C como validada.
+- A execução anterior `41448348517` parou por senha divergente do serviço PostgreSQL
+  **descartável** no novo passo C. O ajuste alinhou ao serviço existente; nenhuma
+  proteção de produto ou asserção foi removida.
+- Ao retomar: conferir branch/HEAD/status, jobs e artefato `resultados-etapa6`,
+  especialmente `phasec-focused.txt` (9 casos), `phasec-font-*.txt`,
+  `phasec-network/summary.txt` (13 fases) e XML da regressão completa. Não repetir
+  testes longos aprovados sem necessidade; se falhar, investigar antes de nova entrega.
+- Não aplicar SQL hospedado, não instalar no celular principal, não promover main,
+  não gerar release nem iniciar D. Preservar conflitos e capturas B.
