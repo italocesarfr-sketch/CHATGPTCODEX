@@ -268,7 +268,10 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         dao.acknowledge(sent.id)
     }
     /** False means the whole page was saved for review; its cursor never advanced. */
-    suspend fun receive(page:AcademicPage):Boolean {
+    suspend fun receive(page:AcademicPage,debugCheckpoint:(()->Unit)?=null):Boolean {
+        // No external entry point; instrumentation can kill a DEBUG process after a parent
+        // write. Release callers cannot install a checkpoint. Normal synchronization passes null.
+        require(br.com.diariodeclasse.BuildConfig.DEBUG || debugCheckpoint==null)
         try {page.validate();return db.withTransaction {
             val c=control() ?: return@withTransaction false
             if(!c.enabled || c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"))return@withTransaction false
@@ -308,7 +311,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
                 val candidate=review.candidate ?: throw SyncFailure("GRAPH")
                 PhaseBGuard.validate(before,candidate,changes,kinds())
                 dao.save(c.copy(applying=true))
-                apply(candidate,changes)
+                apply(candidate,changes,debugCheckpoint)
                 db.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{check(!it.moveToFirst())}
                 check(snapshot().canonical()==candidate.canonical())
                 val candidateRows=core(AcademicRecords.rows(candidate)).associateBy{it.identity}
@@ -337,7 +340,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             return false
         }
     }
-    private suspend fun apply(candidate:BackupSnapshot,changes:List<AcademicChange>) {
+    private suspend fun apply(candidate:BackupSnapshot,changes:List<AcademicChange>,debugCheckpoint:(()->Unit)?) {
         val keys=changes.map{it.identity}.toSet();val sql=db.openHelper.writableDatabase
         // Park only rows whose positions change. Unchanged rows and IDs remain untouched.
         // Negative positions are private transaction-local values; the final graph is validated
@@ -359,6 +362,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             rows.filter{kind.key(AcademicRecords.json.encodeToJsonElement(serializer,it).jsonObject) in keys}
         selected(candidate.classes,SchoolClass.serializer(),AcademicKind.CLASSES).forEach{db.dao().save(it)}
         selected(candidate.terms,Term.serializer(),AcademicKind.TERMS).forEach{db.dao().save(it)}
+        debugCheckpoint?.invoke()
         selected(candidate.students,Student.serializer(),AcademicKind.STUDENTS).forEach{db.dao().save(it)}
         selected(candidate.lessons,Lesson.serializer(),AcademicKind.LESSONS).forEach{db.dao().save(it)}
         selected(candidate.activities,Activity.serializer(),AcademicKind.ACTIVITIES).forEach{db.dao().save(it)}

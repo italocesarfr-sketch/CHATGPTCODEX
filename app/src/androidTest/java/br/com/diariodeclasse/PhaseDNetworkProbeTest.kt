@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.room.withTransaction
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.sync.*
@@ -104,6 +105,39 @@ class PhaseDNetworkProbeTest {
             "d-independent-local"->{synced();offline();w.repository.dao.save(snapshot().drafts.single().copy(reviewed=false));assertNotNull(store.prepare())}
             "d-independent-remote"->{synced();w.repository.archiveClass("d-source",false);synced()}
             "d-merge"->{synced();assertFalse(snapshot().drafts.single().reviewed);assertTrue(snapshot().classArchives.isEmpty());assertEquals(PhaseDFixture.read().relocations,snapshot().relocations);shot("07-d-independentes")}
+            "d-arm-receive"->{
+                synced();w.syncMutex.withLock{store.pause()}
+                File(app.filesDir,"phased-before-kill.txt").writeText("${store.cursor()}\n${BackupCodec.fingerprint(snapshot())}")
+            }
+            "d-rename-remote"->{
+                synced();val c=w.repository.dao.schoolClass("d-target")!!
+                w.repository.dao.save(c.copy(name="Destino fictício atualizado"));synced()
+            }
+            "d-crash-receive"->{
+                assertFalse(store.active())
+                w.syncMutex.withLock {
+                    val page=client.pullD(token,store.cursor()).single()
+                    // Enabled is changed only in this outer transaction; the deliberate process
+                    // death rolls it back too, preventing an automatic retry before inspection.
+                    w.database.withTransaction {
+                        store.resume()
+                        store.receive(page) {
+                            File(app.filesDir,"phased-kill-reached.txt").writeText("Parent written; cursor not committed")
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                            error("Synthetic process kill did not terminate")
+                        }
+                    }
+                }
+                fail("The instrumented process must have terminated")
+            }
+            "d-recover-receive"->{
+                assertFalse(store.active());val lines=File(app.filesDir,"phased-before-kill.txt").readLines()
+                assertEquals(lines[0].toLong(),store.cursor());assertEquals(lines[1],BackupCodec.fingerprint(snapshot()))
+                assertTrue(store.dao.incoming().isEmpty());assertTrue(File(app.filesDir,"phased-kill-reached.txt").isFile)
+                w.syncMutex.withLock{store.resume()};w.academicCoordinator.request();synced()
+                assertEquals("Destino fictício atualizado",w.repository.dao.schoolClass("d-target")!!.name)
+                assertTrue(store.cursor()>lines[0].toLong());shot("08-d-recebimento-retomado")
+            }
             "d-new-timetable"->{
                 synced();val before=w.repository.readSnapshot();val slots=before.timetables.single{it.id=="d-t2"}.slots
                 val target=before.classes.single{it.id=="d-target"}

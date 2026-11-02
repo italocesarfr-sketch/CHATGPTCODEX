@@ -123,3 +123,13 @@ preservando duas matrículas remanejadas no histórico. O foco Room tem 13 cená
 incluindo falha SQLite depois da escrita de um pai: rollback integral, lote bruto
 na inbox e cursor preservado após reabrir. Essas provas aguardam o resultado do CI;
 não foram declaradas aprovadas apenas por compilar.
+
+A prova de processo D agora inclui encerramento intencional **após escrever um pai
+e antes de confirmar a transação de recebimento**. Checkpoint disponível somente
+em debug, sem entrada externa e sem uso no sincronizador normal. O roteiro exige
+relato de morte do processo e marcador gravado; após reabrir, confere hash/cursor
+originais, teste pausado e inbox vazia, antes de retomar e aplicar a página real.
+São 24 etapas HTTP normais e uma etapa de encerramento intencional/rollback, além
+das 32 verificações HTTP de segurança. A etapa intencional não é um teste ignorado
+nem substitui a regressão completa; sem rollback/replay correto o roteiro falha.
+A compilação passou; a execução dessa prova ainda depende do workflow final.

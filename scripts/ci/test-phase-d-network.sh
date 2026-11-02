@@ -38,6 +38,26 @@ probe "$primary" d-independent-local primary
 probe "$secondary" d-independent-remote secondary
 adb -s "$primary" shell svc wifi enable; adb -s "$primary" shell svc data enable
 probe "$primary" d-merge primary
+probe "$primary" d-arm-receive primary
+probe "$secondary" d-rename-remote secondary
+# The only expected process crash: require both the framework's death report and
+# the persisted checkpoint, then prove exact rollback and replay in the next phase.
+adb -s "$primary" shell am force-stop br.com.diariodeclasse
+set +e
+timeout --signal=INT --kill-after=10s 3m adb -s "$primary" shell am instrument -w -e timeout_msec 120000 \
+ -e phaseBNetworkPhase d-crash-receive -e phaseBDevice primary -e class br.com.diariodeclasse.PhaseDNetworkProbeTest \
+ br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phased-network/primary-d-crash-receive.txt
+kill_status=$?
+set -e
+[[ "$kill_status" != 124 && "$kill_status" != 137 ]] || { echo 'Unexpected timeout in kill proof' >&2; exit 1; }
+python3 - <<'PYKILL'
+from pathlib import Path
+text=Path('build/phased-network/primary-d-crash-receive.txt').read_text()
+assert 'Process crashed' in text or 'Process has crashed' in text,text
+assert 'OK (1 test)' not in text,text
+PYKILL
+adb -s "$primary" exec-out run-as br.com.diariodeclasse cat files/phased-kill-reached.txt > build/phased-network/kill-checkpoint.txt
+probe "$primary" d-recover-receive primary
 probe "$primary" d-new-timetable primary
 probe "$secondary" d-observe-timetable secondary
 probe "$secondary" d-new-relocation secondary
@@ -63,4 +83,4 @@ for side in primary secondary; do
  adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phased-network > "build/phased-network/$side-captures.tar"
 done
 python3 scripts/test-phase-d-http.py | tee build/phased-network/http-security.txt
-printf '%s\n' '21 Android HTTP phases D passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt
+printf '%s\n' '24 Android HTTP phases D passed plus one deliberate mid-receive process kill/rollback proof; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.' > build/phased-network/summary.txt
