@@ -1,24 +1,34 @@
 # 0.22.0 — fase D: cadeia acadêmica e históricos
 
 Branch `sync/academic-complete-0220`; base C `258e4ceb4da9`, validada em
-`41466557420`. Código D em validação `9717146b6b5c63ac9aa560f57ac778efed654858`.
+`41466557420`. Código D validado `9717146b6b5c63ac9aa560f57ac778efed654858`.
 Desenvolvimento **0.22.0-dev-d / código 43**. Main e candidata 0.21.0 preservadas.
 
 ## Estado e evidências
 
-As provas D passaram na primeira tentativa do workflow
-[41527729515](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515),
-mas a execução integral ainda aguarda a repetição do job interrompido pelo emulador
-na sonda de reinício. **Ainda não é aprovação final do CI.** Não promover como
-estável nem instalar no aparelho do proprietário.
+**Fase D validada no ambiente automatizado local em 02/11/2026.**
+Workflow [41527729515, tentativa 2](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515/attempts/2),
+código `9717146b6b5c63ac9aa560f57ac778efed654858`:
 
-Artefato da primeira tentativa:
-[resultados-etapa6 / 13182257116](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515/artifacts/13182257116).
-SHA-256 do ZIP: `eb541f86044e63f3a56f1e9097e0839ae8175f43c0deaba977f6ad3214d59ad3`.
+- PostgreSQL v1: aprovado.
+- Job [125575191059](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515/job/125575191059),
+  autenticação, sincronização, isolamento, integridade e regressão Android: aprovado.
+- Release estável/atualização permanente: não executada, conforme barreira da branch.
+
+Esta é aprovação local experimental. Supabase hospedado, homologação física e
+atualização assinada original não foram aprovados por esta execução.
+
+Artefatos finais, ambos vinculados ao SHA de código acima:
+
+- [Resultados e capturas / 13184800764](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515/artifacts/13184800764).
+  SHA-256 do ZIP: `ae74134f61295a229695d4b466f8f17ab2200bb32bd8fa5b2ca81a442aee12c1`.
+- [APK debug experimental / 13183128274](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41527729515/artifacts/13183128274).
+  SHA-256 do ZIP: `a13f31c01caf180d5f77ea806392c2b9382cab7d74cb339d33725598201b4b77`.
+
 A tabela usa XMLs e saídas efetivamente inspecionados, sem somar novamente os
 mesmos testes executados em foco e na regressão.
 
-| Verificação local automatizada | Resultado da primeira tentativa |
+| Verificação local automatizada | Resultado final aprovado |
 |---|---|
 | JVM, XMLs `testDebugUnitTest` | 261 casos: 260 aprovados, 1 condicional, 0 falhas/erros |
 | Android completo, XML `TEST-emulator-5554 - 11-_app-.xml` | 402 casos: 392 aprovados, 10 condicionais, 0 falhas/erros |
@@ -31,7 +41,8 @@ mesmos testes executados em foco e na regressão.
 | Leitor independente dos arquivos gerados no Android | 3 XLSX, 3 CSV e 9 TSV aprovados |
 | Largura compacta 320 dp / fontes nativas 1,3 e 1,6 | B/C/D aprovados, capturas reais inspecionadas |
 | Frequência após reinício do processo | escrita/leitura aprovadas |
-| Autenticação após reinício do emulador | escrita aprovada; leitura não executada: emulador indisponível após reboot |
+| Autenticação após reinício real do emulador | escrita/leitura aprovadas |
+| Fila v1, interface e ciclo de workspace em foco | 24 aprovados; escrita/leitura após morte do processo aprovadas |
 
 A contagem Android é a do XML final. O progresso do Gradle chegou a mostrar
 412/402, mas o XML contém 402 casos; esse contador transitório não foi usado.
@@ -39,7 +50,7 @@ O JVM condicional é o teste LiveAuth, sem credenciais reais nesta execução.
 Os dez condicionais Android são sondas que exigem argumentos/instalações próprias:
 AuthProcess, AuthSignedUpgrade, FrequencyProcess, PhaseBNetwork, PhaseCNetwork,
 PhaseDNetwork, ReleaseContinuity, StableUpgrade, SyncProcess e UpgradeProbe.
-As sondas B/C/D, frequência e referência de atualização são executadas também
+As sondas B/C/D, autenticação após reboot, frequência, fila e referência de atualização são executadas também
 pelos roteiros dedicados; isso não transforma as sondas de assinatura permanente
 não executadas em testes aprovados.
 
@@ -163,8 +174,11 @@ Rodadas seguintes produziram diagnósticos distintos, tratados sem ampliar timeo
   HTTP D 32 e regressão completa passaram. Após a escrita da sonda AuthProcess,
   `adb reboot` foi seguido de espera vencida (exit 124), sem conexão à porta 5554.
   Não houve falha JUnit. Repetido somente o job que falhou, no mesmo SHA, para
-  verificar o reinício; a causa da indisponibilidade do processo emulador ainda
-  não está demonstrada pelos logs existentes.
+  verificar o reinício. A tentativa 2 passou sem alteração de código, incluindo
+  `auth-process-read`, `sync-focused` e escrita/leitura da fila após novo processo.
+  Isso separa a interrupção de infraestrutura das falhas anteriores de produto/
+  automação; os logs não demonstram a causa interna da indisponibilidade do QEMU.
+  Evidências da tentativa 1 foram mantidas no artefato `13182257116`.
 
 Evidências D: `build/phased-network/summary.txt`, arquivos `primary-d-*` e
 `secondary-d-*`, `kill-checkpoint.txt`, `primary-d-crash-receive.txt`,
@@ -172,16 +186,20 @@ Evidências D: `build/phased-network/summary.txt`, arquivos `primary-d-*` e
 `Process crashed`, o checkpoint confirma escrita de pai antes do cursor, e a
 etapa seguinte exige rollback exato e replay. Não foi contado como ignorado.
 
-Hashes acadêmicos iguais nos dois bancos independentes:
+Hashes acadêmicos iguais nos dois bancos independentes, na tentativa aprovada:
 
-- Após a nova movimentação: `5cd88ef894c304abb5137857615f4c6709bd2f47b741b03d446fb5dcbaf1e565`.
-- Após exclusão com histórico preservado: `d1f7bed22f74c497a7a0219d9e4bf149889c1f6cf2641ccced3549a1aa8a5457`.
+- Após a nova movimentação: `89e61520ea431be548859d3bce55859dafccf9ab38143e34bd2c92307da461a6`.
+- Após exclusão com histórico preservado: `540d9ab71ac4f0259576f725090941e8ff4581d1aef6d437c86198919e12fe1f`.
 
 Capturas reais estão em `build/phasec-layout.tar`, `build/phased-layout.tar`,
 `build/phasec-network/primary-captures.tar` e nos dois arquivos `*-captures.tar`
 D. Incluem recuperação, reordenação, recebimento retomado, nova movimentação,
 histórico e conflito. Impeccable 4.7.0 foi consultado/aplicado ao contexto nativo,
 clareza do estado e revisão visual; detector sem apontamentos. Não houve redesenho.
+
+Documentação intermediária consolidada em `62e3b16afcbb`; este documento substitui
+as contagens provisórias das rodadas anteriores. Mudanças de documentação posteriores
+não alteram o código ou a identidade dos artefatos validados.
 
 ## Persistência e compatibilidade
 
@@ -194,6 +212,21 @@ Atualização original assinada 0.21.0/c40: pendente; a referência de atualiza�
 CI usa chave descartável e não comprova o certificado permanente. APK debug só em
 ambiente separado, nunca sobre a instalação do proprietário. Nenhuma release ou
 promoção para main foi feita.
+
+APK debug final inspecionado após download: package `br.com.diariodeclasse`,
+`versionName=0.22.0-dev-d`, `versionCode=43`; assinatura APK v2 válida, certificado
+**Android Debug**, SHA-256 `71ffe3f79e5f0e1cd5c6ad8a4ca2c867dcb1a513941e5955007f9b023ff19824`.
+SHA-256 do APK: `e6c76452dd672b4805fcee76c02b55568fcb3d5c7e47d08d38e3c7dadba50808`.
+O relatório de compatibilidade distingue expressamente o certificado debug da
+referência permanente: **não usar este artefato para atualizar o celular principal**.
+Scanner do APK passou para marcadores de clientes fictícios/entrada demonstrativa/
+chaves administrativas; inspeção adicional não encontrou JWT administrativo nas
+strings DEX. Isso não substitui revisão de configuração e validação hospedada.
+
+A atualização sintética da referência v1 foi executada sem desinstalar, com a mesma
+chave descartável nos dois APKs, preservando a fixture e o resgate verificável.
+Os testes da suíte cobrem esquemas legados e a migração aditiva 11→12, backup e
+restauração protegida. Não se extrapola esse resultado para o APK original 0.21.0.
 
 ## Implantação hospedada e contingência
 
@@ -227,6 +260,13 @@ restaurar SQL antigo ou remover conflitos.
   comprovados antes de mudar o mecanismo atual de backup/criptografia.
 
 A fase E não foi iniciada. Nenhuma funcionalidade NOcTuA Escola foi implementada.
+
+Próxima homologação, somente depois de autorização: revisar o roteiro SQL e as
+barreiras de conta, aplicar as migrações aditivas no ambiente aprovado e repetir as
+provas com duas contas comuns autorizadas e dispositivos independentes, usando
+exclusivamente dados fictícios. Manter o aparelho principal e o conflito legado
+intactos; antes de qualquer uso de dados reais, validar atualização com certificado
+permanente, backup verificável e procedimento de contingência.
 
 ## Arquivos alterados na fase D e correções desta retomada
 
