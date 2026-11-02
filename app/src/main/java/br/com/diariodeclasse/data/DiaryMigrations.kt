@@ -73,3 +73,6 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
 
 /** Aditiva: fila da primeira sincronização; nenhuma tabela acadêmica é reescrita. */
 val MIGRATION_10_11 = br.com.diariodeclasse.sync.SYNC_MIGRATION_10_11
+
+/** Aditiva: captura e fila da fase B, sem reescrever dados acadêmicos. */
+val MIGRATION_11_12 = br.com.diariodeclasse.sync.academic.ACADEMIC_MIGRATION_11_12
