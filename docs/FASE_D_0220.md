@@ -184,3 +184,19 @@ e o diálogo distingue carregamento de ausência. Não mostra ações v1 antes d
 concluir a leitura do estado. Novo teste nativo usa Room isolado, 100 metadados e
 20 recomposições do pai para verificar painel D e bloqueio de conflito estáveis.
 Build/JVM passaram; nova regressão Android completa ainda pendente.
+
+Rodada `41524730086`, código `01f8492`: painel/readiness e C passaram; D completou
+bootstrap e recuperação no segundo AVD, chegando à reordenação pelo repositório.
+Falha real: `UNIQUE sync_academic_records(kind,key1,key2)` ao reinserir IDs de linhas
+já capturadas. Em SQLite, OR ABORT do escritor externo prevalece sobre OR IGNORE
+no gatilho. A transação falhou integralmente, sem apagar registros.
+
+A captura agora faz INSERT...SELECT...WHERE NOT EXISTS seguido do incremento,
+sem tentar inserir novamente a chave existente. Compatível com SQLite Android
+antigo; não depende de UPSERT SQL recente. Nenhuma PK/unique foi removida, nenhuma
+base/counter/UUID foi reiniciada. Triggers atualizados na abertura, Room continua12.
+Reprodução SQLite local confirmou causa e rollback; regressões Room adicionadas
+para reposicionar/reinserir layout e editar diário via UPDATE OR ABORT. Foco D
+ampliado para15 casos. Roteiro usa a ordem solicitada real da API ExportLayout
+(normalização da lista), preservando suas regras. Build/JVM aprovados; aguardando
+nova execução Android completa. Nenhuma migração hospedada foi alterada/executada.

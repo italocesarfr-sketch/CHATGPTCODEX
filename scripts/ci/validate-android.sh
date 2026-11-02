@@ -39,7 +39,7 @@ cat build/phased-focused.txt
 python3 - <<'PYPHASED'
 from pathlib import Path
 text=Path('build/phased-focused.txt').read_text()
-assert 'OK (13 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+assert 'OK (15 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASED
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.AcademicConflictPanelTest,br.com.diariodeclasse.SyncPanelReadinessTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/academic-conflict-panel.txt
 cat build/academic-conflict-panel.txt

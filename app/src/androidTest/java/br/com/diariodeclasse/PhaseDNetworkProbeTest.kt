@@ -91,7 +91,7 @@ class PhaseDNetworkProbeTest {
             }
             "d-reorder-secondary"->{
                 synced();val before=w.repository.dao.exportRows("d-source")
-                val requested=before.map{it.copy(position=when(it.position){0->2;2->0;else->1})}
+                val requested=before.reversed().mapIndexed{index,row->row.copy(position=index)}
                 w.repository.saveExportLayout("d-source",before,requested);synced()
                 assertEquals("student:ds2",w.repository.dao.exportRows("d-source").first().id)
                 shot("04-d-planilha-reordenada")

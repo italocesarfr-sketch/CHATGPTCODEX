@@ -84,6 +84,31 @@ class PhaseDRoomTest {
         assertEquals(cursor,store.cursor());assertEquals(before,rows());assertNotNull(store.pending())
         assertEquals(1,store.dao.incoming().size);assertTrue(store.dao.incoming().single().body.contains("blank:d-blank"))
     }
+    @Test fun localLayoutReplacementCapturesReinsertedIdsWithoutOuterAbortPolicyCollision():Unit=runBlocking {
+        seed();val before=rows();val old=repo.dao.exportRows("d-source")
+        val requested=old.reversed().mapIndexed{index,row->row.copy(position=index)}
+        repo.saveExportLayout("d-source",old,requested)
+        val layout=repo.dao.exportRows("d-source")
+        assertEquals(37,layout.size);assertEquals("student:ds2",layout[0].id)
+        assertEquals("blank:d-blank",layout[1].id);assertEquals("student:ds1",layout[2].id);assertTrue(layout[2].manualHidden)
+        assertEquals(before.marks,rows().marks);assertEquals(before.grades,rows().grades)
+        val pending=store.prepare()!!;val changes=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body).changes
+        assertTrue(changes.all{it.kind=="export_rows"});assertEquals(36,changes.size)
+        engine().run();assertNull(store.pending())
+        assertTrue(store.dao.states().all{it.localVersion==it.acknowledged})
+        assertEquals(37,remote.rows.values.count{it.kind=="export_rows"&&it.payload!=null})
+    }
+    @Test fun journalRepositoryUpdateRetainsExistingCaptureIdentityUnderAbortWriter():Unit=runBlocking {
+        seed();val before=rows();val old=before.lessonRecords.first()
+        val changed=old.copy(description="Edição explícita pelo repositório\nTexto preservado.")
+        repo.saveLessonRecord(changed,old)
+        val state=store.dao.states().single{it.kind=="lesson_records"&&it.key1==old.id}
+        assertTrue(state.localVersion>state.acknowledged)
+        engine().run();assertNull(store.pending())
+        assertEquals(before.copy(lessonRecords=before.lessonRecords.map{if(it.id==old.id)changed else it}),rows())
+        assertEquals(1,remote.pages.last().records.size)
+        assertEquals(old.id,remote.pages.last().records.single().key["id"]!!.jsonPrimitive.content)
+    }
     @Test fun concurrentDiaryPreservesLocalRemoteAndCursor():Unit=runBlocking {
         seed();val cursor=store.cursor();val journal=fixture.lessonRecords.first();repo.dao.save(journal.copy(description="Local"))
         val p=AcademicRecords.json.encodeToJsonElement(LessonRecord.serializer(),journal.copy(description="Remoto")).jsonObject

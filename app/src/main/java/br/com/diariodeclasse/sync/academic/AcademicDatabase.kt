@@ -45,13 +45,17 @@ fun installAcademicTriggers(db:SupportSQLiteDatabase) {
         val key1=when(table){"terms","class_archives","preserved_histories"->"$ref.classId";"relocations"->"$ref.sourceStudentId";"grades"->"$ref.activityId";"marks"->"$ref.lessonId";"recompositions"->"$ref.studentId";else->"$ref.id"}
         val key2=when(table){"terms"->"CAST($ref.number AS TEXT)";"grades","marks"->"$ref.studentId";"recompositions"->"CAST($ref.term AS TEXT)";else->"''"}
         val stages=when(table){in phaseBKinds->"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D'";in phaseCKinds->"'PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D'";else->"'PREPARED_D','ACTIVE_D'"}
+        // Do not rely on OR IGNORE inside a trigger: an outer INSERT/UPDATE OR ABORT
+        // overrides it in SQLite. Guard the insert instead; the same transaction's UPDATE
+        // increments both new and existing counters, retaining every PK/unique constraint.
         // Replace only our own capture trigger definition; no academic row is modified.
         db.execSQL("DROP TRIGGER IF EXISTS academic_${table}_${event.lowercase()}")
         db.execSQL("""CREATE TRIGGER IF NOT EXISTS academic_${table}_${event.lowercase()} AFTER $event ON $table
             WHEN EXISTS(SELECT 1 FROM sync_academic_control WHERE id=1 AND stage IN ($stages) AND applying=0)
             BEGIN
-              INSERT OR IGNORE INTO sync_academic_records(kind,key1,key2,owner,localVersion,acknowledged,revision,base)
-              SELECT '$table',$key1,$key2,owner,0,0,0,NULL FROM sync_academic_control WHERE id=1;
+              INSERT INTO sync_academic_records(kind,key1,key2,owner,localVersion,acknowledged,revision,base)
+              SELECT '$table',$key1,$key2,owner,0,0,0,NULL FROM sync_academic_control WHERE id=1
+                AND NOT EXISTS(SELECT 1 FROM sync_academic_records r WHERE r.kind='$table' AND r.key1=$key1 AND r.key2=$key2);
               UPDATE sync_academic_records SET localVersion=localVersion+1 WHERE kind='$table' AND key1=$key1 AND key2=$key2;
             END""".trimIndent())
     }
