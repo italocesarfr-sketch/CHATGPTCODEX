@@ -133,3 +133,28 @@ São 24 etapas HTTP normais e uma etapa de encerramento intencional/rollback, al
 das 32 verificações HTTP de segurança. A etapa intencional não é um teste ignorado
 nem substitui a regressão completa; sem rollback/replay correto o roteiro falha.
 A compilação passou; a execução dessa prova ainda depende do workflow final.
+
+## Retomada: correção do CI 41505368680
+
+HEAD inicial `624530b81fea`, sem alterações locais de código. Logs/artefato
+`13170908876` consultados: B HTTP terminou, C chegou a `c-observe-conflict` e
+confirmou variantes/cursor antes de falhar na captura, que exigia retry habilitado.
+Room D 13/13 passou; o transporte D não foi alcançado nesse workflow.
+
+O painel tinha critérios diferentes: o texto priorizava inbox/outbox de conflito,
+mas spinner/botão olhavam a mensagem do controle isoladamente. As consultas Room
+independentes podem expor conflito antes da última mensagem de controle. Um teste
+novo reproduz deterministicamente essa combinação, sem sleeps nem timeout maior.
+O artefato antigo não trazia captura/árvore do instante da falha; não se presume
+que um atraso maior provaria correção.
+
+Política explícita: conflito exige conferência; retry fica desabilitado, texto
+Conflito preservado, sem spinner. A engine permanece bloqueada, sem reenviar ou
+avançar cursor; teste Room C verifica contador de envios inalterado em tentativas
+repetidas. Capture C/D agora exige esse estado exato, botão visível e desabilitado,
+e conserva screenshot, semântica e metadados sem dados pessoais se falhar. Traps
+preservam evidências também quando o roteiro aborta.
+
+Build debug/instrumentação aprovados; JVM 261 casos, 260 aprovados e um LiveAuth
+condicional ignorado, zero falhas. Regressão Android completa e fluxo D aguardam
+nova execução. Nenhuma alteração Room, backup, SQL ou regra acadêmica nesta correção.

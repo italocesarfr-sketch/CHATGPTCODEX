@@ -76,7 +76,9 @@ class PhaseCRoomTest {
         remote.pushC(owner,AcademicBatch(newId(),listOf(AcademicChange(r.kind,r.key,r.revision,JsonObject(r.payload!!+("value" to JsonPrimitive(5.0)))))))
         engine().run();assertEquals(cursor,store.cursor());assertEquals(3.0,repo.dao.activityGrades("ca").single{it.studentId==students[0].id}.value!!,0.0)
         assertEquals(1,store.dao.incoming().size);assertTrue(store.dao.incoming().single().body.contains("5.0"))
+        val pushes=remote.pushes
         repeat(2){engine().run();assertEquals("CONFLICT",store.dao.control()!!.message)}
+        assertEquals(pushes,remote.pushes) // A retry inspects the preserved conflict; it cannot resend.
         assertEquals(cursor,store.cursor());assertEquals(3.0,repo.dao.activityGrades("ca").single{it.studentId==students[0].id}.value!!,0.0)
     }
     @Test fun invalidGradeRejectsEntirePageIncludingUnrelatedClassRename():Unit=runBlocking {

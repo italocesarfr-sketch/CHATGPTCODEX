@@ -10,6 +10,15 @@ for device in "$primary" "$secondary"; do
  adb -s "$device" shell pm clear br.com.diariodeclasse >/dev/null
 done
 mkdir -p build/phased-network
+archive_captures(){
+ for side in primary secondary; do
+  local device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+  if adb -s "$device" shell run-as br.com.diariodeclasse test -d files/phased-network; then
+   adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phased-network > "build/phased-network/$side-captures.tar" || true
+  fi
+ done
+}
+trap archive_captures EXIT
 probe(){
  local device="$1" phase="$2" side="$3"
  adb -s "$device" shell am force-stop br.com.diariodeclasse

@@ -201,6 +201,7 @@ jobs:
             app/build/academic-protocol-validation/
             build/academic-postgres.txt
             build/academic-protocol-focused.txt
+            build/academic-conflict-panel.txt
             build/phaseb-postgres.txt
             build/phaseb-http.txt
             build/phaseb-focused.txt

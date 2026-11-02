@@ -41,6 +41,13 @@ from pathlib import Path
 text=Path('build/phased-focused.txt').read_text()
 assert 'OK (13 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASED
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.AcademicConflictPanelTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/academic-conflict-panel.txt
+cat build/academic-conflict-panel.txt
+python3 - <<'PYCONFLICT'
+from pathlib import Path
+text=Path('build/academic-conflict-panel.txt').read_text()
+assert 'OK (1 test)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYCONFLICT
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"
     adb shell am force-stop br.com.diariodeclasse

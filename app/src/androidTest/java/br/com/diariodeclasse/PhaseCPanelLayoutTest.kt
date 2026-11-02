@@ -34,7 +34,7 @@ class PhaseCPanelLayoutTest {
         for((value,label) in listOf("" to "Sincronizado","SYNCING" to "Sincronizando","OFFLINE" to "Aguardando internet","RETRY" to "Falha temporária","CONFLICT" to "Conflito preservado","PENDING" to "Pendente de envio")) {
             compose.runOnIdle{code=value};compose.onNodeWithTag("academic-status").performScrollTo().assertTextEquals(label).assertIsDisplayed()
             compose.onNodeWithTag("academic-retry").performScrollTo().assertHeightIsAtLeast(48.dp)
-            if(value=="SYNCING")compose.onNodeWithTag("academic-retry").assertIsNotEnabled()
+            if(value in setOf("SYNCING","CONFLICT"))compose.onNodeWithTag("academic-retry").assertIsNotEnabled()
             else compose.onNodeWithTag("academic-retry").assertIsEnabled()
         }
         val app=ApplicationProvider.getApplicationContext<android.content.Context>()

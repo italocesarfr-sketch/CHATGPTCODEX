@@ -37,12 +37,12 @@ class PhaseDNetworkProbeTest {
     private suspend fun snapshot()=ClassLifecycle.snapshot(w.repository.readSnapshot()).canonical()
     private suspend fun edit(text:String){val j=w.repository.dao.lessonRecord(journalId)!!;w.repository.dao.save(j.copy(description=text))}
     private suspend fun journal()=w.repository.dao.lessonRecord(journalId)!!.description
-    private fun shot(label:String){
-        compose.onNodeWithTag("auth-account").performClick();compose.onNodeWithTag("open-sync").performClick()
-        compose.waitUntil(5000){compose.onAllNodesWithTag("academic-retry").fetchSemanticsNodes().singleOrNull()?.config?.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled)==false}
-        val dir=File(app.filesDir,"phased-network").apply{mkdirs()}
-        File(dir,"$label.png").outputStream().use{compose.onNode(isDialog()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
-        compose.onNodeWithText("Concluído").performClick()
+    private fun shot(label:String,expectedStatus:String?=null)=compose.academicCapture(app,"phased-network",label,expectedStatus) {
+        runBlocking { kotlinx.coroutines.withTimeout(2000) {
+            val c=store.dao.control()
+            "stage=${c?.stage} message=${c?.message} cursor=${c?.cursor} enabled=${c?.enabled} checked=${c?.checked}\n"+
+                "outbox=${store.dao.pending().size} inbox=${store.dao.incoming().size}"
+        } }
     }
     @Test fun fifteenAcademicTypesOnIndependentInstallations():Unit=runBlocking {
         val phase=InstrumentationRegistry.getArguments().getString("phaseBNetworkPhase")
@@ -190,7 +190,7 @@ class PhaseDNetworkProbeTest {
             "d-observe-conflict"->{
                 waitFor{store.dao.incoming().isNotEmpty()};assertEquals("Variante local preservada",journal());assertNotNull(store.pending())
                 val incoming=store.dao.incoming().single();assertTrue(incoming.body.contains("Variante remota preservada"));assertTrue(incoming.sequence>store.cursor())
-                w.syncMutex.withLock{repeat(2){AcademicCoordinator.engine(app,w).run()}};assertEquals("CONFLICT",store.dao.control()!!.message);shot("10-d-conflito")
+                w.syncMutex.withLock{repeat(2){AcademicCoordinator.engine(app,w).run()}};assertEquals("CONFLICT",store.dao.control()!!.message);shot("10-d-conflito","Conflito preservado")
             }
             else->error("Unknown D phase")
         }

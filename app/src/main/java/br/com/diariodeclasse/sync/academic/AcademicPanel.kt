@@ -9,9 +9,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 
+/** Room flows may expose inbox/outbox before their control-message emission. */
+fun academicConflict(c:AcademicControl?,pending:List<AcademicPending>,incoming:List<AcademicIncoming>)=
+    incoming.isNotEmpty() || pending.any{it.conflict!=null} || c?.message in setOf("CONFLICT","GRAPH","UNSUPPORTED")
+fun academicRunning(c:AcademicControl?,pending:List<AcademicPending>,incoming:List<AcademicIncoming>)=
+    c?.stage!="RESTORE" && c?.message=="SYNCING" && !academicConflict(c,pending,incoming)
+fun academicRetryAllowed(c:AcademicControl?,pending:List<AcademicPending>,incoming:List<AcademicIncoming>)=
+    c!=null && c.stage!="RESTORE" && !academicRunning(c,pending,incoming) && !academicConflict(c,pending,incoming)
+
 fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<AcademicPending>,incoming:List<AcademicIncoming>):String=when {
     c?.stage=="RESTORE"->"Pausado após restauração"
-    pending.any{it.conflict!=null} || incoming.isNotEmpty()->"Conflito preservado"
+    academicConflict(c,pending,incoming)->"Conflito preservado"
     c?.message=="SYNCING"->"Sincronizando"
     c?.stage in listOf("PREPARED","PREPARED_C","PREPARED_D")->when(c?.message){"CONFLICT","GRAPH","UNSUPPORTED"->"Conflito preservado";"SETUP"->"Aguarda configuração do teste";"OFFLINE","NETWORK"->"Aguardando internet";else->"Transição pendente"}
     c?.enabled!=true->"Teste pausado"
@@ -25,9 +33,10 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
 }
 @Composable fun AcademicPanelContent(c:AcademicControl,states:List<AcademicState>,pending:List<AcademicPending>,incoming:List<AcademicIncoming>,busy:Boolean,
     retry:()->Unit,pause:()->Unit,resume:()->Unit) {
+    val running=academicRunning(c,pending,incoming)
     Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            if(c.message=="SYNCING")CircularProgressIndicator(Modifier.size(20.dp),strokeWidth=2.dp)
+            if(running)CircularProgressIndicator(Modifier.testTag("academic-progress").size(20.dp),strokeWidth=2.dp)
             Text(academicLabel(c,states,pending,incoming),Modifier.weight(1f).testTag("academic-status").semantics{liveRegion=LiveRegionMode.Polite})
         }
         Text(if(c.stage.endsWith("_D"))"Teste dos 15 tipos de registros acadêmicos, incluindo diário, horários e históricos. Mantenha o backup; conflitos e acervos maiores ainda exigem conferência."
@@ -36,7 +45,7 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
         if(incoming.isNotEmpty() || pending.any{it.conflict!=null})Text("As versões foram preservadas. A conferência é necessária antes de retomar.")
         if(c.stage=="RESTORE")Text("Confira os dados restaurados antes de reconciliar a fila.")
         else {
-            OutlinedButton(onClick=retry,enabled=!busy&&c.message!="SYNCING",modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-retry")){Text("Tentar novamente")}
+            OutlinedButton(onClick=retry,enabled=!busy&&academicRetryAllowed(c,pending,incoming),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-retry")){Text("Tentar novamente")}
             TextButton(onClick=if(c.enabled)pause else resume,enabled=!busy,modifier=Modifier.heightIn(min=48.dp)) {
                 Text(if(c.enabled)"Pausar teste"else"Retomar teste")
             }

@@ -14,6 +14,20 @@ class PhaseCStatusTest {
         assertEquals("Conflito preservado",academicLabel(c.copy(stage="PREPARED_C",enabled=false,message="CONFLICT"),emptyList(),emptyList(),emptyList()))
         assertEquals("Pausado após restauração",academicLabel(c.copy(stage="RESTORE",enabled=false),emptyList(),emptyList(),emptyList()))
     }
+    @Test fun preservedConflictOverridesStaleSyncControlForSpinnerAndRetry() {
+        val c=AcademicControl(owner="fixture",stage="ACTIVE_C",enabled=true,message="SYNCING")
+        val incoming=listOf(AcademicIncoming(1,"fixture","{}","CONFLICT"))
+        assertEquals("Conflito preservado",academicLabel(c,emptyList(),emptyList(),incoming))
+        assertFalse(academicRunning(c,emptyList(),incoming))
+        assertFalse(academicRetryAllowed(c,emptyList(),incoming))
+        val pending=listOf(AcademicPending("op","fixture","{}","[]",0,conflict="preserved"))
+        assertEquals("Conflito preservado",academicLabel(c,emptyList(),pending,emptyList()))
+        assertFalse(academicRunning(c,pending,emptyList()))
+        assertFalse(academicRetryAllowed(c,pending,emptyList()))
+        assertTrue(academicRunning(c,emptyList(),emptyList()))
+        assertTrue(academicRetryAllowed(c.copy(message="RETRY"),emptyList(),emptyList()))
+        assertFalse(academicRunning(c.copy(stage="RESTORE"),emptyList(),emptyList()))
+    }
     @Test fun typedCompositeKeysAndNullGradeRemainDistinctFromZeroAndAbsent() {
         val zero=Grade("a","s",0.0);val pending=Grade("a","s",null)
         for(value in listOf(zero,pending)) {

@@ -38,13 +38,12 @@ class PhaseCNetworkProbeTest {
     private fun synced(){waitFor{val c=store.dao.control();c?.checked==true&&c.message.isEmpty()&&store.dao.pending().isEmpty()&&store.dao.incoming().isEmpty()&&store.dao.states().all{it.localVersion==it.acknowledged}}}
     private suspend fun grade(n:Int)=w.repository.dao.activityGrades("c-net-a1").single{it.studentId==student(n).id}.value
     private suspend fun edit(n:Int,value:Double){w.repository.dao.save(Grade("c-net-a1",student(n).id,value))}
-    private fun shot(label:String){
-        compose.onNodeWithTag("auth-account").performClick();compose.onNodeWithTag("open-sync").performClick()
-        compose.waitUntil(5000){compose.onAllNodesWithTag("academic-retry").fetchSemanticsNodes().singleOrNull()?.config?.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled)==false}
-        compose.onNodeWithTag("academic-retry").assertIsEnabled()
-        val dir=File(app.filesDir,"phasec-network").apply{mkdirs()}
-        File(dir,"$label.png").outputStream().use{compose.onNode(isDialog()).captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}
-        compose.onNodeWithText("Concluído").performClick()
+    private fun shot(label:String,expectedStatus:String?=null)=compose.academicCapture(app,"phasec-network",label,expectedStatus) {
+        runBlocking { kotlinx.coroutines.withTimeout(2000) {
+            val c=store.dao.control()
+            "stage=${c?.stage} message=${c?.message} cursor=${c?.cursor} enabled=${c?.enabled} checked=${c?.checked}\n"+
+                "outbox=${store.dao.pending().size} inbox=${store.dao.incoming().size}"
+        } }
     }
     private suspend fun assertFixture(){
         assertEquals(36,w.repository.dao.roster(school.id).size);assertEquals(4,w.repository.dao.periods(school.id).size)
@@ -125,7 +124,7 @@ class PhaseCNetworkProbeTest {
                 assertTrue(page.sequence>store.cursor());assertTrue(page.records.any{it.kind=="grades"&&it.payload?.get("value")?.jsonPrimitive?.doubleOrNull==2.0})
                 w.syncMutex.withLock{repeat(2){AcademicCoordinator.engine(app,w).run()}}
                 assertEquals("CONFLICT",store.dao.control()!!.message)
-                assertNotNull(w.repository.dao.lessonRecord("c-net-journal"));shot("08-c-conflito")
+                assertNotNull(w.repository.dao.lessonRecord("c-net-journal"));shot("08-c-conflito","Conflito preservado")
             }
             else->error("Unknown phase")
         }
