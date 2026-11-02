@@ -48,7 +48,7 @@ adb shell settings put system font_scale 1.0
 adb exec-out run-as br.com.diariodeclasse tar -cf - files/phaseb-layout > build/phaseb-layout.tar
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"
-    timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseCPanelLayoutTest br.com.diariodeclasse.test/br.com/diariodeclasse/AuthTestRunner > "build/phasec-font-$font.txt"
+    timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseCPanelLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phasec-font-$font.txt"
     python3 - "$font" <<'PYPHASECFONT'
 from pathlib import Path
 import sys
