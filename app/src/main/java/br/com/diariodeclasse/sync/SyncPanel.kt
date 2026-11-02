@@ -13,9 +13,14 @@ import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.auth.AccountWorkspace
 import br.com.diariodeclasse.data.SchoolClass
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.withLock
 import br.com.diariodeclasse.sync.academic.*
 import br.com.diariodeclasse.DiaryApplication
+
+private data class LegacyPanelRead(val control:SyncControl?,val states:List<SyncClassState>)
+private data class AcademicPanelRead(val control:AcademicControl?,val states:List<AcademicState>,
+    val pending:List<AcademicPending>,val incoming:List<AcademicIncoming>)
 
 /** Scope is always explicit: this status concerns classes, not an academic cloud backup. */
 fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
@@ -28,14 +33,22 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     else->"Turmas sincronizadas"
 }
 @Composable fun SyncPanel(workspace:AccountWorkspace,classes:List<SchoolClass>,close:()->Unit) {
-    val dao=workspace.database.syncDao()
-    val control by dao.watchControl().collectAsState(null)
-    val states by dao.watchStates().collectAsState(emptyList())
-    val academicDao=workspace.database.academicDao()
-    val academic by academicDao.watchControl().collectAsState(null)
-    val academicStates by academicDao.watchStates().collectAsState(emptyList())
-    val pending by academicDao.watchPending().collectAsState(emptyList())
-    val incoming by academicDao.watchIncoming().collectAsState(emptyList())
+    val dao=remember(workspace){workspace.database.syncDao()}
+    val academicDao=remember(workspace){workspace.database.academicDao()}
+    // Stable producers survive parent recompositions. Null snapshot means loading,
+    // whereas a loaded snapshot with null control means no academic enrollment.
+    val legacyFlow=remember(dao){combine(dao.watchControl(),dao.watchStates(),::LegacyPanelRead)}
+    val academicFlow=remember(academicDao){combine(academicDao.watchControl(),academicDao.watchStates(),
+        academicDao.watchPending(),academicDao.watchIncoming(),::AcademicPanelRead)}
+    val legacyRead by legacyFlow.collectAsState(initial=null)
+    val academicRead by academicFlow.collectAsState(initial=null)
+    val control=legacyRead?.control
+    val states=legacyRead?.states.orEmpty()
+    val academic=academicRead?.control
+    val academicStates=academicRead?.states.orEmpty()
+    val pending=academicRead?.pending.orEmpty()
+    val incoming=academicRead?.incoming.orEmpty()
+    val ready=academicRead!=null && (academic!=null || legacyRead!=null)
     val scope=rememberCoroutineScope()
     val store=remember(workspace){ClassSyncStore(workspace.database,workspace.user.id)}
     var enrolling by remember{mutableStateOf<SchoolClass?>(null)}
@@ -48,9 +61,10 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     var fictitiousC by remember{mutableStateOf(false)}
     var fictitious by remember{mutableStateOf(false)}
     fun act(block:suspend()->Unit){busy=true;scope.launch{try{block();SyncJobs.soon(workspace.context)}catch(_:Exception){error="Não foi possível iniciar. Os dados locais foram preservados."}finally{busy=false}}}
-    AlertDialog(onDismissRequest=close,title={Text(if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
+    AlertDialog(onDismissRequest=close,title={Text(if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            if(academic!=null) {
+            if(!ready)Text("Carregando estado da sincronização…",Modifier.testTag("sync-loading"))
+            else if(academic!=null) {
                 val academicStore=remember(workspace){AcademicStore(workspace.database,workspace.user.id)}
                 AcademicPanelContent(academic!!,academicStates,pending,incoming,busy,
                     retry={workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)},

@@ -171,3 +171,16 @@ A captura C/D agora usa o mesmo mutex da conta durante espera/asserções/pixels
 Não pausa a sincronização nem altera persistência; apenas serializa a observação
 com o polling. Mantém enabled nos estados permitidos e disabled explícito em
 conflito, sem sleeps ou aumento de timeout. Nova rodada completa ainda necessária.
+
+Rodada `41521165297`, código `8be79ca`: C voltou a passar. D parou na captura
+inicial com `ACTIVE_D`, OFFLINE, outbox=1 e inbox=0 no Room, mas a árvore exibiu o
+painel legado (`academic-enable`) em vez do painel D. Isso distinguiu a falha de
+leitura inicial da corrida de polling anterior; não foi falha de gravação/envio.
+
+`SyncPanel` recriava seis produtores Flow durante recomposições e usava null tanto
+para leitura pendente quanto para ausência de controle acadêmico. Os produtores
+agora são lembrados por DAO/workspace, combinados em modelos de leitura tipados,
+e o diálogo distingue carregamento de ausência. Não mostra ações v1 antes de
+concluir a leitura do estado. Novo teste nativo usa Room isolado, 100 metadados e
+20 recomposições do pai para verificar painel D e bloqueio de conflito estáveis.
+Build/JVM passaram; nova regressão Android completa ainda pendente.
