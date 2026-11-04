@@ -81,3 +81,10 @@ Preparados, ainda dependentes do CI Android: sete testes Room E, migração 12�
 e prova HTTP com dois AVDs (5.171 registros, retomada após morte real do processo,
 edita nota no sentido inverso, diário offline/reconexão e conflito preservado).
 As fases E2/E3 e a aprovação global E continuam pendentes.
+
+Rodada E1 `41756048249`: PostgreSQL A/B/C/D e E1 passaram; Android parou na
+sonda de atualização porque esperava Room 12 em vez de 13. Revisão encontrou
+também a checagem fixa de esquema no BackupManager. Correção usa constantes
+explícitas da versão/hash 13, preservando os hashes legados e todas as comparações
+de dados. Backup lógico 12 e criptografia continuam inalterados. E1 ainda aguarda
+nova rodada Android; nenhuma aprovação antecipada.

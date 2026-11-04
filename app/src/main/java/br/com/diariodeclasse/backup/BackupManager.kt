@@ -12,7 +12,8 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 
-const val SYNC_SCHEMA_IDENTITY = "f7a581230efcfacc6e9659189abb0448"
+const val SYNC_SCHEMA_VERSION = 13
+const val SYNC_SCHEMA_IDENTITY = "465e5636dd99c20945a84f78a1167970"
 
 interface SafetyBackupStore {
     fun save(bytes: ByteArray): File
@@ -59,7 +60,7 @@ class BackupManager(
         private set
     private fun verifySchema() {
         db.openHelper.writableDatabase.query("PRAGMA user_version").use {
-            check(it.moveToFirst() && it.getInt(0) == 12) { "Versão do banco incompatível." }
+            check(it.moveToFirst() && it.getInt(0) == SYNC_SCHEMA_VERSION) { "Versão do banco incompatível." }
         }
         db.openHelper.writableDatabase.query("SELECT identity_hash FROM room_master_table WHERE id = 42").use {
             check(it.moveToFirst() && it.getString(0) == SYNC_SCHEMA_IDENTITY) { "Esquema do banco incompatível." }
