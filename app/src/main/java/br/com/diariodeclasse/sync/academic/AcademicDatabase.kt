@@ -34,14 +34,19 @@ data class AcademicDecision(@PrimaryKey val id:String,val owner:String,val body:
     @Query("SELECT * FROM sync_academic_records WHERE kind=:kind AND key1=:key1 AND key2=:key2") suspend fun record(kind:String,key1:String,key2:String):AcademicState?
     @Query("SELECT * FROM sync_academic_records ORDER BY kind,key1,key2") fun watchStates():Flow<List<AcademicState>>
     @Upsert suspend fun save(value:AcademicState)
-    @Query("SELECT * FROM sync_academic_outbox ORDER BY createdAt,id") suspend fun pending():List<AcademicPending>
-    @Query("SELECT * FROM sync_academic_outbox ORDER BY createdAt,id") fun watchPending():Flow<List<AcademicPending>>
+    @Query("SELECT id,owner,'' AS body,'' AS versions,createdAt,attempts,conflict FROM sync_academic_outbox ORDER BY createdAt,id") suspend fun pendingHeaders():List<AcademicPending>
+    @Query("SELECT substr(body,:offset,32768) FROM sync_academic_outbox WHERE id=:id") suspend fun pendingBody(id:String,offset:Int):String?
+    @Query("SELECT substr(versions,:offset,32768) FROM sync_academic_outbox WHERE id=:id") suspend fun pendingVersions(id:String,offset:Int):String?
+    @Transaction suspend fun pending():List<AcademicPending> = pendingHeaders().map{row->row.copy(body=requireNotNull(academicText{pendingBody(row.id,it)}),versions=requireNotNull(academicText{pendingVersions(row.id,it)}))}
+    @Query("SELECT id,owner,'' AS body,'' AS versions,createdAt,attempts,conflict FROM sync_academic_outbox ORDER BY createdAt,id") fun watchPending():Flow<List<AcademicPending>>
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicPending)
     @Query("UPDATE sync_academic_outbox SET attempts=attempts+1 WHERE id=:id") suspend fun attempt(id:String)
     @Query("UPDATE sync_academic_outbox SET conflict=:reason WHERE id=:id") suspend fun conflict(id:String,reason:String)
     @Query("DELETE FROM sync_academic_outbox WHERE id=:id") suspend fun acknowledge(id:String)
-    @Query("SELECT * FROM sync_academic_inbox ORDER BY sequence") suspend fun incoming():List<AcademicIncoming>
-    @Query("SELECT * FROM sync_academic_inbox ORDER BY sequence") fun watchIncoming():Flow<List<AcademicIncoming>>
+    @Query("SELECT sequence,owner,'' AS body,reason FROM sync_academic_inbox ORDER BY sequence") suspend fun incomingHeaders():List<AcademicIncoming>
+    @Query("SELECT substr(body,:offset,32768) FROM sync_academic_inbox WHERE sequence=:sequence") suspend fun incomingBody(sequence:Long,offset:Int):String?
+    @Transaction suspend fun incoming():List<AcademicIncoming> = incomingHeaders().map{row->row.copy(body=requireNotNull(academicText{incomingBody(row.sequence,it)}))}
+    @Query("SELECT sequence,owner,'' AS body,reason FROM sync_academic_inbox ORDER BY sequence") fun watchIncoming():Flow<List<AcademicIncoming>>
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicIncoming)
     @Query("SELECT * FROM sync_academic_applied WHERE sequence=:sequence") suspend fun applied(sequence:Long):AcademicApplied?
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicApplied)
@@ -51,11 +56,27 @@ data class AcademicDecision(@PrimaryKey val id:String,val owner:String,val body:
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicPart)
     @Query("UPDATE sync_academic_parts SET body='' WHERE sequence=:sequence") suspend fun confirmParts(sequence:Long)
     @Query("UPDATE sync_academic_parts SET body=:body WHERE sequence=:sequence AND offset=:offset AND body=''") suspend fun retainPart(sequence:Long,offset:Int,body:String)
-    @Query("SELECT * FROM sync_academic_decisions ORDER BY createdAt,id") suspend fun decisions():List<AcademicDecision>
-    @Query("SELECT * FROM sync_academic_decisions ORDER BY createdAt,id") fun watchDecisions():Flow<List<AcademicDecision>>
+    @Query("SELECT id,owner,'' AS body,createdAt,phase,NULL AS response,error FROM sync_academic_decisions ORDER BY createdAt,id") suspend fun decisionHeaders():List<AcademicDecision>
+    @Query("SELECT substr(body,:offset,32768) FROM sync_academic_decisions WHERE id=:id") suspend fun decisionBody(id:String,offset:Int):String?
+    @Query("SELECT substr(response,:offset,32768) FROM sync_academic_decisions WHERE id=:id") suspend fun decisionResponse(id:String,offset:Int):String?
+    @Transaction suspend fun decisions():List<AcademicDecision> = decisionHeaders().map{row->row.copy(body=requireNotNull(academicText{decisionBody(row.id,it)}),response=academicText{decisionResponse(row.id,it)})}
+    @Query("SELECT id,owner,'' AS body,createdAt,phase,NULL AS response,error FROM sync_academic_decisions ORDER BY createdAt,id") fun watchDecisions():Flow<List<AcademicDecision>>
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicDecision)
     @Query("UPDATE sync_academic_decisions SET phase=:phase,response=:response,error=:error WHERE id=:id") suspend fun decide(id:String,phase:String,response:String?,error:String?)
     @Query("DELETE FROM sync_academic_inbox") suspend fun resolvedInbox()
+}
+
+/** SQLite cursor windows cannot hold a multi-MiB row. Read bounded Unicode substrings
+ * in the caller's Room transaction; UI flows need only immutable identity/status headers. */
+private suspend fun academicText(read:suspend(Int)->String?):String? {
+    val text=StringBuilder();var offset=1;var bytes=0L
+    while(true) {
+        val part=read(offset) ?: return null
+        if(part.isEmpty())return text.toString()
+        bytes+=part.toByteArray(Charsets.UTF_8).size
+        require(bytes<=AcademicPaging.MAX_BYTES+1024*1024L)
+        text.append(part);offset+=32768 // SQLite substr counts code points, including emoji once.
+    }
 }
 
 fun installAcademicTriggers(db:SupportSQLiteDatabase) {

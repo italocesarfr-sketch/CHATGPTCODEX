@@ -41,6 +41,13 @@ from pathlib import Path
 text=Path('build/phased-focused.txt').read_text()
 assert 'OK (15 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASED
+timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 150000 -e class br.com.diariodeclasse.PhaseELargePayloadRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phasee-large-payload.txt
+cat build/phasee-large-payload.txt
+python3 - <<'PYLARGE'
+from pathlib import Path
+text=Path('build/phasee-large-payload.txt').read_text()
+assert 'OK (1 test)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYLARGE
 timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 210000 -e class br.com.diariodeclasse.PhaseERoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phasee-focused.txt
 cat build/phasee-focused.txt
 python3 - <<'PYPHASEE'

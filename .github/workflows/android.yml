@@ -226,6 +226,7 @@ jobs:
             build/phasec-font-*.txt
             build/phasec-layout.tar
             build/phasee-postgres.txt
+            build/phasee-large-payload.txt
             build/phasee-focused.txt
             build/phasee-decisions-postgres.txt
             build/phasee-reconciliation.txt
