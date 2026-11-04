@@ -194,3 +194,9 @@ a operação conservando variantes. A decisão é por conjunto consistente; lote
 com novas atividades/aulas/matrículas/movimentações e dependências são agrupados.
 Incompatibilidades de grafo e auditorias imutáveis continuam bloqueadas, sem
 qualquer regra de última gravação vence.
+
+### Continuidade E4 e segunda rodada Android
+
+A execução `41760729100` passou a atualização isolada, as regressões HTTP B/C/D, os sete testes Room de paginação e os dez de reconciliação. Falhou em `e-lost`: a confirmação perdida do primeiro envio grande não foi observada. Não há aprovação HTTP E nem da regressão Android final nessa execução. O próximo ensaio preserva a asserção e acrescenta somente diagnóstico técnico sem conteúdo acadêmico, conta ou token.
+
+O transporte agora exige revalidar a admissão da conta entre partes e antes do commit; uma fase HTTP interrompe após uma parte durável e exige que o servidor permaneça sem publicação, com a mesma outbox. A capacidade de transição E é calculada sobre o delta pendente, não sobre registros já confirmados: um acervo de 20.000 registros com uma alteração não deve ser recusado por seu tamanho total. Operações acima do limite continuam bloqueadas com mensagem específica. A nova suíte JVM executou 276 casos: 275 aprovados, um teste de Auth hospedado condicional ignorado, zero falhas. APKs debug e de instrumentação compilaram. Sem alteração hospedada ou instalação no aparelho do proprietário.

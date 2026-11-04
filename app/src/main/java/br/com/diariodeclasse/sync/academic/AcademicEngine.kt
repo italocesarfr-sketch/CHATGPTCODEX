@@ -68,7 +68,7 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 if(pending==null){store.message("",checked=true);return}
                 store.attempt(pending);if(!allowed())return
                 val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body)
-                val reply=when(store.scope()){5->remote.pushE(token,batch);4->remote.pushD(token,batch);3->remote.pushC(token,batch);else->remote.push(token,batch)}
+                val reply=when(store.scope()){5->remote.pushE(token,batch,admitted);4->remote.pushD(token,batch);3->remote.pushC(token,batch);else->remote.push(token,batch)}
                 if(!allowed())return
                 store.accept(pending,reply)
                 if(store.blocked())return

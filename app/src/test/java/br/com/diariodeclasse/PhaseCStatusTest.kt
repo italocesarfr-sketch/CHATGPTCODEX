@@ -5,6 +5,12 @@ import kotlinx.serialization.json.*
 import org.junit.Test
 import org.junit.Assert.*
 class PhaseCStatusTest {
+    @Test fun eCapacityLimitNeverClaimsSyncedOrTemporaryNetworkFailure() {
+        val c=AcademicControl(owner="fixture",stage="ACTIVE_E",enabled=true,checked=true,message="SIZE")
+        assertEquals("Acervo acima do limite do teste",academicLabel(c,emptyList(),emptyList(),emptyList()))
+        assertFalse(academicRunning(c,emptyList(),emptyList()))
+    }
+
     @Test fun pendingCGradesAndConflictsCannotClaimSynced() {
         val c=AcademicControl(owner="fixture",stage="ACTIVE_C",enabled=true,checked=true,message="")
         assertEquals("Sincronizado",academicLabel(c,emptyList(),emptyList(),emptyList()))

@@ -12,6 +12,9 @@ mkdir -p build/phasee-network
 archive(){
  for side in primary secondary; do
   local device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+  if adb -s "$device" shell run-as br.com.diariodeclasse test -f files/phasee-wait.txt; then
+   adb -s "$device" exec-out run-as br.com.diariodeclasse cat files/phasee-wait.txt > "build/phasee-network/$side-wait.txt" || true
+  fi
   if adb -s "$device" shell run-as br.com.diariodeclasse test -d files/entry-diagnostics; then
    adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/entry-diagnostics > "build/phasee-network/$side-entry.tar" || true
   fi
@@ -37,6 +40,7 @@ PY
 }
 probe "$primary" e-seed primary
 adb -s "$primary" shell svc wifi enable; adb -s "$primary" shell svc data enable
+probe "$primary" e-admission-stop primary
 probe "$primary" e-lost primary
 probe "$primary" e-replay primary
 # Expected real process death after a durable fragment, before any academic apply.
@@ -92,4 +96,4 @@ done
 adb -s "$secondary" shell settings put system font_scale 1.0
 adb -s "$secondary" exec-out run-as br.com.diariodeclasse tar -cf - files/phasee-layout > build/phasee-network/layout.tar
 python3 scripts/test-phase-e-http.py | tee build/phasee-network/http-security.txt
-printf '%s\n' '22 Android E1/E2/E3 HTTP phases plus a required process kill after durable staging passed; 5,171 initial records, 5,172 after explicit backup reconciliation, 15 kinds, two independent AVDs; local PostgreSQL/PostgREST and synthetic Auth only.' > build/phasee-network/summary.txt
+printf '%s\n' '23 Android E1/E2/E3 HTTP phases plus a required process kill after durable staging passed; 5,171 initial records, 5,172 after explicit backup reconciliation, 15 kinds, two independent AVDs; local PostgreSQL/PostgREST and synthetic Auth only.' > build/phasee-network/summary.txt

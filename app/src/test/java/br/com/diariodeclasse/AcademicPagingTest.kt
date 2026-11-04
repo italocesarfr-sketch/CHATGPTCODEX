@@ -30,6 +30,12 @@ class AcademicPagingTest {
         val r=AcademicChange("classes",buildJsonObject{put("id","c")},0,null)
         try{AcademicBatch("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",listOf(r,r)).validate(AcademicPaging.MAX_RECORDS);fail()}catch(_:IllegalArgumentException){}
     }
+    @Test fun accountLargerThanAtomicLimitStillHasASmallIncrementalChange() {
+        val base=(1..20000).map{n->AcademicRow("lesson_records",buildJsonObject{put("id","j-$n")},buildJsonObject{put("id","j-$n");put("description","Texto")})}
+        val local=base.mapIndexed{i,row->if(i==123)row.copy(payload=JsonObject(row.payload+("description" to JsonPrimitive("Edição"))))else row}
+        val delta=AcademicRecords.delta(base,local,base.associate{it.identity to 1L})
+        assertEquals(1,delta.size);assertEquals(1,AcademicPaging.parts(AcademicBatch("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",delta)).size)
+    }
     @Test fun malformedFragmentCannotAdvanceTransferProgress() {
         val row=AcademicVersion("classes",buildJsonObject{put("id","c")},1,null)
         for(part in listOf(AcademicFragment("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",1,1,1,listOf(row)),

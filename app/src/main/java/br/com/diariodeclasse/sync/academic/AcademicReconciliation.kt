@@ -125,7 +125,7 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
                 reply=remote.decisionE(token,decision.id)
                 if(reply==null) {
                     if(context()!=frozen.context){val cancelled=remote.resolveE(token,decision.id,frozen.request,true);check(admitted());dao.decide(decision.id,"STALE",AcademicRecords.json.encodeToString(cancelled),"LOCAL_CHANGED");store.message("CONFLICT");return}
-                    if(frozen.changes.isNotEmpty())remote.stageE(token,AcademicBatch(decision.id,frozen.changes))
+                    if(frozen.changes.isNotEmpty())remote.stageE(token,AcademicBatch(decision.id,frozen.changes),admitted)
                     check(admitted());reply=remote.resolveE(token,decision.id,frozen.request)
                 }
                 check(admitted());require(reply.operation==decision.id)

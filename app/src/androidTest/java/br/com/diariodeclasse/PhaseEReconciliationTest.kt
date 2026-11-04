@@ -114,8 +114,8 @@ class PhaseEReconciliationTest {
         val decisions=mutableMapOf<String,AcademicPushReply>();private val requests=mutableMapOf<String,JsonObject>();private val staged=mutableMapOf<String,AcademicBatch>();var loseDecision=false
         override suspend fun status(token:String)=base.status(token)
         override suspend fun activate(token:String,expected:AcademicProtocolStatus)=base.status(token)
-        override suspend fun pushE(token:String,batch:AcademicBatch)=base.push(token,batch)
-        override suspend fun stageE(token:String,batch:AcademicBatch){val old=staged.putIfAbsent(batch.operation,batch);require(old==null||old==batch)}
+        override suspend fun pushE(token:String,batch:AcademicBatch,admitted:()->Boolean):AcademicPushReply{check(admitted());return base.push(token,batch)}
+        override suspend fun stageE(token:String,batch:AcademicBatch,admitted:()->Boolean){check(admitted());val old=staged.putIfAbsent(batch.operation,batch);require(old==null||old==batch)}
         override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> {
             val page=base.pull(token,after).singleOrNull() ?: return emptyList()
             return listOf(AcademicFragment(page.operation,page.sequence,page.records.size,offset,page.records.drop(offset).take(128)))

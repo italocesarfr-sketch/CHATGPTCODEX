@@ -13,6 +13,7 @@ object PhaseBNetworkHarness {
     @Volatile var secondary=false
     @Volatile var released=false
     @Volatile private var committed=false
+    @Volatile var lastEFailure=""
     fun droppedCommittedReply()=committed
     private const val secret="noctua-phase-b-disposable-jwt-secret-2026-only"
     fun token(other:Boolean=false):String {
@@ -46,11 +47,14 @@ object PhaseBNetworkHarness {
                 return delegate.decisionE(token,operation)
             }
             override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> {
-                if(phase=="e-lost"&&committed)throw SyncFailure("NETWORK")
+                if(phase=="e-admission-stop" || phase=="e-lost"&&committed)throw SyncFailure("NETWORK")
                 return delegate.pullE(token,after,offset)
             }
-            override suspend fun pushE(token:String,batch:AcademicBatch):AcademicPushReply {
-                val reply=delegate.pushE(token,batch)
+            override suspend fun pushE(token:String,batch:AcademicBatch,admitted:()->Boolean):AcademicPushReply {
+                val reply=try{delegate.pushE(token,batch,admitted)}catch(e:Exception){
+                    lastEFailure=(e as? SyncFailure)?.code ?: (e.javaClass.simpleName+":"+e.stackTrace.firstOrNull{it.className.startsWith("br.com.diariodeclasse")})
+                    throw e
+                }
                 if(phase=="e-lost"){committed=true;throw SyncFailure("NETWORK")}
                 return reply
             }

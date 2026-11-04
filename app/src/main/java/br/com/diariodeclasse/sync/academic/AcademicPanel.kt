@@ -27,6 +27,7 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
     c.message=="SESSION"->"Acesso ao teste indisponível"
     c.message=="SETUP"->"Aguarda configuração do teste"
     c.message in setOf("CONFLICT","GRAPH","UNSUPPORTED")->"Conflito preservado"
+    c.stage.endsWith("_E")&&c.message=="SIZE"->"Acervo acima do limite do teste"
     c.message in setOf("NETWORK","REMOTE","RETRY","SIZE")->"Falha temporária"
     pending.isNotEmpty() || states.any{it.localVersion>it.acknowledged} || !c.checked || c.message=="PENDING"->"Pendente de envio"
     else->"Sincronizado"

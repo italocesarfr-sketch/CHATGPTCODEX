@@ -218,8 +218,15 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         if(remote.academicScope==4 && c.cursor!=remote.academicSequence)throw SyncFailure("CONFLICT")
         val local=snapshot();val rows=AcademicRecords.rows(local)
         PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},phaseDKinds)
-        require(rows.size<=AcademicPaging.MAX_RECORDS)
-        require(AcademicRecords.json.encodeToString(rows).toByteArray().size<=AcademicPaging.MAX_BYTES)
+        // Capacity belongs to an atomic change set, not to an already synchronized
+        // account accumulated across many valid commits. Do not reject its whole database.
+        val states=dao.states();check(states.all{it.owner==owner})
+        val base=states.mapNotNull{s->s.base?.let{AcademicRow(s.kind,s.identity().key,AcademicRecords.json.parseToJsonElement(it).jsonObject)}}
+        val changes=AcademicRecords.delta(base,rows,states.filter{it.revision>0}.associate{it.identity() to it.revision})
+        if(changes.isNotEmpty()) {
+            if(changes.size>AcademicPaging.MAX_RECORDS)throw SyncFailure("SIZE")
+            try{AcademicPaging.parts(AcademicBatch(newId(),changes))}catch(_:IllegalArgumentException){throw SyncFailure("SIZE")}
+        }
         dao.save(c.copy(stage="PREPARED_E",enabled=false,message="PENDING",checked=false));seed()
     }
     suspend fun activateE(remote:AcademicProtocolStatus)=db.withTransaction {
@@ -299,8 +306,11 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             val acknowledged=AcademicRecords.snapshot(base)
             PhaseDGuard.immutable(acknowledged,current)
         }
+        if(scope()==5&&changes.size>AcademicPaging.MAX_RECORDS)throw SyncFailure("SIZE")
         val batch=AcademicBatch(newId(),changes);batch.validate(if(scope()==5)AcademicPaging.MAX_RECORDS else 256)
-        val raw=AcademicRecords.json.encodeToString(batch);require(raw.toByteArray().size<=if(scope()==5)AcademicPaging.MAX_BYTES else 1024*1024)
+        val raw=AcademicRecords.json.encodeToString(batch)
+        if(scope()==5&&raw.toByteArray().size>AcademicPaging.MAX_BYTES)throw SyncFailure("SIZE")
+        require(raw.toByteArray().size<=if(scope()==5)AcademicPaging.MAX_BYTES else 1024*1024)
         val stateIndex=states.associateBy{it.identity()}
         val versions=changes.map {r->val s=stateIndex.getValue(r.identity);SentVersion(s.kind,s.key1,s.key2,s.localVersion)}
         AcademicPending(batch.operation,owner,raw,AcademicRecords.json.encodeToString(versions),now()).also{dao.insert(it)}

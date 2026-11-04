@@ -26,7 +26,13 @@ class PhaseENetworkProbeTest {
         compose.waitUntil(15000){runCatching{app.workspaces.current()}.isSuccess}
         val w=app.workspaces.current();val store=AcademicStore(w.database,w.user.id);val client=PhaseBNetworkHarness.raw();val token=PhaseBNetworkHarness.token()
         fun snapshot()=runBlocking{ClassLifecycle.snapshot(w.repository.readSnapshot()).canonical()}
-        fun waitFor(check:suspend()->Boolean){compose.waitUntil(120000){runBlocking{check()}}}
+        fun waitFor(check:suspend()->Boolean){
+            try{compose.waitUntil(120000){runBlocking{check()}}}catch(e:Exception){
+                val diagnostic=runBlocking{val c=store.dao.control();"phase=$phase stage=${c?.stage} enabled=${c?.enabled} message=${c?.message} cursor=${c?.cursor} pending=${store.dao.pending().size} parts=${store.dao.stagedParts().size} transport=${PhaseBNetworkHarness.lastEFailure}"}
+                File(app.filesDir,"phasee-wait.txt").writeText(diagnostic)
+                throw AssertionError(diagnostic,e)
+            }
+        }
         fun synced(){waitFor{store.dao.control()?.let{it.stage=="ACTIVE_E"&&it.checked&&it.message.isEmpty()}==true&&store.dao.pending().isEmpty()&&store.dao.incoming().isEmpty()&&store.dao.stagedParts().isEmpty()}}
         fun shell(command:String){InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command).use{android.os.ParcelFileDescriptor.AutoCloseInputStream(it).use{it.readBytes()}}}
         fun offline(){shell("svc wifi disable");shell("svc data disable");waitFor{(w.context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetwork==null}}
@@ -56,6 +62,14 @@ class PhaseENetworkProbeTest {
                 offline();PhaseDFixture.insert(w.database,PhaseEFixture.read());val pending=store.prepare()!!
                 assertEquals(5171,AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body).changes.size)
                 File(app.filesDir,"phasee-operation.txt").writeText(pending.id);shot("01-e-offline")
+            }
+            "e-admission-stop"->{
+                w.syncMutex.withLock {
+                    val pending=store.pending()!!;val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body);var calls=0
+                    try{client.stageE(token,batch){++calls<3};fail()}catch(_:kotlinx.coroutines.CancellationException){}
+                    assertEquals(3,calls);assertEquals(0,client.status(token).academicSequence)
+                    assertEquals(pending.id,store.pending()!!.id);assertEquals(0,store.cursor());assertEquals(PhaseEFixture.read(),snapshot())
+                }
             }
             "e-lost"->{waitFor{PhaseBNetworkHarness.droppedCommittedReply()&&store.pending()!=null};assertEquals(0,store.cursor());assertEquals(File(app.filesDir,"phasee-operation.txt").readText(),store.pending()!!.id)}
             "e-replay"->{
