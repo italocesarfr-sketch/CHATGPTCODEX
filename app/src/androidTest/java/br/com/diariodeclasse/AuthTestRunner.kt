@@ -17,11 +17,15 @@ class AuthTestRunner:AndroidJUnitRunner() {
         }
         super.onCreate(arguments)
     }
-    override fun onStart() {
-        // No static reference to the new Application: the baseline v1 Application is final.
-        phaseB?.let{phase->val app=targetContext.applicationContext
+    override fun callApplicationOnCreate(app:Application) {
+        // Choose the immutable fictitious principal before Application.onCreate schedules
+        // jobs or constructs AccountWorkspaces, which retains that AuthController.
+        // Changing controllers in onStart races the persisted JobScheduler on reconnect.
+        // Reflection retains compatibility with the final baseline v1 Application.
+        phaseB?.let{phase->
             app.javaClass.getMethod("configurePhaseB",String::class.java,Boolean::class.javaPrimitiveType).invoke(app,phase,secondary)}
-        super.onStart()
+        super.callApplicationOnCreate(app)
+        phaseB?.let{app.javaClass.getMethod("verifyPhaseBStartup").invoke(app)}
     }
     override fun newApplication(cl:ClassLoader,name:String,context:Context):Application {
         // AGP emits one instrumentation component. Legacy seed APKs have a final
@@ -58,6 +62,12 @@ class AcademicTestApplication:DiaryApplication() {
     fun configurePhaseB(phase:String,secondary:Boolean){
         PhaseBNetworkHarness.phase=phase;PhaseBNetworkHarness.secondary=secondary
         networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(session=fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token()),legacyOwner=null)}).also{runBlocking{it.restore()}}
+    }
+    fun verifyPhaseBStartup(){
+        check(auth.state.value.user?.id==PhaseBNetworkHarness.user().id)
+        // Exercise eager startup (as a restored JobService can) before runner.onStart.
+        // The same controller must still own this manager when the Activity opens.
+        workspaces
     }
     override fun academicRemote()=if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.

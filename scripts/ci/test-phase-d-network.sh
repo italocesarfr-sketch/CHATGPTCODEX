@@ -13,6 +13,9 @@ mkdir -p build/phased-network
 archive_captures(){
  for side in primary secondary; do
   local device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+  if adb -s "$device" shell run-as br.com.diariodeclasse test -d files/entry-diagnostics; then
+   adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/entry-diagnostics > "build/phased-network/$side-entry.tar" || true
+  fi
   if adb -s "$device" shell run-as br.com.diariodeclasse test -d files/phased-network; then
    adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phased-network > "build/phased-network/$side-captures.tar" || true
   fi
