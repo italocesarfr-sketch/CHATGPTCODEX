@@ -29,6 +29,8 @@ class PhaseEReviewLayoutTest {
         val expected=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")?.toFloat() ?: 1f
         compose.waitUntil(10000){kotlin.math.abs(scale.get()-expected)<0.01f};assertEquals(expected,scale.get(),0.01f)
         compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled().assertIsDisplayed()
+        val activity=s.activities.single{it.id==s.grades.first().activityId}
+        compose.onAllNodes(hasText(activity.name,substring=true)).fetchSemanticsNodes().let{assertTrue("A nota deve identificar a atividade envolvida",it.isNotEmpty())}
         compose.onNodeWithText("Próximos").performScrollTo().performClick()
         compose.onNodeWithTag("academic-choice-KEEP_REMOTE").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
         compose.onNodeWithTag("academic-confirm-decision").assertIsEnabled().assertIsDisplayed()

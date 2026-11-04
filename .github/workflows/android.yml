@@ -119,6 +119,8 @@ jobs:
           set -euo pipefail
           createdb noctua_phase_e_test
           python3 scripts/test-phase-e-postgres.py 2>&1 | tee build/phasee-postgres.txt
+          python3 scripts/benchmark-phase-e.py > build/phasee-db-benchmark.json
+          cat build/phasee-db-benchmark.json
           python3 scripts/test-phase-e-decisions.py 2>&1 | tee build/phasee-decisions-postgres.txt
       - uses: actions/setup-python@v5
         with:
@@ -225,6 +227,7 @@ jobs:
             build/phasec-focused.txt
             build/phasec-font-*.txt
             build/phasec-layout.tar
+            build/phasee-db-benchmark.json
             build/phasee-postgres.txt
             build/phasee-large-payload.txt
             build/phasee-focused.txt

@@ -27,7 +27,7 @@ class PhaseENetworkProbeTest {
         val w=app.workspaces.current();val store=AcademicStore(w.database,w.user.id);val client=PhaseBNetworkHarness.raw();val token=PhaseBNetworkHarness.token()
         fun snapshot()=runBlocking{ClassLifecycle.snapshot(w.repository.readSnapshot()).canonical()}
         fun waitFor(check:suspend()->Boolean){
-            try{compose.waitUntil(120000){runBlocking{check()}}}catch(e:Exception){
+            try{compose.waitUntil(120000){runBlocking{check()}}}catch(e:Throwable){
                 val diagnostic=runBlocking{val c=store.dao.control();"phase=$phase stage=${c?.stage} enabled=${c?.enabled} message=${c?.message} cursor=${c?.cursor} pending=${store.dao.pending().size} parts=${store.dao.stagedParts().size} transport=${PhaseBNetworkHarness.lastEFailure}"}
                 File(app.filesDir,"phasee-wait.txt").writeText(diagnostic)
                 throw AssertionError(diagnostic,e)

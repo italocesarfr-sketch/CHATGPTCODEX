@@ -34,7 +34,15 @@ private fun evidenceTitle(preview:AcademicPreview,e:AcademicEvidence):String {
     val studentId=if(e.kind=="students")e.key["id"]else e.key["studentId"] ?: e.key["sourceStudentId"]
     val student=studentId?.let{values[AcademicKey("students",buildJsonObject{put("id",it)})]?.payload?.get("name")?.jsonPrimitive?.content}
     val label=(e.local ?: e.remote)?.let{it["name"] ?: it["title"]}?.jsonPrimitive?.content
-    return entityNames.getValue(e.kind)+(student?.let{" • $it"} ?: label?.let{" • $it"}.orEmpty())
+    fun related(kind:String,field:String)=e.key[field]?.let{values[AcademicKey(kind,buildJsonObject{put("id",it)})]?.payload}
+    val context=when(e.kind) {
+        "grades"->related("activities","activityId")?.let{listOfNotNull(it["name"]?.jsonPrimitive?.content,it["date"]?.let{date->valueText(date,"date")}).joinToString(" • ")}
+        "marks"->related("lessons","lessonId")?.let{valueText(it["date"],"date")+" • "+it.getValue("ordinal").jsonPrimitive.content+"º horário"}
+        "recompositions","terms"->e.key[if(e.kind=="terms")"number"else"term"]?.jsonPrimitive?.content?.let{"${it}º bimestre"}
+        "lesson_records"->(e.local ?: e.remote)?.get("date")?.let{valueText(it,"date")}
+        else->null
+    }
+    return (listOf(entityNames.getValue(e.kind))+listOfNotNull(student ?: label,context)).joinToString(" • ")
 }
 
 /** Review only; a single explicit confirmation freezes the decision for safe retry. */

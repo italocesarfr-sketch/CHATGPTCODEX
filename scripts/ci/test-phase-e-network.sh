@@ -12,6 +12,9 @@ mkdir -p build/phasee-network
 archive(){
  for side in primary secondary; do
   local device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+  if adb -s "$device" shell run-as br.com.diariodeclasse test -f files/phasee-http-timings.jsonl; then
+   adb -s "$device" exec-out run-as br.com.diariodeclasse cat files/phasee-http-timings.jsonl > "build/phasee-network/$side-http-timings.jsonl" || true
+  fi
   if adb -s "$device" shell run-as br.com.diariodeclasse test -f files/phasee-wait.txt; then
    adb -s "$device" exec-out run-as br.com.diariodeclasse cat files/phasee-wait.txt > "build/phasee-network/$side-wait.txt" || true
   fi
@@ -26,10 +29,17 @@ archive(){
 trap archive EXIT
 probe(){
  local device="$1" phase="$2" side="$3"
+ local started="$(date +%s%N)"
  adb -s "$device" shell am force-stop br.com.diariodeclasse
  timeout --signal=INT --kill-after=10s 4m adb -s "$device" shell am instrument -w -e timeout_msec 210000 \
   -e phaseBNetworkPhase "$phase" -e phaseBDevice "$side" -e class br.com.diariodeclasse.PhaseENetworkProbeTest \
   br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phasee-network/$side-$phase.txt"
+ python3 - "$phase" "$side" "$started" <<'PYTIME'
+import sys,time,json
+from pathlib import Path
+with Path('build/phasee-network/android-phase-timings.jsonl').open('a') as f:
+ f.write(json.dumps(dict(phase=sys.argv[1],device=sys.argv[2],android_scenario_seconds=round((time.time_ns()-int(sys.argv[3]))/1e9,3),includes_startup_http_room_ui=True))+'\n')
+PYTIME
  cat "build/phasee-network/$side-$phase.txt"
  python3 - "$side" "$phase" <<'PY'
 from pathlib import Path

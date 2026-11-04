@@ -30,6 +30,18 @@ object PhaseBNetworkHarness {
     }
     fun user()=if(phase?.startsWith("e-")==true)fixtureUser.copy(id="88888888-8888-4888-8888-888888888888",email="phasee@example.invalid")else if(phase?.startsWith("d-")==true)fixtureUser.copy(id="66666666-6666-4666-8666-666666666666",email="phased@example.invalid")else if(phase?.startsWith("c-")==true)fixtureUser.copy(id="44444444-4444-4444-8444-444444444444",email="phasec@example.invalid")else fixtureUser
     fun raw()=SupabaseAcademicSync("http://10.0.2.2:3000/rpc","public-local-fixture")
+    private suspend fun <T> measureE(method:String,block:suspend()->T):T {
+        val start=android.os.SystemClock.elapsedRealtimeNanos();var completed=false
+        try{return block().also{completed=true}}finally {
+            val app=androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
+            val line=kotlinx.serialization.json.buildJsonObject {
+                put("phase",kotlinx.serialization.json.JsonPrimitive(phase));put("method",kotlinx.serialization.json.JsonPrimitive(method))
+                put("http_roundtrip_ms",kotlinx.serialization.json.JsonPrimitive((android.os.SystemClock.elapsedRealtimeNanos()-start)/1_000_000.0))
+                put("completed",kotlinx.serialization.json.JsonPrimitive(completed))
+            }
+            synchronized(this){java.io.File(app.filesDir,"phasee-http-timings.jsonl").appendText(line.toString()+"\n")}
+        }
+    }
     fun remote():AcademicRemote {
         val delegate=raw()
         return object:AcademicRemote by delegate {
@@ -38,20 +50,20 @@ object PhaseBNetworkHarness {
                 return delegate.pull(token,after)
             }
             override suspend fun resolveE(token:String,operation:String,request:kotlinx.serialization.json.JsonObject,cancel:Boolean):AcademicPushReply {
-                val reply=delegate.resolveE(token,operation,request,cancel)
+                val reply=measureE("resolveE"){delegate.resolveE(token,operation,request,cancel)}
                 if(phase=="e-decision-lost"&&!cancel){committed=true;throw SyncFailure("NETWORK")}
                 return reply
             }
             override suspend fun decisionE(token:String,operation:String):AcademicPushReply? {
                 if(phase=="e-decision-lost"&&committed)throw SyncFailure("NETWORK")
-                return delegate.decisionE(token,operation)
+                return measureE("decisionE"){delegate.decisionE(token,operation)}
             }
             override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> {
                 if(phase=="e-admission-stop" || phase=="e-lost"&&committed)throw SyncFailure("NETWORK")
-                return delegate.pullE(token,after,offset)
+                return measureE("pullE"){delegate.pullE(token,after,offset)}
             }
             override suspend fun pushE(token:String,batch:AcademicBatch,admitted:()->Boolean):AcademicPushReply {
-                val reply=try{delegate.pushE(token,batch,admitted)}catch(e:Exception){
+                val reply=try{measureE("pushE"){delegate.pushE(token,batch,admitted)}}catch(e:Exception){
                     lastEFailure=(e as? SyncFailure)?.code ?: (e.javaClass.simpleName+":"+e.stackTrace.firstOrNull{it.className.startsWith("br.com.diariodeclasse")})
                     throw e
                 }
