@@ -11,5 +11,5 @@ SELECT p.oid::regprocedure AS signature,p.prosecdef,p.proconfig,
  has_function_privilege('anon',p.oid,'EXECUTE') AS anonymous_execute,
  has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated_execute
 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-WHERE n.nspname='public' AND p.proname IN('noctua_e_principal','noctua_e_write','noctua_e_guarded_write','noctua_enable_academic_e','noctua_begin_academic_e','noctua_stage_academic_e','noctua_commit_academic_e','noctua_pull_academic_e','noctua_resolve_academic_e','noctua_decision_academic_e') ORDER BY p.oid::regprocedure::text;
+WHERE n.nspname='public' AND p.proname IN('noctua_d_index','noctua_e_principal','noctua_e_write','noctua_e_guarded_write','noctua_enable_academic_e','noctua_begin_academic_e','noctua_stage_academic_e','noctua_commit_academic_e','noctua_pull_academic_e','noctua_resolve_academic_e','noctua_decision_academic_e') ORDER BY p.oid::regprocedure::text;
 SELECT conname,pg_get_constraintdef(oid) FROM pg_constraint WHERE conrelid='public.noctua_sync_protocols'::regclass AND conname='noctua_sync_protocols_academic_scope_check';

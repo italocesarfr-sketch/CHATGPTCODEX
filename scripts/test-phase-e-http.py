@@ -18,7 +18,7 @@ for jwt in [a,b]:assert check('/rpc/noctua_academic_status_c',jwt=jwt)['academic
 for table in ['noctua_e_decisions','noctua_e_transfers','noctua_e_parts','noctua_academic_records','noctua_academic_versions','noctua_academic_receipts','noctua_academic_batches','noctua_academic_heads','noctua_academic_links','noctua_academic_uniques','noctua_sync_protocols','noctua_academic_test_accounts']:
  assert check('/'+table+'?owner_id=eq.'+A,jwt=b,method='GET')==[]
  check('/'+table,jwt=b,method='DELETE',expected=403)
-for name,body in [('noctua_e_principal',{}),('noctua_e_write',{'p_operation':str(uuid.uuid4()),'p_changes':[]}),('noctua_e_guarded_write',{'p_operation':str(uuid.uuid4()),'p_changes':[]})]:check('/rpc/'+name,body,b,expected=403)
+for name,body in [('noctua_d_index',{'p_rows':[]}),('noctua_e_principal',{}),('noctua_e_write',{'p_operation':str(uuid.uuid4()),'p_changes':[]}),('noctua_e_guarded_write',{'p_operation':str(uuid.uuid4()),'p_changes':[]})]:check('/rpc/'+name,body,b,expected=403)
 check('/rpc/noctua_pull_academic_d',{'p_after':0},a,expected=403)
 check('/rpc/noctua_enable_academic_d',{'p_expected_sequence':0},a,expected=403)
 op=str(uuid.uuid4());check('/rpc/noctua_begin_academic_e',{'p_operation':op,'p_total':1,'p_parts':1},b)

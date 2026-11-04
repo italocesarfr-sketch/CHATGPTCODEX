@@ -7,6 +7,7 @@ spec=importlib.util.spec_from_file_location('phased',Path(__file__).with_name('t
 d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)
 b=d.b;f=d.f;execute=d.execute;A=d.A;B=d.B;literal=d.literal
 MIGRATION=f.ROOT/'supabase/migrations/202611030001_phase_e_paging.sql';execute(MIGRATION.read_text())
+execute((f.ROOT/"supabase/migrations/202611030003_phase_e_indexed_graph.sql").read_text())
 def enable(owner=A,seq=None):
  s=d.status(owner);return json.loads(execute(f"SELECT public.noctua_enable_academic_e({s['academicSequence'] if seq is None else seq});",owner))
 def begin(rows,owner=A,op=None):
@@ -30,6 +31,7 @@ def large(count=1000):
  return d.rows(s)
 class PhaseEPostgresTest(unittest.TestCase):
  def setUp(self):b.reset();b.activate();d.c.enable();d.enable()
+ def tearDown(self):b.reset()
  def test_01_explicit_scope_blocks_all_previous_writers(self):
   execute("SELECT public.noctua_begin_academic_e('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',1,1);",A,fails=True);enable()
   self.assertEqual(5,d.status()['academicScope'])
@@ -93,4 +95,10 @@ class PhaseEPostgresTest(unittest.TestCase):
   self.assertEqual([],fragment(1))
  def test_15_scope_transition_rejects_stale_cursor(self):
   d.push(d.rows());execute('SELECT public.noctua_enable_academic_e(0);',A,fails=True);self.assertEqual(4,d.status()['academicScope'])
+ def test_16_index_matches_live_and_historical_keys_and_remains_private(self):
+  enable();push(d.rows())
+  self.assertEqual('t',execute(f"WITH snapshot AS (SELECT public.noctua_d_projection('{A}') rows) SELECT bool_and(public.noctua_d_get(rows,r->>'kind',r->'key') IS NOT DISTINCT FROM public.noctua_d_get(public.noctua_d_index(rows),r->>'kind',r->'key')) FROM snapshot,LATERAL jsonb_array_elements(rows) r;"))
+  duplicate=[dict(kind='students',key=dict(id='Á\\"'),payload=dict(name='A'))]*2
+  execute(f"SELECT public.noctua_d_index({literal(duplicate)});",fails=True)
+  execute("SELECT public.noctua_d_index('[]');",A,fails=True)
 if __name__=='__main__':unittest.main(verbosity=2)

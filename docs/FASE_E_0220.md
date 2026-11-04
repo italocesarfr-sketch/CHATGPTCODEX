@@ -167,7 +167,7 @@ antigo como se fosse criação nova. Não muda criptografia nem esquema acadêmi
 2. Revisar/aplicar uma vez, nesta ordem: A `202611010001_academic_protocol.sql`,
    B `202611020001_phase_b_fence.sql`, C `202611020002_phase_c_scope.sql`,
    D `202611020003_phase_d_scope.sql`, E1 `202611030001_phase_e_paging.sql`,
-   E2/E3 `202611030002_phase_e_decisions.sql`. **Não reaplicar A/B/C/D depois de E**.
+   E2/E3 `202611030002_phase_e_decisions.sql`, seguida da otimização E4 `202611030003_phase_e_indexed_graph.sql`. **Não reaplicar A/B/C/D depois de E**.
    Nenhum desses comandos foi executado no Supabase hospedado nesta rodada.
 3. Executar `supabase/checks/phase_e_readonly.sql`: RLS nas três tabelas E, apenas
    SELECT próprio para authenticated, nada para anon, nada de escrita direta;
@@ -204,3 +204,9 @@ O transporte agora exige revalidar a admissão da conta entre partes e antes do 
 ### Limite da janela SQLite
 
 A leitura da fila e das decisões foi ajustada para buscar textos grandes em blocos Unicode dentro da mesma transação Room. Os observadores da interface leem apenas identidade/estado, sem transportar os corpos completos. Nenhuma tabela ou esquema foi alterado. Isso evita depender de uma única linha maior que a janela SQLite; o teste Android `PhaseELargePayloadRoomTest` grava outbox, inbox e decisão com texto acima de 2 MiB, reabre o arquivo e compara conteúdo e indicadores. Compilação e os 276 casos JVM passaram; a execução nativa desse teste ainda depende da rodada seguinte de CI. Não atribuir a falha `e-lost` a essa hipótese sem o diagnóstico do ensaio em andamento.
+
+### Custo do grafo completo e confirmação idempotente
+
+A medição local do lote de 5.171 registros mostrou commit de 17,30 s e replay de 13,74 s antes da otimização, perto do prazo HTTP de 20 s. Nova migração aditiva `202611030003_phase_e_indexed_graph.sql` indexa as mesmas buscas do validador D em JSONB; todos os predicados acadêmicos permanecem idênticos. O helper é privado, recusa identidades duplicadas e usa search_path fixo. O commit verifica primeiro um recibo já confirmado, comparando o pedido completo antes de reutilizar a resposta. Com a otimização: primeiro commit 7,18 s e replay 0,04 s no mesmo banco descartável. Medições não são SLA do Supabase hospedado. Testes negativos D e E são reexecutados; implantação hospedada permanece proibida nesta etapa.
+
+Após a otimização: 27 casos D e 15 E executados juntos passaram (42/42); em seguida, 16/16 de paginação/índice e 15/15 de decisões passaram em sequência na base descartável. A comparação dos corpos do validador D confirmou predicados idênticos, alterando somente lookup e construção do índice. A limpeza após cada caso E é exclusiva da base fictícia explicitamente permitida pelo runner, para não reintroduzir escopo E ao reaplicar os scripts de fixture A–D na próxima suíte.
