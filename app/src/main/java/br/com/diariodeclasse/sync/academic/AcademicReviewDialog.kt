@@ -1,0 +1,75 @@
+package br.com.diariodeclasse.sync.academic
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import kotlinx.serialization.json.*
+
+private val entityNames=mapOf("classes" to "Turma","terms" to "Bimestre","students" to "Matrícula","activities" to "Atividade",
+    "grades" to "Nota","lessons" to "Aula","marks" to "Frequência","recompositions" to "Recomposição","lesson_records" to "Diário",
+    "relocations" to "Remanejamento","preserved_histories" to "Histórico preservado","weekly_timetables" to "Grade semanal",
+    "export_rows" to "Disposição da planilha","class_archives" to "Arquivamento","import_drafts" to "Rascunho de importação")
+private val fieldNames=mapOf("value" to "Nota","mark" to "Frequência","reason" to "Motivo","name" to "Nome","title" to "Título",
+    "description" to "Descrição","notes" to "Observações","date" to "Data","number" to "Número da chamada","status" to "Situação",
+    "joined" to "Ingresso","left" to "Saída","effectiveDate" to "Data efetiva","externalTarget" to "Destino externo",
+    "corrections" to "Auditorias","slots" to "Horários","position" to "Posição","manualHidden" to "Ocultação manual","content" to "Conteúdo histórico")
+private fun valueText(value:JsonElement?,field:String):String=when {
+    value==null||value==JsonNull->when(field){"value"->"Sem lançamento";"reason"->"Sem motivo";else->"Em branco"}
+    value is JsonPrimitive ->if(value.isString) {
+        val text=value.content
+        if(field in setOf("date","joined","left","effectiveDate"))runCatching{java.time.LocalDate.parse(text).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))}.getOrDefault(text)else text
+    }else if(value.booleanOrNull!=null)if(value.boolean)"Sim"else"Não"else value.content
+    else->"Conteúdo estruturado • escolha aplicada ao conjunto"
+}
+private fun evidenceTitle(preview:AcademicPreview,e:AcademicEvidence):String {
+    val values=(preview.local+preview.remote).associateBy{it.identity}
+    val studentId=if(e.kind=="students")e.key["id"]else e.key["studentId"] ?: e.key["sourceStudentId"]
+    val student=studentId?.let{values[AcademicKey("students",buildJsonObject{put("id",it)})]?.payload?.get("name")?.jsonPrimitive?.content}
+    val label=(e.local ?: e.remote)?.let{it["name"] ?: it["title"]}?.jsonPrimitive?.content
+    return entityNames.getValue(e.kind)+(student?.let{" • $it"} ?: label?.let{" • $it"}.orEmpty())
+}
+
+/** Review only; a single explicit confirmation freezes the decision for safe retry. */
+@Composable fun AcademicReviewDialog(preview:AcademicPreview,busy:Boolean,error:String,onRefresh:()->Unit,
+    onClose:()->Unit,onConfirm:(AcademicChoice)->Unit) {
+    var choice by remember(preview.context,preview.head){mutableStateOf<AcademicChoice?>(null)}
+    var index by remember(preview.context,preview.head){mutableIntStateOf(0)}
+    AlertDialog(onDismissRequest={if(!busy)onClose()},title={Text(if(preview.restore)"Conferir backup e nuvem"else"Conferir versões")},text={
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Text("${preview.evidence.size} registros para conferência. Nenhuma versão será substituída sem sua decisão.")
+            if(preview.restore)Text("Registros exclusivos do backup e registros novos da nuvem serão preservados. Ausência no backup não significa exclusão.")
+            Text("A escolha vale para este conjunto. Matrículas, movimentações e históricos serão validados em conjunto.")
+            preview.evidence.drop(index*5).take(5).forEach { e ->
+                HorizontalDivider()
+                Text(evidenceTitle(preview,e),style=MaterialTheme.typography.titleSmall)
+                if(e.local==null)Text("Neste aparelho: sem registro")
+                if(e.remote==null)Text("Sincronizado: sem registro")
+                for(field in e.fields) {
+                    Text(fieldNames[field] ?: "Configuração",style=MaterialTheme.typography.labelLarge)
+                    Text("Neste aparelho: ${valueText(e.local?.get(field),field)}")
+                    Text("Sincronizado: ${valueText(e.remote?.get(field),field)}")
+                }
+            }
+            if(preview.evidence.size>5)Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+                TextButton(onClick={index--},enabled=index>0&&!busy){Text("Anteriores")}
+                TextButton(onClick={index++},enabled=(index+1)*5<preview.evidence.size&&!busy){Text("Próximos")}
+            }
+            for(value in AcademicChoice.entries)Row(Modifier.fillMaxWidth().heightIn(min=48.dp).selectable(selected=choice==value,role=Role.RadioButton,enabled=!busy,onClick={choice=value}).testTag("academic-choice-${value.name}"),verticalAlignment=Alignment.CenterVertically) {
+                RadioButton(selected=choice==value,onClick=null,enabled=!busy)
+                Text(if(value==AcademicChoice.KEEP_REMOTE)"Usar valores sincronizados"else if(preview.restore)"Usar valores do backup"else"Usar valores deste aparelho",Modifier.weight(1f))
+            }
+            if(error.isNotBlank()){Text(error,color=MaterialTheme.colorScheme.error);TextButton(onClick=onRefresh,enabled=!busy){Text("Atualizar prévia")}}
+            if(busy)LinearProgressIndicator(Modifier.fillMaxWidth())
+        }
+    },dismissButton={TextButton(onClick=onClose,enabled=!busy){Text("Cancelar")}},confirmButton={
+        TextButton(onClick={choice?.let(onConfirm)},enabled=choice!=null&&!busy,modifier=Modifier.testTag("academic-confirm-decision")){Text("Confirmar decisão")}
+    })
+}

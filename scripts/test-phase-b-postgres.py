@@ -10,7 +10,7 @@ MIGRATION=f.ROOT/'supabase/migrations/202611020001_phase_b_fence.sql'
 execute(MIGRATION.read_text())
 TABLES=['noctua_academic_test_accounts','noctua_sync_protocols']+f.TABLES+['noctua_sync_receipts','noctua_class_versions','noctua_class_bundles','noctua_sync_heads']
 def reset():
-    extra=[t for t in ('noctua_e_parts','noctua_e_transfers') if execute("SELECT coalesce(to_regclass('public."+t+"')::text,'');")]
+    extra=[t for t in ('noctua_e_decisions','noctua_e_parts','noctua_e_transfers') if execute("SELECT coalesce(to_regclass('public."+t+"')::text,'');")]
     execute('TRUNCATE '+','.join('public.'+t for t in TABLES+extra)+',auth.users,auth.sessions;')
     execute(f"INSERT INTO auth.users VALUES('{A}',now(),false),('{B}',now(),false),('{f.UNCONFIRMED}',NULL,false);")
     for owner,sid in f.SESSION.items():execute(f"INSERT INTO auth.sessions VALUES('{sid}','{owner}',NULL);")

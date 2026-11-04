@@ -12,8 +12,8 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID
 
-const val SYNC_SCHEMA_VERSION = 13
-const val SYNC_SCHEMA_IDENTITY = "465e5636dd99c20945a84f78a1167970"
+const val SYNC_SCHEMA_VERSION = 14
+const val SYNC_SCHEMA_IDENTITY = "a7f6fa9b7a6e797b534aa5cef6d23fef"
 
 interface SafetyBackupStore {
     fun save(bytes: ByteArray): File

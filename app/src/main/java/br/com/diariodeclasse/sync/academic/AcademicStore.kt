@@ -132,7 +132,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     private suspend fun control():AcademicControl?=dao.control()?.also{check(it.owner==owner)}
     suspend fun active()=db.withTransaction {control()?.let{it.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E")&&it.enabled}==true}
     suspend fun stage()=db.withTransaction {control()?.stage}
-    private suspend fun snapshot()=ClassLifecycle.snapshot(DiaryRepository(db).readSnapshot())
+    internal suspend fun snapshot()=ClassLifecycle.snapshot(DiaryRepository(db).readSnapshot())
     suspend fun scope()=db.withTransaction {when(control()?.stage?.substringAfterLast("_")){"E"->5;"D"->4;"C"->3;else->2}}
     private suspend fun kinds()=when(scope()){4,5->phaseDKinds;3->phaseCKinds;else->phaseBKinds}
     private suspend fun core(rows:List<AcademicRow>):List<AcademicRow>{val allowed=kinds();return rows.filter{it.kind in allowed}}
@@ -408,7 +408,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             return false
         }
     }
-    private suspend fun apply(candidate:BackupSnapshot,changes:List<AcademicChange>,debugCheckpoint:(()->Unit)?) {
+    internal suspend fun apply(candidate:BackupSnapshot,changes:List<AcademicChange>,debugCheckpoint:(()->Unit)?) {
         val keys=changes.map{it.identity}.toSet();val sql=db.openHelper.writableDatabase
         // Park only rows whose positions change. Unchanged rows and IDs remain untouched.
         // Negative positions are private transaction-local values; the final graph is validated

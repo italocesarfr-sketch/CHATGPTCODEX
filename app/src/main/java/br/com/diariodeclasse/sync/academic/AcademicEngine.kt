@@ -34,6 +34,9 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
         check(admitted());store.activateE(activated)
     }
     suspend fun run() {
+        if(!admitted())return
+        val reconciliation=AcademicReconciliation(store,remote,session,admitted)
+        if(reconciliation.pending()!=null){reconciliation.run();if(reconciliation.pending()!=null)return}
         suspend fun allowed()=admitted()&&store.active()
         if(!allowed())return
         // A retry/foreground signal must not leave a blocked inbox looking busy forever.

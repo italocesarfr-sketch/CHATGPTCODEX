@@ -151,7 +151,7 @@ interface DiaryDao {
 
 @Database(entities = [SchoolClass::class, Student::class, Term::class, Lesson::class,
     Attendance::class, Activity::class, Grade::class, ImportDraft::class, Recomposition::class, Relocation::class, ExportRow::class, ClassArchive::class, LessonRecord::class, PreservedHistory::class, WeeklyTimetable::class,
-    SyncControl::class, SyncClassState::class, SyncOperation::class, AcademicControl::class, AcademicState::class, AcademicPending::class, AcademicIncoming::class, AcademicApplied::class, AcademicPart::class], version = 13, exportSchema = true)
+    SyncControl::class, SyncClassState::class, SyncOperation::class, AcademicControl::class, AcademicState::class, AcademicPending::class, AcademicIncoming::class, AcademicApplied::class, AcademicPart::class, AcademicDecision::class], version = 14, exportSchema = true)
 @TypeConverters(HistoricalConverters::class, RelocationCorrectionConverters::class, TimetableConverters::class)
 abstract class DiaryDatabase : RoomDatabase() {
     abstract fun dao(): DiaryDao
@@ -159,6 +159,6 @@ abstract class DiaryDatabase : RoomDatabase() {
     abstract fun syncDao(): SyncDao
     abstract fun academicDao(): AcademicDao
     companion object {
-        fun open(context: Context, name: String = "diario.db"): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, ACADEMIC_MIGRATION_11_12, ACADEMIC_MIGRATION_12_13).addCallback(object:Callback(){override fun onOpen(db:androidx.sqlite.db.SupportSQLiteDatabase){installSyncTriggers(db);installAcademicTriggers(db)}}).build()
+        fun open(context: Context, name: String = "diario.db"): DiaryDatabase = Room.databaseBuilder(context, DiaryDatabase::class.java, name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, ACADEMIC_MIGRATION_11_12, ACADEMIC_MIGRATION_12_13, ACADEMIC_MIGRATION_13_14).addCallback(object:Callback(){override fun onOpen(db:androidx.sqlite.db.SupportSQLiteDatabase){installSyncTriggers(db);installAcademicTriggers(db)}}).build()
     }
 }

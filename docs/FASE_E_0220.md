@@ -88,3 +88,30 @@ também a checagem fixa de esquema no BackupManager. Correção usa constantes
 explícitas da versão/hash 13, preservando os hashes legados e todas as comparações
 de dados. Backup lógico 12 e criptografia continuam inalterados. E1 ainda aguarda
 nova rodada Android; nenhuma aprovação antecipada.
+
+## Continuidade E2/E3 (trabalho local em andamento)
+
+A prévia compara base/local/remoto por identidade e campo; a decisão vale para
+um conjunto consistente. Auditorias e revisões confirmadas são protegidas também
+contra o estado remoto, além do estado local. Ausência em backup não é exclusão;
+registros exclusivos são mantidos, distinguindo-os de tombstones remotos conhecidos.
+
+Migração local 13→14 adiciona somente `sync_academic_decisions`, sem alteração das
+24 entidades anteriores. Corpo de decisão imutável, estados PENDING/CONFIRMED/
+APPLIED/STALE. Usuário confirma uma vez; fila existente retoma rede/processo, com
+revalidação local e remota. Migração SQL preparada
+`202611030002_phase_e_decisions.sql`: auditoria RLS append-only, CAS de cabeça e
+revisões; referências base/remota derivadas das versões imutáveis do servidor.
+Cancelamento depois de resposta perdida retorna o recibo original, sem desfazer
+registro confirmado nem aplicar dados locais desatualizados.
+
+PostgreSQL E2/E3 **15/15** executados localmente (não hospedado). Integração UI,
+Room e dois AVDs ainda não aprovadas. Código E2/E3 permanece em desenvolvimento;
+CI E1 é do commit `5bb0226` e não inclui essas alterações locais posteriores.
+
+Marco local E2/E3: build debug/instrumentação e 272 testes JVM aprovados (273
+casos, um LiveAuth condicional, zero falhas). Um teste detectou risco de aceitar
+uma auditoria local já truncada: proposta agora compara imutabilidade também
+contra o remoto confirmado. Outro ajuste corrigiu fixtures que copiavam uma
+matrícula Remanejada para criar aluno novo; o bloqueio legítimo foi mantido.
+Ainda falta prova Room/HTTP Android da decisão e restauração.

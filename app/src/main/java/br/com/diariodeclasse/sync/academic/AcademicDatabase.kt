@@ -22,6 +22,9 @@ data class AcademicApplied(@PrimaryKey val sequence:Long,val owner:String,val op
 @Entity(tableName="sync_academic_parts",primaryKeys=["sequence","offset"])
 data class AcademicPart(val sequence:Long,val offset:Int,val owner:String,val operation:String,val total:Int,
     val count:Int,val digest:String,val body:String)
+@Entity(tableName="sync_academic_decisions")
+data class AcademicDecision(@PrimaryKey val id:String,val owner:String,val body:String,val createdAt:Long,
+    val phase:String="PENDING",val response:String?=null,val error:String?=null)
 
 @Dao interface AcademicDao {
     @Query("SELECT * FROM sync_academic_control WHERE id=1") suspend fun control():AcademicControl?
@@ -47,6 +50,12 @@ data class AcademicPart(val sequence:Long,val offset:Int,val owner:String,val op
     @Query("SELECT * FROM sync_academic_parts WHERE sequence=:sequence AND offset=:offset") suspend fun part(sequence:Long,offset:Int):AcademicPart?
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicPart)
     @Query("UPDATE sync_academic_parts SET body='' WHERE sequence=:sequence") suspend fun confirmParts(sequence:Long)
+    @Query("UPDATE sync_academic_parts SET body=:body WHERE sequence=:sequence AND offset=:offset AND body=''") suspend fun retainPart(sequence:Long,offset:Int,body:String)
+    @Query("SELECT * FROM sync_academic_decisions ORDER BY createdAt,id") suspend fun decisions():List<AcademicDecision>
+    @Query("SELECT * FROM sync_academic_decisions ORDER BY createdAt,id") fun watchDecisions():Flow<List<AcademicDecision>>
+    @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicDecision)
+    @Query("UPDATE sync_academic_decisions SET phase=:phase,response=:response,error=:error WHERE id=:id") suspend fun decide(id:String,phase:String,response:String?,error:String?)
+    @Query("DELETE FROM sync_academic_inbox") suspend fun resolvedInbox()
 }
 
 fun installAcademicTriggers(db:SupportSQLiteDatabase) {
@@ -74,6 +83,11 @@ val ACADEMIC_MIGRATION_12_13=object:Migration(12,13) {
     override fun migrate(db:SupportSQLiteDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_parts (sequence INTEGER NOT NULL, offset INTEGER NOT NULL, owner TEXT NOT NULL, operation TEXT NOT NULL, total INTEGER NOT NULL, count INTEGER NOT NULL, digest TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(sequence,offset))")
         installAcademicTriggers(db)
+    }
+}
+val ACADEMIC_MIGRATION_13_14=object:Migration(13,14) {
+    override fun migrate(db:SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_decisions (id TEXT NOT NULL, owner TEXT NOT NULL, body TEXT NOT NULL, createdAt INTEGER NOT NULL, phase TEXT NOT NULL, response TEXT, error TEXT, PRIMARY KEY(id))")
     }
 }
 val ACADEMIC_MIGRATION_11_12=object:Migration(11,12) {

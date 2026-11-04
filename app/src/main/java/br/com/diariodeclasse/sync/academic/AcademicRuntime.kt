@@ -34,7 +34,8 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
                 for(signal in signals) {
                     delay(250) // Coalesce a burst of table invalidations, never delay persistence.
                     val c=workspace.database.academicDao().control() ?: continue
-                    if(c.stage !in listOf("ACTIVE","PREPARED","ACTIVE_C","PREPARED_C","ACTIVE_D","PREPARED_D","ACTIVE_E","PREPARED_E") || c.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E")&&!c.enabled)continue
+                    val decisionPending=workspace.database.academicDao().decisions().any{it.phase in setOf("PENDING","CONFIRMED")}
+                    if(c.stage !in listOf("ACTIVE","PREPARED","ACTIVE_C","PREPARED_C","ACTIVE_D","PREPARED_D","ACTIVE_E","PREPARED_E") && !(c.stage=="RESTORE"&&decisionPending) || c.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E")&&!c.enabled)continue
                     val application=app ?: continue
                     run(application,workspace)
                     val after=workspace.database.academicDao().control() ?: continue

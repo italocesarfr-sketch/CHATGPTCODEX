@@ -20,7 +20,7 @@ import br.com.diariodeclasse.DiaryApplication
 
 private data class LegacyPanelRead(val control:SyncControl?,val states:List<SyncClassState>)
 private data class AcademicPanelRead(val control:AcademicControl?,val states:List<AcademicState>,
-    val pending:List<AcademicPending>,val incoming:List<AcademicIncoming>)
+    val pending:List<AcademicPending>,val incoming:List<AcademicIncoming>,val decisions:List<AcademicDecision>)
 
 /** Scope is always explicit: this status concerns classes, not an academic cloud backup. */
 fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
@@ -39,7 +39,7 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     // whereas a loaded snapshot with null control means no academic enrollment.
     val legacyFlow=remember(dao){combine(dao.watchControl(),dao.watchStates(),::LegacyPanelRead)}
     val academicFlow=remember(academicDao){combine(academicDao.watchControl(),academicDao.watchStates(),
-        academicDao.watchPending(),academicDao.watchIncoming(),::AcademicPanelRead)}
+        academicDao.watchPending(),academicDao.watchIncoming(),academicDao.watchDecisions(),::AcademicPanelRead)}
     val legacyRead by legacyFlow.collectAsState(initial=null)
     val academicRead by academicFlow.collectAsState(initial=null)
     val control=legacyRead?.control
@@ -48,10 +48,13 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     val academicStates=academicRead?.states.orEmpty()
     val pending=academicRead?.pending.orEmpty()
     val incoming=academicRead?.incoming.orEmpty()
+    val decisionPending=academicRead?.decisions.orEmpty().any{it.phase in setOf("PENDING","CONFIRMED")}
     val ready=academicRead!=null && (academic!=null || legacyRead!=null)
     val scope=rememberCoroutineScope()
     val store=remember(workspace){ClassSyncStore(workspace.database,workspace.user.id)}
     var enrolling by remember{mutableStateOf<SchoolClass?>(null)}
+    var preview by remember(workspace){mutableStateOf<AcademicPreview?>(null)}
+    var reviewError by remember(workspace){mutableStateOf("")}
     var error by remember{mutableStateOf("")}
     var busy by remember{mutableStateOf(false)}
     var consent by remember{mutableStateOf(false)}
@@ -63,6 +66,15 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     var fictitiousC by remember{mutableStateOf(false)}
     var fictitious by remember{mutableStateOf(false)}
     fun act(block:suspend()->Unit){busy=true;scope.launch{try{block();SyncJobs.soon(workspace.context)}catch(_:Exception){error="Não foi possível iniciar. Os dados locais foram preservados."}finally{busy=false}}}
+    fun reconciliation():AcademicReconciliation {
+        val app=workspace.context.applicationContext as DiaryApplication
+        return AcademicReconciliation(AcademicStore(workspace.database,workspace.user.id),app.academicRemote(),{app.auth.syncToken(workspace.user.id)},{AcademicCoordinator.admitted(app,workspace)})
+    }
+    fun review(){busy=true;reviewError="";scope.launch {
+        try{preview=workspace.syncMutex.withLock{reconciliation().preview()}}
+        catch(_:Exception){reviewError="Não foi possível conferir as versões. Os dados continuam preservados. Atualize a prévia quando houver conexão.";error=reviewError}
+        finally{busy=false}
+    }}
     AlertDialog(onDismissRequest=close,title={Text(if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D") || academic!!.stage.endsWith("_E"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             if(!ready)Text("Carregando estado da sincronização…",Modifier.testTag("sync-loading"))
@@ -74,6 +86,12 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
                         if(academic!!.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E"))academicStore.resume()
                         workspace.academicCoordinator.request()
                     }})
+                if(decisionPending) {
+                    Text("Decisão confirmada • aguardando conclusão. As versões continuam preservadas.")
+                    OutlinedButton(onClick={workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)},enabled=!busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-decision-retry")){Text("Tentar enviar decisão")}
+                }else if(academic!!.stage in setOf("ACTIVE_E","RESTORE") && academicTestEligible(workspace) && (incoming.isNotEmpty()||pending.any{it.conflict!=null}||academic!!.stage=="RESTORE")) {
+                    OutlinedButton(onClick={review()},enabled=!busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-review")){Text("Conferir versões")}
+                }
                 if(academic!!.stage=="ACTIVE_D" && academicTestEligible(workspace))OutlinedButton(onClick={consentE=true},
                     enabled=!busy&&pending.isEmpty()&&incoming.isEmpty(),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-enable-e")) {
                     Text("Testar recuperação de acervos maiores")
@@ -108,6 +126,13 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
             if(academic!=null && error.isNotBlank())Text(error,color=MaterialTheme.colorScheme.error)
         }
     },confirmButton={TextButton(close){Text("Concluído")}})
+    preview?.let { current->AcademicReviewDialog(current,busy,reviewError,{review()},{preview=null;reviewError=""}) { choice->
+        busy=true;reviewError="";scope.launch {
+            try {workspace.syncMutex.withLock{reconciliation().confirm(current,choice)};preview=null;workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)}
+            catch(_:Exception){reviewError="Não foi possível confirmar este conjunto. Os dados ou seus vínculos podem ter mudado. Atualize a prévia antes de decidir novamente."}
+            finally{busy=false}
+        }
+    }}
     if(consent)AlertDialog(onDismissRequest={consent=false},title={Text("Iniciar teste acadêmico?")},text={
         Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text("Turmas e alunos desta conta serão enviados. Versões antigas deixarão de sincronizar nesta conta. Use apenas dados fictícios e mantenha o backup.")
