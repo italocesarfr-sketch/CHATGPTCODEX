@@ -36,6 +36,15 @@ object PhaseBNetworkHarness {
                 if(phase=="retry"&&!released || phase=="lost"&&committed)throw SyncFailure("NETWORK")
                 return delegate.pull(token,after)
             }
+            override suspend fun resolveE(token:String,operation:String,request:kotlinx.serialization.json.JsonObject,cancel:Boolean):AcademicPushReply {
+                val reply=delegate.resolveE(token,operation,request,cancel)
+                if(phase=="e-decision-lost"&&!cancel){committed=true;throw SyncFailure("NETWORK")}
+                return reply
+            }
+            override suspend fun decisionE(token:String,operation:String):AcademicPushReply? {
+                if(phase=="e-decision-lost"&&committed)throw SyncFailure("NETWORK")
+                return delegate.decisionE(token,operation)
+            }
             override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> {
                 if(phase=="e-lost"&&committed)throw SyncFailure("NETWORK")
                 return delegate.pullE(token,after,offset)

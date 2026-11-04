@@ -16,20 +16,21 @@ data class AcademicResolutionProposal(val candidate:BackupSnapshot,val changes:L
 /** One explicit choice for a consistent set, never a last-writer-wins policy. No I/O. */
 object AcademicResolution {
     fun evidence(base:List<AcademicRow>,local:List<AcademicRow>,remote:List<AcademicRow>,
-        known:Map<AcademicKey,Long>,latest:Map<AcademicKey,Long>,restore:Boolean):List<AcademicEvidence> {
+        known:Map<AcademicKey,Long>,latest:Map<AcademicKey,Long>,restore:Boolean,group:Set<AcademicKey> = emptySet()):List<AcademicEvidence> {
         val b=base.associateBy{it.identity};val l=local.associateBy{it.identity};val r=remote.associateBy{it.identity}
         val keys=if(restore)(l.keys+r.keys).filter{l[it]?.payload!=r[it]?.payload}.toSet()
             else {
                 val delta=AcademicRecords.delta(base,remote,known)
                 AcademicMerge.review(base,local,delta,known).conflicts.map{it.identity}.toSet()
             }
-        return keys.sortedWith(compareBy({it.kind},{AcademicRecords.canonical(it.key)})).map{key->
+        val expanded=if(!restore&&keys.isNotEmpty())keys+group.filter{l[it]?.payload!=r[it]?.payload}else keys
+        return expanded.sortedWith(compareBy({it.kind},{AcademicRecords.canonical(it.key)})).map{key->
             AcademicEvidence(key.kind,key.key,known[key] ?: 0,latest[key] ?: 0,b[key]?.payload,l[key]?.payload,r[key]?.payload)
         }
     }
     fun propose(base:List<AcademicRow>,local:List<AcademicRow>,remote:List<AcademicRow>,
-        known:Map<AcademicKey,Long>,latest:Map<AcademicKey,Long>,restore:Boolean,choice:AcademicChoice):AcademicResolutionProposal {
-        val evidence=evidence(base,local,remote,known,latest,restore)
+        known:Map<AcademicKey,Long>,latest:Map<AcademicKey,Long>,restore:Boolean,choice:AcademicChoice,group:Set<AcademicKey> = emptySet()):AcademicResolutionProposal {
+        val evidence=evidence(base,local,remote,known,latest,restore,group)
         val candidate=if(restore) {
             val proposed=remote.associateBy{it.identity}.toMutableMap()
             // Backup absence is not a deletion. Remote-only rows are always retained.

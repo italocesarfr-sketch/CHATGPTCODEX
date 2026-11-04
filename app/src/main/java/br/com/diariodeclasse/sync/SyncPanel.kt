@@ -72,7 +72,12 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     }
     fun review(){busy=true;reviewError="";scope.launch {
         try{preview=workspace.syncMutex.withLock{reconciliation().preview()}}
-        catch(_:Exception){reviewError="Não foi possível conferir as versões. Os dados continuam preservados. Atualize a prévia quando houver conexão.";error=reviewError}
+        catch(e:Exception){reviewError=when((e as? SyncFailure)?.code){
+            "SETUP"->"Esta conta ainda não está autorizada para a reconciliação E. Os dados e o backup foram preservados."
+            "SESSION"->"Entre novamente para conferir as versões desta conta."
+            "SIZE"->"O conjunto excede a capacidade desta conferência. Os dados foram preservados."
+            else->"Não foi possível conferir as versões. Os dados continuam preservados. Atualize a prévia quando houver conexão."
+        };error=reviewError}
         finally{busy=false}
     }}
     AlertDialog(onDismissRequest=close,title={Text(if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D") || academic!!.stage.endsWith("_E"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={

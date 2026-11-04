@@ -15,7 +15,7 @@ now=f.time.time;f.time.time=lambda:1
 expired=f.token(A,'81818181-8181-4181-8181-818181818181');f.time.time=now
 check('/rpc/noctua_pull_academic_e',{'p_after':0,'p_offset':0},expired,expected=401)
 for jwt in [a,b]:assert check('/rpc/noctua_academic_status_c',jwt=jwt)['academicScope']==5
-for table in ['noctua_e_transfers','noctua_e_parts','noctua_academic_records','noctua_academic_versions','noctua_academic_receipts','noctua_academic_batches','noctua_academic_heads','noctua_academic_links','noctua_academic_uniques','noctua_sync_protocols','noctua_academic_test_accounts']:
+for table in ['noctua_e_decisions','noctua_e_transfers','noctua_e_parts','noctua_academic_records','noctua_academic_versions','noctua_academic_receipts','noctua_academic_batches','noctua_academic_heads','noctua_academic_links','noctua_academic_uniques','noctua_sync_protocols','noctua_academic_test_accounts']:
  assert check('/'+table+'?owner_id=eq.'+A,jwt=b,method='GET')==[]
  check('/'+table,jwt=b,method='DELETE',expected=403)
 for name,body in [('noctua_e_principal',{}),('noctua_e_write',{'p_operation':str(uuid.uuid4()),'p_changes':[]}),('noctua_e_guarded_write',{'p_operation':str(uuid.uuid4()),'p_changes':[]})]:check('/rpc/'+name,body,b,expected=403)
@@ -26,4 +26,5 @@ change=dict(kind='grades',key=dict(activityId='d-a1',studentId='e-student-1'),ba
 check('/rpc/noctua_stage_academic_e',{'p_operation':op,'p_part':0,'p_changes':[change]},b)
 reply=check('/rpc/noctua_commit_academic_e',{'p_operation':op},b);assert not reply['accepted'] and reply['sequence'] is None
 assert check('/rpc/noctua_pull_academic_e',{'p_after':0,'p_offset':0},b)==[]
+assert len(check('/noctua_e_decisions',jwt=a,method='GET'))>=3
 print(f'{checks} disposable phase E HTTP/security checks passed; signed fixture identities, not hosted Auth.')

@@ -17,8 +17,8 @@ import kotlinx.serialization.json.*
 data class AcademicPreview(val context:String,val restore:Boolean,val cursor:Long,val head:Long,
     val base:List<AcademicRow>,val local:List<AcademicRow>,val remote:List<AcademicRow>,
     val known:Map<AcademicKey,Long>,val latest:Map<AcademicKey,Long>,val versions:List<AcademicVersion>,
-    val receipts:List<AcademicReviewReceipt>,val evidence:List<AcademicEvidence>) {
-    fun proposal(choice:AcademicChoice)=AcademicResolution.propose(base,local,remote,known,latest,restore,choice)
+    val receipts:List<AcademicReviewReceipt>,val evidence:List<AcademicEvidence>,val group:Set<AcademicKey> = emptySet()) {
+    fun proposal(choice:AcademicChoice)=AcademicResolution.propose(base,local,remote,known,latest,restore,choice,group)
 }
 
 /** A review of the same versions/parts/Room transaction; no second synchronization mechanism. */
@@ -62,19 +62,21 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
         val values=(if(restore)emptyList()else base).associateBy{it.identity}.toMutableMap()
         val versions=(if(restore)emptyList()else states.filter{it.revision>0}.map{AcademicVersion(it.kind,it.identity().key,it.revision,it.base?.let{b->AcademicRecords.json.parseToJsonElement(b).jsonObject})}).associateBy{it.identity}.toMutableMap()
         val receipts=mutableListOf<AcademicReviewReceipt>();var bytes=0L
+        val reviewKeys=dao.pending().flatMap{AcademicRecords.json.decodeFromString<AcademicBatch>(it.body).changes.map{r->r.identity}}.toMutableSet()
         while(after<status.academicSequence) {
-            require(receipts.size<256){"Review transaction limit"}
+            if(receipts.size>=256)throw SyncFailure("SIZE")
             var offset=0;val records=mutableListOf<AcademicVersion>();var operation:String?=null;var total=0
             do {
                 val fragment=remote.pullE(token,after,offset).single();check(admitted());fragment.validate()
                 require(fragment.sequence==after+1&&fragment.offset==offset)
                 if(operation==null){operation=fragment.operation;total=fragment.total}else require(operation==fragment.operation&&total==fragment.total)
-                bytes+=AcademicRecords.json.encodeToString(fragment).toByteArray().size;require(bytes<=64L*1024*1024){"Review size limit"}
+                bytes+=AcademicRecords.json.encodeToString(fragment).toByteArray().size;if(bytes>64L*1024*1024)throw SyncFailure("SIZE")
                 cache(fragment);records+=fragment.records;offset+=fragment.records.size
             }while(offset<total)
             val page=AcademicPage(requireNotNull(operation),after+1,records);page.validate(AcademicPaging.MAX_RECORDS)
             val hash=pageDigest(page);dao.applied(page.sequence)?.let{require(it.owner==store.owner&&it.operation==page.operation&&it.digest==hash)}
             for(v in page.records) {
+                reviewKeys+=v.identity
                 val n=PhaseBGuard.normalized(v.change());val previous=versions[v.identity]
                 if(previous?.revision==v.revision)require(previous.payload==n.payload)
                 else require(v.revision==(previous?.revision ?: 0)+1)
@@ -88,8 +90,9 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
         val rows=values.values.toList();AcademicRecords.snapshot(rows)
         val known=states.filter{it.revision>0}.associate{it.identity() to it.revision};val latest=versions.mapValues{it.value.revision}
         require(known.all{(key,revision)->revision<=(latest[key] ?: 0)})
+        val group=if(reviewKeys.any{it.kind !in setOf("grades","marks","lesson_records","import_drafts","class_archives")})reviewKeys else emptySet()
         return AcademicPreview(original,restore,c.cursor,status.academicSequence,base,local,rows,known,latest,versions.values.toList(),receipts,
-            AcademicResolution.evidence(base,local,rows,known,latest,restore))
+            AcademicResolution.evidence(base,local,rows,known,latest,restore,group),group)
     }
     suspend fun confirm(preview:AcademicPreview,choice:AcademicChoice):AcademicDecision=db.withTransaction {
         check(admitted()&&context()==preview.context)
@@ -102,11 +105,11 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
                 put("kind",r.kind);put("key",r.key);put("baseRevision",r.baseRevision);put("revision",r.revision);put("local",r.local ?: JsonNull)
             })}})
         }
-        require(request.toString().toByteArray().size<=768*1024){"Decision evidence size limit"}
+        if(request.toString().toByteArray().size>768*1024)throw SyncFailure("SIZE")
         val localChanges=AcademicRecords.delta(preview.local,AcademicRecords.rows(proposed.candidate),preview.local.associate{it.identity to (preview.known[it.identity]?.takeIf{r->r>0} ?: 1)})
         val frozen=AcademicFrozenDecision(store.owner,preview.context,preview.restore,preview.cursor,preview.head,choice,proposed.changes,localChanges,preview.versions,preview.receipts,request,
             BackupCodec.fingerprint(proposed.candidate),dao.pending().map{it.body},dao.incoming().map{it.body})
-        val body=AcademicRecords.json.encodeToString(frozen);require(body.toByteArray().size<=AcademicPaging.MAX_BYTES)
+        val body=AcademicRecords.json.encodeToString(frozen);if(body.toByteArray().size>AcademicPaging.MAX_BYTES)throw SyncFailure("SIZE")
         AcademicDecision(id,store.owner,body,System.currentTimeMillis()).also{dao.insert(it);store.message("DECISION")}
     }
     suspend fun pending()=dao.decisions().lastOrNull{it.phase in setOf("PENDING","CONFIRMED")}
@@ -129,7 +132,7 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
                 dao.decide(decision.id,"CONFIRMED",AcademicRecords.json.encodeToString(reply),null)
             }
             require(reply.operation==decision.id)
-            if(!reply.accepted){dao.decide(decision.id,"STALE",AcademicRecords.json.encodeToString(reply),"REMOTE_CHANGED");store.message("CONFLICT");return}
+            if(!reply.accepted){require(reply.sequence==null&&reply.conflicts.isNotEmpty());dao.decide(decision.id,"STALE",AcademicRecords.json.encodeToString(reply),"REMOTE_CHANGED");store.message("CONFLICT");return}
             require(reply.sequence==frozen.head+(if(frozen.changes.isEmpty())0 else 1) && reply.conflicts.isEmpty())
             check(admitted())
             db.withTransaction {

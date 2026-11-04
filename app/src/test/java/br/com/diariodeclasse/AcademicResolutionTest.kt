@@ -58,6 +58,17 @@ class AcademicResolutionTest {
         val local=AcademicResolution.propose(rows(base),rows(base),rows(remote),known(base),revisions,true,AcademicChoice.KEEP_LOCAL)
         assertEquals(base.drafts,local.candidate.drafts);assertEquals(2,local.changes.single().base)
     }
+    @Test fun dependentActivityAndGradeAreResolvedAsOneExplicitConsistentSet() {
+        val base=fixture;val old=base.grades.first();val activity=base.activities.first().copy(id="local-activity",maximum=5.0)
+        val grade=Grade(activity.id,old.studentId,2.0)
+        val local=base.copy(activities=base.activities+activity,grades=base.grades.map{if(it==old)it.copy(value=6.0)else it}+grade)
+        val remote=base.copy(grades=base.grades.map{if(it==old)it.copy(value=8.0)else it})
+        val keys=(rows(local).map{it.identity}.toSet()-rows(base).map{it.identity}.toSet())+AcademicKey("grades",buildJsonObject{put("activityId",old.activityId);put("studentId",old.studentId)})
+        val choice=AcademicResolution.propose(rows(base),rows(local),rows(remote),known(base),latest(base,remote),false,AcademicChoice.KEEP_REMOTE,keys)
+        assertEquals(3,choice.evidence.size);assertEquals(remote.canonical(),choice.candidate);assertTrue(choice.changes.isEmpty())
+        val keep=AcademicResolution.propose(rows(base),rows(local),rows(remote),known(base),latest(base,remote),false,AcademicChoice.KEEP_LOCAL,keys)
+        assertTrue(keep.candidate.activities.contains(activity));assertTrue(keep.candidate.grades.contains(grade));assertEquals(3,keep.changes.size)
+    }
     @Test fun choosingLocalCannotErasePreviouslyConfirmedMovementAudit() {
         val base=fixture;val bad=base.copy(relocations=base.relocations.map{it.copy(corrections=emptyList())})
         try{AcademicResolution.propose(rows(base),rows(bad),rows(base),known(base),known(base),false,AcademicChoice.KEEP_LOCAL);fail()}catch(_:IllegalArgumentException){}

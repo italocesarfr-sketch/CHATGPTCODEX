@@ -115,3 +115,82 @@ uma auditoria local já truncada: proposta agora compara imutabilidade também
 contra o remoto confirmado. Outro ajuste corrigiu fixtures que copiavam uma
 matrícula Remanejada para criar aluno novo; o bloqueio legítimo foi mantido.
 Ainda falta prova Room/HTTP Android da decisão e restauração.
+
+CI E1 `41757077066` (código `5bb0226`): atualização, Room D 15/15 e Room E1 7/7
+passaram. O último cenário C parou na regra de entrada, sem encontrar a navegação
+antes de testar o conflito. Harness trocava Auth em runner.onStart, depois de
+Application.onCreate agendar jobs; AccountWorkspaces retém o controlador original.
+Correção de teste antecipa a configuração ao callApplicationOnCreate, exercita
+criação antecipada do manager e conserva timeout/assert original. Acrescentadas
+capturas/estado sem tokens na falha de entrada. A regressão C precisa passar na
+próxima rodada, sem ser omitida.
+
+Provas E2/E3 preparadas: dez testes Room (prévia sem gravação, duas escolhas,
+resposta perdida, alterações concorrentes, rollback SQLite, restauração protegida
+e migração 13→14), diálogo com fonte nativa ampliada e continuação HTTP em dois
+AVDs: decisão local após morte de processo, escolha remota, backup criptografado
+antigo, nova matrícula remota ausente do backup e comparação final de hashes.
+Essas provas ainda não estão aprovadas.
+
+## Disponibilidade da referência original e assinatura
+
+Artefato original correto localizado no workflow `41228898103`, commit
+`36f58a239318c42f8293c6d0a4c7fa28747d865b`, artefato `13053517551`. APK
+inspecionado com aapt/apksigner: `br.com.diariodeclasse`, 0.21.0/c40; SHA-256
+`18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73`; certificado
+`6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`.
+ZIP SHA-256 `5b430a7d9b9d7f2d36c8f72ae02282d99c778d2da8273eb9e6bc29c6b8645bc9`.
+O run antigo `40988203896` fornece c39, não deve ser confundido com c40.
+
+Não há chave privada permanente disponível neste executor nem alteração da barreira
+de release desta branch. O APK E debug não atualiza a instalação permanente.
+A atualização original c40 e os dispositivos físicos permanecem pendentes; o CI
+continua executando a referência isolada com chave descartável e os testes de
+migrações Room, sem instalar no celular principal. Nenhuma chave foi solicitada.
+
+## Validações locais anteriores à nova rodada
+
+Build debug/instrumentação passou; JVM 274 casos, 273 aprovados, um LiveAuth
+condicional, zero falhas. PostgreSQL E1 15/15 e decisões/reconciliação 15/15.
+Asserções acadêmicas anteriores preservadas. Prova Android E2/E3 e regressão
+completa ainda precisam do workflow posterior; não confundir com aprovação E.
+Backup de conta nova agora persiste RESTORE com o titular já vinculado ao workspace
+antes de gravar os registros, impedindo que uma inscrição futura envie um backup
+antigo como se fosse criação nova. Não muda criptografia nem esquema acadêmico.
+
+## Roteiro de homologação hospedada — preparado, não executado
+
+1. Autorizar administrativamente ambiente/contas fictícias, preservando o projeto
+   atual e as proteções de sessão v1 já instaladas. Não autorizar o UUID do
+   proprietário nem remover a barreira do conflito legado. Conferir backup
+   administrativo independente e contingência antes de qualquer migração real.
+2. Revisar/aplicar uma vez, nesta ordem: A `202611010001_academic_protocol.sql`,
+   B `202611020001_phase_b_fence.sql`, C `202611020002_phase_c_scope.sql`,
+   D `202611020003_phase_d_scope.sql`, E1 `202611030001_phase_e_paging.sql`,
+   E2/E3 `202611030002_phase_e_decisions.sql`. **Não reaplicar A/B/C/D depois de E**.
+   Nenhum desses comandos foi executado no Supabase hospedado nesta rodada.
+3. Executar `supabase/checks/phase_e_readonly.sql`: RLS nas três tabelas E, apenas
+   SELECT próprio para authenticated, nada para anon, nada de escrita direta;
+   auxiliares privados, RPCs autorizados e search_path fixo. Catálogo não prova RLS.
+4. Com duas contas comuns autorizadas em instalações separadas, usar somente
+   turmas fictícias. Confirmar sessões/e-mails e acionar consentimentos B→C→D→E.
+   Testar leitura direta e RPCs com IDs conhecidos da outra conta, sessão revogada
+   e token expirado; resultados e capturas não devem revelar tokens ou dados reais.
+   Não compartilhar senhas, tokens ou links de recuperação pelo chat.
+5. Repetir acervo grande, perda de conexão/resposta, morte do processo, dois
+   sentidos, conflitos local/remoto e restauração protegida em aparelho separado.
+   Verificar hashes acadêmicos, IDs, zeros/null, FJ, auditorias e revisões.
+6. Só após esses resultados, validar candidato com certificado permanente sobre
+   o APK original c40 em dispositivo isolado. Nada é instalado no aparelho principal
+   e nenhuma release estável é autorizada por este roteiro.
+
+Contingência: pausar teste, conservar bancos/filas/partes/recibos/auditorias, e
+revogar a allowlist fictícia sob autorização administrativa se necessário. Não
+rebaixar escopo, truncar tabelas nem substituir backups/criptografia.
+
+Limites adicionais da conferência: 256 transações/64 MiB por prévia, pedido de
+decisão 768 KiB e evidência servidor/corpo local de até 16 MiB. Excedentes bloqueiam
+a operação conservando variantes. A decisão é por conjunto consistente; lotes
+com novas atividades/aulas/matrículas/movimentações e dependências são agrupados.
+Incompatibilidades de grafo e auditorias imutáveis continuam bloqueadas, sem
+qualquer regra de última gravação vence.

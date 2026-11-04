@@ -45,7 +45,7 @@ class AccountWorkspace(base:Context,val user:AuthUser,val legacy:Boolean):AutoCl
             }
         }
     }
-    val backup=BackupManager(database,FileSafetyBackupStore(if(legacy)File(base.filesDir,"safety-backups")else File(base.filesDir,"accounts/$namespace/safety-backups")),BuildConfig.VERSION_CODE,InstallationIdentity.certificate(base),selection)
+    val backup=BackupManager(database,FileSafetyBackupStore(if(legacy)File(base.filesDir,"safety-backups")else File(base.filesDir,"accounts/$namespace/safety-backups")),BuildConfig.VERSION_CODE,InstallationIdentity.certificate(base),selection,owner=user.id)
     suspend fun shutdown()=kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
         withContext(Dispatchers.Main.immediate){commands.finish()}
         withContext(Dispatchers.IO){close()}

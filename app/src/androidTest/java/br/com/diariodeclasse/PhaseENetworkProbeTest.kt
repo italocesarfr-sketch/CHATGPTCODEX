@@ -5,6 +5,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.backup.*
+import br.com.diariodeclasse.auth.AccountBackup
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.sync.*
 import br.com.diariodeclasse.sync.academic.*
@@ -32,6 +33,17 @@ class PhaseENetworkProbeTest {
         fun reconnect(){shell("svc wifi enable");shell("svc data enable");w.academicCoordinator.request()}
         suspend fun shot(name:String,expected:String?=null)=w.syncMutex.withLock {
             compose.academicCapture(app,"phasee-network",name,expected){runBlocking{"stage=${store.stage()} cursor=${store.cursor()} pending=${store.dao.pending().size} parts=${store.dao.stagedParts().size}"}}
+        }
+        suspend fun choose(choice:AcademicChoice) {
+            compose.waitUntil(10000){compose.onAllNodesWithTag("auth-account").fetchSemanticsNodes().isNotEmpty()}
+            compose.onNodeWithTag("auth-account").performClick();compose.onNodeWithTag("open-sync").performClick()
+            compose.onNodeWithTag("academic-review").performScrollTo().performClick()
+            compose.waitUntil(120000){compose.onAllNodesWithTag("academic-choice-${choice.name}").fetchSemanticsNodes().isNotEmpty()}
+            compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled()
+            compose.onNodeWithTag("academic-choice-${choice.name}").performScrollTo().performClick()
+            compose.onNodeWithTag("academic-confirm-decision").performClick()
+            compose.waitUntil(10000){compose.onAllNodesWithTag("academic-confirm-decision").fetchSemanticsNodes().isEmpty()}
+            compose.onNodeWithText("Concluído").performClick()
         }
         when(phase) {
             "e-seed"->{
@@ -82,6 +94,47 @@ class PhaseENetworkProbeTest {
                 assertNotNull(store.pending());val incoming=AcademicRecords.json.decodeFromString<AcademicPage>(store.dao.incoming().single().body)
                 assertEquals(8.0,incoming.records.single{it.kind=="grades"}.payload!!.getValue("value").jsonPrimitive.double,0.0);shot("07-e-conflito","Conflito preservado")
             }
+            "e-decision-lost"->{
+                waitFor{store.blocked()};choose(AcademicChoice.KEEP_LOCAL)
+                waitFor{PhaseBNetworkHarness.droppedCommittedReply()};assertEquals("PENDING",store.dao.decisions().last().phase)
+                assertNotNull(store.pending());assertTrue(store.dao.incoming().isNotEmpty())
+                File(app.filesDir,"phasee-decision.txt").writeText(store.dao.decisions().last().id)
+            }
+            "e-decision-replay"->{
+                synced();val decision=store.dao.decisions().last();assertEquals("APPLIED",decision.phase)
+                assertEquals(File(app.filesDir,"phasee-decision.txt").readText(),decision.id)
+                assertEquals(6.0,w.repository.dao.activityGrades("d-a1").single{it.studentId=="e-student-1"}.value!!,0.0)
+                assertTrue(client.decisionE(token,decision.id)!!.accepted);shot("08-e-decisao-recuperada")
+            }
+            "e-observe-decision"->{waitFor{w.repository.dao.activityGrades("d-a1").single{it.studentId=="e-student-1"}.value==6.0};synced()}
+            "e-second-local"->{synced();offline();w.repository.dao.save(Grade("d-a1","e-student-1",7.0));assertNotNull(store.prepare())}
+            "e-second-remote"->{synced();w.repository.dao.save(Grade("d-a1","e-student-1",9.0));synced()}
+            "e-resolve-remote"->{
+                waitFor{store.blocked()};choose(AcademicChoice.KEEP_REMOTE);synced()
+                assertEquals(9.0,w.repository.dao.activityGrades("d-a1").single{it.studentId=="e-student-1"}.value!!,0.0)
+                assertEquals(2,store.dao.decisions().count{it.phase=="APPLIED"});shot("09-e-escolha-remota")
+            }
+            "e-backup-before"->{
+                synced();val encrypted=AccountBackup.seal(w.backup.backupBytes(),w.user.id,"Fictitious-E-Backup-2026".toCharArray())
+                File(app.filesDir,"phasee-backup.enc").writeBytes(encrypted);w.syncMutex.withLock{store.pause()}
+            }
+            "e-after-backup-remote"->{
+                synced();w.repository.dao.save(Grade("d-a1","e-student-1",10.0))
+                w.repository.saveStudent(Student("e-remote-only","e-remote-person","d-source","Estudante Fictício Novo",1037,"2026-01-01"));synced()
+            }
+            "e-restore-review"->{
+                assertFalse(store.active());val encrypted=File(app.filesDir,"phasee-backup.enc").readBytes()
+                try{AccountBackup.open(encrypted,"99999999-9999-4999-8999-999999999999","Fictitious-E-Backup-2026".toCharArray());fail()}catch(_:br.com.diariodeclasse.auth.AuthFailure){}
+                val raw=AccountBackup.open(encrypted,w.user.id,"Fictitious-E-Backup-2026".toCharArray())
+                w.backup.restore(w.backup.prepare(raw.inputStream()),"RESTAURAR")
+                assertEquals("RESTORE",store.stage());assertNull(w.repository.dao.student("e-remote-only"))
+                choose(AcademicChoice.KEEP_REMOTE);synced()
+                assertEquals(10.0,w.repository.dao.activityGrades("d-a1").single{it.studentId=="e-student-1"}.value!!,0.0)
+                assertEquals("e-remote-person",w.repository.dao.student("e-remote-only")!!.personId)
+                assertEquals(PhaseEFixture.read().marks,snapshot().marks);assertEquals(5172,AcademicRecords.rows(snapshot()).size)
+                shot("10-e-backup-reconciliado")
+            }
+            "e-final"->{synced();File(app.filesDir,"phasee-final.sha256").writeText(BackupCodec.fingerprint(snapshot()))}
             else->error("Unknown E phase")
         }
     }

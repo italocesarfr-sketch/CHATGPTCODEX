@@ -52,7 +52,7 @@ private fun evidenceTitle(preview:AcademicPreview,e:AcademicEvidence):String {
                 Text(evidenceTitle(preview,e),style=MaterialTheme.typography.titleSmall)
                 if(e.local==null)Text("Neste aparelho: sem registro")
                 if(e.remote==null)Text("Sincronizado: sem registro")
-                for(field in e.fields) {
+                for(field in e.fields.filterNot{it in setOf("id","classId","personId","studentId","lessonId","activityId","sourceStudentId","targetStudentId")}) {
                     Text(fieldNames[field] ?: "Configuração",style=MaterialTheme.typography.labelLarge)
                     Text("Neste aparelho: ${valueText(e.local?.get(field),field)}")
                     Text("Sincronizado: ${valueText(e.remote?.get(field),field)}")

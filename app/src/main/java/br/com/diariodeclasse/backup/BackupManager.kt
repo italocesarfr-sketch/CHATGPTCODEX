@@ -51,7 +51,8 @@ data class RestoreResult(val safetyCopy: File, val warning: String = "")
 /** O banco aberto não é copiado, apagado nem trocado. Somente dados são restaurados numa transação. */
 class BackupManager(
     private val db: DiaryDatabase, private val safety: SafetyBackupStore,
-    private val appVersionCode: Int, private val certificate: String?, private val selection: SelectionStore? = null
+    private val appVersionCode: Int, private val certificate: String?, private val selection: SelectionStore? = null,
+    private val owner:String?=null
 ) {
     private val dao = db.backupDao()
     private val _generation = MutableStateFlow(0L)
@@ -89,6 +90,10 @@ class BackupManager(
         BackupCodec.validate(incoming)
         val result = db.withTransaction {
             verifySchema()
+            owner?.let{account->
+                require(java.util.UUID.fromString(account).toString()==account)
+                require(db.academicDao().control()?.owner?.let{it==account}!=false){"A titularidade do backup não corresponde a este banco."}
+            }
             val current = withContext(readRows())
             if (BackupCodec.fingerprint(current) != prepared.currentFingerprint) throw BackupFailure("Os dados mudaram após a prévia. Selecione novamente o backup antes de confirmar.")
             // Se esta escrita falhar, nenhuma tabela é modificada.
@@ -98,6 +103,10 @@ class BackupManager(
             // Chaves estrangeiras continuam ligadas; qualquer erro causa rollback integral.
             // A restored academic snapshot must never replay pending cloud writes or remote deletions.
             // Keep queue/conflict audit, but require a future explicit reconciliation before resuming.
+            // A fresh account may not have enabled synchronization yet. Persist the restore
+            // barrier as well, so its first later enrollment cannot treat an old backup as new.
+            if(owner!=null && db.academicDao().control()==null)db.academicDao().save(
+                br.com.diariodeclasse.sync.academic.AcademicControl(owner=owner,stage="RESTORE",enabled=false,applying=true,message="RESTORE"))
             db.openHelper.writableDatabase.execSQL("UPDATE sync_control SET enabled=0, applying=1, checked=0, message='RESTORE'")
             db.openHelper.writableDatabase.execSQL("UPDATE sync_classes SET conflict=COALESCE(conflict,'RESTORE')")
             db.openHelper.writableDatabase.execSQL("UPDATE sync_academic_control SET enabled=0, applying=1, stage='RESTORE', checked=0, message='RESTORE'")

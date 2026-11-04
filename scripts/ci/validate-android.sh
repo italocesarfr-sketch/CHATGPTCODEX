@@ -48,6 +48,13 @@ from pathlib import Path
 text=Path('build/phasee-focused.txt').read_text()
 assert 'OK (7 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASEE
+timeout --signal=INT --kill-after=10s 4m adb shell am instrument -w -e timeout_msec 210000 -e class br.com.diariodeclasse.PhaseEReconciliationTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phasee-reconciliation.txt
+cat build/phasee-reconciliation.txt
+python3 - <<'PYDECISION'
+from pathlib import Path
+text=Path('build/phasee-reconciliation.txt').read_text()
+assert 'OK (10 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYDECISION
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.AcademicConflictPanelTest,br.com.diariodeclasse.SyncPanelReadinessTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/academic-conflict-panel.txt
 cat build/academic-conflict-panel.txt
 python3 - <<'PYCONFLICT'

@@ -119,3 +119,10 @@ em dois emuladores comprovados localmente. Workflow `41466557420` aprovado;
 SQL C ainda não foi aplicada no projeto hospedado. D/E, migração real, atualização
 assinada original e homologação física permanecem pendentes. Não confundir essas
 evidências com sincronização completa, backup integral ou liberação de produção.
+
+## Continuidade da fase E
+
+A consolidação experimental em desenvolvimento está registrada em
+[FASE_E_0220.md](FASE_E_0220.md), com transferências persistentes paginadas,
+decisões auditáveis e reconciliação explícita após backup. Não equivale a
+homologação hospedada/física nem altera a aprovação histórica A–D.

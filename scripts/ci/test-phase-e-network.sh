@@ -12,6 +12,9 @@ mkdir -p build/phasee-network
 archive(){
  for side in primary secondary; do
   local device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+  if adb -s "$device" shell run-as br.com.diariodeclasse test -d files/entry-diagnostics; then
+   adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/entry-diagnostics > "build/phasee-network/$side-entry.tar" || true
+  fi
   if adb -s "$device" shell run-as br.com.diariodeclasse test -d files/phasee-network; then
    adb -s "$device" exec-out run-as br.com.diariodeclasse tar -cf - files/phasee-network > "build/phasee-network/$side-captures.tar" || true
   fi
@@ -59,5 +62,34 @@ probe "$primary" e-conflict-local primary
 probe "$secondary" e-conflict-remote secondary
 adb -s "$primary" shell svc wifi enable; adb -s "$primary" shell svc data enable
 probe "$primary" e-conflict-observe primary
+probe "$primary" e-decision-lost primary
+probe "$primary" e-decision-replay primary
+probe "$secondary" e-observe-decision secondary
+probe "$primary" e-second-local primary
+probe "$secondary" e-second-remote secondary
+adb -s "$primary" shell svc wifi enable; adb -s "$primary" shell svc data enable
+probe "$primary" e-resolve-remote primary
+probe "$secondary" e-backup-before secondary
+probe "$primary" e-after-backup-remote primary
+probe "$secondary" e-restore-review secondary
+for side in primary secondary; do
+ device="$primary"; [[ "$side" == secondary ]] && device="$secondary"
+ probe "$device" e-final "$side"
+ adb -s "$device" exec-out run-as br.com.diariodeclasse cat files/phasee-final.sha256 > "build/phasee-network/$side-final.sha256"
+done
+cmp build/phasee-network/primary-final.sha256 build/phasee-network/secondary-final.sha256
+for font in 1.3 1.6; do
+ adb -s "$secondary" shell settings put system font_scale "$font"
+ adb -s "$secondary" shell am force-stop br.com.diariodeclasse
+ timeout --signal=INT --kill-after=10s 2m adb -s "$secondary" shell am instrument -w -e expectedSystemFontScale "$font" -e class br.com.diariodeclasse.PhaseEReviewLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/phasee-network/layout-$font.txt"
+ python3 - "$font" <<'PYFONT'
+from pathlib import Path
+import sys
+text=Path('build/phasee-network/layout-'+sys.argv[1]+'.txt').read_text()
+assert 'OK (1 test)' in text and all(x not in text for x in ['FAILURES','INSTRUMENTATION_FAILED','Process crashed']),text
+PYFONT
+done
+adb -s "$secondary" shell settings put system font_scale 1.0
+adb -s "$secondary" exec-out run-as br.com.diariodeclasse tar -cf - files/phasee-layout > build/phasee-network/layout.tar
 python3 scripts/test-phase-e-http.py | tee build/phasee-network/http-security.txt
-printf '%s\n' '11 Android E1 HTTP phases plus a required process kill after durable staging passed; 5,171 records, 15 kinds, two independent AVDs; local PostgreSQL/PostgREST and synthetic Auth only.' > build/phasee-network/summary.txt
+printf '%s\n' '22 Android E1/E2/E3 HTTP phases plus a required process kill after durable staging passed; 5,171 initial records, 5,172 after explicit backup reconciliation, 15 kinds, two independent AVDs; local PostgreSQL/PostgREST and synthetic Auth only.' > build/phasee-network/summary.txt
