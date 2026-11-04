@@ -47,9 +47,10 @@ enum class AcademicKind(val wire: String, val primaryKey: List<String>) {
     }
 }
 @Serializable data class AcademicBatch(val operation: String, val changes: List<AcademicChange>) {
-    fun validate() {
+    fun validate(maxRecords:Int=256) {
         require(java.util.UUID.fromString(operation).toString() == operation)
-        require(changes.size in 1..256 && changes.map { it.identity }.distinct().size == changes.size)
+        require(maxRecords in 1..AcademicPaging.MAX_RECORDS)
+        require(changes.size in 1..maxRecords && changes.map { it.identity }.distinct().size == changes.size)
         changes.forEach { it.validate() }
     }
 }

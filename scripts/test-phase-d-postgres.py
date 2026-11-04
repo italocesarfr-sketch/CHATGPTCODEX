@@ -2,7 +2,7 @@
 """Phase D, disposable LOCAL PostgreSQL. Fictitious auth claims; never hosted Supabase."""
 import os,importlib.util,json,uuid,unittest,copy
 from pathlib import Path
-if os.environ.get('PGDATABASE')!='noctua_phase_d_test':raise SystemExit('Disposable noctua_phase_d_test required')
+if os.environ.get('PGDATABASE') not in ('noctua_phase_d_test','noctua_phase_e_test'):raise SystemExit('Disposable noctua_phase_d_test required')
 spec=importlib.util.spec_from_file_location('phasec',Path(__file__).with_name('test-phase-c-postgres.py'))
 c=importlib.util.module_from_spec(spec);spec.loader.exec_module(c)
 b=c.b;f=c.f;execute=c.execute;A=c.A;B=c.B;literal=c.literal

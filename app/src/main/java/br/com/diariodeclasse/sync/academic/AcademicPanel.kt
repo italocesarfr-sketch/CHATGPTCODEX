@@ -21,7 +21,7 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
     c?.stage=="RESTORE"->"Pausado após restauração"
     academicConflict(c,pending,incoming)->"Conflito preservado"
     c?.message=="SYNCING"->"Sincronizando"
-    c?.stage in listOf("PREPARED","PREPARED_C","PREPARED_D")->when(c?.message){"CONFLICT","GRAPH","UNSUPPORTED"->"Conflito preservado";"SETUP"->"Aguarda configuração do teste";"OFFLINE","NETWORK"->"Aguardando internet";else->"Transição pendente"}
+    c?.stage in listOf("PREPARED","PREPARED_C","PREPARED_D","PREPARED_E")->when(c?.message){"CONFLICT","GRAPH","UNSUPPORTED"->"Conflito preservado";"SETUP"->"Aguarda configuração do teste";"OFFLINE","NETWORK"->"Aguardando internet";else->"Transição pendente"}
     c?.enabled!=true->"Teste pausado"
     c.message=="OFFLINE"->"Aguardando internet"
     c.message=="SESSION"->"Acesso ao teste indisponível"
@@ -39,7 +39,7 @@ fun academicLabel(c:AcademicControl?,states:List<AcademicState>,pending:List<Aca
             if(running)CircularProgressIndicator(Modifier.testTag("academic-progress").size(20.dp),strokeWidth=2.dp)
             Text(academicLabel(c,states,pending,incoming),Modifier.weight(1f).testTag("academic-status").semantics{liveRegion=LiveRegionMode.Polite})
         }
-        Text(if(c.stage.endsWith("_D"))"Teste dos 15 tipos de registros acadêmicos, incluindo diário, horários e históricos. Mantenha o backup; conflitos e acervos maiores ainda exigem conferência."
+        Text(if(c.stage.endsWith("_D") || c.stage.endsWith("_E"))"Teste dos 15 tipos de registros acadêmicos, incluindo diário, horários e históricos. Mantenha o backup; conflitos e acervos maiores ainda exigem conferência."
             else if(c.stage.endsWith("_C"))"Turmas, bimestres, alunos, avaliações e frequência. Diário, horários e remanejamentos ainda ficam neste aparelho. Mantenha o backup."
             else "Turmas, bimestres e alunos. Notas, chamadas e diário ainda ficam neste aparelho. Mantenha o backup.")
         if(incoming.isNotEmpty() || pending.any{it.conflict!=null})Text("As versões foram preservadas. A conferência é necessária antes de retomar.")

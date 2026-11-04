@@ -13,7 +13,7 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
         store.prepareConsent(status)
         val fenced=if(status.protocol==1)remote.activate(token,status)else status
         check(admitted())
-        if(fenced.academicScope==4){store.prepareD(fenced);store.activateD(fenced)}else if(fenced.academicScope==3){store.prepareC(fenced);store.activateC(fenced)}else store.activate(fenced)
+        if(fenced.academicScope==5){store.prepareE(fenced);store.activateE(fenced)}else if(fenced.academicScope==4){store.prepareD(fenced);store.activateD(fenced)}else if(fenced.academicScope==3){store.prepareC(fenced);store.activateC(fenced)}else store.activate(fenced)
     }
     suspend fun activateC() {
         check(admitted());val token=session();check(admitted());val status=remote.status(token);check(admitted())
@@ -26,6 +26,12 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
         store.prepareD(status)
         val activated=if(status.academicScope==4)status else remote.enableD(token,status.academicSequence)
         check(admitted());store.activateD(activated)
+    }
+    suspend fun activateE() {
+        check(admitted());val token=session();check(admitted());val status=remote.status(token);check(admitted())
+        store.prepareE(status)
+        val activated=if(status.academicScope==5)status else remote.enableE(token,status.academicSequence)
+        check(admitted());store.activateE(activated)
     }
     suspend fun run() {
         suspend fun allowed()=admitted()&&store.active()
@@ -41,6 +47,13 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 for(pageTurn in 0 until 32) {
                     if(!allowed())return
                     if(store.blocked()){store.message("CONFLICT");return}
+                    if(store.scope()==5) {
+                        val offset=store.nextOffset();val fragments=remote.pullE(token,store.cursor(),offset);if(!allowed())return
+                        require(fragments.size<=1)
+                        if(fragments.isEmpty()){require(offset==0);caughtUp=true;break}
+                        if(!store.receivePart(fragments.single()))return
+                        continue
+                    }
                     val pages=when(store.scope()){4->remote.pullD(token,store.cursor());3->remote.pullC(token,store.cursor());else->remote.pull(token,store.cursor())};if(!allowed())return
                     require(pages.size<=1)
                     if(pages.isEmpty()){caughtUp=true;break}
@@ -52,7 +65,7 @@ class AcademicEngine(private val store:AcademicStore,private val remote:Academic
                 if(pending==null){store.message("",checked=true);return}
                 store.attempt(pending);if(!allowed())return
                 val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body)
-                val reply=when(store.scope()){4->remote.pushD(token,batch);3->remote.pushC(token,batch);else->remote.push(token,batch)}
+                val reply=when(store.scope()){5->remote.pushE(token,batch);4->remote.pushD(token,batch);3->remote.pushC(token,batch);else->remote.push(token,batch)}
                 if(!allowed())return
                 store.accept(pending,reply)
                 if(store.blocked())return

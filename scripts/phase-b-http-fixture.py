@@ -8,6 +8,7 @@ spec=importlib.util.spec_from_file_location('phase_b_fixture',Path(__file__).wit
 f=importlib.util.module_from_spec(spec);spec.loader.exec_module(f);f.reset()
 f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611020002_phase_c_scope.sql").read_text())
 f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611020003_phase_d_scope.sql").read_text())
+f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611030001_phase_e_paging.sql").read_text())
 SECRET='noctua-phase-b-disposable-jwt-secret-2026-only'
 SID_A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';SID_A2='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';SID_B='cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 f.execute(f"INSERT INTO auth.sessions VALUES('{SID_A}','{f.A}',NULL),('{SID_A2}','{f.A}',NULL),('{SID_B}','{f.B}',NULL);")
@@ -17,6 +18,9 @@ f.execute("INSERT INTO public.noctua_academic_test_accounts VALUES('44444444-444
 f.execute("INSERT INTO auth.users VALUES('66666666-6666-4666-8666-666666666666',now(),false),('77777777-7777-4777-8777-777777777777',now(),false);")
 f.execute("INSERT INTO auth.sessions VALUES('14141414-1414-4414-8414-141414141414','66666666-6666-4666-8666-666666666666',NULL),('13131313-1313-4313-8313-131313131313','66666666-6666-4666-8666-666666666666',NULL),('12121212-1212-4212-8212-121212121212','77777777-7777-4777-8777-777777777777',NULL);")
 f.execute("INSERT INTO public.noctua_academic_test_accounts VALUES('66666666-6666-4666-8666-666666666666',true),('77777777-7777-4777-8777-777777777777',true);")
+f.execute("INSERT INTO auth.users VALUES('88888888-8888-4888-8888-888888888888',now(),false),('99999999-9999-4999-8999-999999999999',now(),false);")
+f.execute("INSERT INTO auth.sessions VALUES('81818181-8181-4181-8181-818181818181','88888888-8888-4888-8888-888888888888',NULL),('82828282-8282-4282-8282-828282828282','88888888-8888-4888-8888-888888888888',NULL),('93939393-9393-4393-8393-939393939393','99999999-9999-4999-8999-999999999999',NULL);")
+f.execute("INSERT INTO public.noctua_academic_test_accounts VALUES('88888888-8888-4888-8888-888888888888',true),('99999999-9999-4999-8999-999999999999',true);")
 f.execute("""
 DO $$ BEGIN IF NOT EXISTS(SELECT FROM pg_roles WHERE rolname='postgrest_fixture') THEN
  CREATE ROLE postgrest_fixture LOGIN NOINHERIT PASSWORD 'local-fixture-only'; END IF; END $$;

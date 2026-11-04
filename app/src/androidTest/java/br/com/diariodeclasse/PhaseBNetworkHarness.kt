@@ -16,17 +16,18 @@ object PhaseBNetworkHarness {
     fun droppedCommittedReply()=committed
     private const val secret="noctua-phase-b-disposable-jwt-secret-2026-only"
     fun token(other:Boolean=false):String {
+        val e=phase?.startsWith("e-")==true
         val c=phase?.startsWith("c-")==true
         val d=phase?.startsWith("d-")==true
-        val owner=if(other)if(d)"77777777-7777-4777-8777-777777777777"else if(c)"55555555-5555-4555-8555-555555555555"else"22222222-2222-4222-8222-222222222222"else user().id
-        val sid=if(d){if(other)"12121212-1212-4212-8212-121212121212"else if(secondary)"13131313-1313-4313-8313-131313131313"else"14141414-1414-4414-8414-141414141414"}else if(c){if(other)"ffffffff-ffff-4fff-8fff-ffffffffffff"else if(secondary)"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"else"dddddddd-dddd-4ddd-8ddd-dddddddddddd"}else if(other)"cccccccc-cccc-4ccc-8ccc-cccccccccccc"else if(secondary)"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"else"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+        val owner=if(e)if(other)"99999999-9999-4999-8999-999999999999"else user().id else if(other)if(d)"77777777-7777-4777-8777-777777777777"else if(c)"55555555-5555-4555-8555-555555555555"else"22222222-2222-4222-8222-222222222222"else user().id
+        val sid=if(e){if(other)"93939393-9393-4393-8393-939393939393"else if(secondary)"82828282-8282-4282-8282-828282828282"else"81818181-8181-4181-8181-818181818181"}else if(d){if(other)"12121212-1212-4212-8212-121212121212"else if(secondary)"13131313-1313-4313-8313-131313131313"else"14141414-1414-4414-8414-141414141414"}else if(c){if(other)"ffffffff-ffff-4fff-8fff-ffffffffffff"else if(secondary)"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"else"dddddddd-dddd-4ddd-8ddd-dddddddddddd"}else if(other)"cccccccc-cccc-4ccc-8ccc-cccccccccccc"else if(secondary)"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"else"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
         fun b64(bytes:ByteArray)=Base64.encodeToString(bytes,Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
         val body=b64("""{"alg":"HS256","typ":"JWT"}""".toByteArray())+"."+
             b64("""{"sub":"$owner","role":"authenticated","session_id":"$sid","exp":${System.currentTimeMillis()/1000+3600}}""".toByteArray())
         val mac=Mac.getInstance("HmacSHA256");mac.init(SecretKeySpec(secret.toByteArray(),"HmacSHA256"))
         return body+"."+b64(mac.doFinal(body.toByteArray()))
     }
-    fun user()=if(phase?.startsWith("d-")==true)fixtureUser.copy(id="66666666-6666-4666-8666-666666666666",email="phased@example.invalid")else if(phase?.startsWith("c-")==true)fixtureUser.copy(id="44444444-4444-4444-8444-444444444444",email="phasec@example.invalid")else fixtureUser
+    fun user()=if(phase?.startsWith("e-")==true)fixtureUser.copy(id="88888888-8888-4888-8888-888888888888",email="phasee@example.invalid")else if(phase?.startsWith("d-")==true)fixtureUser.copy(id="66666666-6666-4666-8666-666666666666",email="phased@example.invalid")else if(phase?.startsWith("c-")==true)fixtureUser.copy(id="44444444-4444-4444-8444-444444444444",email="phasec@example.invalid")else fixtureUser
     fun raw()=SupabaseAcademicSync("http://10.0.2.2:3000/rpc","public-local-fixture")
     fun remote():AcademicRemote {
         val delegate=raw()
@@ -34,6 +35,15 @@ object PhaseBNetworkHarness {
             override suspend fun pull(token:String,after:Long):List<AcademicPage> {
                 if(phase=="retry"&&!released || phase=="lost"&&committed)throw SyncFailure("NETWORK")
                 return delegate.pull(token,after)
+            }
+            override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> {
+                if(phase=="e-lost"&&committed)throw SyncFailure("NETWORK")
+                return delegate.pullE(token,after,offset)
+            }
+            override suspend fun pushE(token:String,batch:AcademicBatch):AcademicPushReply {
+                val reply=delegate.pushE(token,batch)
+                if(phase=="e-lost"){committed=true;throw SyncFailure("NETWORK")}
+                return reply
             }
             override suspend fun pullD(token:String,after:Long):List<AcademicPage> {
                 if(phase=="d-retry"&&!released || phase=="d-lost"&&committed)throw SyncFailure("NETWORK")

@@ -17,12 +17,15 @@ import java.net.URL
     fun change()=AcademicChange(kind,key,revision-1,payload).also{require(revision>0);it.validate()}
 }
 @Serializable data class AcademicPage(val operation:String,val sequence:Long,val records:List<AcademicVersion>) {
-    fun validate(){require(java.util.UUID.fromString(operation).toString()==operation && sequence>0)
-        require(records.size in 1..256 && records.map{it.identity}.distinct().size==records.size);records.forEach{it.change()}}
+    fun validate(maxRecords:Int=256){require(java.util.UUID.fromString(operation).toString()==operation && sequence>0)
+        require(maxRecords in 1..AcademicPaging.MAX_RECORDS && records.size in 1..maxRecords && records.map{it.identity}.distinct().size==records.size);records.forEach{it.change()}}
 }
 @Serializable data class AcademicPushReply(val operation:String,val accepted:Boolean,val sequence:Long?,val conflicts:JsonArray)
 @Serializable data class AcademicProtocolStatus(val protocol:Int,val v1Sequence:Long,val v1:JsonArray,val testAllowed:Boolean=false,val academicScope:Int=2,val academicSequence:Long=0)
 interface AcademicRemote {
+    suspend fun enableE(token:String,expectedSequence:Long):AcademicProtocolStatus=throw SyncFailure("SETUP")
+    suspend fun pushE(token:String,batch:AcademicBatch):AcademicPushReply=throw SyncFailure("SETUP")
+    suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> = throw SyncFailure("SETUP")
     suspend fun enableD(token:String,expectedSequence:Long):AcademicProtocolStatus=throw SyncFailure("SETUP")
     suspend fun pushD(token:String,batch:AcademicBatch):AcademicPushReply=throw SyncFailure("SETUP")
     suspend fun pullD(token:String,after:Long):List<AcademicPage> = throw SyncFailure("SETUP")
@@ -59,6 +62,19 @@ class SupabaseAcademicSync internal constructor(private val endpoint:String,priv
         }catch(_:IOException){throw SyncFailure("NETWORK")}finally{connection.disconnect()}
     }
     override suspend fun status(token:String)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_academic_status_c",token,buildJsonObject{}))
+    override suspend fun enableE(token:String,expectedSequence:Long)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_enable_academic_e",token,buildJsonObject{put("p_expected_sequence",expectedSequence)}))
+    override suspend fun pushE(token:String,batch:AcademicBatch):AcademicPushReply {
+        batch.validate(AcademicPaging.MAX_RECORDS)
+        val parts=AcademicPaging.parts(batch)
+        val manifest=AcademicRecords.json.decodeFromString<AcademicManifestAck>(rpc("noctua_begin_academic_e",token,buildJsonObject{put("p_operation",batch.operation);put("p_total",batch.changes.size);put("p_parts",parts.size)}))
+        require(manifest==AcademicManifestAck(batch.operation,batch.changes.size,parts.size))
+        for((index,part) in parts.withIndex()) {
+            val ack=AcademicRecords.json.decodeFromString<AcademicPartAck>(rpc("noctua_stage_academic_e",token,buildJsonObject{put("p_operation",batch.operation);put("p_part",index);put("p_changes",part)}))
+            require(ack==AcademicPartAck(batch.operation,index))
+        }
+        return AcademicRecords.json.decodeFromString(rpc("noctua_commit_academic_e",token,buildJsonObject{put("p_operation",batch.operation)}))
+    }
+    override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> = AcademicRecords.json.decodeFromString(rpc("noctua_pull_academic_e",token,buildJsonObject{put("p_after",after);put("p_offset",offset)}))
     override suspend fun enableD(token:String,expectedSequence:Long)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_enable_academic_d",token,buildJsonObject{put("p_expected_sequence",expectedSequence)}))
     override suspend fun pushD(token:String,batch:AcademicBatch):AcademicPushReply {
         batch.validate();return AcademicRecords.json.decodeFromString(rpc("noctua_push_academic_d",token,buildJsonObject{put("p_operation",batch.operation);put("p_changes",AcademicRecords.json.encodeToJsonElement(batch.changes))}))

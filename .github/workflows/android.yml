@@ -108,6 +108,17 @@ jobs:
           set -euo pipefail
           createdb noctua_phase_d_test
           python3 scripts/test-phase-d-postgres.py 2>&1 | tee build/phased-postgres.txt
+      - name: Fase E1 — paginação e isolamento (PostgreSQL descartável)
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-fixture-only
+          PGDATABASE: noctua_phase_e_test
+        run: |
+          set -euo pipefail
+          createdb noctua_phase_e_test
+          python3 scripts/test-phase-e-postgres.py 2>&1 | tee build/phasee-postgres.txt
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -213,6 +224,9 @@ jobs:
             build/phasec-focused.txt
             build/phasec-font-*.txt
             build/phasec-layout.tar
+            build/phasee-postgres.txt
+            build/phasee-focused.txt
+            build/phasee-network/
             build/phased-network/
             build/phased-postgres.txt
             build/phased-focused.txt

@@ -2,7 +2,7 @@
 """Disposable PostgreSQL phase B. Auth claims are fixtures, not hosted Supabase sessions."""
 import os,importlib.util,json,uuid,concurrent.futures,unittest
 from pathlib import Path
-if os.environ.get('PGDATABASE') not in ('noctua_phase_b_test','noctua_phase_c_test','noctua_phase_d_test'):raise SystemExit('Requires disposable noctua_phase_b_test')
+if os.environ.get('PGDATABASE') not in ('noctua_phase_b_test','noctua_phase_c_test','noctua_phase_d_test','noctua_phase_e_test'):raise SystemExit('Requires disposable noctua_phase_b_test')
 spec=importlib.util.spec_from_file_location('academic_fixture',Path(__file__).with_name('test-academic-postgres.py'))
 f=importlib.util.module_from_spec(spec);spec.loader.exec_module(f)
 execute=f.execute;literal=f.literal;A=f.A;B=f.B
@@ -10,7 +10,8 @@ MIGRATION=f.ROOT/'supabase/migrations/202611020001_phase_b_fence.sql'
 execute(MIGRATION.read_text())
 TABLES=['noctua_academic_test_accounts','noctua_sync_protocols']+f.TABLES+['noctua_sync_receipts','noctua_class_versions','noctua_class_bundles','noctua_sync_heads']
 def reset():
-    execute('TRUNCATE '+','.join('public.'+t for t in TABLES)+',auth.users,auth.sessions;')
+    extra=[t for t in ('noctua_e_parts','noctua_e_transfers') if execute("SELECT coalesce(to_regclass('public."+t+"')::text,'');")]
+    execute('TRUNCATE '+','.join('public.'+t for t in TABLES+extra)+',auth.users,auth.sessions;')
     execute(f"INSERT INTO auth.users VALUES('{A}',now(),false),('{B}',now(),false),('{f.UNCONFIRMED}',NULL,false);")
     for owner,sid in f.SESSION.items():execute(f"INSERT INTO auth.sessions VALUES('{sid}','{owner}',NULL);")
     execute(f"INSERT INTO public.noctua_academic_test_accounts VALUES('{A}',true),('{B}',true);")

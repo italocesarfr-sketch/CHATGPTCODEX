@@ -19,11 +19,16 @@ data class AcademicIncoming(@PrimaryKey val sequence:Long,val owner:String,val b
 @Entity(tableName="sync_academic_applied")
 data class AcademicApplied(@PrimaryKey val sequence:Long,val owner:String,val operation:String,val digest:String)
 
+@Entity(tableName="sync_academic_parts",primaryKeys=["sequence","offset"])
+data class AcademicPart(val sequence:Long,val offset:Int,val owner:String,val operation:String,val total:Int,
+    val count:Int,val digest:String,val body:String)
+
 @Dao interface AcademicDao {
     @Query("SELECT * FROM sync_academic_control WHERE id=1") suspend fun control():AcademicControl?
     @Query("SELECT * FROM sync_academic_control WHERE id=1") fun watchControl():Flow<AcademicControl?>
     @Upsert suspend fun save(value:AcademicControl)
     @Query("SELECT * FROM sync_academic_records ORDER BY kind,key1,key2") suspend fun states():List<AcademicState>
+    @Query("SELECT * FROM sync_academic_records WHERE kind=:kind AND key1=:key1 AND key2=:key2") suspend fun record(kind:String,key1:String,key2:String):AcademicState?
     @Query("SELECT * FROM sync_academic_records ORDER BY kind,key1,key2") fun watchStates():Flow<List<AcademicState>>
     @Upsert suspend fun save(value:AcademicState)
     @Query("SELECT * FROM sync_academic_outbox ORDER BY createdAt,id") suspend fun pending():List<AcademicPending>
@@ -37,6 +42,11 @@ data class AcademicApplied(@PrimaryKey val sequence:Long,val owner:String,val op
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicIncoming)
     @Query("SELECT * FROM sync_academic_applied WHERE sequence=:sequence") suspend fun applied(sequence:Long):AcademicApplied?
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicApplied)
+    @Query("SELECT * FROM sync_academic_parts ORDER BY sequence,offset") suspend fun parts():List<AcademicPart>
+    @Query("SELECT * FROM sync_academic_parts WHERE body<>'' ORDER BY sequence,offset") suspend fun stagedParts():List<AcademicPart>
+    @Query("SELECT * FROM sync_academic_parts WHERE sequence=:sequence AND offset=:offset") suspend fun part(sequence:Long,offset:Int):AcademicPart?
+    @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicPart)
+    @Query("UPDATE sync_academic_parts SET body='' WHERE sequence=:sequence") suspend fun confirmParts(sequence:Long)
 }
 
 fun installAcademicTriggers(db:SupportSQLiteDatabase) {
@@ -44,7 +54,7 @@ fun installAcademicTriggers(db:SupportSQLiteDatabase) {
     for(table in AcademicKind.entries.map{it.wire}) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
         val key1=when(table){"terms","class_archives","preserved_histories"->"$ref.classId";"relocations"->"$ref.sourceStudentId";"grades"->"$ref.activityId";"marks"->"$ref.lessonId";"recompositions"->"$ref.studentId";else->"$ref.id"}
         val key2=when(table){"terms"->"CAST($ref.number AS TEXT)";"grades","marks"->"$ref.studentId";"recompositions"->"CAST($ref.term AS TEXT)";else->"''"}
-        val stages=when(table){in phaseBKinds->"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D'";in phaseCKinds->"'PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D'";else->"'PREPARED_D','ACTIVE_D'"}
+        val stages=when(table){in phaseBKinds->"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'";in phaseCKinds->"'PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'";else->"'PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'"}
         // Do not rely on OR IGNORE inside a trigger: an outer INSERT/UPDATE OR ABORT
         // overrides it in SQLite. Guard the insert instead; the same transaction's UPDATE
         // increments both new and existing counters, retaining every PK/unique constraint.
@@ -58,6 +68,12 @@ fun installAcademicTriggers(db:SupportSQLiteDatabase) {
                 AND NOT EXISTS(SELECT 1 FROM sync_academic_records r WHERE r.kind='$table' AND r.key1=$key1 AND r.key2=$key2);
               UPDATE sync_academic_records SET localVersion=localVersion+1 WHERE kind='$table' AND key1=$key1 AND key2=$key2;
             END""".trimIndent())
+    }
+}
+val ACADEMIC_MIGRATION_12_13=object:Migration(12,13) {
+    override fun migrate(db:SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE IF NOT EXISTS sync_academic_parts (sequence INTEGER NOT NULL, offset INTEGER NOT NULL, owner TEXT NOT NULL, operation TEXT NOT NULL, total INTEGER NOT NULL, count INTEGER NOT NULL, digest TEXT NOT NULL, body TEXT NOT NULL, PRIMARY KEY(sequence,offset))")
+        installAcademicTriggers(db)
     }
 }
 val ACADEMIC_MIGRATION_11_12=object:Migration(11,12) {

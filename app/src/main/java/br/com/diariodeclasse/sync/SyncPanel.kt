@@ -57,11 +57,13 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     var consent by remember{mutableStateOf(false)}
     var consentC by remember{mutableStateOf(false)}
     var consentD by remember{mutableStateOf(false)}
+    var consentE by remember{mutableStateOf(false)}
+    var fictitiousE by remember{mutableStateOf(false)}
     var fictitiousD by remember{mutableStateOf(false)}
     var fictitiousC by remember{mutableStateOf(false)}
     var fictitious by remember{mutableStateOf(false)}
     fun act(block:suspend()->Unit){busy=true;scope.launch{try{block();SyncJobs.soon(workspace.context)}catch(_:Exception){error="Não foi possível iniciar. Os dados locais foram preservados."}finally{busy=false}}}
-    AlertDialog(onDismissRequest=close,title={Text(if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
+    AlertDialog(onDismissRequest=close,title={Text(if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D") || academic!!.stage.endsWith("_E"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             if(!ready)Text("Carregando estado da sincronização…",Modifier.testTag("sync-loading"))
             else if(academic!=null) {
@@ -69,9 +71,13 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
                 AcademicPanelContent(academic!!,academicStates,pending,incoming,busy,
                     retry={workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)},
                     pause={act{academicStore.pause()}},resume={act{
-                        if(academic!!.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"))academicStore.resume()
+                        if(academic!!.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E"))academicStore.resume()
                         workspace.academicCoordinator.request()
                     }})
+                if(academic!!.stage=="ACTIVE_D" && academicTestEligible(workspace))OutlinedButton(onClick={consentE=true},
+                    enabled=!busy&&pending.isEmpty()&&incoming.isEmpty(),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-enable-e")) {
+                    Text("Testar recuperação de acervos maiores")
+                }
                 if(academic!!.stage=="ACTIVE_C" && academicTestEligible(workspace))OutlinedButton(onClick={consentD=true},
                     enabled=!busy&&pending.isEmpty()&&incoming.isEmpty(),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-enable-d")) {
                     Text("Incluir diário e históricos no teste")
@@ -148,6 +154,22 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
             workspace.academicCoordinator.request()
         }
     },enabled=fictitiousD&&!busy){Text("Ampliar teste")}})
+    if(consentE)AlertDialog(onDismissRequest={consentE=false},title={Text("Ampliar a recuperação do teste?")},text={
+        Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Text("Os 15 tipos acadêmicos poderão ser enviados e recuperados por partes. Nenhum lote incompleto será aplicado. Clientes anteriores deixarão de sincronizar nesta conta. Mantenha o backup.")
+            Row(Modifier.fillMaxWidth().heightIn(min=48.dp).toggleable(value=fictitiousE,role=Role.Checkbox,onValueChange={fictitiousE=it}),
+                verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+                Checkbox(fictitiousE,null);Text("Esta conta contém somente dados fictícios.",Modifier.weight(1f))
+            }
+        }
+    },dismissButton={TextButton({consentE=false}){Text("Cancelar")}},confirmButton={TextButton({
+        consentE=false;act {
+            check(academicTestEligible(workspace))
+            val app=workspace.context.applicationContext as DiaryApplication
+            workspace.syncMutex.withLock {AcademicCoordinator.engine(app,workspace).activateE()}
+            workspace.academicCoordinator.request()
+        }
+    },enabled=fictitiousE&&!busy){Text("Ampliar teste")}})
     enrolling?.let{school->AlertDialog(onDismissRequest={enrolling=null},title={Text("Sincronizar esta turma?")},text={
         Text("${school.name} • ${school.subject} • ${school.year}\n\nEnviar configurações e bimestres para sua conta. Nenhum aluno ou lançamento será enviado.")
     },dismissButton={TextButton({enrolling=null}){Text("Cancelar")}},confirmButton={TextButton({enrolling=null;act{store.enroll(school.id)}}){Text("Participar")}})}

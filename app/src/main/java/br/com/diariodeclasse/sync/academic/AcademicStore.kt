@@ -130,15 +130,15 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
     val dao=db.academicDao()
     init {require(java.util.UUID.fromString(owner).toString()==owner)}
     private suspend fun control():AcademicControl?=dao.control()?.also{check(it.owner==owner)}
-    suspend fun active()=db.withTransaction {control()?.let{it.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D")&&it.enabled}==true}
+    suspend fun active()=db.withTransaction {control()?.let{it.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E")&&it.enabled}==true}
     suspend fun stage()=db.withTransaction {control()?.stage}
     private suspend fun snapshot()=ClassLifecycle.snapshot(DiaryRepository(db).readSnapshot())
-    suspend fun scope()=db.withTransaction {when(control()?.stage?.substringAfterLast("_")){"D"->4;"C"->3;else->2}}
-    private suspend fun kinds()=when(scope()){4->phaseDKinds;3->phaseCKinds;else->phaseBKinds}
+    suspend fun scope()=db.withTransaction {when(control()?.stage?.substringAfterLast("_")){"E"->5;"D"->4;"C"->3;else->2}}
+    private suspend fun kinds()=when(scope()){4,5->phaseDKinds;3->phaseCKinds;else->phaseBKinds}
     private suspend fun core(rows:List<AcademicRow>):List<AcademicRow>{val allowed=kinds();return rows.filter{it.kind in allowed}}
     private suspend fun state(key:AcademicKey):AcademicState {
         val (a,b)=key.parts()
-        return dao.states().firstOrNull{it.kind==key.kind&&it.key1==a&&it.key2==b}?.also{check(it.owner==owner)}
+        return dao.record(key.kind,a,b)?.also{check(it.owner==owner)}
             ?:AcademicState(key.kind,a,b,owner,localVersion=0)
     }
     private suspend fun seed() {
@@ -153,10 +153,10 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         check(remote.testAllowed){"Conta não autorizada para o teste acadêmico."}
         val old=control();check(old?.stage !in listOf("RESTORE","BLOCKED"))
         check(db.syncDao().states().none{it.conflict!=null} && db.syncDao().operations().isEmpty())
-        val local=snapshot();val initialKinds=if(remote.academicScope==4)phaseDKinds else phaseBKinds
+        val local=snapshot();val initialKinds=if(remote.academicScope in 4..5)phaseDKinds else phaseBKinds
         val rows=AcademicRecords.rows(local).filter{it.kind in initialKinds}
         PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},initialKinds)
-        require(rows.size<=256) // No partial, unvalidated initial bootstrap for larger collections.
+        require(rows.size<=if(remote.academicScope==5)AcademicPaging.MAX_RECORDS else 256) // No partial, unvalidated initial bootstrap for larger collections.
         if(remote.protocol==1)for(value in remote.v1) {
             val record=ClassBundle.wire.decodeFromJsonElement<RemoteClass>(value)
             record.validate()
@@ -210,8 +210,70 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         val c=requireNotNull(control());check(c.stage in listOf("PREPARED_D","ACTIVE_D"))
         dao.save(c.copy(stage="ACTIVE_D",enabled=true,message="PENDING",checked=false));seed()
     }
+    suspend fun prepareE(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.testAllowed && remote.academicScope in 4..5)
+        val c=requireNotNull(control())
+        check(c.stage in listOf("PREPARED","ACTIVE_D","PREPARED_E","ACTIVE_E"))
+        check(!blocked() && dao.pending().isEmpty())
+        if(remote.academicScope==4 && c.cursor!=remote.academicSequence)throw SyncFailure("CONFLICT")
+        val local=snapshot();val rows=AcademicRecords.rows(local)
+        PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},phaseDKinds)
+        require(rows.size<=AcademicPaging.MAX_RECORDS)
+        require(AcademicRecords.json.encodeToString(rows).toByteArray().size<=AcademicPaging.MAX_BYTES)
+        dao.save(c.copy(stage="PREPARED_E",enabled=false,message="PENDING",checked=false));seed()
+    }
+    suspend fun activateE(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.academicScope==5 && remote.testAllowed)
+        val c=requireNotNull(control());check(c.stage in listOf("PREPARED_E","ACTIVE_E"))
+        dao.save(c.copy(stage="ACTIVE_E",enabled=true,message="PENDING",checked=false));seed()
+    }
+    /** Transfer offset is durable and distinct from the academic cursor. */
+    suspend fun nextOffset():Int=db.withTransaction {
+        val c=requireNotNull(control())
+        for(old in dao.stagedParts().filter{it.sequence<=c.cursor}) {
+            check(dao.applied(old.sequence)?.owner==owner);dao.confirmParts(old.sequence)
+        }
+        val parts=dao.stagedParts();check(parts.all{it.owner==owner&&it.sequence==c.cursor+1})
+        var offset=0
+        for(part in parts) {
+            check(part.offset==offset);offset+=part.count
+        }
+        // Crash after the last part was persisted but before apply: replay that immutable
+        // part, rather than asking the server for an offset beyond the transaction.
+        if(parts.isNotEmpty() && offset==parts.first().total)parts.last().offset else offset
+    }
+    /** No academic row or cursor is changed by an incomplete fragment, even on process death. */
+    suspend fun receivePart(fragment:AcademicFragment):Boolean {
+        fragment.validate()
+        val raw=AcademicRecords.json.encodeToString(fragment)
+        val digest=BackupCodec.hash(AcademicRecords.canonical(AcademicRecords.json.encodeToJsonElement(fragment)).toByteArray())
+        val complete=db.withTransaction {
+            val c=requireNotNull(control());check(c.stage=="ACTIVE_E" && c.enabled && !blocked())
+            if(fragment.sequence<=c.cursor) {
+                val receipt=requireNotNull(dao.applied(fragment.sequence));val part=requireNotNull(dao.part(fragment.sequence,fragment.offset))
+                check(receipt.owner==owner&&receipt.operation==fragment.operation&&part.owner==owner&&part.digest==digest)
+                return@withTransaction null
+            }
+            require(fragment.sequence==c.cursor+1)
+            val existing=dao.stagedParts();check(existing.all{it.owner==owner&&it.sequence==fragment.sequence&&it.operation==fragment.operation&&it.total==fragment.total})
+            val old=existing.firstOrNull{it.offset==fragment.offset}
+            if(old!=null)check(old.body==raw)
+            else {
+                require(fragment.offset==nextOffset())
+                require(existing.sumOf{it.body.toByteArray().size.toLong()}+raw.toByteArray().size<=AcademicPaging.MAX_BYTES+512*1024L)
+                dao.insert(AcademicPart(fragment.sequence,fragment.offset,owner,fragment.operation,fragment.total,fragment.records.size,digest,raw))
+            }
+            dao.save(c.copy(checked=false))
+            val parts=dao.stagedParts()
+            if(parts.sumOf{it.count}==fragment.total)AcademicPage(fragment.operation,fragment.sequence,parts.flatMap{AcademicRecords.json.decodeFromString<AcademicFragment>(it.body).records})else null
+        }
+        if(complete==null)return true
+        val applied=receive(complete)
+        if(applied)db.withTransaction{check(dao.applied(complete.sequence)?.owner==owner);dao.confirmParts(complete.sequence)}
+        return applied
+    }
     suspend fun pause()=db.withTransaction {control()?.let{dao.save(it.copy(enabled=false,message="PAUSED"))}}
-    suspend fun resume()=db.withTransaction {val c=requireNotNull(control());check(c.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"));dao.save(c.copy(enabled=true,message="PENDING"))}
+    suspend fun resume()=db.withTransaction {val c=requireNotNull(control());check(c.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E"));dao.save(c.copy(enabled=true,message="PENDING"))}
     suspend fun message(value:String,checked:Boolean?=null)=db.withTransaction {
         control()?.let{dao.save(it.copy(message=value,checked=checked ?: it.checked))}
     }
@@ -231,15 +293,16 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             return@withTransaction null
         }
         PhaseBGuard.validate(current,current,changes,kinds())
-        if(scope()==4) {
+        if(scope() in 4..5) {
             // Bases are the last acknowledged records, not a replacement database. They may
             // omit local changes/new rows, so only compare immutable parts against current.
             val acknowledged=AcademicRecords.snapshot(base)
             PhaseDGuard.immutable(acknowledged,current)
         }
-        val batch=AcademicBatch(newId(),changes);batch.validate()
-        val raw=AcademicRecords.json.encodeToString(batch);require(raw.toByteArray().size<=1024*1024)
-        val versions=changes.map {r->val s=state(r.identity);SentVersion(s.kind,s.key1,s.key2,s.localVersion)}
+        val batch=AcademicBatch(newId(),changes);batch.validate(if(scope()==5)AcademicPaging.MAX_RECORDS else 256)
+        val raw=AcademicRecords.json.encodeToString(batch);require(raw.toByteArray().size<=if(scope()==5)AcademicPaging.MAX_BYTES else 1024*1024)
+        val stateIndex=states.associateBy{it.identity()}
+        val versions=changes.map {r->val s=stateIndex.getValue(r.identity);SentVersion(s.kind,s.key1,s.key2,s.localVersion)}
         AcademicPending(batch.operation,owner,raw,AcademicRecords.json.encodeToString(versions),now()).also{dao.insert(it)}
     }
     suspend fun attempt(pending:AcademicPending)=db.withTransaction {check(pending.owner==owner);dao.attempt(pending.id)}
@@ -247,7 +310,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         if(!active())return@withTransaction
         val current=dao.pending().singleOrNull{it.id==sent.id} ?: return@withTransaction
         check(current.owner==owner && current.body==sent.body && current.versions==sent.versions)
-        val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(sent.body);batch.validate()
+        val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(sent.body);batch.validate(if(scope()==5)AcademicPaging.MAX_RECORDS else 256)
         require(reply.operation==sent.id)
         if(!reply.accepted) {
             require(reply.sequence==null && reply.conflicts.isNotEmpty())
@@ -260,8 +323,10 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         require(reply.sequence!=null && reply.sequence>(control()?.cursor ?: 0) && reply.conflicts.isEmpty())
         val versions=AcademicRecords.json.decodeFromString<List<SentVersion>>(sent.versions)
         require(versions.size==batch.changes.size)
+        val versionIndex=versions.associateBy{Triple(it.kind,it.key1,it.key2)}
+        require(versionIndex.size==versions.size)
         batch.changes.forEach {r->
-            val s=state(r.identity);val version=versions.single{it.kind==s.kind&&it.key1==s.key1&&it.key2==s.key2}.version
+            val s=state(r.identity);val version=versionIndex.getValue(Triple(s.kind,s.key1,s.key2)).version
             require(s.revision==r.base && version<=s.localVersion)
             dao.save(s.copy(revision=r.base+1,base=r.payload?.let{AcademicRecords.canonical(it)},acknowledged=version))
         }
@@ -272,9 +337,9 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
         // No external entry point; instrumentation can kill a DEBUG process after a parent
         // write. Release callers cannot install a checkpoint. Normal synchronization passes null.
         require(br.com.diariodeclasse.BuildConfig.DEBUG || debugCheckpoint==null)
-        try {page.validate();return db.withTransaction {
+        try {page.validate(if(scope()==5)AcademicPaging.MAX_RECORDS else 256);return db.withTransaction {
             val c=control() ?: return@withTransaction false
-            if(!c.enabled || c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"))return@withTransaction false
+            if(!c.enabled || c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E"))return@withTransaction false
             val digest=BackupCodec.hash(AcademicRecords.canonical(AcademicRecords.json.encodeToJsonElement(page)).toByteArray())
             if(page.sequence<=c.cursor) {
                 val receipt=requireNotNull(dao.applied(page.sequence))
@@ -291,19 +356,22 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             val pending=dao.pending().singleOrNull()
             if(pending?.id==page.operation) {
                 val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body)
-                require(records.size==batch.changes.size && records.all{r->batch.changes.any{it.identity==r.identity&&it.base+1==r.revision&&it.payload==r.payload}})
+                val sent=batch.changes.associateBy{it.identity}
+                require(records.size==sent.size && records.all{r->sent[r.identity]?.let{it.base+1==r.revision&&it.payload==r.payload}==true})
                 accept(pending,AcademicPushReply(page.operation,true,page.sequence,JsonArray(emptyList())))
             }
             val fresh=dao.states()
+            val freshIndex=fresh.associateBy{it.identity()}
             val changes=records.mapNotNull {r->
-                val s=fresh.firstOrNull{it.identity()==r.identity}
+                val s=freshIndex[r.identity]
                 if(s!=null && r.revision==s.revision) {
                     require(r.payload==s.base?.let{AcademicRecords.json.parseToJsonElement(it)})
                     null
                 }else {require(r.revision==(s?.revision ?: 0)+1);r.change()}
             }
             if(changes.isNotEmpty()) {
-                if(pending!=null && pending.id!=page.operation && changes.any{r->AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body).changes.any{it.identity==r.identity}})
+                val pendingKeys=pending?.let{AcademicRecords.json.decodeFromString<AcademicBatch>(it.body).changes.map{r->r.identity}.toSet()}.orEmpty()
+                if(pending!=null && pending.id!=page.operation && changes.any{it.identity in pendingKeys})
                     throw SyncFailure("CONFLICT")
                 val base=fresh.mapNotNull{s->s.base?.let{AcademicRow(s.kind,s.identity().key,AcademicRecords.json.parseToJsonElement(it).jsonObject)}}
                 val review=AcademicMerge.review(base,local,changes,fresh.filter{it.revision>0}.associate{it.identity() to it.revision})
@@ -330,7 +398,7 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             // This transaction runs only after the academic transaction rolled back completely.
             db.withTransaction {
                 val c=control() ?: return@withTransaction
-                if(c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D"))return@withTransaction
+                if(c.stage !in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E"))return@withTransaction
                 val raw=AcademicRecords.json.encodeToString(page)
                 val old=dao.incoming().firstOrNull{it.sequence==page.sequence}
                 if(old==null)dao.insert(AcademicIncoming(page.sequence,owner,raw,(e as? SyncFailure)?.code ?: "GRAPH"))

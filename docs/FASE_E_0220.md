@@ -48,3 +48,36 @@ ultrapassar um limite deve bloquear e preservar dados, nunca truncar/dividir cad
 Pausar o teste, preservar bancos, outbox/inbox, partes, recibos e evidências.
 Corrigir aditivamente; não rebaixar o escopo, limpar filas ou reaplicar SQL antigo.
 Não confundir sincronização com backup administrativo independente.
+
+## Marco E1 — implementação preparada, Android ainda não aprovado
+
+- Room 12→13 aditivo: somente `sync_academic_parts`, mantendo idênticas as 23
+  entidades anteriores. Partes incompletas persistem com dono, sequência, offset,
+  operação, contagem e digest; depois do commit, só os recibos/digests permanecem.
+  Nenhuma alteração do formato lógico 12 ou criptografia do backup.
+- Escopo 5 experimental explícito e persistente; D não escreve/lê no novo escopo.
+  Client E usa os mesmos estados, outbox, inbox, engine, mutex e coordenador.
+- Migração `202611030001_phase_e_paging.sql`, não aplicada no projeto hospedado.
+  RLS nas duas tabelas de estágio, sem escrita direta; auxiliares privados;
+  titularidade da sessão ativa/confirmada e allowlist existentes.
+- RPCs `noctua_enable_academic_e`, `noctua_begin_academic_e`,
+  `noctua_stage_academic_e`, `noctua_commit_academic_e`, `noctua_pull_academic_e`.
+  O servidor só publica um lote completo depois de CAS e dos validadores A/D.
+  Cliente confere recibos de partes e confirma cursor somente após aplicação Room.
+- Limites explícitos: 128 registros/parte, 768 KiB/parte, 16.384 registros e 16 MiB
+  por transação; uma linha histórica não é dividida. Até quatro transferências
+  não confirmadas por conta. Acervos/linhas acima desses limites são bloqueados e
+  preservados, nunca truncados. Transferências confirmadas são retidas no servidor;
+  política administrativa de retenção/limpeza ainda requer revisão.
+- Removidas leituras quadráticas de todos os metadados em cada linha: busca pela
+  chave primária e índices em memória no mesmo contrato de revisão/CAS.
+
+Executado localmente: PostgreSQL E1 **15/15** (inclui 5.171 registros dos 15 tipos,
+partes incompletas, replay, sessões, RLS, auditorias e conflitos); JVM **266/267**,
+um LiveAuth condicional não executado, nenhuma falha. APK debug e instrumentação
+compilaram, incluindo a conferência dos recibos de partes.
+
+Preparados, ainda dependentes do CI Android: sete testes Room E, migração 12→13,
+e prova HTTP com dois AVDs (5.171 registros, retomada após morte real do processo,
+edita nota no sentido inverso, diário offline/reconexão e conflito preservado).
+As fases E2/E3 e a aprovação global E continuam pendentes.
