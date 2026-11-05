@@ -23,15 +23,23 @@ class PhaseEReviewLayoutTest {
         val s=PhaseDFixture.read().canonical();val rows=AcademicRecords.rows(s);val known=rows.associate{it.identity to 1L}
         val evidence=s.grades.take(6).map{g->val key=buildJsonObject{put("activityId",g.activityId);put("studentId",g.studentId)}
             AcademicEvidence("grades",key,1,2,buildJsonObject{put("value",0)},buildJsonObject{put("value",6.0)},buildJsonObject{put("value",JsonNull)})}
-        val preview=AcademicPreview("context",false,1,2,rows,rows,rows,known,known,emptyList(),emptyList(),evidence)
+        val term=s.terms.first()
+        val termEvidence=AcademicEvidence("terms",buildJsonObject{put("classId",term.classId);put("number",term.number)},1,2,
+            null,buildJsonObject{put("start","2026-01-01");put("end","2026-03-31")},buildJsonObject{put("start","2026-01-02");put("end","2026-03-30")})
+        val preview=AcademicPreview("context",false,1,2,rows,rows,rows,known,known,emptyList(),emptyList(),evidence+termEvidence)
         var confirmations=0;var cancelled=false;val scale=java.util.concurrent.atomic.AtomicReference(0f)
         compose.setContent{NoctuaTheme{scale.set(LocalDensity.current.fontScale);AcademicReviewDialog(preview,false,"",{},{cancelled=true},{confirmations++})}}
         val expected=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")?.toFloat() ?: 1f
         compose.waitUntil(10000){kotlin.math.abs(scale.get()-expected)<0.01f};assertEquals(expected,scale.get(),0.01f)
         compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled().assertIsDisplayed()
         val activity=s.activities.single{it.id==s.grades.first().activityId}
+        val student=s.students.single{it.id==s.grades.first().studentId}
+        assertTrue(compose.onAllNodes(hasText("Nº ${student.number}",substring=true)).fetchSemanticsNodes().isNotEmpty())
         compose.onAllNodes(hasText(activity.name,substring=true)).fetchSemanticsNodes().let{assertTrue("A nota deve identificar a atividade envolvida",it.isNotEmpty())}
         compose.onNodeWithText("Próximos").performScrollTo().performClick()
+        compose.onNodeWithText("Início do bimestre").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Fim do bimestre").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Sincronizado: 02/01/2026").assertExists()
         compose.onNodeWithTag("academic-choice-KEEP_REMOTE").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
         compose.onNodeWithTag("academic-confirm-decision").assertIsEnabled().assertIsDisplayed()
         assertEquals(0,confirmations)

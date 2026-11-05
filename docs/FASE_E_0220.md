@@ -54,7 +54,10 @@ administrativa ainda requer homologação.
 ### E2 — Decisão explícita e auditável
 
 Prévia por identidade/campo compara base, aparelho e servidor. Notas identificam
-atividade/data; frequências identificam data/horário. Zero, null, ausência de linha
+atividade/data; frequências identificam data/horário. A revisão de UX acrescenta
+número da chamada/turma para distinguir homônimos e nomes explícitos de campos,
+incluindo início/fim de bimestre em formato brasileiro. Esse ajuste compilou
+localmente; sua captura com fonte ampliada depende da rodada posterior. Zero, null, ausência de linha
 e tombstone são distintos. A escolha local/remota é explícita e vale por conjunto
 consistente; atividades/aulas/matrículas/movimentações e dependências não podem ser
 resolvidas parcialmente. Históricos/auditorias imutáveis continuam bloqueando uma
@@ -168,6 +171,11 @@ completo (startup + HTTP + Room + UI): `android-phase-timings.jsonl`. Não se in
 latência pura de rede ou processamento exclusivo Android por subtração.
 
 ## Testes executados e pendências da rodada atual
+
+Retomada em validação: workflow `41940192378`, SHA de automação
+`d9240e1cdffb4f0f23f25b34dc655a8d1fc46b30`. O ajuste adicional de rótulos/identidade
+na conferência permanece em commit local para não cancelar essa prova em andamento.
+
 
 - JVM atual: **276 casos, 275 aprovados, um LiveAuth condicional não executado,
   zero falhas**. Build debug e de instrumentação aprovados localmente.

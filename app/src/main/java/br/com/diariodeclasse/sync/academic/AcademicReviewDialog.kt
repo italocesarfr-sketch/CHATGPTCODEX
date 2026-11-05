@@ -20,20 +20,32 @@ private val entityNames=mapOf("classes" to "Turma","terms" to "Bimestre","studen
 private val fieldNames=mapOf("value" to "Nota","mark" to "Frequência","reason" to "Motivo","name" to "Nome","title" to "Título",
     "description" to "Descrição","notes" to "Observações","date" to "Data","number" to "Número da chamada","status" to "Situação",
     "joined" to "Ingresso","left" to "Saída","effectiveDate" to "Data efetiva","externalTarget" to "Destino externo",
-    "corrections" to "Auditorias","slots" to "Horários","position" to "Posição","manualHidden" to "Ocultação manual","content" to "Conteúdo histórico")
+    "corrections" to "Auditorias","slots" to "Horários","position" to "Posição","manualHidden" to "Ocultação manual","content" to "Conteúdo histórico",
+    "stage" to "Etapa","subject" to "Disciplina","year" to "Ano letivo","shift" to "Turno","schedule" to "Horários informativos",
+    "duration" to "Duração da aula (min)","scale" to "Escala final","low" to "Abaixo desta nota: vermelho","high" to "A partir desta nota: verde",
+    "countJustified" to "FJ entra como ausência na frequência","startPresent" to "Iniciar chamadas com todos presentes",
+    "start" to "Início do bimestre","end" to "Fim do bimestre","ordinal" to "Horário","state" to "Situação da aula","note" to "Observação da aula",
+    "type" to "Tipo","term" to "Bimestre","maximum" to "Pontuação máxima","page" to "Página","reviewed" to "Revisado",
+    "allowHomonym" to "Homônimo autorizado","effective" to "Início da vigência","revision" to "Revisão","createdAt" to "Criação da revisão")
 private fun valueText(value:JsonElement?,field:String):String=when {
     value==null||value==JsonNull->when(field){"value"->"Sem lançamento";"reason"->"Sem motivo";else->"Em branco"}
     value is JsonPrimitive ->if(value.isString) {
         val text=value.content
-        if(field in setOf("date","joined","left","effectiveDate"))runCatching{java.time.LocalDate.parse(text).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))}.getOrDefault(text)else text
+        if(field in setOf("date","joined","left","effectiveDate","start","end","effective"))runCatching{java.time.LocalDate.parse(text).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))}.getOrDefault(text)else text
     }else if(value.booleanOrNull!=null)if(value.boolean)"Sim"else"Não"else value.content
     else->"Conteúdo estruturado • escolha aplicada ao conjunto"
 }
 private fun evidenceTitle(preview:AcademicPreview,e:AcademicEvidence):String {
     val values=(preview.local+preview.remote).associateBy{it.identity}
     val studentId=if(e.kind=="students")e.key["id"]else e.key["studentId"] ?: e.key["sourceStudentId"]
-    val student=studentId?.let{values[AcademicKey("students",buildJsonObject{put("id",it)})]?.payload?.get("name")?.jsonPrimitive?.content}
-    val label=(e.local ?: e.remote)?.let{it["name"] ?: it["title"]}?.jsonPrimitive?.content
+    val studentRow=studentId?.let{values[AcademicKey("students",buildJsonObject{put("id",it)})]?.payload}
+    val student=studentRow?.get("name")?.jsonPrimitive?.content?.let{name->name+(studentRow["number"]?.jsonPrimitive?.content?.let{" • Nº $it"}.orEmpty())}
+    val payload=e.local ?: e.remote
+    val label=payload?.let{it["name"] ?: it["title"]}?.jsonPrimitive?.content
+    val classId=studentRow?.get("classId") ?: payload?.get("classId") ?: e.key["classId"]
+    val school=classId?.let{values[AcademicKey("classes",buildJsonObject{put("id",it)})]?.payload}
+        ?: if(e.kind=="preserved_histories")payload?.get("content")?.jsonObject?.get("school")?.jsonObject else null
+    val schoolLabel=school?.let{listOfNotNull(it["name"],it["subject"],it["year"]).joinToString(" • "){v->v.jsonPrimitive.content}}
     fun related(kind:String,field:String)=e.key[field]?.let{values[AcademicKey(kind,buildJsonObject{put("id",it)})]?.payload}
     val context=when(e.kind) {
         "grades"->related("activities","activityId")?.let{listOfNotNull(it["name"]?.jsonPrimitive?.content,it["date"]?.let{date->valueText(date,"date")}).joinToString(" • ")}
@@ -42,7 +54,7 @@ private fun evidenceTitle(preview:AcademicPreview,e:AcademicEvidence):String {
         "lesson_records"->(e.local ?: e.remote)?.get("date")?.let{valueText(it,"date")}
         else->null
     }
-    return (listOf(entityNames.getValue(e.kind))+listOfNotNull(student ?: label,context)).joinToString(" • ")
+    return (listOf(entityNames.getValue(e.kind))+listOfNotNull(student ?: label,context,schoolLabel)).joinToString(" • ")
 }
 
 /** Review only; a single explicit confirmation freezes the decision for safe retry. */
