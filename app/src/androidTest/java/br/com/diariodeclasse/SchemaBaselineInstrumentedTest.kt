@@ -1,7 +1,6 @@
 package br.com.diariodeclasse
 
 import android.content.Context
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
@@ -35,7 +34,7 @@ class SchemaBaselineInstrumentedTest {
             sql.execSQL("INSERT INTO classes (id,name,stage,subject,year,shift,schedule,duration,scale,low,high,countJustified,startPresent) VALUES ('frozen','Turma fictícia','Médio','História',2026,'Matutino','0,0,0,0,0,0,0',50,10,5,7,1,0)")
         }
         helper.runMigrationsAndValidate(name,2,true,MIGRATION_1_2).close()
-        val db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build()
+        val db=DiaryDatabase.open(context,name)
         try {
             val manager=BackupManager(db,FileSafetyBackupStore(java.io.File(context.cacheDir,"schema-test-safety")),2,null)
             assertEquals("frozen",manager.snapshot().classes.single().id)

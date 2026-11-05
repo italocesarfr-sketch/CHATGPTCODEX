@@ -2,7 +2,6 @@ package br.com.diariodeclasse
 
 import android.content.ContentValues
 import android.content.Context
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
@@ -28,7 +27,7 @@ class ClassificationsInstrumentedTest {
     private val other=s.copy(id="classifications-other",personId="other-person",number=2)
     private val day="2026-08-10"
     private val first="${c.id}:$day:1";private val second="${c.id}:$day:2"
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build();repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"classifications-safety")),36,null)}
+    private fun open(){db=DiaryDatabase.open(context,name);repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"classifications-safety")),36,null)}
     @Before fun setup()=runBlocking{context.deleteDatabase(name);open();repo.saveClass(c,"2026-01-01");repo.saveStudent(s);repo.saveStudent(other);repo.setDayHours(c.id,day,2)}
     @After fun cleanup(){db.close();context.deleteDatabase(name)}
     private suspend fun mark(lesson:String=first,student:String=s.id)=repo.dao.attendance(lesson).single{it.studentId==student}
@@ -131,7 +130,7 @@ class ClassificationsInstrumentedTest {
             migrated.query("SELECT reason FROM marks").use{r->while(r.moveToNext())assertTrue(r.isNull(0))}
             migrated.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
         }
-        val upgraded=Room.databaseBuilder(context,DiaryDatabase::class.java,oldName).addMigrations(MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build()
+        val upgraded=DiaryDatabase.open(context,oldName)
         try{assertEquals(before,BackupManager(upgraded,FileSafetyBackupStore(File(context.cacheDir,"classified-migration-safety")),36,null).snapshot())}
         finally{upgraded.close();context.deleteDatabase(oldName)}
     }

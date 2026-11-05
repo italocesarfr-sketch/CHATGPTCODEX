@@ -201,6 +201,7 @@ jobs:
             app/schemas/
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
+            build/migrations-current-focused.txt
             build/upgrade-identity.json
             build/upgrade-before.txt
             build/upgrade-after.txt

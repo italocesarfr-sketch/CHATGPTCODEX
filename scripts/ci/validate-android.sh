@@ -12,6 +12,14 @@ adb shell pm clear br.com.diariodeclasse >/dev/null
 # Falhar cedo se o novo controle compacto não couber. A regressão completa continua obrigatória.
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+# Current DB factory must retain the frozen migration assertions and reach schema 14.
+timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e timeout_msec 150000 -e class br.com.diariodeclasse.ClassificationsInstrumentedTest#additiveMigrationNineToTenPreservesEveryPreviousColumnAndNullReasons,br.com.diariodeclasse.TimetableInstrumentedTest#migrationEightToNineLeavesEveryExistingTableAndRowUnchanged,br.com.diariodeclasse.SchemaBaselineInstrumentedTest#opensFrozenSchemaV1WithoutDestructiveFallback br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/migrations-current-focused.txt
+cat build/migrations-current-focused.txt
+python3 - <<'PYMIGRATIONS'
+from pathlib import Path
+text=Path('build/migrations-current-focused.txt').read_text()
+assert 'OK (3 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYMIGRATIONS
 ./scripts/ci/validate-auth.sh focused
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.AcademicProtocolRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/academic-protocol-focused.txt
 cat build/academic-protocol-focused.txt

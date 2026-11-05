@@ -1,7 +1,6 @@
 package br.com.diariodeclasse
 
 import android.content.Context
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
@@ -23,7 +22,7 @@ class TimetableInstrumentedTest {
     private val c=SchoolClass(id="weekly-c",name="Turma Fictícia A",subject="História",year=2026)
     private val h=c.copy(id="weekly-h",name="Turma Fictícia B")
     private fun slot(day:Int=4,n:Int=1,school:SchoolClass=c)=WeeklySlot(classId=school.id,weekday=day,ordinal=n,className=school.name,subject=school.subject,shift=school.shift)
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build();repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"weekly-safety")),29,null)}
+    private fun open(){db=DiaryDatabase.open(context,name);repo=DiaryRepository(db);backup=BackupManager(db,FileSafetyBackupStore(File(context.cacheDir,"weekly-safety")),29,null)}
     @Before fun setup()=runBlocking{context.deleteDatabase(name);open();repo.saveClass(c,"2026-01-01");repo.saveClass(h,"2026-01-01")}
     @After fun clean(){db.close();context.deleteDatabase(name)}
     private suspend fun snapshot()=backup.snapshot().diarySnapshot()
@@ -106,7 +105,7 @@ class TimetableInstrumentedTest {
         } finally{old.close()}
         val frozen=tables.associateWith{table->rows(source,table).map{row->if(table=="marks")row.dropLast(1)else row}}
         helper.runMigrationsAndValidate(oldName,9,true,MIGRATION_8_9).use{migrated->tables.forEach{assertEquals(it,frozen[it],rows(migrated,it))}}
-        val upgraded=Room.databaseBuilder(context,DiaryDatabase::class.java,oldName).addMigrations(MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build()
+        val upgraded=DiaryDatabase.open(context,oldName)
         try {val manager=BackupManager(upgraded,FileSafetyBackupStore(File(context.cacheDir,"weekly-migrate")),29,null);assertEquals(before,manager.snapshot());assertTrue(manager.snapshot().timetables.isEmpty())}
         finally{upgraded.close();context.deleteDatabase(oldName)}
     }

@@ -2,7 +2,6 @@ package br.com.diariodeclasse
 
 import android.content.ContentValues
 import android.content.Context
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
@@ -29,7 +28,7 @@ class HistoryDeletionInstrumentedTest {
     private lateinit var folder:File
     private lateinit var original:BackupSnapshot
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5,MIGRATION_5_6,MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build()
+        db=DiaryDatabase.open(context,name)
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),18,null)
     }
     private suspend fun data()=repo.snapshot.first {it.loaded}

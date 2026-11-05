@@ -2,7 +2,6 @@ package br.com.diariodeclasse
 
 import android.content.Context
 import android.content.ContentValues
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
@@ -25,7 +24,7 @@ class LessonRecordsInstrumentedTest {
     private val name="lesson-records-exclusive.db"
     private lateinit var db:DiaryDatabase;private lateinit var repo:DiaryRepository;private lateinit var manager:BackupManager;private lateinit var folder:File
     private val note=LessonRecord("note","classe-alfa","2026-08-12","Título Fictício áçã","Descrição livre\nCom \"aspas\"\t e horários independentes.")
-    private fun open(){db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5,MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build();repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),15,null)}
+    private fun open(){db=DiaryDatabase.open(context,name);repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),15,null)}
     private suspend fun data()=repo.snapshot.first{it.loaded}
     @Before fun setup()=runBlocking {
         context.deleteDatabase(name);folder=File(context.cacheDir,"lesson-records-${newId()}");open()

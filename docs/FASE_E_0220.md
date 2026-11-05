@@ -4,11 +4,11 @@
 
 Branch `sync/academic-complete-0220`. Base documental `25c61e7`; código D validado
 `9717146b6b5c63ac9aa560f57ac778efed654858` (CI `41527729515`, tentativa 2).
-Código E em validação `577fa4f1e825153ce731b8c14b966b5d3f8ca589`.
+Código E em validação `1abc39f8f90d4123aca453f9f473ce744f897683`.
 Versão experimental **0.22.0-dev-e2 / código 45**, package `br.com.diariodeclasse`.
 
-**CI completa em curso:** [41943038581](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41943038581).
-Última falha analisada: `41940192378` (`d9240e1`).
+**CI completa em curso:** [41945595743](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41945595743).
+Última falha analisada: `41943038581` (`577fa4f`).
 A Fase E ainda não está aprovada localmente nesta revisão documental. Não há
 homologação hospedada/física nem liberação estável. Resultados condicionais não
 são contados como aprovações.
@@ -180,9 +180,9 @@ latência pura de rede ou processamento exclusivo Android por subtração.
 
 ## Testes executados e pendências da rodada atual
 
-Retomada em validação: workflow `41943038581`, SHA
-`577fa4f1e825153ce731b8c14b966b5d3f8ca589`. Inclui rótulos/identidade na conferência,
-benchmark comparável e espera determinística do painel Room.
+Retomada em validação: workflow `41945595743`, SHA
+`1abc39f8f90d4123aca453f9f473ce744f897683`. Inclui os ajustes anteriores e
+publicação visual explícita no dispatcher Main, com regressão de invalidação Room.
 
 
 - JVM atual: **276 casos, 275 aprovados, um LiveAuth condicional não executado,
@@ -219,7 +219,19 @@ benchmark comparável e espera determinística do painel Room.
   explicitamente em Dispatchers.Main.immediate, mantendo consultas no executor
   Room. Nova regressão faz vinte aberturas/fechamentos com invalidações Room reais,
   conferindo estado, spinner e botão. Nenhum erro é ignorado ou timeout ampliado.
-- A próxima CI completa deve comprovar decisão remota, restauração e regressão final;
+- CI `41945595743` (`1abc39f`) aprovou a regressão de publicação Main, as 23 fases
+  HTTP E, duas mortes controladas D/E, ambas as escolhas, reconciliação do backup,
+  hashes finais e 41 verificações HTTP de segurança E. Parou depois em fixtures
+  legadas de classificação/horários: seus builders particulares só registravam
+  migrações até 12. O caminho de produção já incluía 13/14 e a atualização isolada
+  passou. Fixtures que reabrem o esquema atual passam a usar DiaryDatabase.open;
+  helper/checks dos esquemas congelados e comparações de todas as colunas permanecem
+  intactos. A inspeção abrangeu os quatorze builders em doze arquivos; todos usam
+  a mesma fábrica de abertura atual do aplicativo, sem manter listas paralelas de
+  migrações. Preflight inclui os dois casos e a referência v1 antes da prova longa.
+  Compilação e JVM passaram após a correção; a regressão Android integral segue
+  obrigatória.
+- A próxima CI completa deve comprovar a regressão completa restante;
   não existe aprovação antecipada desses cenários.
 
 Preparadas para a rodada atual: leitura SQLite acima de 2 MiB/reabertura; Room;

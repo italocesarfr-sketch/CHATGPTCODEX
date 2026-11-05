@@ -2,7 +2,6 @@ package br.com.diariodeclasse
 
 import android.content.ContentValues
 import android.content.Context
-import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
@@ -34,7 +33,7 @@ class RelocationInstrumentedTest {
     private val old=Activity("rel-old",g.id,"Trabalho Fictício Origem",date="2026-08-10",term=3,maximum=5.0)
     private val next=old.copy(id="rel-next",classId=h.id,name="Trabalho Fictício Destino",date="2026-09-10")
     private fun open() {
-        db=Room.databaseBuilder(context,DiaryDatabase::class.java,name).addMigrations(MIGRATION_1_2,MIGRATION_2_3,MIGRATION_3_4,MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,MIGRATION_7_8,MIGRATION_8_9,MIGRATION_9_10,MIGRATION_10_11,MIGRATION_11_12).build()
+        db=DiaryDatabase.open(context,name)
         repo=DiaryRepository(db);manager=BackupManager(db,FileSafetyBackupStore(folder),11,null)
     }
     @Before fun setup() {runBlocking {
