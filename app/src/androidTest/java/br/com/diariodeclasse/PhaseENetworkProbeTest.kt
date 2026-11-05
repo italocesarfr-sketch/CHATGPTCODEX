@@ -33,7 +33,7 @@ class PhaseENetworkProbeTest {
                 throw AssertionError(diagnostic,e)
             }
         }
-        fun synced(){waitFor{store.dao.control()?.let{it.stage=="ACTIVE_E"&&it.checked&&it.message.isEmpty()}==true&&store.dao.pending().isEmpty()&&store.dao.incoming().isEmpty()&&store.dao.stagedParts().isEmpty()}}
+        fun synced(){waitFor{store.dao.control()?.let{it.stage=="ACTIVE_E"&&it.checked&&it.message.isEmpty()}==true&&store.dao.pending().isEmpty()&&store.dao.incoming().isEmpty()&&store.dao.stagedParts().isEmpty()&&store.dao.states().all{it.localVersion==it.acknowledged}&&store.dao.decisions().none{it.phase in setOf("PENDING","CONFIRMED")}}}
         fun shell(command:String){InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command).use{android.os.ParcelFileDescriptor.AutoCloseInputStream(it).use{it.readBytes()}}}
         fun offline(){shell("svc wifi disable");shell("svc data disable");waitFor{(w.context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetwork==null}}
         fun reconnect(){shell("svc wifi enable");shell("svc data enable");w.academicCoordinator.request()}
@@ -101,7 +101,13 @@ class PhaseENetworkProbeTest {
             }
             "e-observe-journal"->{waitFor{snapshot().lessonRecords.any{it.description.startsWith("Edição E offline")}};synced();assertEquals(PhaseEFixture.read().marks,snapshot().marks);shot("06-e-diario-recebido")}
             "e-conflict-local"->{synced();offline();w.repository.dao.save(Grade("d-a1","e-student-1",6.0));assertNotNull(store.prepare())}
-            "e-conflict-remote"->{synced();w.repository.dao.save(Grade("d-a1","e-student-1",8.0));synced()}
+            "e-conflict-remote"->{
+                synced();w.repository.dao.save(Grade("d-a1","e-student-1",8.0))
+                assertTrue(store.dao.states().any{it.kind=="grades"&&it.key1=="d-a1"&&it.key2=="e-student-1"&&it.localVersion>it.acknowledged})
+                synced()
+                val confirmed=client.pullE(token,store.cursor()-1,0).single().records.single()
+                assertEquals("grades",confirmed.kind);assertEquals(8.0,confirmed.payload!!.getValue("value").jsonPrimitive.double,0.0)
+            }
             "e-conflict-observe"->{
                 val cursor=store.cursor();waitFor{store.dao.incoming().isNotEmpty()};assertEquals(cursor,store.cursor())
                 assertEquals(6.0,snapshot().grades.single{it.activityId=="d-a1"&&it.studentId=="e-student-1"}.value!!,0.0)
