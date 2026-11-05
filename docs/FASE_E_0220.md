@@ -160,7 +160,14 @@ replays 0,050/0,048/0,048 s. No Android, o método HTTP pushE variou de 3.678 a
  Sequência permaneceu 1, com 5.171 registros e um
 único recibo. CPU/cache variam; não são SLA hospedado.
 
-`python3 scripts/benchmark-phase-e.py` exige base local descartável
+`python3 scripts/benchmark-phase-e.py --baseline` reproduz os corpos originais
+somente na fixture; `python3 scripts/benchmark-phase-e.py` usa os índices. O runner
+restabelece as funções atuais e limpa somente a fixture ao terminar. Nova comparação
+no mesmo ambiente: commit 20,695→5,902 s; três replays
+19,612/21,255/20,069→0,037/0,041/0,045 s. Ambas as variantes mantiveram sequência 1,
+5.171 registros e um recibo. Nenhuma configuração hospedada foi usada.
+
+O script exige base local descartável
 `noctua_phase_e_test`, reutiliza migrações/fixtures/validadores e restaura a fixture
 no final. Não executar em ambiente hospedado. CI arquiva
 `build/phasee-db-benchmark.json`.
@@ -197,6 +204,12 @@ na conferência permanece em commit local para não cancelar essa prova em andam
   B/C/D já exigiam essa barreira. A correção fortalece a mesma condição em E,
   inclui decisões pendentes e confirma por leitura HTTP a nota 8 antes de liberar A.
   Não houve remoção de asserção, timeout maior ou alteração de regra do produto.
+- CI `41940192378` (`d9240e1`) passou a criação determinística do conflito. Parou
+  ao tentar clicar em `academic-review` antes de o painel combinar os cinco fluxos
+  Room. A prova agora espera o botão existir e estar habilitado na árvore semântica
+  mesclada, mantendo scroll, visibilidade e clique; não usa sleep nem troca para
+  árvore não mesclada para contornar acessibilidade. Falhas de escolha preservam
+  screenshot nativo e semântica da fixture para diagnóstico, sem suprimir a falha.
 - A próxima CI completa deve comprovar decisões, restauração e regressão final;
   não existe aprovação antecipada desses cenários.
 

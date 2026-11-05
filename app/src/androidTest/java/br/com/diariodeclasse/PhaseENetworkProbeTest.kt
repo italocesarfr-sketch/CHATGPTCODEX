@@ -41,15 +41,28 @@ class PhaseENetworkProbeTest {
             compose.academicCapture(app,"phasee-network",name,expected){runBlocking{"stage=${store.stage()} cursor=${store.cursor()} pending=${store.dao.pending().size} parts=${store.dao.stagedParts().size}"}}
         }
         suspend fun choose(choice:AcademicChoice) {
+          try {
             compose.waitUntil(10000){compose.onAllNodesWithTag("auth-account").fetchSemanticsNodes().isNotEmpty()}
             compose.onNodeWithTag("auth-account").performClick();compose.onNodeWithTag("open-sync").performClick()
-            compose.onNodeWithTag("academic-review").performScrollTo().performClick()
+            // Compose idleness does not await the five asynchronous Room flows of SyncPanel.
+            // Use the merged, actionable UI state, as the existing capture/readiness probes do.
+            compose.waitUntil(10000){compose.onAllNodesWithTag("academic-review").fetchSemanticsNodes().singleOrNull()?.let{isEnabled().matches(it)&&hasClickAction().matches(it)}==true}
+            compose.onNodeWithTag("academic-review").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
             compose.waitUntil(120000){compose.onAllNodesWithTag("academic-choice-${choice.name}").fetchSemanticsNodes().isNotEmpty()}
             compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled()
             compose.onNodeWithTag("academic-choice-${choice.name}").performScrollTo().performClick()
             compose.onNodeWithTag("academic-confirm-decision").performClick()
             compose.waitUntil(10000){compose.onAllNodesWithTag("academic-confirm-decision").fetchSemanticsNodes().isEmpty()}
             compose.onNodeWithText("Concluído").performClick()
+          }catch(failure:Throwable) {
+            val dir=File(app.filesDir,"phasee-network").apply{mkdirs()}
+            runCatching{InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()?.let{bitmap->File(dir,"$phase-review-failed.png").outputStream().use{bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)}}}
+            runCatching {
+                fun describe(node:androidx.compose.ui.semantics.SemanticsNode):String=node.config.toString()+"\n"+node.children.joinToString("\n"){describe(it)}
+                File(dir,"$phase-review-semantics.txt").writeText(compose.onAllNodes(isRoot(),useUnmergedTree=true).fetchSemanticsNodes().joinToString("\n"){describe(it)})
+            }
+            throw failure
+          }
         }
         when(phase) {
             "e-seed"->{
