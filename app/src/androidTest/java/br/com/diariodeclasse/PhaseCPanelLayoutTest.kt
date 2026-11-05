@@ -29,7 +29,9 @@ class PhaseCPanelLayoutTest {
             }
         }}}
         val expected=InstrumentationRegistry.getArguments().getString("expectedSystemFontScale")?.toFloat() ?: 1f
-        compose.waitUntil(10000){kotlin.math.abs(measured.get()-expected)<0.01f}
+        try{compose.waitUntil(10000){kotlin.math.abs(measured.get()-expected)<0.01f}}catch(e:Throwable){
+            throw AssertionError("Native font mismatch: expected=$expected compose=${measured.get()} resources=${InstrumentationRegistry.getInstrumentation().targetContext.resources.configuration.fontScale}",e)
+        }
         assertEquals(expected,measured.get(),0.01f)
         for((value,label) in listOf("" to "Sincronizado","SYNCING" to "Sincronizando","OFFLINE" to "Aguardando internet","RETRY" to "Falha temporária","CONFLICT" to "Conflito preservado","PENDING" to "Pendente de envio")) {
             compose.runOnIdle{code=value};compose.onNodeWithTag("academic-status").performScrollTo().assertTextEquals(label).assertIsDisplayed()

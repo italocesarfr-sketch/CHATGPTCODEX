@@ -4,11 +4,11 @@
 
 Branch `sync/academic-complete-0220`. Base documental `25c61e7`; código D validado
 `9717146b6b5c63ac9aa560f57ac778efed654858` (CI `41527729515`, tentativa 2).
-Código E em validação `1abc39f8f90d4123aca453f9f473ce744f897683`.
+Código E em validação `bbe2e052df02ee8ac3540c2eae11c8b9ab9dab2d`.
 Versão experimental **0.22.0-dev-e2 / código 45**, package `br.com.diariodeclasse`.
 
-**CI completa em curso:** [41945595743](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41945595743).
-Última falha analisada: `41943038581` (`577fa4f`).
+**CI completa em curso:** [41948624093](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41948624093).
+Última falha analisada: `41945595743` (`1abc39f`).
 A Fase E ainda não está aprovada localmente nesta revisão documental. Não há
 homologação hospedada/física nem liberação estável. Resultados condicionais não
 são contados como aprovações.
@@ -78,7 +78,10 @@ consulta/reutiliza o recibo original, sem desfazer auditoria já confirmada.
 A interface usa Material 3, tema existente, seleção única, áreas de toque de 48 dp,
 conteúdo rolável e cinco registros por página. Impeccable 4.7 disponível em
 `.agents/skills/impeccable/` foi utilizado para contexto, endurecimento de UX e
-revisão nativa; capturas novas ainda dependem da rodada Android em andamento.
+revisão nativa; capturas nativas verificadas na execução `41945595743`: tela compacta e fontes
+1,3/1,6, datas brasileiras, seleção acessível e ações alcançáveis. Conteúdo rola
+no diálogo; confirmação/cancelamento permanecem legíveis. TalkBack físico e outros
+formatos de dispositivo não foram homologados.
 
 Limites da conferência: 256 transações / 64 MiB por prévia; pedido de decisão
 768 KiB; corpo local/evidência de servidor até 16 MiB. Excedentes conservam as
@@ -180,9 +183,9 @@ latência pura de rede ou processamento exclusivo Android por subtração.
 
 ## Testes executados e pendências da rodada atual
 
-Retomada em validação: workflow `41945595743`, SHA
-`1abc39f8f90d4123aca453f9f473ce744f897683`. Inclui os ajustes anteriores e
-publicação visual explícita no dispatcher Main, com regressão de invalidação Room.
+Retomada em validação: workflow `41948624093`, SHA
+`bbe2e052df02ee8ac3540c2eae11c8b9ab9dab2d`. Inclui os ajustes anteriores e a
+reabertura das fixtures congeladas pela fábrica atual, com preflight antes da prova longa.
 
 
 - JVM atual: **276 casos, 275 aprovados, um LiveAuth condicional não executado,
@@ -231,6 +234,14 @@ publicação visual explícita no dispatcher Main, com regressão de invalidaç�
   migrações. Preflight inclui os dois casos e a referência v1 antes da prova longa.
   Compilação e JVM passaram após a correção; a regressão Android integral segue
   obrigatória.
+- CI `41948624093` (`bbe2e05`) passou o preflight das três migrações e os testes
+  Room/painel Main. Parou na espera da fonte nativa do painel C, antes da prova
+  HTTP. SettingsProvider pode confirmar font_scale antes da entrega da configuração
+  ao processo; criar Activity nesse intervalo pode recriá-la e perder setContent.
+  O runner aguarda recursos nativos coincidirem com a escala solicitada antes de
+  lançar Activities, usando a fila Main ociosa. Não muda fonte, não injeta Density,
+  não amplia o prazo original e conserva todas as asserções. Falhas informam escala
+  solicitada, Compose e recursos para evitar diagnóstico por timeout genérico.
 - A próxima CI completa deve comprovar a regressão completa restante;
   não existe aprovação antecipada desses cenários.
 
@@ -313,6 +324,8 @@ nenhuma release estável foi publicada nesta execução.
 - 7a8a5e1 — fix(sync): identify records and term fields clearly in assisted review
 - d03a50d — test(sync): reproduce baseline and indexed database timings safely
 - 577fa4f — test(sync): await actionable review UI and retain native failure evidence
+- 1abc39f — fix(sync): confine Room panel publication to the Android UI dispatcher
+- bbe2e05 — test(sync): reuse current database factory in frozen migration regressions
 
 ## Arquivos alterados desde a base D documental
 
@@ -322,7 +335,12 @@ nenhuma release estável foi publicada nesta execução.
 - `app/schemas/br.com.diariodeclasse.data.DiaryDatabase/14.json`
 - `app/src/androidTest/java/br/com/diariodeclasse/AuthTestRunner.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/BackupInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ClassLifecycleInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ClassificationsInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ExportLayoutInstrumentedTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/FunctionalFifteenInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/HistoryDeletionInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/LessonRecordsInstrumentedTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/NoctuaEntryTestRule.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseELargePayloadRoomTest.kt`
@@ -330,6 +348,13 @@ nenhuma release estável foi publicada nesta execução.
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseEReconciliationTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseEReviewLayoutTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseERoomTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/RecompositionInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/RelocationConversionInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/RelocationInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/ReportsConsolidationInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/SchemaBaselineInstrumentedTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/SyncPanelReadinessTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/TimetableInstrumentedTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/UpgradeProbeTest.kt`
 - `app/src/main/java/br/com/diariodeclasse/auth/AccountWorkspace.kt`
 - `app/src/main/java/br/com/diariodeclasse/backup/BackupManager.kt`

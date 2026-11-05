@@ -10,12 +10,30 @@ import kotlinx.coroutines.runBlocking
 class AuthTestRunner:AndroidJUnitRunner() {
     private var phaseB:String?=null
     private var secondary=false
+    private var expectedFont:Float?=null
     override fun onCreate(arguments:android.os.Bundle) {
         arguments.getString("phaseBNetworkPhase")?.let { phase ->
             phaseB=phase
             secondary=arguments.getString("phaseBDevice")=="secondary"
         }
+        expectedFont=arguments.getString("expectedSystemFontScale")?.toFloat()
         super.onCreate(arguments)
+    }
+    override fun onStart() {
+        // SettingsProvider commits before ActivityManager has necessarily delivered the
+        // native configuration. Launching the test Activity in that gap can recreate it
+        // and lose setContent. Observe real resources; never inject a test Density.
+        val desired=expectedFont ?: android.provider.Settings.System.getFloat(targetContext.contentResolver,android.provider.Settings.System.FONT_SCALE,1f)
+        require(desired.isFinite()&&desired>0)
+        val deadline=android.os.SystemClock.uptimeMillis()+10000
+        var observed=0f
+        do {
+            waitForIdleSync()
+            runOnMainSync{observed=targetContext.resources.configuration.fontScale}
+            if(kotlin.math.abs(observed-desired)<0.01f)break
+        }while(android.os.SystemClock.uptimeMillis()<deadline)
+        check(kotlin.math.abs(observed-desired)<0.01f){"Native font configuration not delivered: expected=$desired resources=$observed settings="+android.provider.Settings.System.getFloat(targetContext.contentResolver,android.provider.Settings.System.FONT_SCALE,1f)}
+        super.onStart()
     }
     override fun callApplicationOnCreate(app:Application) {
         // Choose the immutable fictitious principal before Application.onCreate schedules
