@@ -4,14 +4,17 @@
 
 Branch `sync/academic-complete-0220`. Base documental `25c61e7`; código D validado
 `9717146b6b5c63ac9aa560f57ac778efed654858` (CI `41527729515`, tentativa 2).
-Código E em validação `713001a569c5fde39f187db1feb915abdee5392e`.
+Código E validado `713001a569c5fde39f187db1feb915abdee5392e`.
 Versão experimental **0.22.0-dev-e2 / código 45**, package `br.com.diariodeclasse`.
 
-**CI completa em curso:** [41951300992](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41951300992).
-Última falha analisada: `41948624093` (`bbe2e05`).
-A Fase E ainda não está aprovada localmente nesta revisão documental. Não há
-homologação hospedada/física nem liberação estável. Resultados condicionais não
-são contados como aprovações.
+**Consolidação técnica local aprovada:** [CI 41951300992](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41951300992), concluída com sucesso em 05/11/2026 UTC.
+Os dois jobs executáveis passaram; o job de candidato com assinatura permanente
+foi corretamente ignorado pela restrição da branch. As correções de migração e
+sincronização da fonte nativa passaram nesta execução integral.
+
+Aprovação restrita ao ambiente automatizado local/descartável. Não há homologação
+hospedada/física nem liberação estável. Condicionais não executados não são contados
+como aprovações. Os commits documentais posteriores não alteram o APK validado.
 
 `main` permanece em `fc26644b2e55eef5a1d514af382f18c50fc9ddac`. A pasta `.agents/`
 não versionada, presente no início, foi preservada. Nenhum reset destrutivo,
@@ -58,7 +61,7 @@ Prévia por identidade/campo compara base, aparelho e servidor. Notas identifica
 atividade/data; frequências identificam data/horário. A revisão de UX acrescenta
 número da chamada/turma para distinguir homônimos e nomes explícitos de campos,
 incluindo início/fim de bimestre em formato brasileiro. Esse ajuste compilou
-localmente; sua captura com fonte ampliada depende da CI em curso. Zero, null, ausência de linha
+localmente e na CI aprovada, inclusive com captura de fonte ampliada. Zero, null, ausência de linha
 e tombstone são distintos. A escolha local/remota é explícita e vale por conjunto
 consistente; atividades/aulas/matrículas/movimentações e dependências não podem ser
 resolvidas parcialmente. Históricos/auditorias imutáveis continuam bloqueando uma
@@ -78,7 +81,7 @@ consulta/reutiliza o recibo original, sem desfazer auditoria já confirmada.
 A interface usa Material 3, tema existente, seleção única, áreas de toque de 48 dp,
 conteúdo rolável e cinco registros por página. Impeccable 4.7 disponível em
 `.agents/skills/impeccable/` foi utilizado para contexto, endurecimento de UX e
-revisão nativa; capturas nativas verificadas na execução `41945595743`: tela compacta e fontes
+revisão nativa; capturas nativas verificadas na execução aprovada `41951300992`: tela compacta e fontes
 1,3/1,6, datas brasileiras, seleção acessível e ações alcançáveis. Conteúdo rola
 no diálogo; confirmação/cancelamento permanecem legíveis. TalkBack físico e outros
 formatos de dispositivo não foram homologados.
@@ -165,8 +168,15 @@ replays 0,050/0,048/0,048 s. No Android, o método HTTP pushE variou de 3.678 a
 6.455 ms no emissor; pullE de 2,32 a 32,49 ms (emissor) e de 4,84 a 135,22 ms
 (receptor). Os cenários instrumentados e-lost/replay/recuperação demoraram
 7,775/11,333/9,298 s, incluindo startup/Room/UI; não são tempos puros de banco.
- Sequência permaneceu 1, com 5.171 registros e um
-único recibo. CPU/cache variam; não são SLA hospedado.
+Sequência permaneceu 1, com 5.171 registros e um único recibo. CPU/cache variam; não são SLA hospedado.
+
+CI final `41951300992`: staging 2,994 s, commit 8,647 s, replays
+0,074/0,072/0,072 s; sequência 1 e único recibo. Round-trips HTTP E do emissor:
+pushE 5.180,721–8.855,175 ms, pullE 1,933–46,815 ms; receptor:
+pushE 5.082,108–5.215,883 ms, pullE 3,609–59,528 ms. Cenários Android completos
+`e-lost`/`e-replay`/`e-recover`: 11,141/23,138/11,958 s. Esses cenários incluem
+startup, múltiplas chamadas, Room e UI; replay total não é a latência do recibo SQL.
+
 
 `python3 scripts/benchmark-phase-e.py --baseline` reproduz os corpos originais
 somente na fixture; `python3 scripts/benchmark-phase-e.py` usa os índices. O runner
@@ -187,24 +197,85 @@ corpos, tokens ou nomes: `*-http-timings.jsonl`. Runner registra cenário Androi
 completo (startup + HTTP + Room + UI): `android-phase-timings.jsonl`. Não se infere
 latência pura de rede ou processamento exclusivo Android por subtração.
 
-## Testes executados e pendências da rodada atual
+## Resultados consolidados da CI aprovada
 
-Retomada em validação: workflow `41951300992`, SHA
-`713001a569c5fde39f187db1feb915abdee5392e`. Inclui os ajustes anteriores, o
-preflight das migrações congeladas e a espera pela configuração nativa de fonte.
+Workflow `41951300992`, código `713001a569c5fde39f187db1feb915abdee5392e`.
 
+| Validação | Executados/aprovados | Condicionais | Falhas |
+|---|---:|---:|---:|
+| JVM (276 casos) | 275 | 1 | 0 |
+| Android integral (423 casos) | 412 | 11 | 0 |
+| PostgreSQL v1/A/B/C/D/E1/E2 | 30/38/18/20/27/16/15 (164) | 0 | 0 |
+| HTTP Android B/C/D/E em dois AVDs | 10/13/24/23 (70 fases) | 0 | 0 |
+| Mortes controladas D/E e replay obrigatório | 2 | 0 | 0 |
+| Segurança HTTP B/D/E | 9/32/41 verificações | 0 | 0 |
 
-- JVM atual: **276 casos, 275 aprovados, um LiveAuth condicional não executado,
-  zero falhas**. Build debug e de instrumentação aprovados localmente.
-- PostgreSQL após otimização: **27 D + 15 E = 42/42**; depois **16/16 E1** e
-  **15/15 decisões** em sequência. Comparação do corpo D confirmou predicados
-  idênticos, alterando apenas índice e lookup.
+As execuções focadas repetem parte dos casos da suíte integral; não são somadas
+como novos testes únicos. Passaram: preflight de migrações (3), autenticação (19),
+protocolo Room (3), B (12), C (10), D (15), E paginado (7), reconciliação E (10),
+payload SQLite acima de 2 MiB (1), painel/concorrência Main (3), F/FJ (9),
+classificações (10), exclusão de matrícula (14), horários (25), funcionalidades
+0.15 (35), relatórios/exportação (27), roster (2), sincronização v1 (24), além dos
+smokes e repetições obrigatórias de FJ/Relatórios. Testes de fonte nativa 1,3/1,6
+passaram para autenticação, B/C/D/E e os formulários acadêmicos cobertos.
+
+Os onze condicionais da suíte Android são sondas parametrizadas:
+
+- `PhaseBNetworkProbeTest`, `PhaseCNetworkProbeTest`, `PhaseDNetworkProbeTest`,
+  `PhaseENetworkProbeTest`: executadas separadamente nas 70 fases HTTP acima.
+- `UpgradeProbeTest`: passou antes/depois da atualização da referência v1, em
+  instalação descartável, preservando oito tabelas e dados resgatados.
+- `AuthProcessProbeTest`: escrita/leitura aprovadas com reboot real do AVD.
+- `FrequencyProcessProbeTest` e `SyncProcessProbeTest`: escrita/leitura em
+  processos distintos aprovadas, mantendo última marcação e fila persistente.
+- `AuthSignedUpgradeProbeTest`, `StableUpgradeProbeTest`,
+  `ReleaseContinuityProbeTest`: **não executadas**, dependem do caminho de release
+  e assinatura permanente, fora desta branch experimental.
+
+O condicional JVM `SupabaseLiveAuthTest` não foi executado por ausência de
+credencial autorizada neste executor. As identidades/JWTs das provas HTTP são
+fictícios; PostgreSQL/PostgREST são reais e descartáveis. Nenhuma destas provas
+representa Supabase Auth hospedado com duas contas reais.
+
+Reexecutados também neste workspace: D 27/27, E1 16/16 e decisões 15/15; nenhuma
+falha. Todas as entidades físicas Room 12 foram comparadas às de 14 e continuam
+idênticas. Migrações congeladas e asserções de todas as colunas permanecem.
+
+### Recuperação, conflitos, restauração e integridade
+
+- Dois emuladores independentes: 5.171 registros iniciais nos quinze tipos;
+  1.036 matrículas na origem e uma no destino, com IDs preservados. A recuperação
+  completa, inclusive movimentos/auditorias/históricos, passou.
+- `e-lost` passou: recibo confirmado reutilizado após resposta descartada; mesma
+  operação persistente, sem duplicação. Reenvio e recuperação independente passaram.
+- Checkpoint D: `Parent written; cursor not committed`. Checkpoint E:
+  `First part durable; no academic rows; cursor 0`. Em ambos houve morte real do
+  processo, rollback/aplicação integral no replay e preservação do cursor.
+- Notas em ambos os sentidos, diário offline/reconexão sem reiniciar e alterações
+  independentes passaram. Decisão local (6 versus 8), resposta perdida/reinício e
+  observação no outro dispositivo passaram; segunda escolha remota (9 versus 7)
+  também passou. Nenhuma variante foi removida sem decisão confirmada.
+- Backup cifrado restaurado deixou a sincronização pausada. A conferência explícita
+  preservou a nova nota remota (10) e a matrícula criada depois do backup: 5.172
+  registros finais. Tentativa de usar backup de outro titular foi rejeitada.
+- Hash acadêmico final idêntico nos dois dispositivos:
+  `b2ba3c74e7934490780af68f80ef0003b6d3d4006f32ad552ab618a19b6738bd`.
+- Leitores independentes aprovaram XLSX/CSV/TSV das projeções de notas, frequência,
+  histórico, anual, períodos, planos e arquivos produzidos no Android. Planos
+  mantiveram texto exato, Unicode, quebras e fórmulas literais. Backup protegido
+  foi decifrado por leitor independente, rejeitando adulteração de titularidade.
+- Capturas reais compactas/fontes 1,3 e 1,6 inspecionadas: escolhas, paginação,
+  confirmação e cancelamento acessíveis, sem sobreposição; conteúdo longo rola
+  dentro da área de evidências. TalkBack/aparelhos físicos ainda pendentes.
+
+### Falhas das rodadas anteriores e respectivas correções
+
 - CI anterior `41760729100`: testes Room E1 **7/7**, reconciliação **10/10**,
   migração/atualização isolada e provas HTTP B/C/D passaram; falhou em `e-lost`.
 - CI `41762895876`, código `ff81bfd`: interrupção de admissão após parte durável
   passou, mas `e-lost` voltou a falhar. Código ainda não tinha a otimização SQL.
   A coleta foi corrigida para capturar ComposeTimeoutException (AssertionError).
-  Prazo e asserção do cenário foram preservados; causa final depende da nova prova.
+  Prazo e asserção do cenário foram preservados; a prova posterior confirmou o replay com a otimização, sem remover asserções.
 - CI `41937383459`, código `d96fce0`: passou `e-lost`, replay, morte real após
   primeira parte e recuperação dos 5.171 registros, alterações inversas e diário
   offline; passou também o teste SQLite acima de 2 MiB (1,98 s). Falhou no cenário
@@ -248,17 +319,33 @@ preflight das migrações congeladas e a espera pela configuração nativa de fo
   lançar Activities, usando a fila Main ociosa. Não muda fonte, não injeta Density,
   não amplia o prazo original e conserva todas as asserções. Falhas informam escala
   solicitada, Compose e recursos para evitar diagnóstico por timeout genérico.
-- A próxima CI completa deve comprovar a regressão completa restante;
-  não existe aprovação antecipada desses cenários.
 
-Preparadas para a rodada atual: leitura SQLite acima de 2 MiB/reabertura; Room;
-23 fases HTTP E e uma morte obrigatória após estágio durável; recuperação de 5.171
-registros nos quinze tipos, dois AVDs independentes; nota nos dois sentidos;
-diário offline/reconexão; duas decisões (local/remota), perda de resposta/replay;
-backup criptografado/restauração explícita, preservando novo aluno remoto (5.172
-registros finais); hashes finais iguais; UI compacta com fontes 1,3 e 1,6;
-regressão A/B/C/D, leitores independentes XLSX/CSV/TSV, autenticação, backup e reboot.
-Esses itens não são declarados aprovados antes dos artefatos efetivos.
+A execução final passou a regressão integral, os cenários anteriormente falhos e
+as asserções preservadas. As falhas anteriores permanecem documentadas para
+rastreabilidade, sem serem tratadas como estado atual.
+
+## Artefatos validados
+
+Todos os artefatos abaixo pertencem ao código `713001a569c5fde39f187db1feb915abdee5392e`:
+
+- [Resultados, XML, planilhas, checkpoints e capturas — 13382642391](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41951300992/artifacts/13382642391).
+  ZIP SHA-256: `62f118e94783610eb12fcba50355fa7a3404a96617f1d485087b3b33b100750b`.
+  Provas em `build/phasee-network/`, `build/phased-network/`, demais B/C;
+  capturas em `layout.tar`, `primary-captures.tar`, `secondary-captures.tar`.
+- [APK debug de teste — 13382353077](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41951300992/artifacts/13382353077).
+  ZIP SHA-256: `4b63082977bd2f52b13cc91844f72c0f342f82a01201ec56040eb957f6e4d6da`.
+  APK SHA-256: `196c759c7ae20c6e7623562f3232c168d81f7453b91a5ec8d8935731e18864fd`.
+  Certificado **descartável Android Debug**:
+  `5b6b1b83320591af9445126ee25925539fc51f15eccebf125c4a1aacbbb4dcad`.
+  AAPT confirmou `br.com.diariodeclasse`, `0.22.0-dev-e2`, c45; apksigner aprovou
+  a assinatura. Varredura estática não detectou credencial administrativa,
+  clientes fictícios ou entrada demonstrativa no APK acadêmico.
+
+A referência recompilada v1 usou o mesmo certificado descartável do candidato e
+passou atualização sem desinstalação. `compatibilidade-baseline.json` compara
+outro APK versionado e informa certificado diferente, corretamente: não é prova
+contra o c40 permanente. Este APK é **exclusivo de ambiente isolado** e não deve
+substituir a instalação do proprietário. Não foi produzida release estável.
 
 ## Compatibilidade com o APK original
 
@@ -315,6 +402,19 @@ não foram perfilados. Nada foi implantado no Supabase
 hospedado, nenhuma conta Auth real foi criada, nenhum dado real foi enviado e
 nenhuma release estável foi publicada nesta execução.
 
+## Próxima ação e estado de continuidade
+
+Código consolidado localmente: `713001a569c5fde39f187db1feb915abdee5392e`.
+Apenas documentação foi alterada depois desta CI; reutilizar o artefato validado,
+sem recompilar por rotina. Branch experimental preservada, `main` intacta.
+
+A próxima etapa exige aprovação administrativa para o roteiro hospedado acima,
+duas sessões Auth comuns autorizadas e instalações separadas com dados fictícios.
+Depois: perfil de memória/quotas e homologação física, assinatura permanente e
+atualização original c40. A sincronização continua experimental; os limites por
+transação/prévia e a política de retenção precisam ser considerados antes de
+habilitar acervos reais. Nenhuma autorização de produção é inferida da CI verde.
+
 ## Commits da implementação
 
 - b357843 — Planejar consolidação E sobre a cadeia acadêmica D validada [skip ci]
@@ -335,8 +435,9 @@ nenhuma release estável foi publicada nesta execução.
 - 1abc39f — fix(sync): confine Room panel publication to the Android UI dispatcher
 - bbe2e05 — test(sync): reuse current database factory in frozen migration regressions
 - 713001a — test(android): await native font configuration before launching fixtures
+- 4f1cacb — docs(sync): record reproduced timings and current native validation [skip ci]
 
-## Arquivos alterados desde a base D documental
+## Arquivos alterados
 
 - `.github/workflows/android.yml`
 - `app/build.gradle.kts`
@@ -352,6 +453,7 @@ nenhuma release estável foi publicada nesta execução.
 - `app/src/androidTest/java/br/com/diariodeclasse/LessonRecordsInstrumentedTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/NoctuaEntryTestRule.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseCPanelLayoutTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseELargePayloadRoomTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseENetworkProbeTest.kt`
 - `app/src/androidTest/java/br/com/diariodeclasse/PhaseEReconciliationTest.kt`
