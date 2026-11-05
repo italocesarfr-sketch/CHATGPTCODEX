@@ -4,10 +4,11 @@
 
 Branch `sync/academic-complete-0220`. Base documental `25c61e7`; código D validado
 `9717146b6b5c63ac9aa560f57ac778efed654858` (CI `41527729515`, tentativa 2).
-Código E publicado `d96fce02acdc0ecd2741b9d936cc6e2fa66c8c2d`.
+Código E em validação `577fa4f1e825153ce731b8c14b966b5d3f8ca589`.
 Versão experimental **0.22.0-dev-e2 / código 45**, package `br.com.diariodeclasse`.
 
-**Última CI analisada (falhou):** [41937383459](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41937383459).
+**CI completa em curso:** [41943038581](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41943038581).
+Última falha analisada: `41940192378` (`d9240e1`).
 A Fase E ainda não está aprovada localmente nesta revisão documental. Não há
 homologação hospedada/física nem liberação estável. Resultados condicionais não
 são contados como aprovações.
@@ -57,7 +58,7 @@ Prévia por identidade/campo compara base, aparelho e servidor. Notas identifica
 atividade/data; frequências identificam data/horário. A revisão de UX acrescenta
 número da chamada/turma para distinguir homônimos e nomes explícitos de campos,
 incluindo início/fim de bimestre em formato brasileiro. Esse ajuste compilou
-localmente; sua captura com fonte ampliada depende da rodada posterior. Zero, null, ausência de linha
+localmente; sua captura com fonte ampliada depende da CI em curso. Zero, null, ausência de linha
 e tombstone são distintos. A escolha local/remota é explícita e vale por conjunto
 consistente; atividades/aulas/matrículas/movimentações e dependências não podem ser
 resolvidas parcialmente. Históricos/auditorias imutáveis continuam bloqueando uma
@@ -179,9 +180,9 @@ latência pura de rede ou processamento exclusivo Android por subtração.
 
 ## Testes executados e pendências da rodada atual
 
-Retomada em validação: workflow `41940192378`, SHA de automação
-`d9240e1cdffb4f0f23f25b34dc655a8d1fc46b30`. O ajuste adicional de rótulos/identidade
-na conferência permanece em commit local para não cancelar essa prova em andamento.
+Retomada em validação: workflow `41943038581`, SHA
+`577fa4f1e825153ce731b8c14b966b5d3f8ca589`. Inclui rótulos/identidade na conferência,
+benchmark comparável e espera determinística do painel Room.
 
 
 - JVM atual: **276 casos, 275 aprovados, um LiveAuth condicional não executado,
@@ -210,7 +211,15 @@ na conferência permanece em commit local para não cancelar essa prova em andam
   mesclada, mantendo scroll, visibilidade e clique; não usa sleep nem troca para
   árvore não mesclada para contornar acessibilidade. Falhas de escolha preservam
   screenshot nativo e semântica da fixture para diagnóstico, sem suprimir a falha.
-- A próxima CI completa deve comprovar decisões, restauração e regressão final;
+- CI `41943038581` (`577fa4f`) passou a decisão local pelo HTTP, perda de resposta,
+  retomada da mesma decisão e observação no outro emulador. Na abertura da segunda
+  conferência ocorreu CalledFromWrongThreadException: o stack liga emissão do
+  executor Room a ApplyingContinuationInterceptor/TestMonotonicFrameClock e
+  remeasure de Text na thread errada. Coletores do SyncPanel agora publicam
+  explicitamente em Dispatchers.Main.immediate, mantendo consultas no executor
+  Room. Nova regressão faz vinte aberturas/fechamentos com invalidações Room reais,
+  conferindo estado, spinner e botão. Nenhum erro é ignorado ou timeout ampliado.
+- A próxima CI completa deve comprovar decisão remota, restauração e regressão final;
   não existe aprovação antecipada desses cenários.
 
 Preparadas para a rodada atual: leitura SQLite acima de 2 MiB/reabertura; Room;
@@ -288,6 +297,10 @@ nenhuma release estável foi publicada nesta execução.
 - dbd24a7 — fix(sync): read durable large payloads within SQLite cursor limits
 - cc663c8 — perf(sync): index existing academic graph checks and reuse confirmed receipts
 - d96fce0 — test(sync): distinguish database HTTP and Android timings for phase E
+- d9240e1 — test(sync): await acknowledged revisions before E conflict scenarios
+- 7a8a5e1 — fix(sync): identify records and term fields clearly in assisted review
+- d03a50d — test(sync): reproduce baseline and indexed database timings safely
+- 577fa4f — test(sync): await actionable review UI and retain native failure evidence
 
 ## Arquivos alterados desde a base D documental
 

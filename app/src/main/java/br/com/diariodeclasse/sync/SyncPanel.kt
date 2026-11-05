@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import br.com.diariodeclasse.auth.AccountWorkspace
 import br.com.diariodeclasse.data.SchoolClass
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.withLock
 import br.com.diariodeclasse.sync.academic.*
@@ -40,8 +41,10 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     val legacyFlow=remember(dao){combine(dao.watchControl(),dao.watchStates(),::LegacyPanelRead)}
     val academicFlow=remember(academicDao){combine(academicDao.watchControl(),academicDao.watchStates(),
         academicDao.watchPending(),academicDao.watchIncoming(),academicDao.watchDecisions(),::AcademicPanelRead)}
-    val legacyRead by legacyFlow.collectAsState(initial=null)
-    val academicRead by academicFlow.collectAsState(initial=null)
+    // Publish visual state on Android's UI dispatcher regardless of the observer context.
+    // Query execution remains on Room's executor.
+    val legacyRead by legacyFlow.collectAsState(initial=null,context=Dispatchers.Main.immediate)
+    val academicRead by academicFlow.collectAsState(initial=null,context=Dispatchers.Main.immediate)
     val control=legacyRead?.control
     val states=legacyRead?.states.orEmpty()
     val academic=academicRead?.control

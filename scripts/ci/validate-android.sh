@@ -67,7 +67,7 @@ cat build/academic-conflict-panel.txt
 python3 - <<'PYCONFLICT'
 from pathlib import Path
 text=Path('build/academic-conflict-panel.txt').read_text()
-assert 'OK (2 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+assert 'OK (3 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYCONFLICT
 for font in 1.3 1.6; do
     adb shell settings put system font_scale "$font"

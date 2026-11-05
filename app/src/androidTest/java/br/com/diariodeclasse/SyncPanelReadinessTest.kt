@@ -1,6 +1,7 @@
 package br.com.diariodeclasse
 
 import android.content.Context
+import androidx.room.withTransaction
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.test.*
@@ -12,6 +13,7 @@ import br.com.diariodeclasse.sync.SyncPanel
 import br.com.diariodeclasse.sync.academic.*
 import br.com.diariodeclasse.ui.theme.NoctuaTheme
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
 import org.junit.*
 import org.junit.rules.ExternalResource
 
@@ -46,4 +48,30 @@ class SyncPanelReadinessTest {
             compose.onNodeWithTag("sync-loading").assertDoesNotExist()
         }
     }
+    @Test fun asynchronousRoomPublicationWhileOpeningAndClosingDialogRemainsOnUiThread() {
+        var visible by mutableStateOf(false)
+        compose.setContent {NoctuaTheme {if(visible)SyncPanel(workspace,emptyList(),{visible=false})}}
+        repeat(20) { n->
+            compose.runOnIdle{visible=true}
+            // Actual Room invalidation/emission on its query executor, not mutableState
+            // assigned by runOnIdle. This reproduced the off-thread frame path in E.
+            runBlocking(Dispatchers.IO) {workspace.database.withTransaction {
+                val dao=workspace.database.academicDao();dao.resolvedInbox()
+                dao.save(AcademicControl(owner=workspace.user.id,stage="ACTIVE_E",enabled=true,message=if(n%2==0)"SYNCING"else"RETRY"))
+            }}
+            val expected=if(n%2==0)"Sincronizando"else"Falha temporária"
+            compose.waitUntil(10000){compose.onAllNodes(hasTestTag("academic-status") and hasText(expected)).fetchSemanticsNodes().size==1}
+            compose.onNodeWithTag("academic-status").assertTextEquals(expected)
+            if(n%2==0) {
+                compose.onNodeWithTag("academic-progress").assertExists()
+                compose.onNodeWithTag("academic-retry").assertIsNotEnabled()
+            }else {
+                compose.onNodeWithTag("academic-progress").assertDoesNotExist()
+                compose.onNodeWithTag("academic-retry").assertIsEnabled()
+            }
+            compose.onNodeWithText("Concluído").performClick()
+            compose.waitUntil(10000){compose.onAllNodesWithTag("academic-status").fetchSemanticsNodes().isEmpty()}
+        }
+    }
+
 }
