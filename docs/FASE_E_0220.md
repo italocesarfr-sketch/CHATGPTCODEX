@@ -4,11 +4,11 @@
 
 Branch `sync/academic-complete-0220`. Base documental `25c61e7`; código D validado
 `9717146b6b5c63ac9aa560f57ac778efed654858` (CI `41527729515`, tentativa 2).
-Código E em validação `bbe2e052df02ee8ac3540c2eae11c8b9ab9dab2d`.
+Código E em validação `713001a569c5fde39f187db1feb915abdee5392e`.
 Versão experimental **0.22.0-dev-e2 / código 45**, package `br.com.diariodeclasse`.
 
-**CI completa em curso:** [41948624093](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41948624093).
-Última falha analisada: `41945595743` (`1abc39f`).
+**CI completa em curso:** [41951300992](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/41951300992).
+Última falha analisada: `41948624093` (`bbe2e05`).
 A Fase E ainda não está aprovada localmente nesta revisão documental. Não há
 homologação hospedada/física nem liberação estável. Resultados condicionais não
 são contados como aprovações.
@@ -137,6 +137,10 @@ Migrações SQL preparadas, **não implantadas**:
 3. `202611030003_phase_e_indexed_graph.sql`: mesmos validadores D indexados e replay
    confirmado rápido. Helper privado, sem alteração de regra acadêmica.
 
+Comparação textual do grafo D, normalizando somente declaração/atribuição do
+índice e argumento dos lookups: predicados idênticos, SHA-256
+`30fbf175ab05e7463bff6febc13f41330d34a5ce00b4cdfca7af6601ec1f2aa9`.
+
 RLS nas três tabelas E; authenticated lê somente o próprio titular com sessão
 ativa/confirmada. Nenhuma escrita direta ou acesso anônimo. Proprietário sempre
 vem da autenticação. RPCs autorizados, auxiliares sem EXECUTE de clientes comuns,
@@ -169,7 +173,9 @@ somente na fixture; `python3 scripts/benchmark-phase-e.py` usa os índices. O ru
 restabelece as funções atuais e limpa somente a fixture ao terminar. Nova comparação
 no mesmo ambiente: commit 20,695→5,902 s; três replays
 19,612/21,255/20,069→0,037/0,041/0,045 s. Ambas as variantes mantiveram sequência 1,
-5.171 registros e um recibo. Nenhuma configuração hospedada foi usada.
+5.171 registros e um recibo. Repetição final local no código `713001a`: staging
+2,020 s, commit 6,226 s, replays 0,036/0,036/0,039 s, mesma sequência e recibo.
+Nenhuma configuração hospedada foi usada.
 
 O script exige base local descartável
 `noctua_phase_e_test`, reutiliza migrações/fixtures/validadores e restaura a fixture
@@ -183,9 +189,9 @@ latência pura de rede ou processamento exclusivo Android por subtração.
 
 ## Testes executados e pendências da rodada atual
 
-Retomada em validação: workflow `41948624093`, SHA
-`bbe2e052df02ee8ac3540c2eae11c8b9ab9dab2d`. Inclui os ajustes anteriores e a
-reabertura das fixtures congeladas pela fábrica atual, com preflight antes da prova longa.
+Retomada em validação: workflow `41951300992`, SHA
+`713001a569c5fde39f187db1feb915abdee5392e`. Inclui os ajustes anteriores, o
+preflight das migrações congeladas e a espera pela configuração nativa de fonte.
 
 
 - JVM atual: **276 casos, 275 aprovados, um LiveAuth condicional não executado,
@@ -303,7 +309,9 @@ backup sobre dados reais para experimentar. Não substituir backup administrativ
 pela sincronização. Não remover senha/criptografia dos backups existentes.
 
 Persistem limites atômicos e de conferência, retenção de transferências confirmadas
-a definir e validações externas pendentes. Nada foi implantado no Supabase
+a definir e validações externas pendentes. Os limites de registros/bytes são
+validados; pico de memória e latência em aparelhos físicos/Supabase Free ainda
+não foram perfilados. Nada foi implantado no Supabase
 hospedado, nenhuma conta Auth real foi criada, nenhum dado real foi enviado e
 nenhuma release estável foi publicada nesta execução.
 
@@ -326,6 +334,7 @@ nenhuma release estável foi publicada nesta execução.
 - 577fa4f — test(sync): await actionable review UI and retain native failure evidence
 - 1abc39f — fix(sync): confine Room panel publication to the Android UI dispatcher
 - bbe2e05 — test(sync): reuse current database factory in frozen migration regressions
+- 713001a — test(android): await native font configuration before launching fixtures
 
 ## Arquivos alterados desde a base D documental
 
