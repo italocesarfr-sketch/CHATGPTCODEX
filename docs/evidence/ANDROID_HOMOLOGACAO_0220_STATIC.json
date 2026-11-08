@@ -1,0 +1,13 @@
+{
+  "application_id": "br.com.diariodeclasse.homologacao",
+  "project_ref": "sscexzxtqdcsqdlcytum",
+  "callback": "br.com.diariodeclasse.homologacao://auth/callback",
+  "public_key_configured": false,
+  "production_fallback": false,
+  "shared_user_id": false,
+  "allow_backup": false,
+  "cleartext": false,
+  "local_storage": "Android application UID sandbox + existing per-account workspaces",
+  "apk_verified": false,
+  "hosted_tests_executed": false
+}
