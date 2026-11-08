@@ -12,6 +12,7 @@ import javax.net.ssl.HttpsURLConnection
 /** Fixed origin, public key and the current confirmed user's bearer only. No request/response logging. */
 class SupabaseClassSync:ClassSyncRemote {
     private suspend fun rpc(name:String,token:String,body:JsonObject):String=withContext(Dispatchers.IO) {
+        AuthConfig.requireValid()
         val connection=URL("${AuthConfig.URL}/rest/v1/rpc/$name").openConnection() as HttpsURLConnection
         try {
             connection.instanceFollowRedirects=false;connection.requestMethod="POST"

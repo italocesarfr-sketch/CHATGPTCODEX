@@ -28,11 +28,26 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.diariodeclasse.DiaryApplication
 import br.com.diariodeclasse.R
+import br.com.diariodeclasse.BuildConfig
 import br.com.diariodeclasse.ui.DiaryApp
 import br.com.diariodeclasse.ui.DiaryViewModel
 import kotlinx.coroutines.launch
 
 @Composable fun AuthRoot(app:DiaryApplication) {
+    if(BuildConfig.HOMOLOGACAO)HomologationFrame{AuthRootContent(app)} else AuthRootContent(app)
+}
+@Composable internal fun HomologationFrame(content:@Composable ()->Unit) {
+    Column(Modifier.fillMaxSize()) {
+        Surface(color=MaterialTheme.colorScheme.secondaryContainer,
+            contentColor=MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier=Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)) {
+            Text("NOcTuA Homologação",style=MaterialTheme.typography.titleSmall,
+                modifier=Modifier.padding(horizontal=16.dp,vertical=8.dp).testTag("homologacao-banner"))
+        }
+        Box(Modifier.weight(1f).consumeWindowInsets(WindowInsets.statusBars)){content()}
+    }
+}
+@Composable private fun AuthRootContent(app:DiaryApplication) {
     val state by app.auth.state.collectAsState()
     val containers:AccountViewModels=viewModel()
     val user=state.user

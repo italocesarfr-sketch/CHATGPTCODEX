@@ -12,6 +12,7 @@ import javax.net.ssl.HttpsURLConnection
 class SupabaseAuthClient(private val now: () -> Long = System::currentTimeMillis,private val connected:()->Boolean={true}) : AuthClient {
     private val json=Json { ignoreUnknownKeys=true }
     private suspend fun request(method:String,path:String,body:JsonObject?=null,token:String?=null):JsonObject = withContext(Dispatchers.IO) {
+        AuthConfig.requireValid()
         if(!connected())throw AuthFailure(AuthFailure.Kind.NETWORK,"Sem conexão com o serviço. Confira a internet.")
         val connection=URL("${AuthConfig.URL}/auth/v1/$path").openConnection() as HttpsURLConnection
         try {

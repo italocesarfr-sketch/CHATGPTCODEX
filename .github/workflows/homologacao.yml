@@ -1,0 +1,46 @@
+name: NOcTuA Homologação — APK paralelo
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  homologacao:
+    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+      # Build/local checks only: never consume opt-in live credentials on Actions.
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Validar configuração sem fallback
+        run: ./gradlew --no-daemon :app:validateHomologacaoConfiguration
+      - name: Testes locais e APK DEBUG de homologação
+        run: ./gradlew --no-daemon testDebugUnitTest testHomologacaoUnitTest assembleHomologacao
+      - name: Conferir identidade, origem e isolamento
+        run: |
+          mkdir -p build
+          python3 scripts/validate-homologacao.py --apk app/build/outputs/apk/homologacao/app-homologacao.apk --build-tools "$ANDROID_HOME/build-tools/35.0.0" > build/homologacao-identity.json
+          sha256sum app/build/outputs/apk/homologacao/app-homologacao.apk > build/homologacao-apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noctua-homologacao-paralela-debug
+          path: |
+            app/build/outputs/apk/homologacao/app-homologacao.apk
+            build/homologacao-identity.json
+            build/homologacao-apk.sha256
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homologacao-testes-locais
+          path: app/build/test-results/

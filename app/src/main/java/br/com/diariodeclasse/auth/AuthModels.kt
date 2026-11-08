@@ -7,12 +7,17 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
 import java.util.UUID
+import br.com.diariodeclasse.BuildConfig
 
 object AuthConfig {
-    const val URL = "https://mpsgdchpgyxoqowfjoqm.supabase.co"
-    const val KEY = "sb_publishable_61hfac3DL6eLG2gRBpEIeg_zBd1d_mZ"
-    const val CALLBACK = "br.com.diariodeclasse://auth/callback"
+    const val URL = BuildConfig.SUPABASE_URL
+    val KEY: String get() { requireValid(); return BuildConfig.SUPABASE_PUBLISHABLE_KEY }
+    const val CALLBACK_SCHEME = BuildConfig.AUTH_CALLBACK_SCHEME
+    const val CALLBACK = CALLBACK_SCHEME + "://auth/callback"
     const val LEGACY_OWNER_ID = "f624fdc9-2225-4211-8efe-46f9af2c53e5"
+    fun requireValid() = AuthEnvironment.validate(BuildConfig.HOMOLOGACAO,BuildConfig.DEBUG,
+        BuildConfig.APPLICATION_ID,BuildConfig.SUPABASE_PROJECT_REF,URL,
+        BuildConfig.SUPABASE_PUBLISHABLE_KEY,CALLBACK_SCHEME,BuildConfig.PRODUCTION_KEY_FINGERPRINT)
 }
 class AuthFailure(val kind: Kind, message: String) : Exception(message) {
     enum class Kind { INVALID, UNCONFIRMED, NETWORK, RATE_LIMIT, SERVER, SESSION, LINK }
@@ -38,7 +43,7 @@ class AuthFailure(val kind: Kind, message: String) : Exception(message) {
     fun codeFrom(raw: String, now: Long): String {
         try {
             val uri = URI(raw)
-            require(uri.scheme == "br.com.diariodeclasse" && uri.host == "auth" && uri.rawPath == "/callback" && uri.port == -1 && uri.userInfo == null && uri.fragment == null)
+            require(uri.scheme == AuthConfig.CALLBACK_SCHEME && uri.host == "auth" && uri.rawPath == "/callback" && uri.port == -1 && uri.userInfo == null && uri.fragment == null)
             require(now >= createdAt && now - createdAt <= 30 * 60_000L)
             val pairs = uri.rawQuery.orEmpty().split('&').map { val p=it.split('=',limit=2); require(p.size==2); URLDecoder.decode(p[0],"UTF-8") to URLDecoder.decode(p[1],"UTF-8") }
             require(pairs.map { it.first }.distinct().size == pairs.size && pairs.all { it.first in listOf("state","code") })

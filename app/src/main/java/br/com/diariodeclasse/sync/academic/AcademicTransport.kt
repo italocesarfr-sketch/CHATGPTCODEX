@@ -45,7 +45,7 @@ interface AcademicRemote {
 class SupabaseAcademicSync internal constructor(private val endpoint:String,private val apiKey:String):AcademicRemote {
     constructor():this("${AuthConfig.URL}/rest/v1/rpc",AuthConfig.KEY)
     init {require(endpoint=="${AuthConfig.URL}/rest/v1/rpc" ||
-        BuildConfig.DEBUG && endpoint=="http://10.0.2.2:3000/rpc")}
+        BuildConfig.DEBUG && !BuildConfig.HOMOLOGACAO && endpoint=="http://10.0.2.2:3000/rpc")}
     private suspend fun rpc(name:String,token:String,body:JsonObject):String=withContext(Dispatchers.IO) {
         require(token.isNotBlank())
         val connection=URL("$endpoint/$name").openConnection() as HttpURLConnection

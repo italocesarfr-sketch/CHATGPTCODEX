@@ -11,6 +11,7 @@ import java.io.File
 /** Opt-in, authorized test account only. No credential is compiled, printed or written to a report. */
 class SupabaseLiveAuthTest {
     @Test fun confirmedLoginRefreshLogoutAndRevokedRefreshUseTheRealKotlinClient():Unit=runBlocking {
+        assumeTrue("Sonda legada não executa contas do proprietário na variante de homologação.",!BuildConfig.HOMOLOGACAO)
         val path=System.getenv("NOCTUA_AUTH_LIVE_FILE")
         assumeTrue("Credencial de teste autorizada indisponível; execução real é separada da suíte offline.",!path.isNullOrBlank())
         val private=Json.parseToJsonElement(File(path!!).readText()).jsonObject

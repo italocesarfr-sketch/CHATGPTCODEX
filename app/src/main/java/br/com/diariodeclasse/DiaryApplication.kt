@@ -12,6 +12,7 @@ open class DiaryApplication : Application() {
     val authScope=kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob()+kotlinx.coroutines.Dispatchers.Main.immediate)
     override fun onCreate() {
         super.onCreate()
+        br.com.diariodeclasse.auth.AuthConfig.requireValid()
         listOf("accounts","exports","exports-share").forEach{File(cacheDir,it).deleteRecursively()}
         authScope.launch { auth.restore() }
         br.com.diariodeclasse.sync.SyncJobs.schedule(this)

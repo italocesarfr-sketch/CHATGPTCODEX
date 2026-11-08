@@ -8,6 +8,17 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
 }
+// Public client configuration. Never read administrative/session credentials here.
+val productionProject = "mpsgdchpgyxoqowfjoqm"
+val productionPublishable = "sb_publishable_61hfac3DL6eLG2gRBpEIeg_zBd1d_mZ"
+val homologacaoProject = "sscexzxtqdcsqdlcytum"
+val homologacaoKeyInput = providers.environmentVariable("NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY")
+    .orElse(providers.gradleProperty("noctua.homologacao.publishableKey")).orNull.orEmpty()
+val homologacaoKeyValid = homologacaoKeyInput.matches(Regex("sb_publishable_[A-Za-z0-9_-]{16,200}")) &&
+    homologacaoKeyInput != productionPublishable
+// Invalid input is never embedded, even in generated classes for unit tests.
+val homologacaoPublishable = if (homologacaoKeyValid) homologacaoKeyInput else ""
+val productionKeyFingerprint = MessageDigest.getInstance("SHA-256").digest(productionPublishable.toByteArray()).joinToString("") { "%02x".format(it) }
 android {
     namespace = "br.com.diariodeclasse"
     compileSdk = 35
@@ -18,6 +29,27 @@ android {
         versionCode = 45
         versionName = "0.22.0-dev-e2"
         testInstrumentationRunner = "br.com.diariodeclasse.AuthTestRunner"
+        manifestPlaceholders["authCallbackScheme"] = "br.com.diariodeclasse"
+        buildConfigField("boolean", "HOMOLOGACAO", "false")
+        buildConfigField("String", "SUPABASE_PROJECT_REF", "\"$productionProject\"")
+        buildConfigField("String", "SUPABASE_URL", "\"https://$productionProject.supabase.co\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$productionPublishable\"")
+        buildConfigField("String", "AUTH_CALLBACK_SCHEME", "\"br.com.diariodeclasse\"")
+        buildConfigField("String", "PRODUCTION_KEY_FINGERPRINT", "\"$productionKeyFingerprint\"")
+    }
+    buildTypes.create("homologacao") {
+        initWith(buildTypes.getByName("debug"))
+        isDebuggable = true
+        signingConfig = signingConfigs.getByName("debug")
+        applicationIdSuffix = ".homologacao"
+        versionNameSuffix = "-homologacao"
+        matchingFallbacks += listOf("debug")
+        manifestPlaceholders["authCallbackScheme"] = "br.com.diariodeclasse.homologacao"
+        buildConfigField("boolean", "HOMOLOGACAO", "true")
+        buildConfigField("String", "SUPABASE_PROJECT_REF", "\"$homologacaoProject\"")
+        buildConfigField("String", "SUPABASE_URL", "\"https://$homologacaoProject.supabase.co\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$homologacaoPublishable\"")
+        buildConfigField("String", "AUTH_CALLBACK_SCHEME", "\"br.com.diariodeclasse.homologacao\"")
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions {
@@ -30,6 +62,18 @@ android {
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/../test-fixtures")
     testOptions { unitTests.isReturnDefaultValues = true }
+}
+configurations.getByName("homologacaoImplementation").extendsFrom(configurations.getByName("debugImplementation"))
+val validateHomologacaoConfiguration = tasks.register("validateHomologacaoConfiguration") {
+    doLast {
+        check(homologacaoKeyValid) {
+            "Homologação bloqueada: configure NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY com a chave pública do projeto de homologação. Sem fallback para produção."
+        }
+    }
+}
+// Unit tests/manifest inspection can compile without a key. Packaging/install cannot.
+tasks.matching { it.name in setOf("packageHomologacao", "assembleHomologacao", "installHomologacao") }.configureEach {
+    dependsOn(validateHomologacaoConfiguration)
 }
 ksp { arg("room.schemaLocation", "$projectDir/schemas") }
 dependencies {
