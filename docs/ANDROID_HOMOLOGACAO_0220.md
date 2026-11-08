@@ -2,7 +2,8 @@
 
 Branch `sync/academic-complete-0220`. Base de publicação SQL `e71405e`;
 implementação Android `69e86e60bce21e07ab5d77af8fe479e1539bdec5`, capturas/teste
-nativo `74d8ca4`, entrada manual na workflow existente `7d00bd0`.
+nativo `74d8ca4`, entrada manual na workflow existente `7d00bd0` e preparação
+do SDK corrigida em `e8fa20406e63727f71de040461670f46bc172d1b`.
 **Preparação experimental. H01–H04 hospedados ainda não aprovados.**
 
 ## Identidade e isolamento
@@ -78,10 +79,12 @@ administrativa/fixtures/endpoint e chave de produção no DEX. Só informa prese
 da chave e hashes; não revela seu valor. `--allow-missing-key` é apenas inspeção
 estática de manifesto/classes; não admite APK.
 
-Nesta rodada local a variável ainda não estava disponível: as classes/testes e o
-manifesto foram compilados, mas **não existe APK de homologação válido nem SHA-256
-a entregar**. O bloqueio não foi contornado com chave fictícia. Uma futura chave
-configurada exige nova compilação e validação do APK, não só alteração do relatório.
+A variável não estava disponível no ambiente local; o bloqueio de empacotamento
+foi comprovado sem contorná-lo com chave fictícia. Posteriormente o Actions recebeu
+configuração pública válida e gerou/verificou o APK na execução **42438137774**.
+O valor não foi copiado para o repositório, relatório ou ambiente local. A validação
+estática não prova autenticação nem associação da chave ao projeto: isso continua
+sujeito ao primeiro ensaio real.
 
 ### GitHub Actions sem modificar main
 
@@ -131,7 +134,32 @@ rejeição de caminhos adicionais. O scheme vem do BuildConfig; as variantes nã
 aceitam o retorno uma da outra. O manifesto usa o mesmo scheme. Nenhum fluxo aceita
 token de sessão em fragmento como alternativa ao PKCE.
 
-## Instalação paralela — somente depois de gerar APK válido
+## APK experimental verificado e instalação paralela
+
+- Código do artefato: `e8fa20406e63727f71de040461670f46bc172d1b`.
+- [Build específico aprovado — 42438137774](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42438137774).
+- [Baixar noctua-homologacao-paralela-debug](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42438137774/artifacts/13599694535).
+- Arquivo: `app-homologacao.apk`, **12.954.702 bytes**.
+- SHA-256 do **APK**:
+  `d1f57c8dbf43387aa82232d59bb1ced0c7ca56bcbdf738d3b8bf622b9941f87b`.
+- SHA-256 do **ZIP** publicado pelo Actions:
+  `011345fce0a252d45979f52dbbd35bbcc4da59f7814a461d59f78c83e489f95d`.
+- Certificado Debug (`C=US, O=Android, CN=Android Debug`), SHA-256:
+  `b6dd351f4e3e1e633c7447e02f449316779e8ff0b14707f9981c80e363d92189`.
+
+O ZIP foi baixado e seu hash conferido; o hash do APK coincide com o manifesto e
+com a saída SHA do CI. AAPT confirmou nome/applicationId/versão; apksigner confirmou
+a assinatura. O validador do job também verificou manifesto, ausência do endpoint
+/chave de produção e dos marcadores proibidos no DEX. Evidência sem chave em
+[ANDROID_HOMOLOGACAO_0220_APK.json](evidence/ANDROID_HOMOLOGACAO_0220_APK.json).
+Os testes JVM debug e homologacao desse build tiveram, cada um, 288 casos:
+**283 aprovados, cinco condicionais, zero falhas**. Não são 566 casos únicos.
+Não houve instalação ou requisição Auth hospedada. A coexistência no dispositivo
+continua pendente de ensaio, mesmo com identidades/assinatura verificadas.
+
+O APK usa certificado Debug da execução. Guardar esse artefato/hash para o ensaio;
+um build futuro pode receber outro certificado Debug. Não substituir o app oficial.
+
 
 Conferir `applicationId=br.com.diariodeclasse.homologacao`, label e assinatura Debug.
 Instalar em aparelho de teste, sem desinstalar, limpar, atualizar ou substituir o
@@ -196,27 +224,49 @@ teste. A workflow de build limpa ambos os caminhos live e nunca dispara H01–H0
 - `testDebugUnitTest`: 288 casos, **283 aprovados, cinco condicionais, zero falhas**.
 - `testHomologacaoUnitTest`: mesma contagem; não somar como 566 testes distintos.
   Oito testes novos de configuração/PKCE incluem bloqueio de origem oficial,
-  chave vazia/administrativa/oficial, ID/callback errado, porta/caminho/estado e
+  chave vazia/administrativa/oficial, ID/callback errado, caminho/estado e
   override HTTP local. Os quatro casos hospedados e a sonda live legada não rodaram.
 - Compilação debug e instrumentação aprovadas; manifesto de homologação gerado.
 - Validador estático confirmou package/provider/callback isolados, sem sharedUserId,
   backup automático ou cleartext. Evidência em
   [ANDROID_HOMOLOGACAO_0220_STATIC.json](evidence/ANDROID_HOMOLOGACAO_0220_STATIC.json).
 - Gate Gradle recusou chave ausente, formato administrativo sintético e chave
-  pública oficial, sem imprimir entradas; nenhum APK de homologação foi produzido.
-- `HomologationLayoutTest` compilado: layout real AuthForm dentro da identificação
-  de homologação, largura 320 dp/fonte 1,6, controles alcançáveis e capturas preparadas.
-- Regressão Android completa em CI após os commits de implementação/teste: resultado
-  ainda em consolidação. Renderização/capturas e testes instrumentados não são
-  declarados aprovados somente pela compilação.
+  pública oficial, sem imprimir entradas. assembleHomologacao com chave vazia
+  também foi executado e bloqueou antes da saída APK; nenhum APK de homologação
+  foi produzido.
+- `HomologationLayoutTest`: **1/1 aprovado no emulador**. AuthForm real dentro da
+  identificação de homologação, cena de 320 × 560 dp e LocalDensity/fontScale 1,6;
+  ações alcançáveis, alvo de toque de 48 dp e capturas de login/cadastro inspecionadas.
+  Esse ensaio de componente não equivale a instalar o APK paralelo nem a configurar
+  a fonte do sistema. Os ensaios anteriores com fonte do sistema também permaneceram
+  na regressão.
+- CI completa **42435902661 aprovada**, código
+  `7d00bd0aee80478a5204c64e93ee25385adbb51e`:
+  - JVM: 288 casos, **283 aprovados, cinco condicionais, zero falhas**;
+  - Android: 424 casos, **413 aprovados, 11 condicionais, zero falhas**;
+  - PostgreSQL: **164 cenários aprovados** nas suítes v1/A–E;
+  - HTTP local: **70 cenários**, dois emuladores independentes e duas interrupções
+    intencionais de processo verificadas; provas anteriores preservadas.
+  Os cinco condicionais JVM são H01–H04 e a sonda Auth live legada. Os 11 Android
+  são sondas de processo, rede e atualização que dependem de parâmetros/instalações
+  específicas; os cenários de rede B–E foram executados separadamente nas provas
+  HTTP locais, não inferidos desses casos ignorados na suíte genérica.
+  Os testes condicionais não são aprovações; nenhum deles prova o backend hospedado.
+  A tarefa de release/atualização estável ficou corretamente ignorada nesta branch.
+- Resultados/capturas: artefato
+  [resultados-etapa6 — 13600197479](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42435902661/artifacts/13600197479),
+  SHA-256 do ZIP informado pelo Actions
+  `7ad65baa12abf9e96370c78420f5cb75264e26882648c2eac432e5c4c0f02e7f`.
+  Capturas em `build/homologacao-layout.tar`, com arquivos
+  `login-320-fonte-1.6.png` e `cadastro-320-fonte-1.6.png`.
 
-Estado da CI e demais resultados serão consolidados após a execução. Nenhuma
-homologação real de Auth/RLS/Supabase é inferida dos testes locais.
+Nenhuma homologação real de Auth/RLS/Supabase é inferida dos testes locais.
 
 ## Pendências e próxima ação
 
-1. Disponibilizar a chave pública da homologação no ambiente de build escolhido.
-2. Gerar/validar o APK paralelo e registrar SHA-256; depois instalar em aparelho de
+1. A configuração pública do Actions e o APK estão preparados; verificar que a chave
+   foi obtida de noctua-homologacao antes de autenticar. Não enviar seu valor ao chat.
+2. Baixar/conferir o APK acima e instalar somente a variante paralela em aparelho de
    teste, mantendo a instalação original intacta.
 3. Autorizar/configurar somente o novo callback no projeto de homologação.
 4. Fornecer credenciais das duas contas fictícias exclusivamente por arquivo/cofre
@@ -232,14 +282,20 @@ permanente, recurso pago, release ou main foi alterado nesta preparação.
 
 - Código de preparação/testes na revisão `7d00bd0aee80`; regressão em
   [42435902661](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42435902661),
-  em andamento ao registrar este progresso. As execuções 42435656184/42435819454
-  foram substituídas pelos commits seguintes; não representam a revisão final.
+  **aprovada**. As execuções 42435656184/42435819454 foram substituídas pelos
+  commits seguintes; não representam a revisão final.
 - Chave pública não estava no ambiente local. A integração GitHub não permite
   consultar metadados de secrets/variables (HTTP 403); não se afirma que o secret
   remoto está presente ou ausente sem executar o job próprio. Nenhum valor foi lido.
 - Disparo direto do arquivo novo homologacao.yml retornou 404, pois ele não está
   registrado no default branch. A entrada suportada preparada usa android.yml
   existente, com homologacao_only=true e ref da branch experimental; não exige merge.
+- A tentativa manual [42437875470](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42437875470)
+  falhou antes da compilação: setup-android tentou instalar o pacote obsoleto
+  `tools`. Corrigido para `packages: platform-tools`, como na regressão existente;
+  preparação do SDK e todas as etapas passaram na nova tentativa **42438137774**.
+  Essa correção apenas de
+  workflow não exige repetir a regressão acadêmica já aprovada.
 - A workflow Android tem concorrência por branch: não disparar o build manual
   paralelo enquanto a regressão estiver rodando, para não cancelar sua validação.
 
@@ -263,5 +319,6 @@ permanente, recurso pago, release ou main foi alterado nesta preparação.
 - `app/src/test/java/br/com/diariodeclasse/SupabaseLiveAuthTest.kt`
 - `docs/ANDROID_HOMOLOGACAO_0220.md`
 - `docs/evidence/ANDROID_HOMOLOGACAO_0220_STATIC.json`
+- `docs/evidence/ANDROID_HOMOLOGACAO_0220_APK.json`
 - `scripts/ci/validate-android.sh`
 - `scripts/validate-homologacao.py`
