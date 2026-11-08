@@ -280,6 +280,8 @@ jobs:
             build/frequency-process-read.txt
             build/android-runner-diagnostic.txt
             build/auth-focused.txt
+            build/homologacao-layout-focused.txt
+            build/homologacao-layout.tar
             build/auth-font-*.txt
             build/auth-process-*.txt
             build/auth-telas.tar

@@ -21,6 +21,13 @@ text=Path('build/migrations-current-focused.txt').read_text()
 assert 'OK (3 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYMIGRATIONS
 ./scripts/ci/validate-auth.sh focused
+timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.HomologationLayoutTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/homologacao-layout-focused.txt
+python3 - <<'PYHOMOLOG'
+from pathlib import Path
+text=Path('build/homologacao-layout-focused.txt').read_text()
+assert 'OK (1 test)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+PYHOMOLOG
+adb exec-out run-as br.com.diariodeclasse tar -cf - files/homologacao-layout > build/homologacao-layout.tar
 timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e class br.com.diariodeclasse.AcademicProtocolRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/academic-protocol-focused.txt
 cat build/academic-protocol-focused.txt
 python3 - <<'PYACADEMIC'
