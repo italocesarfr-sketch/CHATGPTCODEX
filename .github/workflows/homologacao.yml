@@ -1,6 +1,10 @@
 name: NOcTuA Homologação — APK paralelo
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
+        required: false
 permissions:
   contents: read
 jobs:

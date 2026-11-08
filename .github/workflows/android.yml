@@ -4,13 +4,24 @@ on:
     branches: [main, auth/supabase-protected-workspaces, sync/academic-foundation-0210, sync/academic-complete-0220]
   pull_request:
   workflow_dispatch:
+    inputs:
+      homologacao_only:
+        description: 'Gerar somente a variante paralela de homologação (branch sync/academic-complete-0220)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
   group: android-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  homologacao:
+    name: Homologação — variante paralela
+    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/homologacao.yml
+    secrets: inherit
   sync-postgres:
+    if: github.event_name != 'workflow_dispatch' || inputs.homologacao_only != true
     name: Sincronização — PostgreSQL, RLS e concorrência (dados fictícios)
     runs-on: ubuntu-latest
     services:
