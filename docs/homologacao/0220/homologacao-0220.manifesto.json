@@ -1,0 +1,119 @@
+{
+  "repository": "italocesarfr-sketch/CHATGPTCODEX",
+  "branch": "sync/academic-complete-0220",
+  "validated_code": "713001a569c5fde39f187db1feb915abdee5392e",
+  "intended_future_review_target": "noctua-homologacao",
+  "production_excluded": "noctua-auth",
+  "hosted_baseline": "PostgreSQL 17.11, v1+session guard, 4 RLS tables, 12 A-E tables absent: reported by administrator; not independently queried",
+  "file": "docs/homologacao/0220/homologacao-0220.sql",
+  "bytes": 120010,
+  "lines": 1504,
+  "sha256": "7fd28b6dbce5f72724abc1a2644041f19f373fc7675eb37a24bd17fa9a46659b",
+  "validation": "local static/byte identity; SQL not executed",
+  "top_level_statement_count": 109,
+  "outer_begin_count": 1,
+  "outer_commit_count": 1,
+  "preflight_present": true,
+  "lock_timeout": "SET LOCAL 5s",
+  "statement_timeout_changed": false,
+  "source_order": [
+    {
+      "order": 1,
+      "file": "202611010001_academic_protocol.sql",
+      "source_bytes": 25141,
+      "sha256": "32e3e7f43e4c8e999c900bf9b4ae8307170cae42228261d0c4d461fcf3755120",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    },
+    {
+      "order": 2,
+      "file": "202611020001_phase_b_fence.sql",
+      "source_bytes": 11087,
+      "sha256": "680bbf805f30b4c15ebb3b8cda1ff286183083e2fe7437e4c8f625ffa4c4031a",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    },
+    {
+      "order": 3,
+      "file": "202611020002_phase_c_scope.sql",
+      "source_bytes": 9923,
+      "sha256": "8d6df95a1c1eb57e8603790fa6f93c8867f00ab3f1e4cf3e4d811c09a1b34d06",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    },
+    {
+      "order": 4,
+      "file": "202611020003_phase_d_scope.sql",
+      "source_bytes": 26227,
+      "sha256": "7e51af0f29843f02c93a34b1be8c005f96e5d27c70045c2b28fc40d9ba07f3df",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    },
+    {
+      "order": 5,
+      "file": "202611030001_phase_e_paging.sql",
+      "source_bytes": 20241,
+      "sha256": "0eb5a4bad62743a28c1cd42e28e70711fd197a1b317804cbcd64e7beb1eb9813",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    },
+    {
+      "order": 6,
+      "file": "202611030002_phase_e_decisions.sql",
+      "source_bytes": 8530,
+      "sha256": "f7785853b4438e72aea24a17b8b91812c4a250efd0a5e6ab8d61c8c3e44b54bf",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    },
+    {
+      "order": 7,
+      "file": "202611030003_phase_e_indexed_graph.sql",
+      "source_bytes": 16719,
+      "sha256": "9ecd918240458a9367f3acba286a79445999b1b7058ac0e48fe3eab8ccc6f918",
+      "validated_source_unchanged": true,
+      "only_transaction_envelope_removed": true
+    }
+  ],
+  "new_tables": [
+    "noctua_academic_heads",
+    "noctua_academic_batches",
+    "noctua_academic_records",
+    "noctua_academic_versions",
+    "noctua_academic_receipts",
+    "noctua_academic_links",
+    "noctua_academic_uniques",
+    "noctua_academic_test_accounts",
+    "noctua_sync_protocols",
+    "noctua_e_transfers",
+    "noctua_e_parts",
+    "noctua_e_decisions"
+  ],
+  "source_bodies_exact": true,
+  "session_guard_not_replaced": true,
+  "same_hash_as_previously_locally_validated_bundle": true,
+  "hosted_connections": 0,
+  "sql_executions": 0,
+  "original_local_file": "build/homologacao-0220.sql",
+  "publication_purpose": "External review only; no deployment authorized and no SQL executed",
+  "copy_byte_identical": true,
+  "size_bytes": 120010,
+  "verification_evidence": "Original local verification preserved; SHA-256, source hashes and exact copy checked again before publication",
+  "credential_markers_detected": false,
+  "checks": {
+    "sha256_matches_previous_report": true,
+    "publication_copy_is_byte_identical": true,
+    "seven_source_hashes_match": true,
+    "only_original_source_transaction_envelopes_removed": true,
+    "single_outer_begin_commit": true,
+    "source_order_preserved": true,
+    "preflight_present": true,
+    "lock_timeout_local_5_seconds": true,
+    "no_statement_timeout_override": true,
+    "original_session_guard_not_replaced": true,
+    "no_change_to_validated_source_bodies_rls_or_scopes": true,
+    "sql_not_executed": true,
+    "no_supabase_connection": true
+  },
+  "source_repository_head": "046282a8cba8b04decdf0a14a36e297986f625b9",
+  "deployment_authorized": false
+}
