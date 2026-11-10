@@ -9,9 +9,9 @@ RUNNER=br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner
 capture_failure() {
     local status=$?
     if [[ "$status" != 0 ]]; then
-        adb logcat -b crash -d -v threadtime > build/auth-crash.txt 2>&1 || true
-        adb logcat -b events -d -v brief -s am_crash am_anr am_kill am_proc_died > build/auth-process-events.txt 2>&1 || true
-        adb shell dumpsys activity exit-info br.com.diariodeclasse > build/auth-exit-info.txt 2>&1 || true
+        timeout --signal=KILL 10s adb logcat -b crash -d -v threadtime > build/auth-crash.txt 2>&1 || true
+        timeout --signal=KILL 10s adb logcat -b events -d -v brief -s am_crash am_anr am_kill am_proc_died > build/auth-process-events.txt 2>&1 || true
+        timeout --signal=KILL 10s adb shell dumpsys activity exit-info br.com.diariodeclasse > build/auth-exit-info.txt 2>&1 || true
     fi
 }
 trap capture_failure EXIT
@@ -47,10 +47,8 @@ else
     # Escrita e leitura em processos separados, com reinício real do emulador entre ambos.
     for phase in write read; do
         if [[ "$phase" == read ]]; then
-            adb reboot
-            timeout 180s adb wait-for-device
-            timeout 180s bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done'
-            adb shell input keyevent 82
+            python3 scripts/reboot-disposable-avd.py > build/auth-reboot-output.json
+            timeout --signal=KILL 10s adb shell input keyevent 82
         fi
         timeout --signal=INT --kill-after=10s 2m adb shell am instrument -w -e authProcessPhase "$phase" -e class br.com.diariodeclasse.AuthProcessProbeTest "$RUNNER" > "build/auth-process-$phase.txt"
         cat "build/auth-process-$phase.txt"

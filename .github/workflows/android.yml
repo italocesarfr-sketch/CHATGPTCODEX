@@ -148,6 +148,7 @@ jobs:
           set -euo pipefail
           python3 scripts/benchmark-phase-e.py --graduated > build/homologacao-volumes.json
           python3 scripts/test-phase-e-timeouts.py > build/homologacao-timeouts.json
+          python3 scripts/test-reboot-disposable-avd.py
           cat build/homologacao-volumes.json
           cat build/homologacao-timeouts.json
       - uses: actions/setup-python@v5
@@ -314,6 +315,7 @@ jobs:
             build/auth-crash.txt
             build/auth-process-events.txt
             build/auth-exit-info.txt
+            build/auth-reboot*.json
             build/homologacao-layout-focused.txt
             build/homologacao-layout.tar
             build/auth-font-*.txt
