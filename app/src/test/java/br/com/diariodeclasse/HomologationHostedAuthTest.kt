@@ -66,6 +66,12 @@ class HomologationHostedAuthTest {
         assertTrue(rows.single().jsonObject.getValue("owner_id").jsonPrimitive.content==i.accounts[0].id)
         return rows
     }
+    private fun authorizedAcademicSession(s:AuthSession) {
+        val(status,value)=request("rpc/noctua_academic_status_c",s.access,"POST",buildJsonObject{})
+        assertEquals("RPC deve aceitar a sessão válida antes das provas negativas",200,status)
+        assertTrue("Conta fictícia não está autorizada para o ensaio acadêmico",
+            requireNotNull(value).jsonObject["testAllowed"]?.jsonPrimitive?.booleanOrNull==true)
+    }
     @Test fun h01ConfirmedLoginIdentityRefreshAndWrongPassword():Unit=runBlocking {
         val i=input();val c=SupabaseAuthClient()
         for(a in i.accounts){var session=c.login(a.email,a.password)
@@ -81,6 +87,7 @@ class HomologationHostedAuthTest {
         val i=input();val c=SupabaseAuthClient();val a=c.login(i.accounts[0].email,i.accounts[0].password)
         try {own(i,a);val b=c.login(i.accounts[1].email,i.accounts[1].password)
             try{assertTrue(b.user.id==i.accounts[1].id)
+                authorizedAcademicSession(b)
                 val(status,value)=request(query(i),b.access);assertEquals(200,status);assertTrue(requireNotNull(value).jsonArray.isEmpty())
             }finally{runCatching{c.logout(b)}}
         }finally{runCatching{c.logout(a)}}
@@ -104,6 +111,7 @@ class HomologationHostedAuthTest {
     @Test fun h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc():Unit=runBlocking {
         val i=input();val c=SupabaseAuthClient();val a=c.login(i.accounts[0].email,i.accounts[0].password)
         try {
+            authorizedAcademicSession(a)
             for(token in listOf(null,"invalid-fictitious-bearer")) {
                 val(status,_)=request("rpc/noctua_academic_status_c",token,"POST",buildJsonObject{})
                 assertTrue("Requisição sem sessão válida aceita",status in setOf(401,403))
