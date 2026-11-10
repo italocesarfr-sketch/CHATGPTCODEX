@@ -310,6 +310,10 @@ jobs:
             build/frequency-process-read.txt
             build/android-runner-diagnostic.txt
             build/auth-focused.txt
+            build/auth-isolation-repeat-*.txt
+            build/auth-crash.txt
+            build/auth-process-events.txt
+            build/auth-exit-info.txt
             build/homologacao-layout-focused.txt
             build/homologacao-layout.tar
             build/auth-font-*.txt
