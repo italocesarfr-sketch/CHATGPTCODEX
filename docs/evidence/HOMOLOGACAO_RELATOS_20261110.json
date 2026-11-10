@@ -1,0 +1,21 @@
+{
+  "source": "owner_report_in_task",
+  "recorded_date": "2026-11-10",
+  "timezone": "America/Sao_Paulo",
+  "execution_dates_provided": false,
+  "hosted_project_ref": "sscexzxtqdcsqdlcytum",
+  "automated_execution": false,
+  "reported_passed": [
+    "Isolamento prático entre duas contas distintas",
+    "Troca de contas no mesmo emulador",
+    "Sincronização separada de cada conta",
+    "Recuperação do workspace original ao retornar à conta"
+  ],
+  "does_not_prove": [
+    "H01-H04 via automated real Auth/REST runner",
+    "all table/RPC permissions",
+    "expired/unconfirmed/revoked sessions",
+    "hosted capacity at 5171 records"
+  ],
+  "hosted_requests_by_codex": false
+}

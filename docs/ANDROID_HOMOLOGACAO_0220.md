@@ -193,6 +193,12 @@ confirmadas autorizadas; não é resultado de teste executado pelo aplicativo.
 
 ## H01–H04 preparados, ainda não homologados
 
+Atualização de 10/11: isolamento prático entre duas contas distintas foi relatado
+como aprovado pelo proprietário. O runner API continua sem execução hospedada.
+Foi preparada uma entrada manual separada, com Environment Secrets e relatório
+sanitizado: [H01_H04_HOSPEDADOS_0220.md](H01_H04_HOSPEDADOS_0220.md). A workflow
+comum de build/regressão continua sem acesso às credenciais de contas.
+
 `HomologationHostedAuthTest` é opt-in e só roda na variante de homologação. Precisa
 da chave pública válida, do caminho privado `NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE`
 e de **autorização explícita posterior** para essas sessões: variável

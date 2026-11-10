@@ -1,0 +1,71 @@
+name: NOcTuA — H01-H04 hospedados autorizados
+on:
+  workflow_call:
+    inputs:
+      authorized:
+        type: boolean
+        default: false
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
+        required: false
+      # Declared for expression validation; the prepared caller does NOT pass it.
+      # The job resolves the value from its protected Environment instead.
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON:
+        required: false
+permissions:
+  contents: read
+jobs:
+  hosted-auth:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    name: H01–H04 — ${{ inputs.authorized && 'execução autorizada' || 'somente pré-requisitos, sem requisições' }}
+    environment: noctua-homologacao-h01-h04
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NOCTUA_HOSTED_AUTH_MODE: ${{ inputs.authorized && 'run' || 'preflight' }}
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ${{ inputs.authorized && 'YES' || '' }}
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validar entradas localmente, sem requisições
+        env:
+          # Environment-scoped ONLY; never inherit account credentials from callers.
+          NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
+        run: python3 scripts/hosted-auth-checks.py prepare
+      - uses: actions/setup-java@v4
+        if: inputs.authorized
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        if: inputs.authorized
+        with:
+          packages: platform-tools
+      - name: SDK de compilação (sem emulador ou APK)
+        if: inputs.authorized
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Executar exclusivamente os quatro casos e redigir resultado
+        if: inputs.authorized
+        env:
+          GRADLE_USER_HOME: ${{ runner.temp }}/noctua-hosted-h01-h04/gradle-home
+        run: |
+          python3 scripts/hosted-auth-checks.py start
+          set +e
+          ./gradlew --no-daemon --no-build-cache --no-configuration-cache --rerun-tasks --project-cache-dir "$RUNNER_TEMP/noctua-hosted-h01-h04/project-cache" :app:validateHomologacaoConfiguration :app:testHomologacaoUnitTest --tests 'br.com.diariodeclasse.HomologationHostedAuthTest' > "$RUNNER_TEMP/noctua-hosted-h01-h04/gradle-private.log" 2>&1
+          hosted_exit=$?
+          set -e
+          python3 scripts/hosted-auth-checks.py summarize --exit-code "$hosted_exit"
+      - name: Apagar material privado e relatórios brutos
+        if: always()
+        run: python3 scripts/hosted-auth-checks.py clean
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h01-h04-resumo-redigido
+          path: build/hosted-h01-h04/result.json
+          if-no-files-found: error
+          retention-days: 14

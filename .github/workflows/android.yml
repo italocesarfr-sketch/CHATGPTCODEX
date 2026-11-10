@@ -9,19 +9,35 @@ on:
         description: 'Gerar somente a variante paralela de homologação (branch sync/academic-complete-0220)'
         type: boolean
         default: false
+      hosted_auth_only:
+        description: 'H01–H04: somente pré-requisitos, ou execução hospedada com autorização abaixo'
+        type: boolean
+        default: false
+      authorize_hosted_h01_h04:
+        description: 'AUTORIZO sessões A/B, senha incorreta, refresh, logout local e PATCH contraditório sem linhas apenas em sscexzxtqdcsqdlcytum'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
-  group: android-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true && format('android-hosted-auth-{0}', github.ref) || format('android-{0}', github.ref) }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true) }}
 jobs:
+  hosted-auth:
+    name: H01–H04 — homologação hospedada
+    if: github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/hosted-auth.yml
+    with:
+      authorized: ${{ inputs.authorize_hosted_h01_h04 == true }}
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
   homologacao:
     name: Homologação — variante paralela
-    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/homologacao.yml
     secrets: inherit
   sync-postgres:
-    if: github.event_name != 'workflow_dispatch' || inputs.homologacao_only != true
+    if: github.event_name != 'workflow_dispatch' || (inputs.homologacao_only != true && inputs.hosted_auth_only != true)
     name: Sincronização — PostgreSQL, RLS e concorrência (dados fictícios)
     runs-on: ubuntu-latest
     services:
