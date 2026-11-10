@@ -77,14 +77,14 @@ cobertura local aprovada e, simultaneamente, obrigações hospedadas pendentes.
 | **H03 — permissões** | ACL/helpers/unfenced/DML/anon cobertos em PostgreSQL e HTTP locais. `h03` opt-in usa helper e PATCH sem possibilidade de afetar linhas. | Inventário 16/16 é relato administrativo; não é execução pela API como usuário comum. | **Pendente:** confirmar ACL pela API comum, catálogo e demais tabelas. Não executar DML hospedado automaticamente. |
 | **H04 — sessões inválidas** | JWT inválido/expirado, sessão removida, usuário não confirmado e anon recusados nos ensaios SQL/HTTP com Auth fictício. `h04` preparado, exigindo RPC positiva antes de revogar sua própria sessão de ensaio. | Não relatado para as contas fictícias hospedadas. | **Pendente:** ausência/invalidade/revogação reais. JWT efetivamente expirado/conta não confirmada continuam fora do runner atual; não criar usuário nem forjar aprovação. |
 | **H05 — recuperação completa** | B: 36 matrículas/41 registros em segundo AVD; D: 171 registros/15 tipos; E: 5.171/41 partes, IDs/payloads/zero/null/FJ/auditorias exatos no segundo AVD. Nova graduação SQL válida 41/171/671/5.171, não só grafo inválido de 671. | Turmas/alunos/notas/frequência/diário/remanejamento confirmados no cenário relatado. | **Pendente:** recuperação hospedada limpa e inventário completo dos quinze tipos, contagens/hashes; volumes hospedados não informados. |
-| **H06 — paginação/processo** | D/E: morte real de processo em checkpoint, sem cursor/aplicação parcial; replay obrigatório em processo novo. Sete testes Room E e payload SQLite >2 MiB. | Fechar/reabrir com alteração offline relatado; não equivale ao checkpoint de recebimento. | Interrupção forçada **somente no descartável**, não repetir nos dois emuladores do proprietário. Recebimento hospedado real ainda precisa de conferência normal, sem injeção de falha. |
+| **H06 — paginação/processo** | D/E: morte real de processo em checkpoint, sem cursor/aplicação parcial; replay obrigatório em processo novo; reboot real comprovado e sessão/dados preservados. Sete testes Room E e payload SQLite >2 MiB. | Fechar/reabrir com alteração offline relatado; não equivale ao checkpoint de recebimento. | Interrupção forçada **somente no descartável**, não repetir nos dois emuladores do proprietário. Recebimento hospedado real ainda precisa de conferência normal, sem injeção de falha. |
 | **H07 — offline/reconexão** | B/C/D/E HTTP: fila persistente, reconexão sem reiniciar, edições reversas; sondas de processo/reboot executadas separadamente. | **Confirmado manualmente:** offline/reconexão automática e persistência após fechar/reabrir. | Não extrapolar para limites de background de aparelhos físicos não testados; nenhuma falha nova demonstrada. |
 | **H08 — resposta perdida/timeout** | `e-lost`/replay e decisão com resposta descartada: mesmo UUID/recibo, sem duplicação. Novos ensaios CI de orçamento 8 s e rollback no meio da escrita, reenvio com 41 partes preservadas. | Não relatado; não provocar falhas no hospedado. | Timeout/API/rede Free efetivos e margem permanecem sem medição. Repetir falhas intencionais **só localmente**. |
 | **H09 — conflito/decisão** | SQL decisões 15; Room reconciliação 10; E HTTP local/nuvem, revisão alterada, perda de resposta, variantes/auditoria preservadas. | **Confirmado manualmente:** conflito simultâneo de notas; escolha local; escolha nuvem. | Revalidação/auditoria e mudanças durante a prévia têm prova local; não anunciar inspeção dessas tabelas hospedadas. Conflito legado real intocado. |
 | **H10 — remanejamento/grafo** | D: 27 SQL, 15 Room, 24 fases HTTP; cadeia indivisível, identidade/datas, ciclo, histórico, auditoria imutável e rollback. Comparação completa de payloads na graduação. | **Confirmado manualmente no cenário testado:** movimentação e histórico. | Casos negativos completos têm evidência local; não inferir ensaio hospedado de todas as variantes. Duas regras de produto continuam intactas. |
 | **H11 — exportação/histórico** | D: troca/reordenação sem quebrar posições únicas; ocultações e histórico. Regressão de relatórios/exportação e leitores independentes XLSX/CSV/TSV/planos de aula no CI. | Diário e histórico de remanejamento relatados; exportações, revisões de grade, arquivamentos e rascunhos não relatados explicitamente. | Pendente conferência dos demais tipos recuperados hospedados. Não houve mudança de exportador. |
 | **H12 — backup/reconciliação** | `e-backup-before`→`e-after-backup-remote`→`e-restore-review`: backup cifrado, pausa RESTORE, decisão explícita, nota remota 10/matrícula posterior preservadas, 5.172 registros finais; backup estrangeiro recusado. | Não relatado. | **Pendente hospedado prioritário:** instalação extra isolada e backup fictício antigo. Nunca restaurar sobre os acervos existentes do proprietário. |
-| **H13 — capacidade/continuidade** | Estado sincronizado exige fila/inbox/partes vazias, revisões reconhecidas e decisões finalizadas. Graduação, hashes finais iguais entre dois AVDs, métricas SQL e HTTP separadas. | Continuidade funcional/offline relatada; sem volume/latência/quota/memória. | **Risco de capacidade:** 5.171 perto de 8 s; memória/compute/quota/p95 Free não comprovados. Bloquear progressão a esse patamar até medir margem. Não há SLA nem aprovação de capacidade. |
+| **H13 — capacidade/continuidade** | Estado sincronizado exige fila/inbox/partes vazias, revisões reconhecidas e decisões finalizadas. Graduação, hashes finais iguais entre dois AVDs, métricas SQL e HTTP separadas. | Continuidade funcional/offline relatada; sem volume/latência/quota/memória. | **Falha de capacidade no ensaio de 8 s:** 5.171 causou SQLSTATE 57014 na CI final; rollback íntegro. Memória/compute/quota/p95 Free não comprovados. Bloquear progressão a esse patamar até medir margem. Não há SLA nem aprovação de capacidade. |
 
 Referências executáveis principais:
 
@@ -158,6 +158,19 @@ NOCTUA_AUTH_LIVE_FILE='' NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE='' \
 NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED='' \
 ./gradlew --offline --no-daemon testDebugUnitTest testHomologacaoUnitTest
 ```
+
+Verificações adicionais executadas sem acessar dispositivo:
+
+```bash
+python3 scripts/test-reboot-disposable-avd.py
+python3 -m py_compile scripts/reboot-disposable-avd.py scripts/test-reboot-disposable-avd.py
+bash -n scripts/ci/validate-auth.sh
+```
+
+A prova nativa de reboot foi chamada pela rotina já existente
+`scripts/ci/validate-auth.sh process`, exclusivamente no único AVD da CI; a
+regressão completa usa `scripts/ci/validate-android.sh`. Não executar esses scripts
+nos emuladores do proprietário nem exportar flags CI para contornar seus guardas.
 
 Primeira tentativa Gradle foi bloqueada pela sandbox ao abrir o socket local do
 daemon (`SocketException: Operation not permitted`), antes dos testes. Repetição
@@ -240,7 +253,9 @@ continuam nos artefatos da CI.
 - O bloqueio posterior ocorreu entre `auth-process-write` (1/1 aprovado às
   22h43 de 09/11) e a leitura após reboot do AVD. A rotina anterior tinha comandos
   ADB sem limite efetivo; o coletor de diagnóstico também ficou em `waiting for
-  device`. Não houve `auth-process-read` nem novas provas B–E HTTP nessa execução.
+  device`. Não houve `auth-process-read`. **Correção do registro de progresso:** os artefatos
+  completos confirmam que B–E HTTP já tinham passado (10/13/24/23 fases), antes da
+  suíte genérica; a inspeção inicial apenas do trecho final do log não os mostrou.
   Isso é **execução incompleta**, não teste ignorado ou recuperação aprovada.
 - `41fd989` limita chamadas ADB, recupera uma conexão local do host uma única vez
   e exige `boot_id` novo + `sys.boot_completed=1` antes da leitura protegida.
@@ -252,8 +267,62 @@ continuam nos artefatos da CI.
   global. Sete testes **offline do harness**, sem ADB real, passaram; não são
   aprovação de reboot nativo.
 - Nova execução [42740837445](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42740837445),
-  código `41fd98964959d16ad2bd7a217277097d1f632b19`: **em andamento**. A recuperação
-  após reboot e as novas provas HTTP continuam pendentes até sua conclusão.
+  código `41fd98964959d16ad2bd7a217277097d1f632b19`: **APROVADA**.
+  O novo kernel/boot concluído foram comprovados após **26,937 s de conferência**
+  (medidos depois da chamada ADB de solicitação), com recuperação
+  única da conexão ADB do host, sem limpeza de userdata; escrita e leitura protegida
+  **1/1 + 1/1** passaram. As 70 fases HTTP B–E e os dois checkpoints com morte real
+  também passaram. Não há reboot/recuperação pendente na validação local final.
+  O crash isolado da execução 42732848997 não se reproduziu nas duas execuções
+  posteriores (focadas, repetições obrigatórias e suíte integral); a causa histórica
+  sem stack permanece indeterminada, não foi atribuída artificialmente ao timeout
+  nem declarada corrigida no produto.
+
+
+### Resultado consolidado da CI final
+
+| Prova | Aprovados | Condicionais | Falhas funcionais |
+|---|---:|---:|---:|
+| JVM, 288 casos | 283 | 5 | 0 |
+| Android, 424 casos únicos | 413 | 11 | 0 |
+| PostgreSQL v1/A/B/C/D/E1/E2 | 30/38/18/20/27/16/15 = **164** | 0 | 0 |
+| HTTP Android em dois AVDs B/C/D/E | 10/13/24/23 = **70 fases** | 0 | 0 |
+| Checkpoints de morte real/rollback/replay D/E | 2 | 0 | 0 |
+| Segurança HTTP B/D/E | 9/32/41 verificações | 0 | 0 |
+| Harness reboot, testes offline (não nativos) | 7 | 0 | 0 |
+| Graduação/timeout SQL | 4 patamares + 3 cenários de integridade | 0 | 0 de integridade |
+
+**Capacidade é resultado separado:** o lote natural de 5.171/41 partes **não coube
+em 8 s** nesta CI. O teste de rollback/retry passou porque validou a atomicidade,
+a preservação do estágio e o mesmo recibo no orçamento diagnóstico local de 20 s.
+Isso não aprova o desempenho em 8 s. PostgreSQL reportou **13.014,198 ms** no retry
+do lote natural e **8.249,907 ms** no retry após o bloqueio controlado. Nenhum
+orçamento global/de papel/função hospedado foi aumentado. O benchmark sem orçamento
+explícito mediu parede psql 0,101/0,283/0,898/**8,123 s** para 41/171/671/5.171;
+os três replays grandes foram 0,071 s cada. Não são latências Android ou SLA Free.
+
+A recuperação/reconciliação entre os AVDs terminou com 5.172 registros nos quinze
+tipos, mesmo snapshot final e fingerprint
+`b2ba3c74e7934490780af68f80ef0003b6d3d4006f32ad552ab618a19b6738bd`.
+`e-lost`, decisões local/nuvem, backup cifrado antigo, matrícula remota posterior,
+remanejamento/auditoria e reordenação permanecem aprovados no laboratório.
+
+Os cinco condicionais JVM são H01–H04 hospedados e a sonda live legada: **não
+executados**. Dos onze Android, as sondas parametrizadas B–E/atualização v1/processo
+foram executadas separadamente e aprovadas; as três sondas com assinatura permanente
+não foram executadas nesta branch. Não somar repetições/focadas como casos únicos.
+Nenhuma prova usa sessões reais do Supabase hospedado.
+
+- [CI aprovada 42740837445](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42740837445).
+- [Resultados/capturas — artefato 13730028278](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42740837445/artifacts/13730028278).
+- SHA-256 do ZIP baixado/conferido:
+  `746d6418bc2bd35abe57d94a910b4fa0d1a60f3c3a8cd2140dfa6c47845eaea0`.
+- Evidências centrais: `build/auth-reboot.json`, `auth-process-{write,read}.txt`,
+  `auth-isolation-repeat-{1,2}.txt`, `homologacao-{volumes,timeouts}.json`,
+  `phase{b,c,d,e}-network/`, XML JVM/Android e capturas com fontes ampliadas.
+- O artefato `noctua-apk-teste` é DEBUG com ID oficial para CI descartável;
+  **não é novo APK paralelo nem candidato para instalar no aparelho do proprietário**.
+  Build paralelo e atualização estável foram corretamente ignorados.
 
 ## 6. Somente três ensaios manuais prioritários, após autorização
 
@@ -286,16 +355,20 @@ Não solicitar senhas, links, códigos, tokens, service_role ou chaves privadas 
 ## 7. Decisão e bloqueadores
 
 **Pode avançar para os ensaios hospedados controlados acima**, após autorização
-específica e conferência do resultado final da CI/diagnóstico do encerramento de processo. Os relatos confirmam a evolução
+específica. A CI local final foi aprovada e o reboot/data-read foi comprovado. Os relatos confirmam a evolução
 funcional e não justificam refazer A–E. Não foi identificado defeito funcional novo
 nos testes JVM/SQL locais; o crash Android inicial não se reproduziu, mas sua causa
-continua indeterminada. A automação de reboot precisa concluir a nova prova nativa.
+continua indeterminada e foi mantida como ressalva histórica. A automação de reboot
+concluiu a prova nativa sem apagar dados.
 
 **Não está aprovada para promoção estável/produção.** Permanecem bloqueadores dessa
 liberação: evidência real H01–H04 com duas contas, recuperação hospedada completa,
 reconciliação hospedada, capacidade/timeout Free e futura atualização assinada com
 preservação dos dados reais. Nenhum desses bloqueadores autoriza alterar produção.
-A margem insuficiente de 5.171 impede considerar esse patamar homologado.
+A falha observada de capacidade em 8 s para 5.171 impede considerar esse patamar
+homologado. Antes de ensaio hospedado grande, perfilar/otimizar preservando os
+validadores ou propor divisão de deltas realmente independentes com prova de grafo;
+nunca fragmentar remanejamentos/históricos nem aumentar limites automaticamente.
 Backup administrativo independente/contingência e disponibilidade da assinatura
 permanente continuam exigindo processo próprio; sincronização não substitui backup.
 

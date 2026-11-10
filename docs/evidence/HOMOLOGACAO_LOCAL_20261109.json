@@ -218,10 +218,62 @@
   "ci": {
     "run_id": 42740837445,
     "source_sha": "41fd98964959d16ad2bd7a217277097d1f632b19",
-    "status": "in_progress_at_recording",
+    "status": "completed",
+    "conclusion": "success",
     "hosted_auth_executed": false,
-    "previous_failed_run": 42732848997,
-    "previous_cancelled_run": 42734103527
+    "jobs": {
+      "postgres": "success",
+      "android_integrity_regression": "success",
+      "homologation_apk": "skipped",
+      "stable_update": "skipped"
+    },
+    "jvm": {
+      "tests": 288,
+      "passed": 283,
+      "conditional": 5,
+      "failures": 0
+    },
+    "android": {
+      "tests": 424,
+      "passed": 413,
+      "conditional": 11,
+      "failures": 0
+    },
+    "postgres": {
+      "v1": 30,
+      "A": 38,
+      "B": 18,
+      "C": 20,
+      "D": 27,
+      "E_paging": 16,
+      "E_decisions": 15,
+      "total": 164
+    },
+    "android_http_phases": {
+      "B": 10,
+      "C": 13,
+      "D": 24,
+      "E": 23,
+      "total": 70
+    },
+    "controlled_process_kills": 2,
+    "http_security_checks": {
+      "B": 9,
+      "D": 32,
+      "E": 41
+    },
+    "reboot_harness_offline_tests": 7,
+    "auth_focused": 19,
+    "auth_isolation_repetitions": [
+      8,
+      8
+    ],
+    "auth_process_write": 1,
+    "auth_process_read": 1,
+    "artifact_id": 13730028278,
+    "artifact_zip_sha256": "746d6418bc2bd35abe57d94a910b4fa0d1a60f3c3a8cd2140dfa6c47845eaea0",
+    "capacity_5171_at_8s": "NOT APPROVED: natural SQL timeout; atomic rollback verified; recovery only within local diagnostic 20s budget",
+    "original_native_crash": "not reproduced in repeated focused and complete suites; historical cause remains undetermined"
   },
   "blocked_claims": [
     "not hosted Auth/RLS certification",
@@ -424,10 +476,17 @@
     ],
     "auth_process_write_passed": true,
     "auth_process_read_executed": false,
-    "network_b_c_d_e_executed": false,
+    "network_b_c_d_e_executed": true,
     "blocking_stage": "AVD reboot/readiness; diagnostic ADB command also waited for an offline device",
     "original_crash_reproduced": false,
-    "original_crash_root_cause_determined": false
+    "original_crash_root_cause_determined": false,
+    "network_b_c_d_e_passed_phases": [
+      10,
+      13,
+      24,
+      23
+    ],
+    "progress_record_corrected": "Complete artifact inspection confirmed B-E ran before the generic Android suite; only post-reboot read was missing."
   },
   "ci_42734103527_homologacao-volumes": {
     "environment": "local-disposable-postgresql-psql",
@@ -606,5 +665,192 @@
     "failures": 0,
     "real_adb_called": false,
     "real_reboot_proven": false
-  }
+  },
+  "approved_ci_volumes": {
+    "environment": "local-disposable-postgresql-psql",
+    "graduated": true,
+    "passed": 4,
+    "real_supabase_auth": false,
+    "hosted_executed": false,
+    "timings": "psql wall seconds, including connection; not pure RPC or HTTP/Android time",
+    "results": [
+      {
+        "label": "36-enrollments",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 41,
+        "parts": 1,
+        "kinds": 3,
+        "staging_seconds": 0.09,
+        "first_commit_seconds": 0.101,
+        "confirmed_replay_seconds": [
+          0.038,
+          0.037,
+          0.038
+        ],
+        "pull_seconds": 0.039,
+        "pull_pages": 1,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+        "table_bytes_including_indexes": 540672,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "171-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 171,
+        "parts": 2,
+        "kinds": 15,
+        "staging_seconds": 0.166,
+        "first_commit_seconds": 0.283,
+        "confirmed_replay_seconds": [
+          0.04,
+          0.039,
+          0.04
+        ],
+        "pull_seconds": 0.085,
+        "pull_pages": 2,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+        "table_bytes_including_indexes": 860160,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "671-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 671,
+        "parts": 6,
+        "kinds": 15,
+        "staging_seconds": 0.459,
+        "first_commit_seconds": 0.898,
+        "confirmed_replay_seconds": [
+          0.043,
+          0.043,
+          0.043
+        ],
+        "pull_seconds": 0.276,
+        "pull_pages": 6,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+        "table_bytes_including_indexes": 1835008,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "5171-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 5171,
+        "parts": 41,
+        "kinds": 15,
+        "staging_seconds": 3.225,
+        "first_commit_seconds": 8.123,
+        "confirmed_replay_seconds": [
+          0.071,
+          0.071,
+          0.071
+        ],
+        "pull_seconds": 2.365,
+        "pull_pages": 41,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+        "table_bytes_including_indexes": 10231808,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      }
+    ]
+  },
+  "approved_ci_timeouts": {
+    "environment": "local-disposable-postgresql",
+    "real_supabase_auth": false,
+    "postgrest_timeout_tested": false,
+    "android_timeout_tested": false,
+    "timings": "psql wall time includes connection; successful statements also report PostgreSQL EXPLAIN ANALYZE Execution Time (ms); explicit 8s session budget",
+    "results": [
+      {
+        "case": "small-budget",
+        "records": 171,
+        "parts": 2,
+        "statement_timeout": "8s",
+        "outcome": "accepted",
+        "psql_wall_seconds": 0.275,
+        "postgres_execution_ms": 240.649,
+        "replay": {
+          "psql_wall_seconds": 0.04,
+          "postgres_execution_ms": 5.347
+        }
+      },
+      {
+        "case": "large-natural-budget",
+        "records": 5171,
+        "parts": 41,
+        "statement_timeout": "8s",
+        "outcome": "57014-atomic-rollback",
+        "psql_wall_seconds": 8.035,
+        "postgres_execution_ms": null,
+        "retry_budget": "20s-local-diagnostic-only",
+        "retry_psql_wall_seconds": 13.05,
+        "retry_postgres_execution_ms": 13014.198,
+        "replay": {
+          "psql_wall_seconds": 0.07,
+          "postgres_execution_ms": 35.938
+        }
+      },
+      {
+        "case": "mid-write-timeout-and-retry",
+        "records": 5171,
+        "parts": 41,
+        "statement_timeout": "8s",
+        "outcome": "57014-atomic-rollback",
+        "reached_academic_writes": true,
+        "psql_wall_seconds": 8.034,
+        "postgres_execution_ms": null,
+        "persisted_parts": 41,
+        "academic_rows_after_cancel": 0,
+        "versions_after_cancel": 0,
+        "receipts_after_cancel": 0,
+        "sequence_after_cancel": 0,
+        "retry_budget": "20s-local-diagnostic-only",
+        "retry_psql_wall_seconds": 8.285,
+        "retry_postgres_execution_ms": 8249.907,
+        "replay": {
+          "psql_wall_seconds": 0.07,
+          "postgres_execution_ms": 36.226
+        }
+      }
+    ],
+    "passed": 3
+  },
+  "approved_ci_reboot": {
+    "environment": "sole-disposable-ci-avd",
+    "reboot_proven": true,
+    "adb_server_restarted": true,
+    "userdata_wiped": false,
+    "request_exit": 0,
+    "kernel_boot_id_changed": true,
+    "elapsed_seconds": 26.937
+  },
+  "approved_ci_final_snapshot_sha256": "b2ba3c74e7934490780af68f80ef0003b6d3d4006f32ad552ab618a19b6738bd",
+  "approved_ci_same_snapshot_on_both_avds": true,
+  "approved_ci_and_local_payload_hashes_match": true
 }
