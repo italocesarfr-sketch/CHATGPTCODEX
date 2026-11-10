@@ -5,7 +5,8 @@ Registro: **09/11/2026, America/Sao_Paulo**. Branch exclusiva
 automação de volume `ad9a90abd95f8d95e03a7124f8d24563f899828d`;
 consolidação inicial `63ea459`; pré-condições do runner hospedado
 `e007db311b25ed2e88a4446e8af49cf80626a856`; diagnóstico de crash/repetições
-`1f66134e1f05b5554673f7d0947758409f658d6c`.
+`1f66134e1f05b5554673f7d0947758409f658d6c`; reinício verificável do AVD
+`41fd98964959d16ad2bd7a217277097d1f632b19`.
 
 **Escopo:** provas seguras locais/descartáveis e documentação. Nenhuma requisição
 foi feita ao Supabase hospedado nesta rodada. Nenhum aplicativo do proprietário
@@ -192,18 +193,23 @@ Cancelamento determinístico no meio da escrita: SQLSTATE 57014, zero linhas,
 versões, recibos e sequência; **41 partes preservadas**, reenvio e replay únicos.
 Esses 8 s são orçamento da instrução SQL; não são timeout da API nem duração total
 Android. O `readTimeout=20s` Android não amplia o orçamento PostgreSQL.
+O timeout efetivo de noctua-homologacao não foi consultado nesta rodada; 8 s é
+o orçamento local baseado no padrão documentado, não leitura nova da configuração.
 
 O patamar grande não demonstra a meta de p95 <75% do orçamento (6 s se efetivo 8 s).
 Uma execução que termina abaixo de 8 s não prova folga nem p95.
 Na CI 42732848997, o commit natural foi 4.939,178 ms no PostgreSQL; porém o
 primeiro retry após cancelamento não coube em 8 s e o diagnóstico local usou
 20 s (concluiu em 4.926,814 ms). Isso **não** aprova retry no orçamento hospedado
-de 8 s, mesmo com os três cenários de integridade concluídos. Não se ocultou essa
+de 8 s considerado no ensaio, mesmo com os três cenários de integridade concluídos. Não se ocultou essa
 variação nem se alterou timeout de papel, função ou projeto. Não aumentar limites
 hospedados automaticamente. Partes paginadas não dividem o commit indivisível.
 
 Evidências novas sem payloads/credenciais: `docs/evidence/HOMOLOGACAO_LOCAL_20261109.json`.
-Capturas, relatórios e provas HTTP completas continuam nos artefatos da CI.
+Os hashes dos payloads recuperados nos quatro patamares coincidiram entre este
+executor e as etapas SQL aprovadas da CI 42732848997; isso não aprova o Android
+daquela execução que falhou. Capturas, relatórios e provas HTTP completas
+continuam nos artefatos da CI.
 
 ### CI desta rodada
 
@@ -222,9 +228,32 @@ Capturas, relatórios e provas HTTP completas continuam nos artefatos da CI.
   Não existe retry que converta uma falha em sucesso; o primeiro crash/assertion
   continua encerrando o job. Nenhuma asserção removida ou timeout aumentado.
 - Nova execução [42734103527](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42734103527),
-  código `1f66134e1f05b5554673f7d0947758409f658d6c`: **em andamento**.
-  Não há aprovação Android final nesta redação; o encerramento anterior permanece
-  pendente de diagnóstico/reprodução.
+  código `1f66134e1f05b5554673f7d0947758409f658d6c`: **cancelada no limite de 50 min**.
+  A suíte Android **terminou aprovada**: XML com 424 casos únicos, **413 aprovados,
+  11 condicionais, zero falhas/erros**. O console exibiu 435 ao finalizar; usa-se
+  o XML, não esse contador de progresso, para contar os casos. Focada Auth 19/19,
+  duas repetições obrigatórias 8/8 e 8/8, fontes 1,3/1,6, migrações e leitores
+  de exportação passaram. O crash inicial **não se reproduziu** nessas execuções
+  nem na suíte integral; sua causa histórica continua indeterminada, sem stack.
+  Capturas de login/identificação de homologação e vinculação com fonte ampliada
+  foram inspecionadas nos artefatos.
+- O bloqueio posterior ocorreu entre `auth-process-write` (1/1 aprovado às
+  22h43 de 09/11) e a leitura após reboot do AVD. A rotina anterior tinha comandos
+  ADB sem limite efetivo; o coletor de diagnóstico também ficou em `waiting for
+  device`. Não houve `auth-process-read` nem novas provas B–E HTTP nessa execução.
+  Isso é **execução incompleta**, não teste ignorado ou recuperação aprovada.
+- `41fd989` limita chamadas ADB, recupera uma conexão local do host uma única vez
+  e exige `boot_id` novo + `sys.boot_completed=1` antes da leitura protegida.
+  Apenas um AVD QEMU da CI é aceito; outro dispositivo bloqueia o procedimento.
+  Não limpa dados, reinstala apps ou repete a solicitação de reboot. Mesmo se a
+  resposta ADB se perder, o teste só prossegue com prova independente do novo boot;
+  depois a sonda original compara sessão, seleção, FJ e snapshot acadêmico.
+  Diagnósticos também têm limite rígido para não bloquear a coleta até o timeout
+  global. Sete testes **offline do harness**, sem ADB real, passaram; não são
+  aprovação de reboot nativo.
+- Nova execução [42740837445](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42740837445),
+  código `41fd98964959d16ad2bd7a217277097d1f632b19`: **em andamento**. A recuperação
+  após reboot e as novas provas HTTP continuam pendentes até sua conclusão.
 
 ## 6. Somente três ensaios manuais prioritários, após autorização
 
@@ -259,7 +288,8 @@ Não solicitar senhas, links, códigos, tokens, service_role ou chaves privadas 
 **Pode avançar para os ensaios hospedados controlados acima**, após autorização
 específica e conferência do resultado final da CI/diagnóstico do encerramento de processo. Os relatos confirmam a evolução
 funcional e não justificam refazer A–E. Não foi identificado defeito funcional novo
-nos testes JVM/SQL locais; o crash Android ainda exige diagnóstico.
+nos testes JVM/SQL locais; o crash Android inicial não se reproduziu, mas sua causa
+continua indeterminada. A automação de reboot precisa concluir a nova prova nativa.
 
 **Não está aprovada para promoção estável/produção.** Permanecem bloqueadores dessa
 liberação: evidência real H01–H04 com duas contas, recuperação hospedada completa,
@@ -272,3 +302,29 @@ permanente continuam exigindo processo próprio; sincronização não substitui 
 Não alterar as duas regras de remanejamento. Não remover proteção de backups,
 resolver o conflito legado ou ativar sincronização de dados reais automaticamente.
 Nenhum próximo passo inclui NOcTuA Escola, release, merge ou migração hospedada.
+
+## 8. Commits e arquivos desta execução
+
+- `ad9a90abd95f8d95e03a7124f8d24563f899828d`: graduação SQL, timeout na CI e gate explícito hospedado.
+- `63ea459`: matriz H01–H13, relatos do proprietário e resultados locais iniciais.
+- `e007db311b25ed2e88a4446e8af49cf80626a856`: pré-condições positivas de RPC em H02/H04.
+- `1f66134e1f05b5554673f7d0947758409f658d6c`: diagnóstico de crash e repetições obrigatórias de isolamento.
+- `a21ff20`: preservação da execução Android falha, risco do retry de 8 s e continuidade.
+- `41fd98964959d16ad2bd7a217277097d1f632b19`: ADB com limite, prova de boot novo e testes offline do harness.
+- Commits documentais finais: consultar o histórico desta página; não alteram o código validado.
+
+Arquivos (nenhum pertence ao código funcional de produção ou às migrações):
+
+- `.github/workflows/android.yml`: automação/artefatos locais e bloqueio de credenciais live.
+- `.github/workflows/homologacao.yml`: gate hospedado limpo no build.
+- `scripts/benchmark-phase-e.py`: graduação e conferência integral paginada.
+- `scripts/ci/validate-auth.sh`: diagnósticos e estabilidade do isolamento.
+- `scripts/reboot-disposable-avd.py`: reinício verificável do único AVD descartável.
+- `scripts/test-reboot-disposable-avd.py`: sete casos offline da automação (não provas nativas).
+- `app/src/test/java/br/com/diariodeclasse/HomologationHostedAuthTest.kt`: consentimento e provas positivas antes das negativas.
+- `docs/CONSOLIDACAO_HOMOLOGACAO_0220.md`: este relatório/matriz/roteiro.
+- `docs/FASE_E_0220.md`: nota temporal e link para o estado atual.
+- `docs/HOMOLOGACAO_SUPABASE_0220.md`: alvo atual, callback e distinção do checklist histórico.
+- `docs/ANDROID_HOMOLOGACAO_0220.md`: estado atual e autorização do runner.
+- `docs/evidence/HOMOLOGACAO_RELATOS_20261109.json`: dez relatos, não resultados automatizados.
+- `docs/evidence/HOMOLOGACAO_LOCAL_20261109.json`: contagens, hashes e medições sem payloads/credenciais.

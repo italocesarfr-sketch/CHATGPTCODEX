@@ -216,13 +216,12 @@
     "passed": 3
   },
   "ci": {
-    "run_id": 42734103527,
-    "source_sha": "1f66134e1f05b5554673f7d0947758409f658d6c",
+    "run_id": 42740837445,
+    "source_sha": "41fd98964959d16ad2bd7a217277097d1f632b19",
     "status": "in_progress_at_recording",
     "hosted_auth_executed": false,
     "previous_failed_run": 42732848997,
-    "failure": "Android instrumentation process crash during AuthIsolationInstrumentedTest, no crash stack captured in initial artifact; investigation pending",
-    "superseded_cancelled_run": 42731594028
+    "previous_cancelled_run": 42734103527
   },
   "blocked_claims": [
     "not hosted Auth/RLS certification",
@@ -409,5 +408,203 @@
       }
     ],
     "passed": 3
+  },
+  "local_vs_ci_42732848997_graduated_payload_hashes_match": true,
+  "ci_42734103527_partial": {
+    "conclusion": "cancelled_at_50_minute_job_limit",
+    "source_sha": "1f66134e1f05b5554673f7d0947758409f658d6c",
+    "android_unique": 424,
+    "android_passed": 413,
+    "android_conditional": 11,
+    "android_failures": 0,
+    "auth_focused_passed": 19,
+    "isolation_repetitions_passed": [
+      8,
+      8
+    ],
+    "auth_process_write_passed": true,
+    "auth_process_read_executed": false,
+    "network_b_c_d_e_executed": false,
+    "blocking_stage": "AVD reboot/readiness; diagnostic ADB command also waited for an offline device",
+    "original_crash_reproduced": false,
+    "original_crash_root_cause_determined": false
+  },
+  "ci_42734103527_homologacao-volumes": {
+    "environment": "local-disposable-postgresql-psql",
+    "graduated": true,
+    "passed": 4,
+    "real_supabase_auth": false,
+    "hosted_executed": false,
+    "timings": "psql wall seconds, including connection; not pure RPC or HTTP/Android time",
+    "results": [
+      {
+        "label": "36-enrollments",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 41,
+        "parts": 1,
+        "kinds": 3,
+        "staging_seconds": 0.093,
+        "first_commit_seconds": 0.094,
+        "confirmed_replay_seconds": [
+          0.04,
+          0.041,
+          0.04
+        ],
+        "pull_seconds": 0.041,
+        "pull_pages": 1,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+        "table_bytes_including_indexes": 540672,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "171-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 171,
+        "parts": 2,
+        "kinds": 15,
+        "staging_seconds": 0.164,
+        "first_commit_seconds": 0.24,
+        "confirmed_replay_seconds": [
+          0.041,
+          0.041,
+          0.041
+        ],
+        "pull_seconds": 0.089,
+        "pull_pages": 2,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+        "table_bytes_including_indexes": 860160,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "671-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 671,
+        "parts": 6,
+        "kinds": 15,
+        "staging_seconds": 0.441,
+        "first_commit_seconds": 0.72,
+        "confirmed_replay_seconds": [
+          0.044,
+          0.045,
+          0.045
+        ],
+        "pull_seconds": 0.289,
+        "pull_pages": 6,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+        "table_bytes_including_indexes": 1835008,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "5171-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 5171,
+        "parts": 41,
+        "kinds": 15,
+        "staging_seconds": 3.0,
+        "first_commit_seconds": 6.638,
+        "confirmed_replay_seconds": [
+          0.074,
+          0.075,
+          0.074
+        ],
+        "pull_seconds": 2.435,
+        "pull_pages": 41,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+        "table_bytes_including_indexes": 10231808,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      }
+    ]
+  },
+  "ci_42734103527_homologacao-timeouts": {
+    "environment": "local-disposable-postgresql",
+    "real_supabase_auth": false,
+    "postgrest_timeout_tested": false,
+    "android_timeout_tested": false,
+    "timings": "psql wall time includes connection; successful statements also report PostgreSQL EXPLAIN ANALYZE Execution Time (ms); explicit 8s session budget",
+    "results": [
+      {
+        "case": "small-budget",
+        "records": 171,
+        "parts": 2,
+        "statement_timeout": "8s",
+        "outcome": "accepted",
+        "psql_wall_seconds": 0.236,
+        "postgres_execution_ms": 199.592,
+        "replay": {
+          "psql_wall_seconds": 0.042,
+          "postgres_execution_ms": 5.653
+        }
+      },
+      {
+        "case": "large-natural-budget",
+        "records": 5171,
+        "parts": 41,
+        "statement_timeout": "8s",
+        "outcome": "accepted",
+        "psql_wall_seconds": 6.615,
+        "postgres_execution_ms": 6578.142,
+        "replay": {
+          "psql_wall_seconds": 0.072,
+          "postgres_execution_ms": 36.949
+        }
+      },
+      {
+        "case": "mid-write-timeout-and-retry",
+        "records": 5171,
+        "parts": 41,
+        "statement_timeout": "8s",
+        "outcome": "57014-atomic-rollback",
+        "reached_academic_writes": true,
+        "psql_wall_seconds": 8.035,
+        "postgres_execution_ms": null,
+        "persisted_parts": 41,
+        "academic_rows_after_cancel": 0,
+        "versions_after_cancel": 0,
+        "receipts_after_cancel": 0,
+        "sequence_after_cancel": 0,
+        "retry_budget": "20s-local-diagnostic-only",
+        "retry_psql_wall_seconds": 6.773,
+        "retry_postgres_execution_ms": 6735.641,
+        "replay": {
+          "psql_wall_seconds": 0.073,
+          "postgres_execution_ms": 37.933
+        }
+      }
+    ],
+    "passed": 3
+  },
+  "reboot_harness_offline_unit_tests": {
+    "passed": 7,
+    "failures": 0,
+    "real_adb_called": false,
+    "real_reboot_proven": false
   }
 }
