@@ -39,10 +39,13 @@ a evidência final E não deve ser confundida com homologação hospedada.
 
 ## 2. Inventário somente leitura e bloqueios de entrada
 
-O administrador deve conferir no painel o projeto **noctua-auth**, referência
-`mpsgdchpgyxoqowfjoqm`. O aplicativo usa
-`https://mpsgdchpgyxoqowfjoqm.supabase.co`, chave publishable pública e bearer da
+**Alvo atual de ensaio (atualização de 09/11): noctua-homologacao**, referência
+`sscexzxtqdcsqdlcytum`. A variante paralela usa exclusivamente
+`https://sscexzxtqdcsqdlcytum.supabase.co`, chave publishable pública e bearer da
 sessão Auth do workspace; não recebe `owner_id` arbitrário como identidade.
+O roteiro de 05/11 antecedia esse projeto separado. Produção **noctua-auth** é
+intocável: não realizar nem inventário, configuração ou implantação nela nesta tarefa.
+A implantação A–E já foi relatada pelo administrador; não reaplicar o pacote.
 
 Executar futuramente, no SQL Editor do projeto correto, somente
 [`supabase/checks/prehomo_0220_readonly.sql`](../supabase/checks/prehomo_0220_readonly.sql).
@@ -277,8 +280,9 @@ O administrador deve verificar, sem alterar nesta etapa:
 
 - Email provider, confirmação obrigatória, anônimos desabilitados, cadastro e senha
   mínima de oito caracteres, conforme configuração relatada.
-- Retorno Android `br.com.diariodeclasse://auth/callback` e estado PKCE produzido
-  pelo aplicativo. Preservar checagem de scheme/host/path/state/code, janela de
+- Retorno da variante paralela `br.com.diariodeclasse.homologacao://auth/callback`
+  e estado PKCE produzido pelo aplicativo. O callback original é preservado, sem
+  alteração do projeto de produção. Preservar checagem de scheme/host/path/state/code, janela de
   validade e verifier. Não usar localhost como retorno Android nem liberar URLs
   genéricas para fazer testes passarem. Conferir fluxo real no aparelho de ensaio.
 - Duas identidades Auth comuns, confirmadas, com UUIDs diferentes e endereços de
@@ -309,7 +313,10 @@ Room/cursor/protocolo por SQL para saltar etapas. Usar contas vazias até chegar
 escopo E antes de criar o acervo grande; clientes antigos ficam bloqueados somente
 nas contas que efetivamente transitaram. Não rebaixar escopo depois.
 
-## 7. Matriz de homologação hospedada — ainda não executada
+## 7. Protocolo H01–H13 original — estados atuais na consolidação
+
+**Situação atual por caso:** [matriz consolidada de 09/11](CONSOLIDACAO_HOMOLOGACAO_0220.md).
+A tabela abaixo conserva os critérios, não declara que os relatos novos nunca ocorreram.
 
 Usar duas instalações independentes A1/A2 da mesma conta fictícia A e sessão comum
 B separada. Senhas/tokens/links ficam somente nos aparelhos/cofre autorizado;
@@ -341,8 +348,11 @@ Scripts `test-*-postgres.py`, `phase-b-http-fixture.py` e rede do CI continuam
 **locais**; não alterar PGHOST/URL para apontá-los ao projeto hospedado. A automação
 hospedada precisa de adaptador específico: alvo aprovado, sessões comuns obtidas
 no ambiente seguro, allowlist exata A/B, dados fictícios e proteção contra executar
-reset/fixtures administrativas. Esse adaptador não está implementado nesta rodada;
-a matriz é executável inicialmente pelo app nos aparelhos de ensaio.
+reset/fixtures administrativas. Na preparação de 05/11 não existia adaptador hospedado. Posteriormente foi
+preparado `HomologationHostedAuthTest` H01–H04 opt-in, conforme
+[ANDROID_HOMOLOGACAO_0220.md](ANDROID_HOMOLOGACAO_0220.md). Não é runner de
+fixtures/carga/escrita acadêmica; nenhum ensaio hospedado foi executado pelo Codex
+na consolidação de 09/11.
 
 ## 8. Infraestrutura, limites e custos
 
@@ -440,7 +450,12 @@ neste executor; seu armazenamento/disponibilidade atuais não foram verificados.
 
 ## 12. Responsabilidades e autorizações
 
-**Proprietário/administrador no Supabase, em ordem:**
+**Checklist histórico da preparação de 05/11, não uma nova ordem de execução.**
+O administrador já relatou projeto separado, migrações, inventário e allowlist;
+não criar contas/reaplicar SQL por esta lista. Os únicos três ensaios manuais
+prioritários atuais estão na [consolidação](CONSOLIDACAO_HOMOLOGACAO_0220.md).
+
+**Proprietário/administrador — requisitos originais, para referência:**
 
 - [ ] Confirmar projeto, plano/Usage/estado ativo e reunir inventário somente leitura;
       não aplicar migrações ainda.

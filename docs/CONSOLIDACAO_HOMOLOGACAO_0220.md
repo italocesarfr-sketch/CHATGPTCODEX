@@ -2,7 +2,10 @@
 
 Registro: **09/11/2026, America/Sao_Paulo**. Branch exclusiva
 `sync/academic-complete-0220`. Base inspecionada `34780d1d23ba8234287550304578ca529a92b90b`;
-automação desta rodada `ad9a90abd95f8d95e03a7124f8d24563f899828d`.
+automação de volume `ad9a90abd95f8d95e03a7124f8d24563f899828d`;
+consolidação inicial `63ea459`; pré-condições do runner hospedado
+`e007db311b25ed2e88a4446e8af49cf80626a856`; diagnóstico de crash/repetições
+`1f66134e1f05b5554673f7d0947758409f658d6c`.
 
 **Escopo:** provas seguras locais/descartáveis e documentação. Nenhuma requisição
 foi feita ao Supabase hospedado nesta rodada. Nenhum aplicativo do proprietário
@@ -34,7 +37,7 @@ na regressão são somente para os AVDs descartáveis da CI, não para distribui
    live. Resultados abaixo não certificam o serviço hospedado nem seu SLA.
 
 Os documentos antigos conservam suas datas e resultados históricos. Foram
-acrescentadas notas de atualização, sem converter “não executado naquela rodada”
+acrescentadas notas e alinhadas referências operacionais de projeto/callback, sem converter “não executado naquela rodada”
 em falha atual ou orientação para implantar novamente. **As instruções antigas
 que mencionam noctua-auth não autorizam nenhuma ação nesse projeto de produção.**
 
@@ -69,9 +72,9 @@ cobertura local aprovada e, simultaneamente, obrigações hospedadas pendentes.
 | Caso | CI local/descartável e cobertura reutilizada | Homologação hospedada relatada | Pendente de comprovação / falha identificada |
 |---|---|---|---|
 | **H01 — Auth A/B** | Fluxos/AuthVault/AccountWorkspaces e 19 testes Auth instrumentados na regressão. Cliente Auth real preparado em `HomologationHostedAuthTest.h01`, mas condicional. | Acesso na mesma conta é pressuposto dos relatos; não foi relatada a prova completa com duas contas distintas, refresh/erro de senha. | **Pendente:** H01 real com A/B, troca de conta e identidade esperada. Fixtures locais não validam Auth hospedado. Nenhuma falha funcional nova demonstrada. |
-| **H02 — isolamento RLS/RPC** | PostgreSQL A/B/D/E e HTTP de duas identidades fictícias: leitura/escrita cruzada recusadas; workspace/backup por titular. `h02` preparado com fixture A conhecida e leitura positiva anterior à negativa de B. | Nenhum teste A versus B distinto relatado. | **Pendente:** duas sessões Auth comuns reais; leitura/RPC cruzadas e isolamento Room no mesmo app. O runner não cobre sozinho escrita/exclusão cruzada efetiva. |
+| **H02 — isolamento RLS/RPC** | PostgreSQL A/B/D/E e HTTP de duas identidades fictícias: leitura/escrita cruzada recusadas; workspace/backup por titular. `h02` preparado com fixture A conhecida, leitura A positiva e RPC B válida antes da negativa cruzada. | Nenhum teste A versus B distinto relatado. | **Pendente:** duas sessões Auth comuns reais; leitura/RPC cruzadas e isolamento Room no mesmo app. O runner não cobre sozinho escrita/exclusão cruzada efetiva. |
 | **H03 — permissões** | ACL/helpers/unfenced/DML/anon cobertos em PostgreSQL e HTTP locais. `h03` opt-in usa helper e PATCH sem possibilidade de afetar linhas. | Inventário 16/16 é relato administrativo; não é execução pela API como usuário comum. | **Pendente:** confirmar ACL pela API comum, catálogo e demais tabelas. Não executar DML hospedado automaticamente. |
-| **H04 — sessões inválidas** | JWT inválido/expirado, sessão removida, usuário não confirmado e anon recusados nos ensaios SQL/HTTP com Auth fictício. `h04` preparado. | Não relatado para as contas fictícias hospedadas. | **Pendente:** ausência/invalidade/revogação reais. JWT efetivamente expirado/conta não confirmada continuam fora do runner atual; não criar usuário nem forjar aprovação. |
+| **H04 — sessões inválidas** | JWT inválido/expirado, sessão removida, usuário não confirmado e anon recusados nos ensaios SQL/HTTP com Auth fictício. `h04` preparado, exigindo RPC positiva antes de revogar sua própria sessão de ensaio. | Não relatado para as contas fictícias hospedadas. | **Pendente:** ausência/invalidade/revogação reais. JWT efetivamente expirado/conta não confirmada continuam fora do runner atual; não criar usuário nem forjar aprovação. |
 | **H05 — recuperação completa** | B: 36 matrículas/41 registros em segundo AVD; D: 171 registros/15 tipos; E: 5.171/41 partes, IDs/payloads/zero/null/FJ/auditorias exatos no segundo AVD. Nova graduação SQL válida 41/171/671/5.171, não só grafo inválido de 671. | Turmas/alunos/notas/frequência/diário/remanejamento confirmados no cenário relatado. | **Pendente:** recuperação hospedada limpa e inventário completo dos quinze tipos, contagens/hashes; volumes hospedados não informados. |
 | **H06 — paginação/processo** | D/E: morte real de processo em checkpoint, sem cursor/aplicação parcial; replay obrigatório em processo novo. Sete testes Room E e payload SQLite >2 MiB. | Fechar/reabrir com alteração offline relatado; não equivale ao checkpoint de recebimento. | Interrupção forçada **somente no descartável**, não repetir nos dois emuladores do proprietário. Recebimento hospedado real ainda precisa de conferência normal, sem injeção de falha. |
 | **H07 — offline/reconexão** | B/C/D/E HTTP: fila persistente, reconexão sem reiniciar, edições reversas; sondas de processo/reboot executadas separadamente. | **Confirmado manualmente:** offline/reconexão automática e persistência após fechar/reabrir. | Não extrapolar para limites de background de aparelhos físicos não testados; nenhuma falha nova demonstrada. |
@@ -100,7 +103,9 @@ prova real de Room + transporte HTTP + PostgreSQL/PostgREST em dois AVDs da CI.
 **Código do aplicativo oficial:** nenhuma alteração em `app/src/main`, manifesto,
 Gradle do app, entidades Room, schemas, backup, exportadores ou migrações SQL.
 As mudanças desta rodada são testes, scripts de prova, workflows e documentação.
-Não foi necessário corrigir defeito funcional do produto.
+Não foi necessário corrigir defeito funcional do produto. A auditoria corrigiu
+uma lacuna de evidência no runner de teste: respostas negativas isoladas poderiam
+ser confundidas com uma RPC indisponível mesmo para sessões válidas.
 
 1. `scripts/benchmark-phase-e.py --graduated`: reutiliza as fixtures B/D/E para
    36 matrículas (41 registros), 171/671/5.171 registros. Além dos três replays,
@@ -115,6 +120,10 @@ Não foi necessário corrigir defeito funcional do produto.
    `NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED=YES`. Somente configurar uma chave de
    build não autoriza sessões. As duas workflows limpam essa variável e os caminhos
    live; nenhum teste de integração hospedada pode ser disparado por este CI.
+   H02 agora exige RPC de estado aceita para B; H04 exige sucesso da mesma RPC
+   antes dos casos sem JWT/inválido/revogado. Isso impede falsa aprovação quando
+   o endpoint estiver sempre negado. São pré-condições preparadas/compiladas,
+   ainda não executadas contra o hospedado.
 4. Scripts locais exigem nomes de bancos descartáveis/PGHOST local; não transformar
    essas fixtures em scripts hospedados. O runner B–E só opera em emuladores próprios
    da CI. Nenhum `adb`, `pm clear`, uninstall ou restore foi executado contra os
@@ -185,7 +194,12 @@ Esses 8 s são orçamento da instrução SQL; não são timeout da API nem dura�
 Android. O `readTimeout=20s` Android não amplia o orçamento PostgreSQL.
 
 O patamar grande não demonstra a meta de p95 <75% do orçamento (6 s se efetivo 8 s).
-Uma execução que termina abaixo de 8 s não prova folga nem p95. Não aumentar limites
+Uma execução que termina abaixo de 8 s não prova folga nem p95.
+Na CI 42732848997, o commit natural foi 4.939,178 ms no PostgreSQL; porém o
+primeiro retry após cancelamento não coube em 8 s e o diagnóstico local usou
+20 s (concluiu em 4.926,814 ms). Isso **não** aprova retry no orçamento hospedado
+de 8 s, mesmo com os três cenários de integridade concluídos. Não se ocultou essa
+variação nem se alterou timeout de papel, função ou projeto. Não aumentar limites
 hospedados automaticamente. Partes paginadas não dividem o commit indivisível.
 
 Evidências novas sem payloads/credenciais: `docs/evidence/HOMOLOGACAO_LOCAL_20261109.json`.
@@ -193,10 +207,24 @@ Capturas, relatórios e provas HTTP completas continuam nos artefatos da CI.
 
 ### CI desta rodada
 
-Execução [42731594028](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42731594028),
-código `ad9a90abd95f8d95e03a7124f8d24563f899828d`: **em andamento durante a redação**.
-Resultado final, contagens e artefatos serão registrados após a conclusão;
-nenhuma aprovação nova Android/HTTP é presumida enquanto isso.
+- Execução **42731594028** substituída após a correção das pré-condições positivas
+  do runner; cancelamento não é aprovação nem regressão inferida.
+- [42732848997](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42732848997),
+  código `e007db311b25ed2e88a4446e8af49cf80626a856`: **falhou no Android**.
+  JVM, PostgreSQL A–E, leitores de exportação/backup, graduação e timeout passaram.
+  As três migrações focadas e a atualização de referência também passaram.
+  O processo encerrou durante `AuthIsolationInstrumentedTest`, antes da suíte
+  completa e das provas HTTP B–E. O artefato não contém stack trace de crash;
+  não há base para atribuir causa ao produto nem chamar de simples timeout.
+- Acrescentados diagnóstico `logcat -b crash`, eventos de encerramento e
+  `dumpsys activity exit-info` antes da destruição do AVD; instrumentação raw para
+  identificar o método; duas repetições obrigatórias dos oito testes de isolamento.
+  Não existe retry que converta uma falha em sucesso; o primeiro crash/assertion
+  continua encerrando o job. Nenhuma asserção removida ou timeout aumentado.
+- Nova execução [42734103527](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42734103527),
+  código `1f66134e1f05b5554673f7d0947758409f658d6c`: **em andamento**.
+  Não há aprovação Android final nesta redação; o encerramento anterior permanece
+  pendente de diagnóstico/reprodução.
 
 ## 6. Somente três ensaios manuais prioritários, após autorização
 
@@ -229,9 +257,9 @@ Não solicitar senhas, links, códigos, tokens, service_role ou chaves privadas 
 ## 7. Decisão e bloqueadores
 
 **Pode avançar para os ensaios hospedados controlados acima**, após autorização
-específica e conferência do resultado final da CI. Os relatos confirmam a evolução
+específica e conferência do resultado final da CI/diagnóstico do encerramento de processo. Os relatos confirmam a evolução
 funcional e não justificam refazer A–E. Não foi identificado defeito funcional novo
-nos testes locais executados.
+nos testes JVM/SQL locais; o crash Android ainda exige diagnóstico.
 
 **Não está aprovada para promoção estável/produção.** Permanecem bloqueadores dessa
 liberação: evidência real H01–H04 com duas contas, recuperação hospedada completa,
