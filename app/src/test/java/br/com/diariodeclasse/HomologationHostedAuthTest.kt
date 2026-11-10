@@ -22,6 +22,8 @@ class HomologationHostedAuthTest {
     }
     private fun input():Input {
         assumeTrue("Integração hospedada exclusiva da variante de homologação.",BuildConfig.HOMOLOGACAO)
+        assumeTrue("Sessões hospedadas exigem autorização explícita separada do build.",
+            System.getenv("NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED")=="YES")
         val path=System.getenv("NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE")
         assumeTrue("Sessões de teste não fornecidas; não houve contato hospedado.",!path.isNullOrBlank())
         AuthConfig.requireValid()

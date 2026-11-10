@@ -45,6 +45,10 @@ jobs:
           PGDATABASE: noctua_sync_test
   validation:
     needs: sync-postgres
+    env:
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
     name: Autenticação e sincronização — isolamento, integridade e regressão Android
     runs-on: ubuntu-latest
     timeout-minutes: 50
@@ -133,6 +137,19 @@ jobs:
           python3 scripts/benchmark-phase-e.py > build/phasee-db-benchmark.json
           cat build/phasee-db-benchmark.json
           python3 scripts/test-phase-e-decisions.py 2>&1 | tee build/phasee-decisions-postgres.txt
+      - name: Homologação — volume gradual e timeout somente no PostgreSQL descartável
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-fixture-only
+          PGDATABASE: noctua_phase_e_test
+        run: |
+          set -euo pipefail
+          python3 scripts/benchmark-phase-e.py --graduated > build/homologacao-volumes.json
+          python3 scripts/test-phase-e-timeouts.py > build/homologacao-timeouts.json
+          cat build/homologacao-volumes.json
+          cat build/homologacao-timeouts.json
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -240,6 +257,8 @@ jobs:
             build/phasec-font-*.txt
             build/phasec-layout.tar
             build/phasee-db-benchmark.json
+            build/homologacao-volumes.json
+            build/homologacao-timeouts.json
             build/phasee-postgres.txt
             build/phasee-large-payload.txt
             build/phasee-focused.txt
