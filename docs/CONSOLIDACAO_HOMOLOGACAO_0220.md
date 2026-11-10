@@ -1,0 +1,246 @@
+# 0.22.0 — Consolidação da homologação e automação restante
+
+Registro: **09/11/2026, America/Sao_Paulo**. Branch exclusiva
+`sync/academic-complete-0220`. Base inspecionada `34780d1d23ba8234287550304578ca529a92b90b`;
+automação desta rodada `ad9a90abd95f8d95e03a7124f8d24563f899828d`.
+
+**Escopo:** provas seguras locais/descartáveis e documentação. Nenhuma requisição
+foi feita ao Supabase hospedado nesta rodada. Nenhum aplicativo do proprietário
+foi acessado, instalado, removido, limpo ou reinstalado. Nenhum novo candidato
+de homologação/release,
+DDL hospedado, usuário, allowlist, plano, chave permanente ou `main` foi alterado.
+O último APK paralelo publicado continua o artefato da execução **42438137774**,
+package `br.com.diariodeclasse.homologacao`, versão `0.22.0-dev-e2-homologacao`/c45.
+O hash das instalações do proprietário não foi reconferido; os APKs DEBUG gerados
+na regressão são somente para os AVDs descartáveis da CI, não para distribuição.
+
+## 1. Fontes e datas: não confundir tipos de evidência
+
+1. **Código e CI históricos conferidos:** fases A–E preservadas; última regressão
+   completa anterior **42435902661**, fonte `7d00bd0aee80478a5204c64e93ee25385adbb51e`,
+   aprovada. Build paralelo **42438137774**, fonte `e8fa20406e63`, aprovado.
+   Não existem commits posteriores à base inicial antes desta rodada. Working tree
+   inicial continha somente `.agents/` não rastreado, preservado.
+2. **Relato administrativo hospedado, não leitura nova do Codex:** projeto separado
+   **noctua-homologacao**, ref `sscexzxtqdcsqdlcytum`; v1, guard e A–E aplicados;
+   16 tabelas/RLS/políticas, ausência relatada de DML direto/SELECT anônimo;
+   duas contas comuns confirmadas e allowlisted. Isso não prova RLS via JWT comum.
+3. **Relato funcional do proprietário:** dez cenários aprovados em dois emuladores
+   independentes, com dados fictícios. Não foram fornecidas datas de execução,
+   snapshots, IDs de casos automatizados ou métricas de volume. O dia acima é a
+   data do registro, não uma data inventada para a execução manual.
+4. **Novas execuções locais:** PostgreSQL 17.11 em cluster descartável próprio,
+   porta 55433; fixtures sintéticas e sessões SQL fictícias. JVM sem credenciais
+   live. Resultados abaixo não certificam o serviço hospedado nem seu SLA.
+
+Os documentos antigos conservam suas datas e resultados históricos. Foram
+acrescentadas notas de atualização, sem converter “não executado naquela rodada”
+em falha atual ou orientação para implantar novamente. **As instruções antigas
+que mencionam noctua-auth não autorizam nenhuma ação nesse projeto de produção.**
+
+## 2. Relatos do proprietário preservados
+
+Fonte estruturada: [HOMOLOGACAO_RELATOS_20261109.json](evidence/HOMOLOGACAO_RELATOS_20261109.json).
+
+- Turmas e alunos, atividades e notas sincronizados nos dois sentidos.
+- Chamadas/FJ sincronizadas; diário sincronizado e editado bidirecionalmente.
+- Remanejamento com histórico preservado **no cenário ensaiado**.
+- Edição offline, reconexão e sincronização automática.
+- Conflito simultâneo de notas detectado/preservado; escolhas local e nuvem realizadas.
+- Alteração offline persistiu após fechar/reabrir o aplicativo e sincronizou depois.
+
+Não se infere daí teste com duas **contas distintas**, cobertura dos quinze tipos,
+recuperação de 5.171 registros em instalação limpa ou restauração de backup antigo.
+Também não se chama esse relato de execução automatizada, prova de aparelho físico
+ou aprovação de atualização com certificado permanente.
+
+**Decisão de produto mantida integralmente:** disciplinas incompatíveis continuam
+bloqueadas; lançamentos na origem na data efetiva ou posteriormente continuam
+impedindo o remanejamento. Nenhum código/SQL/validador dessas regras foi alterado.
+As regressões existentes `RelocationRulesTest`, `RelocationConversionTest` e
+respectivos instrumentados permanecem na suíte.
+
+## 3. Matriz H01–H13
+
+“Aprovado local” refere-se somente à camada indicada, nunca ao Supabase Auth real.
+“Manual confirmado” refere-se somente ao cenário relatado. Uma linha pode ter
+cobertura local aprovada e, simultaneamente, obrigações hospedadas pendentes.
+
+| Caso | CI local/descartável e cobertura reutilizada | Homologação hospedada relatada | Pendente de comprovação / falha identificada |
+|---|---|---|---|
+| **H01 — Auth A/B** | Fluxos/AuthVault/AccountWorkspaces e 19 testes Auth instrumentados na regressão. Cliente Auth real preparado em `HomologationHostedAuthTest.h01`, mas condicional. | Acesso na mesma conta é pressuposto dos relatos; não foi relatada a prova completa com duas contas distintas, refresh/erro de senha. | **Pendente:** H01 real com A/B, troca de conta e identidade esperada. Fixtures locais não validam Auth hospedado. Nenhuma falha funcional nova demonstrada. |
+| **H02 — isolamento RLS/RPC** | PostgreSQL A/B/D/E e HTTP de duas identidades fictícias: leitura/escrita cruzada recusadas; workspace/backup por titular. `h02` preparado com fixture A conhecida e leitura positiva anterior à negativa de B. | Nenhum teste A versus B distinto relatado. | **Pendente:** duas sessões Auth comuns reais; leitura/RPC cruzadas e isolamento Room no mesmo app. O runner não cobre sozinho escrita/exclusão cruzada efetiva. |
+| **H03 — permissões** | ACL/helpers/unfenced/DML/anon cobertos em PostgreSQL e HTTP locais. `h03` opt-in usa helper e PATCH sem possibilidade de afetar linhas. | Inventário 16/16 é relato administrativo; não é execução pela API como usuário comum. | **Pendente:** confirmar ACL pela API comum, catálogo e demais tabelas. Não executar DML hospedado automaticamente. |
+| **H04 — sessões inválidas** | JWT inválido/expirado, sessão removida, usuário não confirmado e anon recusados nos ensaios SQL/HTTP com Auth fictício. `h04` preparado. | Não relatado para as contas fictícias hospedadas. | **Pendente:** ausência/invalidade/revogação reais. JWT efetivamente expirado/conta não confirmada continuam fora do runner atual; não criar usuário nem forjar aprovação. |
+| **H05 — recuperação completa** | B: 36 matrículas/41 registros em segundo AVD; D: 171 registros/15 tipos; E: 5.171/41 partes, IDs/payloads/zero/null/FJ/auditorias exatos no segundo AVD. Nova graduação SQL válida 41/171/671/5.171, não só grafo inválido de 671. | Turmas/alunos/notas/frequência/diário/remanejamento confirmados no cenário relatado. | **Pendente:** recuperação hospedada limpa e inventário completo dos quinze tipos, contagens/hashes; volumes hospedados não informados. |
+| **H06 — paginação/processo** | D/E: morte real de processo em checkpoint, sem cursor/aplicação parcial; replay obrigatório em processo novo. Sete testes Room E e payload SQLite >2 MiB. | Fechar/reabrir com alteração offline relatado; não equivale ao checkpoint de recebimento. | Interrupção forçada **somente no descartável**, não repetir nos dois emuladores do proprietário. Recebimento hospedado real ainda precisa de conferência normal, sem injeção de falha. |
+| **H07 — offline/reconexão** | B/C/D/E HTTP: fila persistente, reconexão sem reiniciar, edições reversas; sondas de processo/reboot executadas separadamente. | **Confirmado manualmente:** offline/reconexão automática e persistência após fechar/reabrir. | Não extrapolar para limites de background de aparelhos físicos não testados; nenhuma falha nova demonstrada. |
+| **H08 — resposta perdida/timeout** | `e-lost`/replay e decisão com resposta descartada: mesmo UUID/recibo, sem duplicação. Novos ensaios CI de orçamento 8 s e rollback no meio da escrita, reenvio com 41 partes preservadas. | Não relatado; não provocar falhas no hospedado. | Timeout/API/rede Free efetivos e margem permanecem sem medição. Repetir falhas intencionais **só localmente**. |
+| **H09 — conflito/decisão** | SQL decisões 15; Room reconciliação 10; E HTTP local/nuvem, revisão alterada, perda de resposta, variantes/auditoria preservadas. | **Confirmado manualmente:** conflito simultâneo de notas; escolha local; escolha nuvem. | Revalidação/auditoria e mudanças durante a prévia têm prova local; não anunciar inspeção dessas tabelas hospedadas. Conflito legado real intocado. |
+| **H10 — remanejamento/grafo** | D: 27 SQL, 15 Room, 24 fases HTTP; cadeia indivisível, identidade/datas, ciclo, histórico, auditoria imutável e rollback. Comparação completa de payloads na graduação. | **Confirmado manualmente no cenário testado:** movimentação e histórico. | Casos negativos completos têm evidência local; não inferir ensaio hospedado de todas as variantes. Duas regras de produto continuam intactas. |
+| **H11 — exportação/histórico** | D: troca/reordenação sem quebrar posições únicas; ocultações e histórico. Regressão de relatórios/exportação e leitores independentes XLSX/CSV/TSV/planos de aula no CI. | Diário e histórico de remanejamento relatados; exportações, revisões de grade, arquivamentos e rascunhos não relatados explicitamente. | Pendente conferência dos demais tipos recuperados hospedados. Não houve mudança de exportador. |
+| **H12 — backup/reconciliação** | `e-backup-before`→`e-after-backup-remote`→`e-restore-review`: backup cifrado, pausa RESTORE, decisão explícita, nota remota 10/matrícula posterior preservadas, 5.172 registros finais; backup estrangeiro recusado. | Não relatado. | **Pendente hospedado prioritário:** instalação extra isolada e backup fictício antigo. Nunca restaurar sobre os acervos existentes do proprietário. |
+| **H13 — capacidade/continuidade** | Estado sincronizado exige fila/inbox/partes vazias, revisões reconhecidas e decisões finalizadas. Graduação, hashes finais iguais entre dois AVDs, métricas SQL e HTTP separadas. | Continuidade funcional/offline relatada; sem volume/latência/quota/memória. | **Risco de capacidade:** 5.171 perto de 8 s; memória/compute/quota/p95 Free não comprovados. Bloquear progressão a esse patamar até medir margem. Não há SLA nem aprovação de capacidade. |
+
+Referências executáveis principais:
+
+- `app/src/androidTest/java/br/com/diariodeclasse/Phase{B,C,D,E}NetworkProbeTest.kt`;
+- `PhaseBRoomTest`, `PhaseCRoomTest`, `PhaseDRoomTest`, `PhaseERoomTest`,
+  `PhaseEReconciliationTest`, `PhaseELargePayloadRoomTest` e testes de autenticação;
+- `scripts/ci/test-phase-{b,c,d,e}-network.sh` e `scripts/ci/validate-android.sh`;
+- `scripts/test-{academic,phase-b,phase-c,phase-d,phase-e}-postgres.py`,
+  `scripts/test-phase-e-decisions.py`, `scripts/test-phase-{b,d,e}-http.py`.
+
+Não foram duplicados esses cenários. Em particular, `e-lost`, recuperação da
+instalação secundária, reconciliação cifrada, isolamento e checkpoints já possuíam
+prova real de Room + transporte HTTP + PostgreSQL/PostgREST em dois AVDs da CI.
+
+## 4. Automação nova e proteções
+
+**Código do aplicativo oficial:** nenhuma alteração em `app/src/main`, manifesto,
+Gradle do app, entidades Room, schemas, backup, exportadores ou migrações SQL.
+As mudanças desta rodada são testes, scripts de prova, workflows e documentação.
+Não foi necessário corrigir defeito funcional do produto.
+
+1. `scripts/benchmark-phase-e.py --graduated`: reutiliza as fixtures B/D/E para
+   36 matrículas (41 registros), 171/671/5.171 registros. Além dos três replays,
+   confere payloads paginados completos, chaves/revisões, um recibo e um lote,
+   invisibilidade antes do commit, sequência, ausência de acesso B e hash canônico.
+   Informa partes/páginas, tempo `psql`, armazenamento físico com índices e marca
+   memória/HTTP/Android como **não medidos**. Opções anteriores continuam disponíveis.
+2. `.github/workflows/android.yml`: agora executa essa graduação e o script de
+   timeout já existente, arquivando `build/homologacao-volumes.json` e
+   `build/homologacao-timeouts.json`. Não muda timeouts globais nem protocolo.
+3. `HomologationHostedAuthTest`: exige, além de variante correta/arquivo privado,
+   `NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED=YES`. Somente configurar uma chave de
+   build não autoriza sessões. As duas workflows limpam essa variável e os caminhos
+   live; nenhum teste de integração hospedada pode ser disparado por este CI.
+4. Scripts locais exigem nomes de bancos descartáveis/PGHOST local; não transformar
+   essas fixtures em scripts hospedados. O runner B–E só opera em emuladores próprios
+   da CI. Nenhum `adb`, `pm clear`, uninstall ou restore foi executado contra os
+   emuladores do proprietário.
+
+## 5. Comandos e resultados desta rodada
+
+Executados no cluster novo `/workspace/homologacao-consolidacao-pg`, socket local
+`/workspace/pg-local`, porta **55433**, usuário de laboratório. Nenhum segredo
+remoto foi utilizado. Os comandos Python abaixo usaram:
+
+```bash
+PGHOST=/workspace/pg-local PGPORT=55433 PGUSER=agent \
+PGDATABASE=noctua_phase_e_test \
+PSQL_BIN=/workspace/pg-local/root/usr/lib/postgresql/17/bin/psql \
+python3 scripts/benchmark-phase-e.py --graduated
+# Mesmo ambiente descartável:
+python3 scripts/test-phase-e-timeouts.py
+python3 scripts/test-phase-e-postgres.py
+python3 scripts/test-phase-e-decisions.py
+# test-phase-d-postgres.py: PGDATABASE=noctua_phase_d_test
+```
+
+A atribuição de ambiente deve ser repetida/exportada na sessão local para cada
+comando; o exemplo não instrui executar os demais sem o guard local.
+
+```bash
+JAVA_HOME=/workspace/jdk17 ANDROID_HOME=/workspace/android-sdk \
+ANDROID_USER_HOME=/workspace/.android GRADLE_USER_HOME=/workspace/.gradle \
+NOCTUA_AUTH_LIVE_FILE='' NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE='' \
+NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED='' \
+./gradlew --offline --no-daemon testDebugUnitTest testHomologacaoUnitTest
+```
+
+Primeira tentativa Gradle foi bloqueada pela sandbox ao abrir o socket local do
+daemon (`SocketException: Operation not permitted`), antes dos testes. Repetição
+com acesso de rede do executor autorizado concluiu; não foi falha do aplicativo.
+
+| Execução local nova | Aprovados | Condicionais | Falhas finais |
+|---|---:|---:|---:|
+| JVM debug, 288 casos | 283 | 5 | 0 |
+| JVM homologacao, mesmos 288 casos | 283 | 5 | 0 |
+| PostgreSQL D | 27 | 0 | 0 |
+| PostgreSQL E paginação | 16 | 0 | 0 |
+| PostgreSQL E decisões | 15 | 0 | 0 |
+| Graduação SQL, quatro patamares | 4 | 0 | 0 |
+| Timeout/rollback/retry SQL | 3 | 0 | 0 |
+
+Não somar as duas variantes JVM como 566 casos únicos. Os cinco condicionais são
+H01–H04 e a sonda live histórica; **não executados, não aprovados**. Os 58 SQL
+focados repetem casos da regressão; os quatro patamares/três cenários adicionais
+são provas de integração, não novos métodos JUnit.
+
+### Medições novas — não são SLA
+
+| Patamar | Registros / partes / tipos | Commit parede psql | Replays confirmados parede psql |
+|---|---|---:|---:|
+| 36 matrículas | 41 / 1 / 3 | 0,074 s | 0,013–0,015 s |
+| D completo | 171 / 2 / 15 | 0,197 s | 0,011–0,014 s |
+| E intermediário válido | 671 / 6 / 15 | 0,758 s | 0,014–0,016 s |
+| E grande | 5.171 / 41 / 15 | 7,647 s | 0,039–0,047 s |
+
+Em outra execução com orçamento explícito de 8 s, PostgreSQL EXPLAIN ANALYZE
+mediu **7.611,832 ms** para o lote grande; retry após rollback **7.799,814 ms**.
+Cancelamento determinístico no meio da escrita: SQLSTATE 57014, zero linhas,
+versões, recibos e sequência; **41 partes preservadas**, reenvio e replay únicos.
+Esses 8 s são orçamento da instrução SQL; não são timeout da API nem duração total
+Android. O `readTimeout=20s` Android não amplia o orçamento PostgreSQL.
+
+O patamar grande não demonstra a meta de p95 <75% do orçamento (6 s se efetivo 8 s).
+Uma execução que termina abaixo de 8 s não prova folga nem p95. Não aumentar limites
+hospedados automaticamente. Partes paginadas não dividem o commit indivisível.
+
+Evidências novas sem payloads/credenciais: `docs/evidence/HOMOLOGACAO_LOCAL_20261109.json`.
+Capturas, relatórios e provas HTTP completas continuam nos artefatos da CI.
+
+### CI desta rodada
+
+Execução [42731594028](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42731594028),
+código `ad9a90abd95f8d95e03a7124f8d24563f899828d`: **em andamento durante a redação**.
+Resultado final, contagens e artefatos serão registrados após a conclusão;
+nenhuma aprovação nova Android/HTTP é presumida enquanto isso.
+
+## 6. Somente três ensaios manuais prioritários, após autorização
+
+1. **Segurança com duas contas distintas — H01–H04.** Autorizar explicitamente as
+   sessões de ensaio, disponibilizando credenciais apenas por arquivo/cofre privado,
+   fora do Git/chat/artefatos. Codex poderá executar o runner já preparado, fixo em
+   `sscexzxtqdcsqdlcytum`, e consolidar resultados. O proprietário confere a troca
+   de conta/isolamento da interface em ambiente de teste. H03 só faz PATCH com
+   predicado contraditório e flag específica; não modifica linhas. Nenhuma criação
+   de usuário, allowlist, SQL ou revogação global de sessões. Casos não cobertos
+   (expiração real/não confirmado/escrita cruzada efetiva) continuam explicitamente
+   pendentes, não inventar sessões nem executar testes destrutivos hospedados.
+2. **Recuperação hospedada em instalação adicional isolada — H05/H11 e observação
+   de H13.** Criar um AVD descartável novo; usar o APK paralelo existente e a mesma
+   conta fictícia, sem limpar/reinstalar nenhum dos dois emuladores atuais. Conferir
+   inventário/IDs e amostras zero/null/FJ/diário/histórico/exportação. Começar pelo
+   acervo fictício já existente, sem gerar cargas automaticamente. Registrar volume,
+   duração e pendências reais; não testar 5.171/41 partes até haver plano autorizado
+   e margem comprovada. Escalonamento e métricas hospedadas seguem pendentes.
+3. **Backup fictício antigo e reconciliação — H12.** Somente no novo AVD descartável,
+   guardar backup cifrado fictício, fazer pequena alteração/novo registro pela
+   interface da outra instalação mediante autorização e restaurar a cópia antiga.
+   Confirmar pausa, conferência explícita e preservação da novidade remota. Nunca
+   restaurar sobre o acervo real nem tratar ausência no backup como exclusão.
+
+Não repetir manualmente falhas injetadas, perda de resposta, corrupção de grafo ou
+morte forçada: já são automatizadas exclusivamente no laboratório descartável.
+Não solicitar senhas, links, códigos, tokens, service_role ou chaves privadas no chat.
+
+## 7. Decisão e bloqueadores
+
+**Pode avançar para os ensaios hospedados controlados acima**, após autorização
+específica e conferência do resultado final da CI. Os relatos confirmam a evolução
+funcional e não justificam refazer A–E. Não foi identificado defeito funcional novo
+nos testes locais executados.
+
+**Não está aprovada para promoção estável/produção.** Permanecem bloqueadores dessa
+liberação: evidência real H01–H04 com duas contas, recuperação hospedada completa,
+reconciliação hospedada, capacidade/timeout Free e futura atualização assinada com
+preservação dos dados reais. Nenhum desses bloqueadores autoriza alterar produção.
+A margem insuficiente de 5.171 impede considerar esse patamar homologado.
+Backup administrativo independente/contingência e disponibilidade da assinatura
+permanente continuam exigindo processo próprio; sincronização não substitui backup.
+
+Não alterar as duas regras de remanejamento. Não remover proteção de backups,
+resolver o conflito legado ou ativar sincronização de dados reais automaticamente.
+Nenhum próximo passo inclui NOcTuA Escola, release, merge ou migração hospedada.

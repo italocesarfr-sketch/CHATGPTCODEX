@@ -1,5 +1,14 @@
 # 0.22.0 — Pré-homologação do Supabase hospedado
 
+> **Atualização registrada em 09/11/2026 (America/Sao_Paulo):** o roteiro abaixo
+> é histórico (revisão de 05/11), anterior ao projeto separado e aos relatos de
+> implantação/testes. O único alvo permitido agora é **noctua-homologacao**, ref
+> `sscexzxtqdcsqdlcytum`. **NÃO executar as instruções administrativas históricas
+> em noctua-auth**, reaplicar SQL, recriar contas ou reinstalar aplicativos.
+> Ver estados atuais H01–H13 na [consolidação](CONSOLIDACAO_HOMOLOGACAO_0220.md).
+> O inventário hospedado e os testes do proprietário são relatos, não auditoria
+> remota nova feita pelo Codex.
+
 Data da revisão: **05/11/2026, America/Sao_Paulo**. Branch
 `sync/academic-complete-0220`; HEAD inicial `e76fa41e350e658f76ac33f7ef0c52a05a9bd5cb`.
 Código Android/SQL A–E validado: `713001a569c5fde39f187db1feb915abdee5392e`.

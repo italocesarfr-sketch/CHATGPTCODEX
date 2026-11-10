@@ -1,5 +1,11 @@
 # 0.22.0 — Fase E: consolidação experimental
 
+> **Atualização registrada em 09/11/2026 (America/Sao_Paulo):** esta página preserva
+> as evidências da execução local histórica. O administrador informou implantação
+> A–E no projeto separado de homologação; o proprietário relatou dez cenários
+> práticos em dois emuladores. São relatos, não execuções automatizadas. Consulte
+> a [consolidação atual](CONSOLIDACAO_HOMOLOGACAO_0220.md). Produção continua intocável.
+
 ## Estado da branch e evidências
 
 Branch `sync/academic-complete-0220`. Base documental `25c61e7`; código D validado

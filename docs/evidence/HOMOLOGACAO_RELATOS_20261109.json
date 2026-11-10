@@ -1,0 +1,64 @@
+{
+  "source": "owner_report_in_task",
+  "recorded_date": "2026-11-09",
+  "timezone": "America/Sao_Paulo",
+  "execution_dates_provided": false,
+  "environment": "two independent owner-operated Android emulators",
+  "hosted_project_ref": "sscexzxtqdcsqdlcytum",
+  "fictional_data_only_reported": true,
+  "automated_execution": false,
+  "remote_access_by_codex": false,
+  "reported_passed": [
+    {
+      "id": 1,
+      "description": "Turmas e alunos sincronizados bidirecionalmente"
+    },
+    {
+      "id": 2,
+      "description": "Atividades e notas sincronizadas bidirecionalmente"
+    },
+    {
+      "id": 3,
+      "description": "Chamadas e faltas justificadas sincronizadas"
+    },
+    {
+      "id": 4,
+      "description": "Diário sincronizado e editado bidirecionalmente"
+    },
+    {
+      "id": 5,
+      "description": "Remanejamento e preservação do histórico no cenário ensaiado"
+    },
+    {
+      "id": 6,
+      "description": "Edição offline, reconexão e envio automático"
+    },
+    {
+      "id": 7,
+      "description": "Conflito simultâneo de notas detectado e preservado"
+    },
+    {
+      "id": 8,
+      "description": "Decisão de conflito escolhendo versão local"
+    },
+    {
+      "id": 9,
+      "description": "Decisão de conflito escolhendo versão da nuvem"
+    },
+    {
+      "id": 10,
+      "description": "Alteração offline persistiu após fechar/reabrir e sincronizou depois"
+    }
+  ],
+  "preserved_product_decisions": [
+    "Disciplinas incompatíveis continuam bloqueadas",
+    "Lançamentos na origem na data efetiva ou posteriormente continuam bloqueando remanejamento"
+  ],
+  "does_not_prove": [
+    "H01-H04 with two distinct hosted Auth accounts",
+    "all fifteen types or counts in a clean hosted recovery",
+    "hosted backup reconciliation",
+    "hosted capacity/SLA or 8s headroom",
+    "permanent-signature upgrade or production readiness"
+  ]
+}

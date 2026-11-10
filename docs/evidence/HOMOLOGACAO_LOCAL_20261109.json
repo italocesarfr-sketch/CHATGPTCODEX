@@ -1,0 +1,236 @@
+{
+  "recorded_date": "2026-11-09",
+  "timezone": "America/Sao_Paulo",
+  "source_sha": "ad9a90abd95f8d95e03a7124f8d24563f899828d",
+  "environment": "new disposable PostgreSQL 17.11 cluster, local 55433; JVM offline with no live credentials",
+  "hosted_called": false,
+  "owner_devices_accessed": false,
+  "product_code_changed": false,
+  "sql_migrations_changed": false,
+  "jvm": {
+    "Debug": {
+      "tests": 288,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "passed": 283,
+      "conditional_cases": [
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc",
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h02RealOrdinaryAccountCannotReadTheOtherOwnersKnownFixture",
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied",
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h01ConfirmedLoginIdentityRefreshAndWrongPassword",
+        "br.com.diariodeclasse.SupabaseLiveAuthTest.confirmedLoginRefreshLogoutAndRevokedRefreshUseTheRealKotlinClient"
+      ]
+    },
+    "Homologacao": {
+      "tests": 288,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "passed": 283,
+      "conditional_cases": [
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc",
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h02RealOrdinaryAccountCannotReadTheOtherOwnersKnownFixture",
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied",
+        "br.com.diariodeclasse.HomologationHostedAuthTest.h01ConfirmedLoginIdentityRefreshAndWrongPassword",
+        "br.com.diariodeclasse.SupabaseLiveAuthTest.confirmedLoginRefreshLogoutAndRevokedRefreshUseTheRealKotlinClient"
+      ]
+    }
+  },
+  "postgres": {
+    "d_rules": 27,
+    "e_paging": 16,
+    "e_decisions": 15,
+    "failures": 0
+  },
+  "graduated": {
+    "environment": "local-disposable-postgresql-psql",
+    "graduated": true,
+    "passed": 4,
+    "real_supabase_auth": false,
+    "hosted_executed": false,
+    "timings": "psql wall seconds, including connection; not pure RPC or HTTP/Android time",
+    "results": [
+      {
+        "label": "36-enrollments",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 41,
+        "parts": 1,
+        "kinds": 3,
+        "staging_seconds": 0.04,
+        "first_commit_seconds": 0.074,
+        "confirmed_replay_seconds": [
+          0.013,
+          0.015,
+          0.013
+        ],
+        "pull_seconds": 0.012,
+        "pull_pages": 1,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+        "table_bytes_including_indexes": 524288,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "171-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 171,
+        "parts": 2,
+        "kinds": 15,
+        "staging_seconds": 0.078,
+        "first_commit_seconds": 0.197,
+        "confirmed_replay_seconds": [
+          0.012,
+          0.014,
+          0.011
+        ],
+        "pull_seconds": 0.024,
+        "pull_pages": 2,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+        "table_bytes_including_indexes": 843776,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "671-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 671,
+        "parts": 6,
+        "kinds": 15,
+        "staging_seconds": 0.239,
+        "first_commit_seconds": 0.758,
+        "confirmed_replay_seconds": [
+          0.016,
+          0.014,
+          0.014
+        ],
+        "pull_seconds": 0.113,
+        "pull_pages": 6,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+        "table_bytes_including_indexes": 1818624,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      },
+      {
+        "label": "5171-records",
+        "environment": "local-disposable-postgresql-psql",
+        "graph_variant": "indexed",
+        "records": 5171,
+        "parts": 41,
+        "kinds": 15,
+        "staging_seconds": 1.861,
+        "first_commit_seconds": 7.647,
+        "confirmed_replay_seconds": [
+          0.039,
+          0.047,
+          0.042
+        ],
+        "pull_seconds": 1.372,
+        "pull_pages": 41,
+        "sequence": 1,
+        "unchanged_receipt": true,
+        "recovered_payloads_equal": true,
+        "foreign_account_denied": true,
+        "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+        "table_bytes_including_indexes": 10215424,
+        "memory_measured": false,
+        "http_measured": false,
+        "android_measured": false
+      }
+    ]
+  },
+  "statement_timeouts": {
+    "environment": "local-disposable-postgresql",
+    "real_supabase_auth": false,
+    "postgrest_timeout_tested": false,
+    "android_timeout_tested": false,
+    "timings": "psql wall time includes connection; successful statements also report PostgreSQL EXPLAIN ANALYZE Execution Time (ms); explicit 8s session budget",
+    "results": [
+      {
+        "case": "small-budget",
+        "records": 171,
+        "parts": 2,
+        "statement_timeout": "8s",
+        "outcome": "accepted",
+        "psql_wall_seconds": 0.219,
+        "postgres_execution_ms": 209.01,
+        "replay": {
+          "psql_wall_seconds": 0.011,
+          "postgres_execution_ms": 3.755
+        }
+      },
+      {
+        "case": "large-natural-budget",
+        "records": 5171,
+        "parts": 41,
+        "statement_timeout": "8s",
+        "outcome": "accepted",
+        "psql_wall_seconds": 7.62,
+        "postgres_execution_ms": 7611.832,
+        "replay": {
+          "psql_wall_seconds": 0.036,
+          "postgres_execution_ms": 28.711
+        }
+      },
+      {
+        "case": "mid-write-timeout-and-retry",
+        "records": 5171,
+        "parts": 41,
+        "statement_timeout": "8s",
+        "outcome": "57014-atomic-rollback",
+        "reached_academic_writes": true,
+        "psql_wall_seconds": 8.006,
+        "postgres_execution_ms": null,
+        "persisted_parts": 41,
+        "academic_rows_after_cancel": 0,
+        "versions_after_cancel": 0,
+        "receipts_after_cancel": 0,
+        "sequence_after_cancel": 0,
+        "retry_budget": "8s",
+        "retry_psql_wall_seconds": 7.808,
+        "retry_postgres_execution_ms": 7799.814,
+        "replay": {
+          "psql_wall_seconds": 0.034,
+          "postgres_execution_ms": 27.387
+        }
+      }
+    ],
+    "passed": 3
+  },
+  "ci": {
+    "run_id": 42731594028,
+    "status": "in_progress_at_recording",
+    "hosted_auth_executed": false
+  },
+  "blocked_claims": [
+    "not hosted Auth/RLS certification",
+    "not original release update",
+    "no p95 or memory or Free capacity proof"
+  ],
+  "local_log_sha256": {
+    "jvm.txt": "3b7e7c4debbc9d427011f8c64b24122933dec3a4270d64d39f2bb26902c42fb4",
+    "pg-d.txt": "7c1e9e685efd3359f124f78fdd211f8f3faab57eecfdfa0a218b86041e5c7fa6",
+    "pg-e.txt": "2cfbcba9a02e0b8c920b6bfc50f17425be4b1e0a45c08d0a61a52c224a92906c",
+    "pg-decisions.txt": "6f395fec6a6ad546986413f04a6d426110a078333297aa4f8849f3d6bf0758fc",
+    "volumes.json": "cd007715c0291d98ec282127a517b99bfd7e765605fdcdf7822a62c1eb2adc56",
+    "timeouts.json": "d89f6de7a7b348d444c3f4aa665ea7874e7506748d049eb744a8a49f230c2422"
+  }
+}

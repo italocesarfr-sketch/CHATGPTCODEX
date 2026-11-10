@@ -1,5 +1,12 @@
 # 0.22.0 — Variante Android paralela de homologação
 
+> **Atualização registrada em 09/11/2026 (America/Sao_Paulo):** o APK e os hashes
+> desta página continuam os mesmos; não foi gerado novo APK paralelo de
+> homologação. Builds DEBUG da regressão são restritos à CI. O proprietário
+> relatou homologação funcional em dois emuladores. Consulte a
+> [matriz consolidada H01–H13](CONSOLIDACAO_HOMOLOGACAO_0220.md) para distinguir
+> esse relato das evidências locais e dos ensaios de segurança ainda pendentes.
+
 Branch `sync/academic-complete-0220`. Base de publicação SQL `e71405e`;
 implementação Android `69e86e60bce21e07ab5d77af8fe479e1539bdec5`, capturas/teste
 nativo `74d8ca4`, entrada manual na workflow existente `7d00bd0` e preparação
@@ -187,7 +194,11 @@ confirmadas autorizadas; não é resultado de teste executado pelo aplicativo.
 ## H01–H04 preparados, ainda não homologados
 
 `HomologationHostedAuthTest` é opt-in e só roda na variante de homologação. Precisa
-da chave pública válida e do caminho privado `NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE`.
+da chave pública válida, do caminho privado `NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE`
+e de **autorização explícita posterior** para essas sessões: variável
+`NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED=YES`. A presença do arquivo ou da chave
+de build, sozinha, não autoriza requisições. Esta rodada não autoriza nem executa
+o runner hospedado.
 O arquivo, fora do Git, deve conter:
 
 - `accounts`: exatamente dois objetos com `email`, `password` e `expectedId`;
@@ -203,6 +214,7 @@ Não cria usuários, não usa service_role, não redefine senhas e não executa 
 fixtures administrativas ou testes PostgreSQL contra o hospedado.
 
 ```bash
+NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED=YES \
 NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE=/caminho/privado/contas-de-teste.json \
 ./gradlew testHomologacaoUnitTest --tests '*HomologationHostedAuthTest'
 ```
@@ -214,7 +226,7 @@ NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE=/caminho/privado/contas-de-teste.json \
 | H03 | Helper privado recusado; PATCH direto com predicado contraditório (revisão positiva conhecida E revisão<0), impossível de afetar linhas, deve ser negado por permissão. Fixture é conferida antes/depois. | Probe exige flag explícita e sessão A válida. Não há DELETE nem atualização real; demais tabelas/ACLs exigem inventário e ensaios previstos no roteiro. Falta de flag ignora o caso, não aprova. |
 | H04 | RPC sem sessão, bearer inválido e access JWT da sessão de ensaio após logout devem ser recusados; refresh revogado também. Logout é local à sessão criada pelo teste. | JWT realmente expirado e conta não confirmada não estão disponíveis entre as duas contas confirmadas; permanecem provas adicionais, sem forjar ou criar conta automaticamente. |
 
-Sem flag/arquivo/variante adequada os casos são condicionais. Nenhum teste ignorado
+Sem autorização/flag/arquivo/variante adequada os casos são condicionais. Nenhum teste ignorado
 é aprovação. `SupabaseLiveAuthTest` antigo é bloqueado na variante de homologação
 antes de ler arquivo legado, evitando usar a conta do proprietário no projeto de
 teste. A workflow de build limpa ambos os caminhos live e nunca dispara H01–H04.
