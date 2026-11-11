@@ -4,6 +4,30 @@ Preparação em **10/11/2026, America/Sao_Paulo**. Branch exclusiva
 `sync/academic-complete-0220`. **Nenhuma requisição Supabase foi executada nesta
 preparação; H01–H04 permanecem NÃO EXECUTADOS.**
 
+### Correção da pré-verificação #191
+
+A [execução #191](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/42935303698),
+no SHA `ff0b8bc6fc0dc1c1dfe679a3aab1a9ecfda5949c`, falhou no passo de
+pré-requisitos; Java, compilação e testes hospedados foram pulados. O proprietário
+informou `ACCOUNTS_SECRET_MISSING` e confirmou Environment, restrição de branch e
+Secret existentes. O artefato não pôde ser baixado nesta revisão; esse código
+específico permanece evidência relatada, não conteúdo de artefato inspecionado.
+
+O chamador não repassava `NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON`. A
+[documentação atual do GitHub](https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#using-inputs-and-secrets-in-a-reusable-workflow)
+exige o repasse por nome mesmo quando o Secret existe somente no Environment:
+"The caller workflow must still pass the secret." Sem esse repasse, ele pode
+resolver para string vazia no reutilizável. Foi acrescentado somente esse
+mapeamento à chave pública já encaminhada, sem `secrets: inherit` no job H01–H04.
+O Environment permanece no job reutilizável e seu valor tem precedência.
+`required: true` agora impede omissão do parâmetro pelo chamador, mas não verifica
+se o valor está preenchido: o preflight continua bloqueando conteúdo ausente.
+
+Esta correção foi validada apenas localmente. Para conferir o repasse real,
+iniciar **nova execução** da pré-verificação conforme o comando abaixo; não usar
+"Re-run jobs" de #191, pois ele reutiliza o código antigo. Manter
+`authorize_hosted_h01_h04=false`. Nenhum novo workflow foi disparado nesta revisão.
+
 O proprietário relatou aprovação prática com duas contas distintas, troca de conta
 no mesmo emulador, sincronização separada e recuperação do workspace original.
 Isso é confirmação manual da experiência de isolamento, não execução automatizada
@@ -86,11 +110,13 @@ No repositório: **Settings → Environments → New environment** (ou abrir o e
   Se houver revisão obrigatória configurada, aprovar o deployment depois de
   conferir o commit/escopo; não é necessário habilitar recurso pago.
 
-Nesta sessão, o GET desse Environment retornou **404** (não encontrado/disponível
+Na preparação anterior, o GET desse Environment retornou **404** (não encontrado/disponível
 à integração); a consulta **apenas de metadados** do repository secret retornou
 **403, Resource not accessible by integration**. Nenhum valor foi lido. Portanto,
-o proprietário precisa confirmar no painel a existência/configuração; não se
-presume que a chave anteriormente usada foi removida ou continua disponível.
+o proprietário precisava confirmar no painel a existência/configuração. Na
+retomada, ele confirmou Environment e Secret JSON presentes; não é necessário
+recriá-los ou copiar as senhas para repository secrets. A chave anteriormente
+usada não foi lida nem alterada.
 
 ### 3. Confirmar configuração e autorizar o escopo, sem enviar valores
 
@@ -128,11 +154,10 @@ gh workflow run android.yml --repo italocesarfr-sketch/CHATGPTCODEX \
 ```
 
 Não é necessário que o proprietário instale CLI: o Codex pode disparar esses
-comandos depois dos passos acima. As contas vêm **somente** do Environment; o
-caller não herda credenciais de contas do repositório. Somente a chave pública
-é passada pelo caller preparado. O secret JSON também é declarado na interface
-reutilizável para validar a expressão, mas não é fornecido pelo caller e deve ser
-configurado no Environment protegido do job. O job tem concorrência separada, sem cancelamento
+comandos depois dos passos acima. Manter as contas no Environment protegido.
+O caller repassa explicitamente somente a chave pública e o Secret JSON por nome,
+sem herdar os demais Secrets. Não é necessário duplicar o Secret JSON no
+repositório; o Environment do job resolve seu valor. O job tem concorrência separada, sem cancelamento
 por um push da regressão comum. Não iniciar várias execuções nem editar a fixture
 em paralelo; rate limit/timeout não deve gerar aprovação ou relaxamento de segurança.
 
@@ -167,13 +192,14 @@ globalmente para “limpar” a execução.
 
 ## Validação local desta preparação
 
-- `python3 scripts/test-hosted-auth-checks.py`: **12 aprovados**, zero falhas;
+- `python3 scripts/test-hosted-auth-checks.py`: **13 aprovados**, zero falhas;
   somente entradas/XML fictícios e arquivos temporários locais. Não chama ADB,
-  Gradle, Supabase ou qualquer rede.
+  Gradle, Supabase ou qualquer rede. Inclui regressão do repasse por nome,
+  ausência de herança ampla, Environment e restrições de branch/autorização.
 - `python3 -m py_compile scripts/hosted-auth-checks.py scripts/test-hosted-auth-checks.py`.
 - YAML e guardas da entrada manual conferidos localmente; `actionlint` 1.7.7
   aprovado nos dois workflows alterados (sem ShellCheck/pyflakes).
 - Nenhuma mudança em Kotlin/Room/migrações/app oficial/assinatura; nenhuma
   reexecução desnecessária da regressão Android já aprovada em 42740837445.
-- Esta preparação não iniciou workflow hospedado nem criou Environment/Secret.
-  A integração desse novo job no GitHub ainda exige o primeiro preflight manual.
+- Esta preparação/correção não iniciou workflow hospedado nem criou Environment/Secret.
+  O repasse corrigido no GitHub ainda exige nova pré-verificação manual.

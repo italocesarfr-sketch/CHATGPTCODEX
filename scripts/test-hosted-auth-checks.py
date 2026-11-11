@@ -30,6 +30,23 @@ def xml(status=None, extra=False):
     return ET.tostring(r)
 
 class HostedAuthSafetyTest(unittest.TestCase):
+    def test_reusable_workflow_forwards_only_named_secrets_and_keeps_environment_gate(self):
+        caller=(f.ROOT/'.github/workflows/android.yml').read_text()
+        job=caller.split('\n  hosted-auth:\n',1)[1].split('\n  homologacao:\n',1)[0]
+        self.assertIn("github.event_name == 'workflow_dispatch'",job)
+        self.assertIn("github.ref == '"+f.BRANCH+"'",job)
+        self.assertIn('authorized: ${{ inputs.authorize_hosted_h01_h04 == true }}',job)
+        # An Environment-only secret still needs this explicit caller mapping.
+        secret_lines=job.split('    secrets:\n',1)[1].strip().splitlines()
+        expected={name+': ${{ secrets.'+name+' }}' for name in (
+            'NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY','NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON')}
+        self.assertEqual(expected,{line.strip() for line in secret_lines})
+        self.assertNotIn('secrets: inherit',job)
+        callee=(f.ROOT/'.github/workflows/hosted-auth.yml').read_text()
+        self.assertIn('NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON:\n        required: true',callee)
+        self.assertIn('environment: noctua-homologacao-h01-h04',callee)
+        self.assertIn("github.event_name == 'workflow_dispatch' && github.ref == '"+f.BRANCH+"'",callee)
+        self.assertIn("default: false",callee)
     def test_valid_two_account_fixture_is_local_configuration_not_auth_proof(self):
         self.assertEqual(fixture(),f.validate(KEY,json.dumps(fixture()),PROD,LEGACY))
     def test_missing_admin_and_production_keys_are_blocked(self):

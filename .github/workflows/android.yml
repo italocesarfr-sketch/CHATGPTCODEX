@@ -31,6 +31,7 @@ jobs:
       authorized: ${{ inputs.authorize_hosted_h01_h04 == true }}
     secrets:
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
   homologacao:
     name: Homologação — variante paralela
     if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'

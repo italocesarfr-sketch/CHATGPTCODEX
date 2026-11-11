@@ -8,10 +8,10 @@ on:
     secrets:
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
         required: false
-      # Declared for expression validation; the prepared caller does NOT pass it.
-      # The job resolves the value from its protected Environment instead.
+      # The caller must pass this named secret even when it exists only in the
+      # protected Environment; the job's Environment value takes precedence.
       NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON:
-        required: false
+        required: true
 permissions:
   contents: read
 jobs:
@@ -33,7 +33,7 @@ jobs:
           persist-credentials: false
       - name: Validar entradas localmente, sem requisições
         env:
-          # Environment-scoped ONLY; never inherit account credentials from callers.
+          # Explicitly forwarded by name; resolved from the protected Environment.
           NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
         run: python3 scripts/hosted-auth-checks.py prepare
       - uses: actions/setup-java@v4
