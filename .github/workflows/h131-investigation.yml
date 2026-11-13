@@ -61,6 +61,7 @@ jobs:
       - name: Regressões D, E, decisões e H13
         run: |
           set -euo pipefail
+          createdb noctua_phase_d_test
           PGDATABASE=noctua_phase_d_test python3 scripts/test-phase-d-postgres.py > build/h131/d.txt 2>&1
           python3 scripts/test-phase-e-postgres.py > build/h131/e.txt 2>&1
           python3 scripts/test-phase-e-decisions.py > build/h131/decisions.txt 2>&1
