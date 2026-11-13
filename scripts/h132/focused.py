@@ -71,11 +71,11 @@ class H132Test(unittest.TestCase):
  def setUp(self):activate()
  def test_01_exact_predicates_metadata_idempotence_and_scope(self):
   original=c.OLD_GUARD
-  new=c.function('supabase/migrations/202611130002_h132_structural_history.sql','noctua_d_history_guard')
+  new=c.function('scripts/h132/candidate.sql','noctua_d_history_guard')
   begin=new.index(' -- H132_LOOKUP_BEGIN');end=new.index(' -- H132_LOOKUP_END',begin)+len(' -- H132_LOOKUP_END\n')
   normalized=(new[:begin]+new[end:]).replace(c.lookup_source('k'),'lookup_rows').replace(c.lookup_source("r->'key'"),'lookup_rows').replace('current jsonb; lookup_rows jsonb:=p_after;','current jsonb;').replace('public.noctua_d_get(lookup_rows,','public.noctua_d_get(p_after,')
   self.assertEqual(original,normalized,'Historical predicate text changed')
-  graph=c.function('supabase/migrations/202611130002_h132_structural_history.sql','noctua_d_graph')
+  graph=c.function('scripts/h132/candidate.sql','noctua_d_graph')
   start=graph.index(' -- H132_SUBSETS_BEGIN')-1;end=graph.index(' -- H132_SUBSETS_END',start)+len(' -- H132_SUBSETS_END')
   normalized_graph=(graph[:start]+graph[end:]).replace(' term integer; relocation_rows jsonb; recomposition_rows jsonb;',' term integer;').replace('jsonb_array_elements(relocation_rows)','jsonb_array_elements(rows)').replace('jsonb_array_elements(recomposition_rows)','jsonb_array_elements(rows)')
   self.assertEqual(c.OLD_GRAPH,normalized_graph,'Graph predicate text changed')

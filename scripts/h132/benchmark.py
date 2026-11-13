@@ -9,7 +9,8 @@ def run(mode,repetitions):
  b,f,bench,lab=c.fixtures(mode)
  journal=bench.telemetry.Journal(c.ROOT/('build/h132/progress-'+mode+'.json'),'H13.2')
  original_meta=c.metadata(f);original_bodies=c.bodies(f)
- original_functions=f.execute("SELECT string_agg(pg_get_functiondef(oid),E';\n' ORDER BY proname)||';' FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN('noctua_d_get','noctua_d_history_guard','noctua_d_graph');")
+ definition_query="SELECT string_agg(pg_get_functiondef(oid),E';\n' ORDER BY proname)||';' FROM pg_proc WHERE pronamespace='public'::regnamespace AND proname IN('noctua_d_get','noctua_d_history_guard','noctua_d_graph');"
+ original_functions=f.execute(definition_query)
  http=None;role=None;samples=[];candidate_blocked=False
  try:
   f.execute('ALTER DATABASE '+os.environ['PGDATABASE']+" SET track_functions='all'; ALTER DATABASE "+os.environ['PGDATABASE']+" SET track_io_timing=on;")
@@ -129,6 +130,7 @@ def run(mode,repetitions):
   if http:
    f.execute('DROP FUNCTION IF EXISTS public.noctua_h13_commit_probe(uuid); DROP FUNCTION IF EXISTS public.noctua_h13_budget();')
    f.execute("ALTER ROLE authenticated "+("SET statement_timeout='"+role.replace("'","''")+"';"if role else'RESET statement_timeout;')+" NOTIFY pgrst,'reload schema'; NOTIFY pgrst,'reload config';")
+  assert f.execute(definition_query)==original_functions,'Previous helper definitions not restored'
   assert c.metadata(f)==original_meta and c.bodies(f)==original_bodies,'Unrelated function/permission/settings change'
   journal.event(stage='cleanup-verified',completed=True)
 

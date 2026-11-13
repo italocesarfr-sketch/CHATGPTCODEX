@@ -6,7 +6,7 @@
 
 O protocolo continua executando o grafo **inteiro**, as projeções, guarda histórica, CAS, auditorias, recibos e transações originais. Não há certificado de validade, índice persistente, nova fila, novo escopo ou atalho por registro.
 
-Migração proposta `supabase/migrations/202611130002_h132_structural_history.sql`, **não aplicada no Supabase**: depois de E4 e H13, substitui somente `noctua_d_get`, `noctua_d_history_guard` e `noctua_d_graph`, todos privados. Uma pré-condição verifica a presença dos validadores anteriores. Não altera schema Room, tabelas, dados, RLS, grants, RPCs, titularidade, defaults de timeout ou regras acadêmicas.
+Candidato de pesquisa `scripts/h132/candidate.sql`, **recusado para integração** e retirado da pasta de migrações: depois de E4 e H13, substitui somente `noctua_d_get`, `noctua_d_history_guard` e `noctua_d_graph`, todos privados. Uma pré-condição no laboratório verifica a presença dos validadores anteriores. Não altera schema Room, tabelas, dados, RLS, grants, RPCs, titularidade, defaults de timeout ou regras acadêmicas.
 
 - Getter: a mesma seleção entre mapa JSONB e subconsulta escalar de array, executada em PL/pgSQL para evitar planejamento repetido do caminho de mapa. Mantém SQL NULL distinto de JSON null, erros de cardinalidade em duplicidades e erro original em entradas escalares, inclusive com filtros SQL NULL.
 - Guarda histórica: constrói uma vez, dentro da chamada/mesma transação, um índice com `noctua_d_index(p_after)` e o reutiliza nas buscas. Todos os loops, comparações, condições de rejeição, dados antes/depois e mensagens acadêmicas permanecem. Um teste normaliza **somente** as expressões de representação e exige igualdade textual com os predicados originais.
@@ -55,7 +55,31 @@ Os bancos/host são restritos por allowlist local. Nada disso pode ser apontado 
 
 ## Estado da execução
 
-Resultados finais, commits, admissão, comparações, artefatos e situação da regressão serão consolidados depois dos ensaios. Neste ponto não há alegação de aprovação completa, implantação hospedada ou capacidade institucional.
+**Admissão local: REPROVADA para integração.** Há ganho nas medianas e equivalência nos testes disponíveis, mas uma confirmação HTTP candidata excedeu 8s. Não houve ativação nos bootstraps/fixtures normais, migração pronta para implantação ou mudança no código funcional. `scripts/h132/candidate.sql` permanece apenas no laboratório. Nenhuma nova tentativa da operação falha foi feita para obter verde.
+
+Local PostgreSQL 17.11, `shared_buffers=128MB`, `work_mem=4MB`, três repetições por variante/caso; todos os tempos abaixo são medianas em ms do servidor/corpo do probe, sem rede externa:
+
+| Base / operação | SQL antes → candidato | HTTP antes → candidato | Candidato HTTP aceitos / cancelados |
+|---|---:|---:|---:|
+| 41 / carga | 36 → 36 | 31 → 26 | 3 / 0 |
+| 171 / carga | 128 → 109 | 105 → 87 | 3 / 0 |
+| 671 / carga | 412 → 346 | 410 → 314 | 3 / 0 |
+| 5.171 / carga | 4.336 → 2.535 | 4.710 → 2.569 | 3 / 0 |
+| 5.171 / nota | 3.513 → 1.091 | 3.625 → 905 | 3 / 0 |
+| 5.171 + histórico ampliado / carga | 6.991 → 4.903 | 6.643 → 4.707* | **2 / 1** |
+| 5.171 + histórico ampliado / nota | 7.095 → 4.079 | 7.234 → 4.087 | 3 / 0 |
+
+\*Mediana apenas dos dois aceitos; **não** representa três sucessos. O terceiro ensaio HTTP candidato de carga histórica cancelou com SQLSTATE 57014 / status HTTP 500, parede **8.005,599 ms**, 5.171 registros/41 partes. O status deriva do ramo explícito de tratamento 500/57014 do cliente local. O tempo de execução completo do servidor não está disponível para esse cancelamento. Estado/versões/recibos/cursor inalterados e 41 partes preservadas foram conferidos antes da limpeza da fixture. Perfil parcial e estágio/repetição/variante ficaram no journal; não atribuir tempo parcial de outra chamada ao custo exato da chamada cancelada.
+
+O SQL completou 42 confirmações medidas e 126 reenvios confirmados, sem cancelamentos. O HTTP completou 41/42 confirmações medidas e 123 reenvios confirmados; o cancelado não foi repetido. As cargas-semente de cada ensaio de nota são adicionais e identificadas nos journals. Hashes/revisões e contagens de validadores integrais foram conferidos nas comparações completas; o timeout não foi tratado como rejeição acadêmica.
+
+Passaram localmente três testes do journal, seis testes diferenciais (632 probes do getter, 125 da guarda, seis de chaves/legado e casos transacionais) e **58 regressões existentes D/E/decisões, zero falhas/ignorados**, com candidato efetivamente instalado. A prova HTTP de concorrência/isolamento foi reutilizada e ampliada para comparar todos os 171 payloads/IDs/revisões. Os resultados de CI serão consolidados separadamente; não são inferidos dos resultados do workspace.
+
+**A regressão Android/PostgreSQL completa não foi iniciada nesta rodada**, conforme a ordem exigida, pois o candidato não passou a admissão focada. A #204 permanece evidência histórica aprovada; a #205 permanece reprovada. Não declarar que Android, Room, backup criptografado ou dois AVDs foram revalidados agora.
+
+No perfil SQL da nota original (uma amostra), grafo D total 2.488 → 779 ms; getter 19.640 chamadas, 1.257 → 93 ms próprios; guarda histórica 837 → 61 ms. Continuam **5.187 validações**. Com histórico ampliado, permanecem 5.507 validações e **três projeções**; estas custam cerca de **3.203–3.290 ms inclusivos** numa amostra. A projeção original concatena uma nova matriz JSONB para cada item histórico, copiando repetidamente o acervo. Esse custo remanescente é uma hipótese fundamentada para investigação futura, **não uma quarta otimização implantada nesta rodada**. Tempos inclusivos se sobrepõem e não devem ser somados.
+
+Conclusão: ganho médio expressivo não demonstrou margem consistente no orçamento. Interrompida a promoção; não ampliar timeouts, não remover regras, não insistir em novas revisões do candidato nesta tarefa.
 
 ## Riscos e contingência
 

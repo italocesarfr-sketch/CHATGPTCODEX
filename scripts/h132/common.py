@@ -2,7 +2,7 @@
 import importlib.util,json,os
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
-CANDIDATE=ROOT/'supabase/migrations/202611130002_h132_structural_history.sql'
+CANDIDATE=ROOT/'scripts/h132/candidate.sql'
 def load(name,file):
  spec=importlib.util.spec_from_file_location(name,ROOT/file);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 def function(file,name):

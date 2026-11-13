@@ -1,0 +1,32 @@
+{
+  "measurement_code_commit": "0af90f9503ba",
+  "measurement_code_commit_full": "0af90f9503ba5163a20d517738ab71c934f8c0f7",
+  "candidate_function_sha256": {
+    "noctua_d_get": "3469a070ef08fdd567549009f9c4b34f106c2384243c1b7774545df218d9fccc",
+    "noctua_d_history_guard": "973b7f054a130b087042e6cdd690e86a9f6cc93a87a343bb62caf5abdefb9246",
+    "noctua_d_graph": "6de0d089bc7fea8ffde70f39b839635704b23ef1f5d4c2ffd6554292cc588953"
+  },
+  "admission": false,
+  "reason": "One candidate HTTP timeout at 5171 extended-history bootstrap, trial 3, 41 parts",
+  "real_auth": false,
+  "hosted_executed": false,
+  "details": {
+    "sql_measured": 42,
+    "sql_replays": 126,
+    "http_measured": 42,
+    "http_accepted": 41,
+    "http_timed_out": 1,
+    "http_replays": 123,
+    "telemetry_tests_passed": 3
+  },
+  "files_sha256": {
+    "sql.json": "da3f4b6a75bc4f35838ab5fdc6a7bacb5f980845c496f33e54496dfddab9fbd5",
+    "http.json": "119305acc46e59b55ab39b20a3d0bf21b8f27b193601bc43ff33a9f7562dc609",
+    "progress-sql.json": "e502f40cf17b045fe8cbc843b99a24d3b9d79f0f4de92412239bd972ea5cf212",
+    "progress-http.json": "f9abbaeefc23f3627adeb72f13b3f25bc85a6186496be8abe64621284d959c36",
+    "focused.json": "e3523fe718bd4bedd6ade7e83de4e0640543af30a8e4d7aa12e4ae664db914bb",
+    "regressions.json": "13ee7a09cbbd479f6e56b5c90fab4aef4ba953851796fd08a61a8ce68014d5c6",
+    "network.json": "1bc550ac5326f559f302ca6532f9491b4773c04f8aa9ce55155d05feba9edb77"
+  },
+  "extra_assertions_after_measurement": "Explicit helper-definition restoration and explicit candidate installation for network probe; algorithm unchanged"
+}

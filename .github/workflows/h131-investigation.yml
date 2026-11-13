@@ -4,11 +4,20 @@ on:
     branches: [sync/academic-complete-0220]
     paths: ['scripts/h131/**', '.github/workflows/h131-investigation.yml', 'docs/H131_DEPENDENCIAS_0220.json']
   workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Laboratório local: H131 original ou H132 estrutural (sem hospedado)'
+        type: choice
+        options: [H131, H132]
+        default: H131
 permissions:
   contents: read
 jobs:
+  h132:
+    if: github.event_name == 'workflow_dispatch' && inputs.suite == 'H132' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/h132-performance.yml
   investigation:
-    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:

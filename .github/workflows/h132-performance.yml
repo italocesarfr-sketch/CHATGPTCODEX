@@ -1,8 +1,9 @@
 name: NOcTuA — H13.2 validação integral estrutural
 on:
+  workflow_call:
   push:
     branches: [sync/academic-complete-0220]
-    paths: ['scripts/h132/**', 'scripts/benchmark_telemetry.py', 'supabase/migrations/202611130002_h132_structural_history.sql', '.github/workflows/h132-performance.yml']
+    paths: ['scripts/h132/**', 'scripts/benchmark_telemetry.py', 'scripts/h132/candidate.sql', '.github/workflows/h132-performance.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -46,22 +47,35 @@ jobs:
           mkdir -p build/h132
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
           ./gradlew --no-daemon testDebugUnitTest > build/h132/jvm-build.txt 2>&1
+          python3 - <<'PYCOUNTS'
+          import glob,json,xml.etree.ElementTree as ET
+          counts=dict(cases=0,passed=0,skipped=0,failed=0)
+          for file in glob.glob('app/build/test-results/testDebugUnitTest/TEST-*.xml'):
+              for case in ET.parse(file).getroot().findall('testcase'):
+                  counts['cases']+=1
+                  key='skipped' if case.find('skipped') is not None else 'failed' if case.find('failure') is not None or case.find('error') is not None else 'passed'
+                  counts[key]+=1
+          assert counts['cases']>0 and counts['failed']==0
+          open('build/h132/jvm-counts.json','w').write(json.dumps(counts,indent=2))
+          PYCOUNTS
       - name: Checkpoints duráveis e oráculo integral diferencial
         run: |
           python3 -m unittest discover -s scripts/h132 -p test_telemetry.py
           python3 scripts/h132/focused.py > build/h132/focused-run.txt 2>&1
           python3 scripts/h132/regressions.py > build/h132/regressions-run.txt 2>&1
-      - name: Três repetições pareadas SQL e históricos extensos, sempre 8s
-        run: python3 scripts/h132/benchmark.py --mode sql --repetitions 3 > build/h132/sql.json
-      - name: PostgREST real descartável, três repetições HTTP e segurança
+      - name: PostgREST descartável — concorrência, integridade e isolamento
         env:
           PGDATABASE: noctua_phase_b_test
         run: |
           createdb noctua_phase_b_test
           ./scripts/ci/start-phase-b-postgrest.sh > build/h132/backend.txt 2>&1
-          python3 scripts/h132/benchmark.py --mode http --repetitions 3 > build/h132/http.json
-          python3 scripts/phase-b-http-fixture.py > build/h132/http-fixture.txt
           python3 scripts/h132/network.py > build/h132/network.json
+      - name: Três repetições pareadas SQL e históricos extensos, sempre 8s
+        run: python3 scripts/h132/benchmark.py --mode sql --repetitions 3 > build/h132/sql.json
+      - name: Três repetições HTTP — reprovar em qualquer timeout candidato
+        env:
+          PGDATABASE: noctua_phase_b_test
+        run: python3 scripts/h132/benchmark.py --mode http --repetitions 3 > build/h132/http.json
       - name: Encerrar apenas PostgREST descartável
         if: always()
         run: |

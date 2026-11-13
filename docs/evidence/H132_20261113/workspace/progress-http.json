@@ -1,0 +1,6224 @@
+{
+  "case": "H13.2",
+  "hosted_executed": false,
+  "events": [
+    {
+      "elapsed_ms": 792.321,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "prepare",
+      "records": 41,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 994.004,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-start",
+      "records": 41,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41
+    },
+    {
+      "elapsed_ms": 1036.578,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-result",
+      "records": 41,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 33.122,
+        "server_execution_ms": 30.529,
+        "residual_http_ms": 2.593,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 1239.607,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "verified",
+      "records": 41,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c"
+    },
+    {
+      "elapsed_ms": 1241.083,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "prepare",
+      "records": 41,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 1435.406,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-start",
+      "records": 41,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41
+    },
+    {
+      "elapsed_ms": 1474.598,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-result",
+      "records": 41,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 27.726,
+        "server_execution_ms": 24.71,
+        "residual_http_ms": 3.016,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 1696.569,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "verified",
+      "records": 41,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c"
+    },
+    {
+      "elapsed_ms": 1698.17,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "prepare",
+      "records": 41,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 1893.807,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-start",
+      "records": 41,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41
+    },
+    {
+      "elapsed_ms": 1931.401,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-result",
+      "records": 41,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 27.834,
+        "server_execution_ms": 25.544,
+        "residual_http_ms": 2.29,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 2138.821,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "verified",
+      "records": 41,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c"
+    },
+    {
+      "elapsed_ms": 2140.293,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "prepare",
+      "records": 41,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 2329.969,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-start",
+      "records": 41,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41
+    },
+    {
+      "elapsed_ms": 2371.644,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-result",
+      "records": 41,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 31.674,
+        "server_execution_ms": 29.336,
+        "residual_http_ms": 2.338,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 2574.794,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "verified",
+      "records": 41,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c"
+    },
+    {
+      "elapsed_ms": 2576.356,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "prepare",
+      "records": 41,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 2768.13,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-start",
+      "records": 41,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41
+    },
+    {
+      "elapsed_ms": 2812.934,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-result",
+      "records": 41,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 34.044,
+        "server_execution_ms": 31.635,
+        "residual_http_ms": 2.409,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 3018.464,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "verified",
+      "records": 41,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c"
+    },
+    {
+      "elapsed_ms": 3020.159,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "prepare",
+      "records": 41,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 3213.285,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-start",
+      "records": 41,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41
+    },
+    {
+      "elapsed_ms": 3251.1,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "commit-result",
+      "records": 41,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 1,
+      "changes": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 28.357,
+        "server_execution_ms": 26.002,
+        "residual_http_ms": 2.355,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 3450.257,
+      "mode": "http",
+      "label": "41-records",
+      "stage": "verified",
+      "records": 41,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c"
+    },
+    {
+      "elapsed_ms": 3452.041,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "prepare",
+      "records": 171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 3674.002,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-start",
+      "records": 171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171
+    },
+    {
+      "elapsed_ms": 3791.109,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-result",
+      "records": 171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 107.45,
+        "server_execution_ms": 104.54,
+        "residual_http_ms": 2.91,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 4020.864,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "verified",
+      "records": 171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20"
+    },
+    {
+      "elapsed_ms": 4022.286,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "prepare",
+      "records": 171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 4233.566,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-start",
+      "records": 171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171
+    },
+    {
+      "elapsed_ms": 4337.027,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-result",
+      "records": 171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 91.705,
+        "server_execution_ms": 89.033,
+        "residual_http_ms": 2.672,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 8,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.198,
+          "total_time": 197.806
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 5.927,
+          "total_time": 197.608
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 3.598,
+          "total_time": 190.932
+        },
+        {
+          "calls": 1396,
+          "funcname": "noctua_academic_validate",
+          "self_time": 39.986,
+          "total_time": 105.083
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_e_write",
+          "self_time": 45.568,
+          "total_time": 87.247
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_graph",
+          "self_time": 21.195,
+          "total_time": 70.008
+        },
+        {
+          "calls": 4478,
+          "funcname": "noctua_academic_shape",
+          "self_time": 66.892,
+          "total_time": 66.892
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 5.79,
+          "total_time": 37.325
+        },
+        {
+          "calls": 1166,
+          "funcname": "noctua_d_get",
+          "self_time": 12.238,
+          "total_time": 12.238
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_academic_graph",
+          "self_time": 10.081,
+          "total_time": 10.624
+        },
+        {
+          "calls": 1448,
+          "funcname": "noctua_academic_key",
+          "self_time": 8.286,
+          "total_time": 9.379
+        },
+        {
+          "calls": 6,
+          "funcname": "noctua_d_projection",
+          "self_time": 8.478,
+          "total_time": 9.054
+        },
+        {
+          "calls": 6,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 7.395,
+          "total_time": 8.162
+        },
+        {
+          "calls": 80,
+          "funcname": "noctua_sync_principal",
+          "self_time": 3.872,
+          "total_time": 3.872
+        },
+        {
+          "calls": 16,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.472,
+          "total_time": 3.645
+        },
+        {
+          "calls": 24,
+          "funcname": "noctua_academic_status",
+          "self_time": 2.14,
+          "total_time": 2.695
+        },
+        {
+          "calls": 3552,
+          "funcname": "noctua_academic_definition",
+          "self_time": 2.428,
+          "total_time": 2.428
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_activate_academic",
+          "self_time": 1.516,
+          "total_time": 2.263
+        },
+        {
+          "calls": 20,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.788,
+          "total_time": 2.209
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 1.362,
+          "total_time": 1.757
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.836,
+          "total_time": 1.448
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 1.422,
+          "total_time": 1.422
+        },
+        {
+          "calls": 10,
+          "funcname": "noctua_validate_class",
+          "self_time": 1.165,
+          "total_time": 1.165
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.466,
+          "total_time": 0.994
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.486,
+          "total_time": 0.991
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.348,
+          "total_time": 0.348
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.317,
+          "total_time": 0.317
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 4566.114,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "verified",
+      "records": 171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20"
+    },
+    {
+      "elapsed_ms": 4567.699,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "prepare",
+      "records": 171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 4771.755,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-start",
+      "records": 171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171
+    },
+    {
+      "elapsed_ms": 4870.768,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-result",
+      "records": 171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 89.555,
+        "server_execution_ms": 87.155,
+        "residual_http_ms": 2.4,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 5155.513,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "verified",
+      "records": 171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20"
+    },
+    {
+      "elapsed_ms": 5157.499,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "prepare",
+      "records": 171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 5364.163,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-start",
+      "records": 171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171
+    },
+    {
+      "elapsed_ms": 5494.474,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-result",
+      "records": 171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 119.995,
+        "server_execution_ms": 117.49,
+        "residual_http_ms": 2.505,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 8,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.206,
+          "total_time": 212.211
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 8.824,
+          "total_time": 212.005
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 3.694,
+          "total_time": 202.175
+        },
+        {
+          "calls": 1396,
+          "funcname": "noctua_academic_validate",
+          "self_time": 40.646,
+          "total_time": 107.892
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_e_write",
+          "self_time": 52.444,
+          "total_time": 95.398
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_graph",
+          "self_time": 21.417,
+          "total_time": 70.781
+        },
+        {
+          "calls": 4478,
+          "funcname": "noctua_academic_shape",
+          "self_time": 68.723,
+          "total_time": 68.723
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 6.002,
+          "total_time": 37.912
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 14.243,
+          "total_time": 15.071
+        },
+        {
+          "calls": 1166,
+          "funcname": "noctua_d_get",
+          "self_time": 13.17,
+          "total_time": 13.17
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_academic_graph",
+          "self_time": 10.231,
+          "total_time": 10.741
+        },
+        {
+          "calls": 1448,
+          "funcname": "noctua_academic_key",
+          "self_time": 8.803,
+          "total_time": 9.9
+        },
+        {
+          "calls": 6,
+          "funcname": "noctua_d_projection",
+          "self_time": 8.473,
+          "total_time": 9.038
+        },
+        {
+          "calls": 82,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.565,
+          "total_time": 4.565
+        },
+        {
+          "calls": 16,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.529,
+          "total_time": 3.821
+        },
+        {
+          "calls": 3552,
+          "funcname": "noctua_academic_definition",
+          "self_time": 2.739,
+          "total_time": 2.739
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_activate_academic",
+          "self_time": 1.83,
+          "total_time": 2.608
+        },
+        {
+          "calls": 24,
+          "funcname": "noctua_academic_status",
+          "self_time": 2.041,
+          "total_time": 2.608
+        },
+        {
+          "calls": 22,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.723,
+          "total_time": 2.462
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 1.215,
+          "total_time": 1.876
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 1.447,
+          "total_time": 1.784
+        },
+        {
+          "calls": 10,
+          "funcname": "noctua_validate_class",
+          "self_time": 1.383,
+          "total_time": 1.383
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 1.342,
+          "total_time": 1.342
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.475,
+          "total_time": 1.198
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.459,
+          "total_time": 0.946
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.411,
+          "total_time": 0.411
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.147,
+          "total_time": 0.147
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 5745.842,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "verified",
+      "records": 171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20"
+    },
+    {
+      "elapsed_ms": 5747.8,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "prepare",
+      "records": 171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 5967.521,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-start",
+      "records": 171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171
+    },
+    {
+      "elapsed_ms": 6082.623,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-result",
+      "records": 171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 104.041,
+        "server_execution_ms": 101.602,
+        "residual_http_ms": 2.439,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 6327.987,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "verified",
+      "records": 171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20"
+    },
+    {
+      "elapsed_ms": 6329.965,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "prepare",
+      "records": 171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 6533.278,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-start",
+      "records": 171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171
+    },
+    {
+      "elapsed_ms": 6632.501,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "commit-result",
+      "records": 171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 2,
+      "changes": 171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 89.34,
+        "server_execution_ms": 87.253,
+        "residual_http_ms": 2.087,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 8,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.199,
+          "total_time": 194.756
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 7.42,
+          "total_time": 194.556
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 3.65,
+          "total_time": 186.39
+        },
+        {
+          "calls": 1396,
+          "funcname": "noctua_academic_validate",
+          "self_time": 39.059,
+          "total_time": 104.106
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_e_write",
+          "self_time": 43.54,
+          "total_time": 84.039
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_graph",
+          "self_time": 20.061,
+          "total_time": 68.068
+        },
+        {
+          "calls": 4478,
+          "funcname": "noctua_academic_shape",
+          "self_time": 66.298,
+          "total_time": 66.298
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 5.6,
+          "total_time": 36.265
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 15.401,
+          "total_time": 16.244
+        },
+        {
+          "calls": 1166,
+          "funcname": "noctua_d_get",
+          "self_time": 12.046,
+          "total_time": 12.046
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_academic_graph",
+          "self_time": 9.49,
+          "total_time": 10.173
+        },
+        {
+          "calls": 1448,
+          "funcname": "noctua_academic_key",
+          "self_time": 8.495,
+          "total_time": 9.547
+        },
+        {
+          "calls": 6,
+          "funcname": "noctua_d_projection",
+          "self_time": 8.363,
+          "total_time": 8.887
+        },
+        {
+          "calls": 82,
+          "funcname": "noctua_sync_principal",
+          "self_time": 5.172,
+          "total_time": 5.172
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_activate_academic",
+          "self_time": 3.117,
+          "total_time": 4.607
+        },
+        {
+          "calls": 16,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.721,
+          "total_time": 4.339
+        },
+        {
+          "calls": 24,
+          "funcname": "noctua_academic_status",
+          "self_time": 2.327,
+          "total_time": 2.893
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 1.829,
+          "total_time": 2.849
+        },
+        {
+          "calls": 3552,
+          "funcname": "noctua_academic_definition",
+          "self_time": 2.357,
+          "total_time": 2.357
+        },
+        {
+          "calls": 22,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.797,
+          "total_time": 2.293
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 1.436,
+          "total_time": 1.809
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 1.446,
+          "total_time": 1.446
+        },
+        {
+          "calls": 10,
+          "funcname": "noctua_validate_class",
+          "self_time": 1.239,
+          "total_time": 1.239
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.485,
+          "total_time": 1.132
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.476,
+          "total_time": 0.981
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.367,
+          "total_time": 0.367
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.15,
+          "total_time": 0.15
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 6856.073,
+      "mode": "http",
+      "label": "171-records",
+      "stage": "verified",
+      "records": 171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20"
+    },
+    {
+      "elapsed_ms": 6858.248,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "prepare",
+      "records": 671,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 7141.407,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-start",
+      "records": 671,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671
+    },
+    {
+      "elapsed_ms": 7565.792,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-result",
+      "records": 671,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 412.281,
+        "server_execution_ms": 409.82,
+        "residual_http_ms": 2.461,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 7889.772,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "verified",
+      "records": 671,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1"
+    },
+    {
+      "elapsed_ms": 7892.136,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "prepare",
+      "records": 671,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 8174.584,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-start",
+      "records": 671,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671
+    },
+    {
+      "elapsed_ms": 8498.281,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-result",
+      "records": 671,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 312.102,
+        "server_execution_ms": 308.399,
+        "residual_http_ms": 3.703,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 8804.056,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "verified",
+      "records": 671,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1"
+    },
+    {
+      "elapsed_ms": 8806.393,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "prepare",
+      "records": 671,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 9111.496,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-start",
+      "records": 671,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671
+    },
+    {
+      "elapsed_ms": 9451.984,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-result",
+      "records": 671,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 329.277,
+        "server_execution_ms": 326.787,
+        "residual_http_ms": 2.49,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 9811.47,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "verified",
+      "records": 671,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1"
+    },
+    {
+      "elapsed_ms": 9814.239,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "prepare",
+      "records": 671,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 10210.089,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-start",
+      "records": 671,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671
+    },
+    {
+      "elapsed_ms": 10643.42,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-result",
+      "records": 671,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 421.263,
+        "server_execution_ms": 418.056,
+        "residual_http_ms": 3.207,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 10954.285,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "verified",
+      "records": 671,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1"
+    },
+    {
+      "elapsed_ms": 10957.3,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "prepare",
+      "records": 671,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 11243.38,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-start",
+      "records": 671,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671
+    },
+    {
+      "elapsed_ms": 11656.105,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-result",
+      "records": 671,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 401.008,
+        "server_execution_ms": 398.765,
+        "residual_http_ms": 2.243,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 12008.65,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "verified",
+      "records": 671,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1"
+    },
+    {
+      "elapsed_ms": 12011.63,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "prepare",
+      "records": 671,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 12285.48,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-start",
+      "records": 671,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671
+    },
+    {
+      "elapsed_ms": 12613.903,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "commit-result",
+      "records": 671,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 6,
+      "changes": 671,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 316.801,
+        "server_execution_ms": 313.712,
+        "residual_http_ms": 3.089,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 12948.478,
+      "mode": "http",
+      "label": "671-records",
+      "stage": "verified",
+      "records": 671,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1"
+    },
+    {
+      "elapsed_ms": 12951.999,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 13996.691,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 18863.038,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4852.05,
+        "server_execution_ms": 4848.357,
+        "residual_http_ms": 3.693,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.049,
+          "total_time": 4848.39
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 35.307,
+          "total_time": 4848.34
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 46.909,
+          "total_time": 4812.905
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1619.585,
+          "total_time": 2740.607
+        },
+        {
+          "calls": 20698,
+          "funcname": "noctua_academic_validate",
+          "self_time": 653.901,
+          "total_time": 1709.547
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 814.969,
+          "total_time": 1529.801
+        },
+        {
+          "calls": 68239,
+          "funcname": "noctua_academic_shape",
+          "self_time": 1078.35,
+          "total_time": 1078.35
+        },
+        {
+          "calls": 41,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 161.122,
+          "total_time": 647.473
+        },
+        {
+          "calls": 18583,
+          "funcname": "noctua_d_get",
+          "self_time": 492.783,
+          "total_time": 492.783
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 211.28,
+          "total_time": 211.576
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 179.044,
+          "total_time": 180.474
+        },
+        {
+          "calls": 20724,
+          "funcname": "noctua_academic_key",
+          "self_time": 126.868,
+          "total_time": 145.142
+        },
+        {
+          "calls": 51776,
+          "funcname": "noctua_academic_definition",
+          "self_time": 41.437,
+          "total_time": 41.437
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 28.289,
+          "total_time": 28.289
+        },
+        {
+          "calls": 73,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.938,
+          "total_time": 4.938
+        },
+        {
+          "calls": 43,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.385,
+          "total_time": 4.89
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.238,
+          "total_time": 1.674
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_activate_academic",
+          "self_time": 0.761,
+          "total_time": 1.216
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_academic_status",
+          "self_time": 0.872,
+          "total_time": 1.208
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.526,
+          "total_time": 0.904
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.674,
+          "total_time": 0.849
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.754,
+          "total_time": 0.754
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.232,
+          "total_time": 0.487
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.229,
+          "total_time": 0.483
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.253,
+          "total_time": 0.253
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.086,
+          "total_time": 0.086
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 20377.073,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0"
+    },
+    {
+      "elapsed_ms": 20379.634,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 21393.666,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 23977.602,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2572.246,
+        "server_execution_ms": 2569.469,
+        "residual_http_ms": 2.777,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.04,
+          "total_time": 2569.493
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 20.239,
+          "total_time": 2569.453
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 44.865,
+          "total_time": 2549.06
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 711.692,
+          "total_time": 1355.202
+        },
+        {
+          "calls": 17114,
+          "funcname": "noctua_academic_validate",
+          "self_time": 484.867,
+          "total_time": 1285.922
+        },
+        {
+          "calls": 54947,
+          "funcname": "noctua_academic_shape",
+          "self_time": 798.991,
+          "total_time": 798.991
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 139.188,
+          "total_time": 686.068
+        },
+        {
+          "calls": 13,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 65.463,
+          "total_time": 211.668
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 157.629,
+          "total_time": 157.992
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 130.959,
+          "total_time": 131.943
+        },
+        {
+          "calls": 17140,
+          "funcname": "noctua_academic_key",
+          "self_time": 95.057,
+          "total_time": 108.329
+        },
+        {
+          "calls": 18583,
+          "funcname": "noctua_d_get",
+          "self_time": 76.79,
+          "total_time": 76.79
+        },
+        {
+          "calls": 44608,
+          "funcname": "noctua_academic_definition",
+          "self_time": 31.604,
+          "total_time": 31.604
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 20.716,
+          "total_time": 20.716
+        },
+        {
+          "calls": 14,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.387,
+          "total_time": 1.688
+        },
+        {
+          "calls": 16,
+          "funcname": "noctua_sync_principal",
+          "self_time": 1.441,
+          "total_time": 1.441
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.79,
+          "total_time": 0.79
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.351,
+          "total_time": 0.351
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.084,
+          "total_time": 0.084
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 25449.033,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0"
+    },
+    {
+      "elapsed_ms": 25452.802,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 26509.975,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 29128.595,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2606.174,
+        "server_execution_ms": 2603.082,
+        "residual_http_ms": 3.092,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.042,
+          "total_time": 2603.11
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 21.891,
+          "total_time": 2603.067
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 42.269,
+          "total_time": 2581.048
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 709.08,
+          "total_time": 1337.994
+        },
+        {
+          "calls": 17114,
+          "funcname": "noctua_academic_validate",
+          "self_time": 478.048,
+          "total_time": 1277.25
+        },
+        {
+          "calls": 54947,
+          "funcname": "noctua_academic_shape",
+          "self_time": 793.089,
+          "total_time": 793.089
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 153.105,
+          "total_time": 737.091
+        },
+        {
+          "calls": 13,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 62.365,
+          "total_time": 205.801
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 163.145,
+          "total_time": 163.438
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 151.097,
+          "total_time": 152.231
+        },
+        {
+          "calls": 17140,
+          "funcname": "noctua_academic_key",
+          "self_time": 95.691,
+          "total_time": 109.065
+        },
+        {
+          "calls": 18583,
+          "funcname": "noctua_d_get",
+          "self_time": 81.173,
+          "total_time": 81.173
+        },
+        {
+          "calls": 44608,
+          "funcname": "noctua_academic_definition",
+          "self_time": 31.961,
+          "total_time": 31.961
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 23.058,
+          "total_time": 23.058
+        },
+        {
+          "calls": 14,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.417,
+          "total_time": 1.466
+        },
+        {
+          "calls": 16,
+          "funcname": "noctua_sync_principal",
+          "self_time": 1.199,
+          "total_time": 1.199
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.708,
+          "total_time": 0.708
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.476,
+          "total_time": 0.476
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.087,
+          "total_time": 0.087
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 30653.921,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0"
+    },
+    {
+      "elapsed_ms": 30656.608,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 31667.185,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 36146.977,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4468.29,
+        "server_execution_ms": 4465.134,
+        "residual_http_ms": 3.156,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.044,
+          "total_time": 4465.161
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 16.563,
+          "total_time": 4465.117
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 40.731,
+          "total_time": 4448.422
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1593.132,
+          "total_time": 2646.014
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 699.079,
+          "total_time": 1308.849
+        },
+        {
+          "calls": 16858,
+          "funcname": "noctua_academic_validate",
+          "self_time": 506.906,
+          "total_time": 1303.155
+        },
+        {
+          "calls": 53923,
+          "funcname": "noctua_academic_shape",
+          "self_time": 784.968,
+          "total_time": 784.968
+        },
+        {
+          "calls": 18583,
+          "funcname": "noctua_d_get",
+          "self_time": 466.908,
+          "total_time": 466.908
+        },
+        {
+          "calls": 11,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 53.788,
+          "total_time": 171.611
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 158.829,
+          "total_time": 159.119
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 155.421,
+          "total_time": 156.528
+        },
+        {
+          "calls": 16884,
+          "funcname": "noctua_academic_key",
+          "self_time": 94.738,
+          "total_time": 109.686
+        },
+        {
+          "calls": 44096,
+          "funcname": "noctua_academic_definition",
+          "self_time": 34.222,
+          "total_time": 34.222
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 28.862,
+          "total_time": 28.862
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.303,
+          "total_time": 1.155
+        },
+        {
+          "calls": 14,
+          "funcname": "noctua_sync_principal",
+          "self_time": 1.115,
+          "total_time": 1.115
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.677,
+          "total_time": 0.677
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.242,
+          "total_time": 0.242
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.235,
+          "total_time": 0.235
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 37695.11,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0"
+    },
+    {
+      "elapsed_ms": 37698.412,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 38810.053,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 43539.33,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4714.296,
+        "server_execution_ms": 4710.109,
+        "residual_http_ms": 4.187,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.103,
+          "total_time": 4710.159
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 19.271,
+          "total_time": 4710.056
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 57.968,
+          "total_time": 4690.657
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1622.752,
+          "total_time": 2701.133
+        },
+        {
+          "calls": 17498,
+          "funcname": "noctua_academic_validate",
+          "self_time": 576.903,
+          "total_time": 1498.316
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 725.052,
+          "total_time": 1410.848
+        },
+        {
+          "calls": 56483,
+          "funcname": "noctua_academic_shape",
+          "self_time": 911.936,
+          "total_time": 911.936
+        },
+        {
+          "calls": 18583,
+          "funcname": "noctua_d_get",
+          "self_time": 481.16,
+          "total_time": 481.16
+        },
+        {
+          "calls": 16,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 83.41,
+          "total_time": 275.655
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 181.986,
+          "total_time": 182.274
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 150.065,
+          "total_time": 151.057
+        },
+        {
+          "calls": 17524,
+          "funcname": "noctua_academic_key",
+          "self_time": 109.849,
+          "total_time": 125.741
+        },
+        {
+          "calls": 45376,
+          "funcname": "noctua_academic_definition",
+          "self_time": 37.901,
+          "total_time": 37.901
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 24.269,
+          "total_time": 24.269
+        },
+        {
+          "calls": 17,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.559,
+          "total_time": 1.968
+        },
+        {
+          "calls": 19,
+          "funcname": "noctua_sync_principal",
+          "self_time": 1.572,
+          "total_time": 1.572
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.743,
+          "total_time": 0.743
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.225,
+          "total_time": 0.225
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.083,
+          "total_time": 0.083
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 44933.091,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0"
+    },
+    {
+      "elapsed_ms": 44936.245,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 45903.332,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 48375.386,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2459.042,
+        "server_execution_ms": 2455.117,
+        "residual_http_ms": 3.925,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.04,
+          "total_time": 2455.141
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 16.415,
+          "total_time": 2455.101
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 39.839,
+          "total_time": 2438.574
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 697.967,
+          "total_time": 1299.205
+        },
+        {
+          "calls": 16602,
+          "funcname": "noctua_academic_validate",
+          "self_time": 433.379,
+          "total_time": 1166.027
+        },
+        {
+          "calls": 52899,
+          "funcname": "noctua_academic_shape",
+          "self_time": 724.57,
+          "total_time": 724.57
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 139.723,
+          "total_time": 663.649
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 153.712,
+          "total_time": 154.088
+        },
+        {
+          "calls": 9,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 44.733,
+          "total_time": 139.048
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 130.613,
+          "total_time": 131.442
+        },
+        {
+          "calls": 16628,
+          "funcname": "noctua_academic_key",
+          "self_time": 85.698,
+          "total_time": 97.839
+        },
+        {
+          "calls": 18583,
+          "funcname": "noctua_d_get",
+          "self_time": 74.119,
+          "total_time": 74.119
+        },
+        {
+          "calls": 43584,
+          "funcname": "noctua_academic_definition",
+          "self_time": 30.014,
+          "total_time": 30.014
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 20.403,
+          "total_time": 20.403
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.969,
+          "total_time": 0.969
+        },
+        {
+          "calls": 10,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.268,
+          "total_time": 0.959
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_sync_principal",
+          "self_time": 0.83,
+          "total_time": 0.83
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.801,
+          "total_time": 0.801
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.087,
+          "total_time": 0.087
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 49879.96,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0"
+    },
+    {
+      "elapsed_ms": 49883.617,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 53287.624,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2541.158,
+        "server_execution_ms": 2538.481,
+        "residual_http_ms": 2.677,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 54440.37,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 57851.932,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 3396.971,
+        "server_execution_ms": 3392.124,
+        "residual_http_ms": 4.847,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.113,
+          "total_time": 3392.195
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.238,
+          "total_time": 3392.082
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 4.261,
+          "total_time": 3391.716
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1437.361,
+          "total_time": 2377.527
+        },
+        {
+          "calls": 19640,
+          "funcname": "noctua_d_get",
+          "self_time": 1251.464,
+          "total_time": 1251.464
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 11.987,
+          "total_time": 853.198
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 653.768,
+          "total_time": 658.818
+        },
+        {
+          "calls": 5188,
+          "funcname": "noctua_academic_validate",
+          "self_time": 174.524,
+          "total_time": 438.107
+        },
+        {
+          "calls": 14513,
+          "funcname": "noctua_academic_shape",
+          "self_time": 226.558,
+          "total_time": 226.558
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 187.98,
+          "total_time": 189.342
+        },
+        {
+          "calls": 5232,
+          "funcname": "noctua_academic_key",
+          "self_time": 30.786,
+          "total_time": 35.284
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.789,
+          "total_time": 31.791
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 30.4,
+          "total_time": 30.693
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 23.215,
+          "total_time": 23.215
+        },
+        {
+          "calls": 15604,
+          "funcname": "noctua_academic_definition",
+          "self_time": 11.443,
+          "total_time": 11.443
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.348,
+          "total_time": 5.354
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.292,
+          "total_time": 4.292
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.938,
+          "total_time": 0.938
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.162,
+          "total_time": 0.609
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.247,
+          "total_time": 0.366
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.105,
+          "total_time": 0.105
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 58552.186,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39a3cc2d85deba3aa502bcc692d216ac8e41e7df8f529836e5ad35e451d1c788"
+    },
+    {
+      "elapsed_ms": 58555.531,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 61892.789,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2422.841,
+        "server_execution_ms": 2420.69,
+        "residual_http_ms": 2.151,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 62963.572,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 63884.347,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 908.14,
+        "server_execution_ms": 905.407,
+        "residual_http_ms": 2.733,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.044,
+          "total_time": 905.434
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.133,
+          "total_time": 905.389
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.41,
+          "total_time": 905.068
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 147.542,
+          "total_time": 703.661
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 612.272,
+          "total_time": 616.11
+        },
+        {
+          "calls": 5188,
+          "funcname": "noctua_academic_validate",
+          "self_time": 149.071,
+          "total_time": 388.717
+        },
+        {
+          "calls": 14513,
+          "funcname": "noctua_academic_shape",
+          "self_time": 205.874,
+          "total_time": 205.874
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 177.476,
+          "total_time": 178.457
+        },
+        {
+          "calls": 19640,
+          "funcname": "noctua_d_get",
+          "self_time": 90.923,
+          "total_time": 90.923
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 18.635,
+          "total_time": 48.431
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 43.309,
+          "total_time": 43.309
+        },
+        {
+          "calls": 5232,
+          "funcname": "noctua_academic_key",
+          "self_time": 28.422,
+          "total_time": 32.703
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.872,
+          "total_time": 32.055
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 30.755,
+          "total_time": 30.997
+        },
+        {
+          "calls": 15604,
+          "funcname": "noctua_academic_definition",
+          "self_time": 10.126,
+          "total_time": 10.126
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.004,
+          "total_time": 4.203
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 3.294,
+          "total_time": 3.294
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.757,
+          "total_time": 0.757
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.138,
+          "total_time": 0.487
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.273,
+          "total_time": 0.387
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.082,
+          "total_time": 0.082
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 64584.21,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39a3cc2d85deba3aa502bcc692d216ac8e41e7df8f529836e5ad35e451d1c788"
+    },
+    {
+      "elapsed_ms": 64588.362,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 67982.271,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2513.551,
+        "server_execution_ms": 2510.764,
+        "residual_http_ms": 2.787,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 69198.66,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 70271.566,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 1056.784,
+        "server_execution_ms": 1053.177,
+        "residual_http_ms": 3.607,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.045,
+          "total_time": 1053.206
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.261,
+          "total_time": 1053.16
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.531,
+          "total_time": 1052.767
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 171.353,
+          "total_time": 766.434
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 694.827,
+          "total_time": 699.863
+        },
+        {
+          "calls": 5188,
+          "funcname": "noctua_academic_validate",
+          "self_time": 169.106,
+          "total_time": 424.176
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 263.122,
+          "total_time": 264.571
+        },
+        {
+          "calls": 14513,
+          "funcname": "noctua_academic_shape",
+          "self_time": 218.301,
+          "total_time": 218.301
+        },
+        {
+          "calls": 19640,
+          "funcname": "noctua_d_get",
+          "self_time": 90.867,
+          "total_time": 90.867
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 18.5,
+          "total_time": 48.851
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 44.999,
+          "total_time": 44.999
+        },
+        {
+          "calls": 5232,
+          "funcname": "noctua_academic_key",
+          "self_time": 30.841,
+          "total_time": 35.974
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.748,
+          "total_time": 32.564
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 31.138,
+          "total_time": 31.544
+        },
+        {
+          "calls": 15604,
+          "funcname": "noctua_academic_definition",
+          "self_time": 11.417,
+          "total_time": 11.417
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.313,
+          "total_time": 5.361
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.146,
+          "total_time": 4.146
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 1.011,
+          "total_time": 1.011
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.152,
+          "total_time": 0.591
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.3,
+          "total_time": 0.417
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.091,
+          "total_time": 0.091
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 70942.924,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "522eaccb2a1bab17359b94aec47c652dd89b264d9d048b82b6d90679e97c52b0"
+    },
+    {
+      "elapsed_ms": 70947.164,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 74390.843,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2564.386,
+        "server_execution_ms": 2561.763,
+        "residual_http_ms": 2.623,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 75621.295,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 79636.13,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 3999.012,
+        "server_execution_ms": 3994.261,
+        "residual_http_ms": 4.751,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.091,
+          "total_time": 3994.297
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.135,
+          "total_time": 3994.206
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.987,
+          "total_time": 3993.899
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1714.562,
+          "total_time": 2822.541
+        },
+        {
+          "calls": 19640,
+          "funcname": "noctua_d_get",
+          "self_time": 1462.087,
+          "total_time": 1462.087
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 9.123,
+          "total_time": 990.27
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 698.821,
+          "total_time": 703.996
+        },
+        {
+          "calls": 5188,
+          "funcname": "noctua_academic_validate",
+          "self_time": 198.003,
+          "total_time": 477.588
+        },
+        {
+          "calls": 14513,
+          "funcname": "noctua_academic_shape",
+          "self_time": 234.764,
+          "total_time": 234.764
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 223.965,
+          "total_time": 225.67
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 80.477,
+          "total_time": 80.477
+        },
+        {
+          "calls": 5232,
+          "funcname": "noctua_academic_key",
+          "self_time": 34.943,
+          "total_time": 42.918
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 1.094,
+          "total_time": 17.925
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 16.348,
+          "total_time": 16.631
+        },
+        {
+          "calls": 15604,
+          "funcname": "noctua_academic_definition",
+          "self_time": 15.835,
+          "total_time": 15.835
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.444,
+          "total_time": 5.56
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.211,
+          "total_time": 4.211
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.793,
+          "total_time": 0.793
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.139,
+          "total_time": 0.532
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.293,
+          "total_time": 0.418
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.12,
+          "total_time": 0.12
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 80384.338,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "522eaccb2a1bab17359b94aec47c652dd89b264d9d048b82b6d90679e97c52b0"
+    },
+    {
+      "elapsed_ms": 80388.211,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 83838.505,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2575.697,
+        "server_execution_ms": 2573.241,
+        "residual_http_ms": 2.456,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 84555.455,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 88198.048,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 3628.708,
+        "server_execution_ms": 3625.244,
+        "residual_http_ms": 3.464,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.093,
+          "total_time": 3625.291
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.169,
+          "total_time": 3625.198
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 2.163,
+          "total_time": 3624.883
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1595.642,
+          "total_time": 2622.477
+        },
+        {
+          "calls": 19640,
+          "funcname": "noctua_d_get",
+          "self_time": 1319.74,
+          "total_time": 1319.74
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 9.411,
+          "total_time": 855.921
+        },
+        {
+          "calls": 5188,
+          "funcname": "noctua_academic_validate",
+          "self_time": 195.665,
+          "total_time": 473.68
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 259.68,
+          "total_time": 263.239
+        },
+        {
+          "calls": 14513,
+          "funcname": "noctua_academic_shape",
+          "self_time": 235.331,
+          "total_time": 235.331
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 179.61,
+          "total_time": 180.711
+        },
+        {
+          "calls": 5232,
+          "funcname": "noctua_academic_key",
+          "self_time": 35.021,
+          "total_time": 39.829
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 21.863,
+          "total_time": 21.863
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.672,
+          "total_time": 16.886
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 15.793,
+          "total_time": 16.03
+        },
+        {
+          "calls": 15604,
+          "funcname": "noctua_academic_definition",
+          "self_time": 13.397,
+          "total_time": 13.397
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.016,
+          "total_time": 3.885
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 2.962,
+          "total_time": 2.962
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.681,
+          "total_time": 0.681
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.133,
+          "total_time": 0.471
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.264,
+          "total_time": 0.388
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.075,
+          "total_time": 0.075
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 88883.753,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39a3cc2d85deba3aa502bcc692d216ac8e41e7df8f529836e5ad35e451d1c788"
+    },
+    {
+      "elapsed_ms": 88888.112,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 92308.732,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 2559.211,
+        "server_execution_ms": 2555.499,
+        "residual_http_ms": 3.712,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 93007.264,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 93890.827,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 871.143,
+        "server_execution_ms": 868.501,
+        "residual_http_ms": 2.642,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.04,
+          "total_time": 868.526
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.208,
+          "total_time": 868.486
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.382,
+          "total_time": 868.147
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 139.89,
+          "total_time": 683.22
+        },
+        {
+          "calls": 5188,
+          "funcname": "noctua_academic_validate",
+          "self_time": 148.464,
+          "total_time": 388.206
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 256.901,
+          "total_time": 260.221
+        },
+        {
+          "calls": 14513,
+          "funcname": "noctua_academic_shape",
+          "self_time": 203.528,
+          "total_time": 203.528
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 173.675,
+          "total_time": 174.758
+        },
+        {
+          "calls": 19640,
+          "funcname": "noctua_d_get",
+          "self_time": 85.185,
+          "total_time": 85.185
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 18.427,
+          "total_time": 46.682
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 40.803,
+          "total_time": 40.803
+        },
+        {
+          "calls": 5232,
+          "funcname": "noctua_academic_key",
+          "self_time": 31.165,
+          "total_time": 35.212
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.671,
+          "total_time": 15.865
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 14.774,
+          "total_time": 15.011
+        },
+        {
+          "calls": 15604,
+          "funcname": "noctua_academic_definition",
+          "self_time": 9.671,
+          "total_time": 9.671
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.841,
+          "total_time": 3.627
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 2.882,
+          "total_time": 2.882
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.659,
+          "total_time": 0.659
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.133,
+          "total_time": 0.526
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.341,
+          "total_time": 0.459
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.081,
+          "total_time": 0.081
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 94528.372,
+      "mode": "http",
+      "label": "5171-records",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "39a3cc2d85deba3aa502bcc692d216ac8e41e7df8f529836e5ad35e451d1c788"
+    },
+    {
+      "elapsed_ms": 94532.442,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 95480.982,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 102327.045,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 6830.888,
+        "server_execution_ms": 6827.514,
+        "residual_http_ms": 3.374,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.046,
+          "total_time": 6827.545
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 18.741,
+          "total_time": 6827.499
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 41.487,
+          "total_time": 6808.613
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1742.931,
+          "total_time": 3902.364
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 2263.644,
+          "total_time": 2288.679
+        },
+        {
+          "calls": 19098,
+          "funcname": "noctua_academic_validate",
+          "self_time": 588.617,
+          "total_time": 1509.918
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 710.18,
+          "total_time": 1353.45
+        },
+        {
+          "calls": 62401,
+          "funcname": "noctua_academic_shape",
+          "self_time": 926.581,
+          "total_time": 926.581
+        },
+        {
+          "calls": 19383,
+          "funcname": "noctua_d_get",
+          "self_time": 487.661,
+          "total_time": 487.661
+        },
+        {
+          "calls": 26,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 110.84,
+          "total_time": 401.677
+        },
+        {
+          "calls": 19764,
+          "funcname": "noctua_academic_key",
+          "self_time": 130.027,
+          "total_time": 149.533
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 139.132,
+          "total_time": 139.48
+        },
+        {
+          "calls": 49536,
+          "funcname": "noctua_academic_definition",
+          "self_time": 40.411,
+          "total_time": 40.411
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 24.986,
+          "total_time": 24.986
+        },
+        {
+          "calls": 27,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.607,
+          "total_time": 2.589
+        },
+        {
+          "calls": 29,
+          "funcname": "noctua_sync_principal",
+          "self_time": 2.115,
+          "total_time": 2.115
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.749,
+          "total_time": 0.749
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.372,
+          "total_time": 0.372
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.084,
+          "total_time": 0.084
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 103477.065,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "8e30dfca796bb725e226b4a011ed5697dc90aacd53e7408a30d1842f67dc6984"
+    },
+    {
+      "elapsed_ms": 103481.477,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 104513.273,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 109416.278,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4889.03,
+        "server_execution_ms": 4885.967,
+        "residual_http_ms": 3.063,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.041,
+          "total_time": 4885.993
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 19.764,
+          "total_time": 4885.951
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 45.291,
+          "total_time": 4866.066
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 2346.133,
+          "total_time": 2372.44
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 164.918,
+          "total_time": 1926.69
+        },
+        {
+          "calls": 21018,
+          "funcname": "noctua_academic_validate",
+          "self_time": 608.832,
+          "total_time": 1622.402
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 690.096,
+          "total_time": 1306.232
+        },
+        {
+          "calls": 69039,
+          "funcname": "noctua_academic_shape",
+          "self_time": 1033.213,
+          "total_time": 1033.213
+        },
+        {
+          "calls": 41,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 153.78,
+          "total_time": 643.377
+        },
+        {
+          "calls": 21684,
+          "funcname": "noctua_academic_key",
+          "self_time": 144.601,
+          "total_time": 165.117
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 158.969,
+          "total_time": 159.264
+        },
+        {
+          "calls": 19383,
+          "funcname": "noctua_d_get",
+          "self_time": 90.238,
+          "total_time": 90.238
+        },
+        {
+          "calls": 53376,
+          "funcname": "noctua_academic_definition",
+          "self_time": 41.33,
+          "total_time": 41.33
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 25.998,
+          "total_time": 25.998
+        },
+        {
+          "calls": 43,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.564,
+          "total_time": 4.943
+        },
+        {
+          "calls": 73,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.635,
+          "total_time": 4.635
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.231,
+          "total_time": 1.655
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_activate_academic",
+          "self_time": 1.171,
+          "total_time": 1.498
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_academic_status",
+          "self_time": 0.889,
+          "total_time": 1.143
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.798,
+          "total_time": 1.063
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.77,
+          "total_time": 0.977
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.7,
+          "total_time": 0.7
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.373,
+          "total_time": 0.614
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.255,
+          "total_time": 0.489
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.472,
+          "total_time": 0.472
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.089,
+          "total_time": 0.089
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 110483.931,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "8e30dfca796bb725e226b4a011ed5697dc90aacd53e7408a30d1842f67dc6984"
+    },
+    {
+      "elapsed_ms": 110489.066,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 111450.321,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 115997.835,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4530.674,
+        "server_execution_ms": 4527.505,
+        "residual_http_ms": 3.169,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.044,
+          "total_time": 4527.531
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 19.766,
+          "total_time": 4527.486
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 40.728,
+          "total_time": 4507.521
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 2084.811,
+          "total_time": 2100.345
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 146.112,
+          "total_time": 1701.196
+        },
+        {
+          "calls": 21018,
+          "funcname": "noctua_academic_validate",
+          "self_time": 561.749,
+          "total_time": 1510.674
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 745.887,
+          "total_time": 1340.833
+        },
+        {
+          "calls": 69039,
+          "funcname": "noctua_academic_shape",
+          "self_time": 978.576,
+          "total_time": 978.576
+        },
+        {
+          "calls": 41,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 152.88,
+          "total_time": 615.221
+        },
+        {
+          "calls": 21684,
+          "funcname": "noctua_academic_key",
+          "self_time": 126.543,
+          "total_time": 144.51
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 136.925,
+          "total_time": 137.319
+        },
+        {
+          "calls": 19383,
+          "funcname": "noctua_d_get",
+          "self_time": 82.608,
+          "total_time": 82.608
+        },
+        {
+          "calls": 53376,
+          "funcname": "noctua_academic_definition",
+          "self_time": 37.569,
+          "total_time": 37.569
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 22.756,
+          "total_time": 22.756
+        },
+        {
+          "calls": 43,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.369,
+          "total_time": 4.633
+        },
+        {
+          "calls": 73,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.493,
+          "total_time": 4.493
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.233,
+          "total_time": 1.654
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 1.155,
+          "total_time": 1.43
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_academic_status",
+          "self_time": 0.962,
+          "total_time": 1.227
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_activate_academic",
+          "self_time": 0.691,
+          "total_time": 1.084
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.802,
+          "total_time": 0.802
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.471,
+          "total_time": 0.731
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.259,
+          "total_time": 0.495
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.223,
+          "total_time": 0.463
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.383,
+          "total_time": 0.383
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.108,
+          "total_time": 0.108
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 117113.673,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "8e30dfca796bb725e226b4a011ed5697dc90aacd53e7408a30d1842f67dc6984"
+    },
+    {
+      "elapsed_ms": 117118.226,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 118147.668,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 124813.111,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 6646.437,
+        "server_execution_ms": 6643.272,
+        "residual_http_ms": 3.165,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.044,
+          "total_time": 6643.299
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 18.58,
+          "total_time": 6643.255
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 43.012,
+          "total_time": 6624.547
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1696.8,
+          "total_time": 3798.914
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 2155.759,
+          "total_time": 2174.97
+        },
+        {
+          "calls": 21018,
+          "funcname": "noctua_academic_validate",
+          "self_time": 645.79,
+          "total_time": 1689.108
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 670.881,
+          "total_time": 1298.304
+        },
+        {
+          "calls": 69039,
+          "funcname": "noctua_academic_shape",
+          "self_time": 1064.267,
+          "total_time": 1064.267
+        },
+        {
+          "calls": 41,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 159.029,
+          "total_time": 663.412
+        },
+        {
+          "calls": 19383,
+          "funcname": "noctua_d_get",
+          "self_time": 494.123,
+          "total_time": 494.123
+        },
+        {
+          "calls": 21684,
+          "funcname": "noctua_academic_key",
+          "self_time": 144.915,
+          "total_time": 165.615
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 139.363,
+          "total_time": 139.71
+        },
+        {
+          "calls": 53376,
+          "funcname": "noctua_academic_definition",
+          "self_time": 42.869,
+          "total_time": 42.869
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 25.136,
+          "total_time": 25.136
+        },
+        {
+          "calls": 43,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.389,
+          "total_time": 4.96
+        },
+        {
+          "calls": 73,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.925,
+          "total_time": 4.925
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.268,
+          "total_time": 1.832
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_academic_status",
+          "self_time": 1.024,
+          "total_time": 1.261
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_activate_academic",
+          "self_time": 0.729,
+          "total_time": 1.036
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.748,
+          "total_time": 0.921
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.803,
+          "total_time": 0.803
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.412,
+          "total_time": 0.75
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.22,
+          "total_time": 0.52
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.219,
+          "total_time": 0.501
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.282,
+          "total_time": 0.282
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.083,
+          "total_time": 0.083
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 125912.949,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "8e30dfca796bb725e226b4a011ed5697dc90aacd53e7408a30d1842f67dc6984"
+    },
+    {
+      "elapsed_ms": 125917.39,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 126922.268,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 133467.773,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 6529.637,
+        "server_execution_ms": 6526.373,
+        "residual_http_ms": 3.264,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.04,
+          "total_time": 6526.397
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 21.985,
+          "total_time": 6526.356
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 49.419,
+          "total_time": 6504.222
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1582.462,
+          "total_time": 3675.882
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 2178.676,
+          "total_time": 2197.475
+        },
+        {
+          "calls": 21018,
+          "funcname": "noctua_academic_validate",
+          "self_time": 625.587,
+          "total_time": 1653.562
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 707.188,
+          "total_time": 1309.526
+        },
+        {
+          "calls": 69039,
+          "funcname": "noctua_academic_shape",
+          "self_time": 1048.82,
+          "total_time": 1048.82
+        },
+        {
+          "calls": 41,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 154.955,
+          "total_time": 647.941
+        },
+        {
+          "calls": 19383,
+          "funcname": "noctua_d_get",
+          "self_time": 451.272,
+          "total_time": 451.272
+        },
+        {
+          "calls": 21684,
+          "funcname": "noctua_academic_key",
+          "self_time": 136.313,
+          "total_time": 156.061
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 147.408,
+          "total_time": 147.829
+        },
+        {
+          "calls": 53376,
+          "funcname": "noctua_academic_definition",
+          "self_time": 41.856,
+          "total_time": 41.856
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 22.236,
+          "total_time": 22.236
+        },
+        {
+          "calls": 73,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.966,
+          "total_time": 4.966
+        },
+        {
+          "calls": 43,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.4,
+          "total_time": 4.391
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.248,
+          "total_time": 1.949
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_academic_status",
+          "self_time": 1.184,
+          "total_time": 1.441
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_activate_academic",
+          "self_time": 1.031,
+          "total_time": 1.416
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.692,
+          "total_time": 0.878
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.799,
+          "total_time": 0.799
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.529,
+          "total_time": 0.798
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.288,
+          "total_time": 0.547
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.255,
+          "total_time": 0.515
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 0.22,
+          "total_time": 0.22
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.081,
+          "total_time": 0.081
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 134539.903,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "bootstrap",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "8e30dfca796bb725e226b4a011ed5697dc90aacd53e7408a30d1842f67dc6984"
+    },
+    {
+      "elapsed_ms": 134544.68,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 135522.205,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171
+    },
+    {
+      "elapsed_ms": 143542.347,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "parts": 41,
+      "changes": 5171,
+      "measurement": {
+        "outcome": "57014-atomic-rollback",
+        "wall_ms": 8005.599,
+        "server_execution_ms": null
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 6625.337,
+          "total_time": 7201.413
+        },
+        {
+          "calls": 15513,
+          "funcname": "noctua_academic_validate",
+          "self_time": 403.536,
+          "total_time": 1093.695
+        },
+        {
+          "calls": 53737,
+          "funcname": "noctua_academic_shape",
+          "self_time": 750.526,
+          "total_time": 750.526
+        },
+        {
+          "calls": 41,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 153.033,
+          "total_time": 630.821
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 137.695,
+          "total_time": 138.247
+        },
+        {
+          "calls": 15635,
+          "funcname": "noctua_academic_key",
+          "self_time": 85.425,
+          "total_time": 98.069
+        },
+        {
+          "calls": 36319,
+          "funcname": "noctua_academic_definition",
+          "self_time": 30.805,
+          "total_time": 30.805
+        },
+        {
+          "calls": 43,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.321,
+          "total_time": 4.76
+        },
+        {
+          "calls": 73,
+          "funcname": "noctua_sync_principal",
+          "self_time": 4.668,
+          "total_time": 4.668
+        },
+        {
+          "calls": 8,
+          "funcname": "noctua_academic_status_c",
+          "self_time": 0.224,
+          "total_time": 1.496
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_activate_academic",
+          "self_time": 0.848,
+          "total_time": 1.206
+        },
+        {
+          "calls": 12,
+          "funcname": "noctua_academic_status",
+          "self_time": 0.789,
+          "total_time": 1.064
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.649,
+          "total_time": 0.813
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_c",
+          "self_time": 0.414,
+          "total_time": 0.67
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.551,
+          "total_time": 0.551
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_d",
+          "self_time": 0.23,
+          "total_time": 0.462
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_enable_academic_e",
+          "self_time": 0.214,
+          "total_time": 0.442
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_projection",
+          "self_time": 0.268,
+          "total_time": 0.268
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 143682.068,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "rollback-verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "bootstrap",
+      "rollback_verified": true,
+      "capacity_blocked": true
+    },
+    {
+      "elapsed_ms": 143687.602,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 149178.604,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4657.554,
+        "server_execution_ms": 4654.91,
+        "residual_http_ms": 2.644,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 150053.203,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 157306.096,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 7236.993,
+        "server_execution_ms": 7233.973,
+        "residual_http_ms": 3.02,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.065,
+          "total_time": 7233.999
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.131,
+          "total_time": 7233.933
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 2.101,
+          "total_time": 7233.606
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1645.879,
+          "total_time": 3709.696
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 3273.659,
+          "total_time": 3303.876
+        },
+        {
+          "calls": 20920,
+          "funcname": "noctua_d_get",
+          "self_time": 1751.08,
+          "total_time": 1751.08
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 18.498,
+          "total_time": 1318.699
+        },
+        {
+          "calls": 5508,
+          "funcname": "noctua_academic_validate",
+          "self_time": 192.056,
+          "total_time": 462.821
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 293.483,
+          "total_time": 297.823
+        },
+        {
+          "calls": 15313,
+          "funcname": "noctua_academic_shape",
+          "self_time": 229.602,
+          "total_time": 229.602
+        },
+        {
+          "calls": 6832,
+          "funcname": "noctua_academic_key",
+          "self_time": 62.157,
+          "total_time": 72.233
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 24.376,
+          "total_time": 24.376
+        },
+        {
+          "calls": 17844,
+          "funcname": "noctua_academic_definition",
+          "self_time": 18.055,
+          "total_time": 18.055
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.709,
+          "total_time": 16.082
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 14.869,
+          "total_time": 15.183
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.159,
+          "total_time": 4.723
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 3.661,
+          "total_time": 3.661
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.738,
+          "total_time": 0.738
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.171,
+          "total_time": 0.6
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.254,
+          "total_time": 0.376
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.088,
+          "total_time": 0.088
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 158051.293,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "before",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "76f2f27c66e7380388db3ba2fff7c828a7cf6303e06aaf31eeafeebf80711eaa"
+    },
+    {
+      "elapsed_ms": 158056.315,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 163395.551,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4474.648,
+        "server_execution_ms": 4470.574,
+        "residual_http_ms": 4.074,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 164283.091,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 168277.596,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 3977.184,
+        "server_execution_ms": 3973.546,
+        "residual_http_ms": 3.638,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.051,
+          "total_time": 3973.579
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.182,
+          "total_time": 3973.528
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 2.016,
+          "total_time": 3973.218
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 3209.91,
+          "total_time": 3237.535
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 144.974,
+          "total_time": 1702.425
+        },
+        {
+          "calls": 5508,
+          "funcname": "noctua_academic_validate",
+          "self_time": 152.572,
+          "total_time": 399.187
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 309.185,
+          "total_time": 313.112
+        },
+        {
+          "calls": 15313,
+          "funcname": "noctua_academic_shape",
+          "self_time": 211.275,
+          "total_time": 211.275
+        },
+        {
+          "calls": 20920,
+          "funcname": "noctua_d_get",
+          "self_time": 93.726,
+          "total_time": 93.726
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 27.022,
+          "total_time": 62.872
+        },
+        {
+          "calls": 6832,
+          "funcname": "noctua_academic_key",
+          "self_time": 53.258,
+          "total_time": 62.403
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 47.656,
+          "total_time": 47.656
+        },
+        {
+          "calls": 17844,
+          "funcname": "noctua_academic_definition",
+          "self_time": 15.552,
+          "total_time": 15.552
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.622,
+          "total_time": 15.378
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 14.28,
+          "total_time": 14.545
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.036,
+          "total_time": 4.323
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 3.382,
+          "total_time": 3.382
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.271,
+          "total_time": 0.975
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.698,
+          "total_time": 0.698
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.329,
+          "total_time": 0.45
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.111,
+          "total_time": 0.111
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 168922.544,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 1,
+      "variant": "after",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "76f2f27c66e7380388db3ba2fff7c828a7cf6303e06aaf31eeafeebf80711eaa"
+    },
+    {
+      "elapsed_ms": 168927.743,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 175203.918,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 5372.568,
+        "server_execution_ms": 5369.266,
+        "residual_http_ms": 3.302,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 175904.842,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 180011.101,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4090.029,
+        "server_execution_ms": 4086.55,
+        "residual_http_ms": 3.479,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.074,
+          "total_time": 4086.607
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.406,
+          "total_time": 4086.533
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.844,
+          "total_time": 4085.985
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 3283.217,
+          "total_time": 3309.864
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 156.948,
+          "total_time": 1730.628
+        },
+        {
+          "calls": 5508,
+          "funcname": "noctua_academic_validate",
+          "self_time": 162.566,
+          "total_time": 422.416
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 256.579,
+          "total_time": 259.679
+        },
+        {
+          "calls": 15313,
+          "funcname": "noctua_academic_shape",
+          "self_time": 221.109,
+          "total_time": 221.109
+        },
+        {
+          "calls": 20920,
+          "funcname": "noctua_d_get",
+          "self_time": 96.716,
+          "total_time": 96.716
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 26.589,
+          "total_time": 63.172
+        },
+        {
+          "calls": 6832,
+          "funcname": "noctua_academic_key",
+          "self_time": 54.522,
+          "total_time": 63.097
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 48.311,
+          "total_time": 48.311
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.911,
+          "total_time": 17.124
+        },
+        {
+          "calls": 17844,
+          "funcname": "noctua_academic_definition",
+          "self_time": 16.927,
+          "total_time": 16.927
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 15.573,
+          "total_time": 15.846
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.839,
+          "total_time": 3.422
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 2.843,
+          "total_time": 2.843
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.739,
+          "total_time": 0.739
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.169,
+          "total_time": 0.579
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.208,
+          "total_time": 0.321
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.087,
+          "total_time": 0.087
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 180671.57,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "after",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d25d5f686d6b84aecaa9320441dbf88304b057b7e023c7f116fb42c3438f16a7"
+    },
+    {
+      "elapsed_ms": 180676.801,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 186075.276,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4585.492,
+        "server_execution_ms": 4582.988,
+        "residual_http_ms": 2.504,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 186873.898,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 194451.152,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 7561.637,
+        "server_execution_ms": 7558.783,
+        "residual_http_ms": 2.854,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.075,
+          "total_time": 7558.842
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.13,
+          "total_time": 7558.766
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.886,
+          "total_time": 7558.479
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1743.389,
+          "total_time": 3854.211
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 3450.83,
+          "total_time": 3484.455
+        },
+        {
+          "calls": 20920,
+          "funcname": "noctua_d_get",
+          "self_time": 1772.998,
+          "total_time": 1772.998
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 16.426,
+          "total_time": 1305.309
+        },
+        {
+          "calls": 5508,
+          "funcname": "noctua_academic_validate",
+          "self_time": 203.376,
+          "total_time": 491.296
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 313.357,
+          "total_time": 317.356
+        },
+        {
+          "calls": 15313,
+          "funcname": "noctua_academic_shape",
+          "self_time": 239.225,
+          "total_time": 239.225
+        },
+        {
+          "calls": 6832,
+          "funcname": "noctua_academic_key",
+          "self_time": 71.552,
+          "total_time": 82.675
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 23.153,
+          "total_time": 23.153
+        },
+        {
+          "calls": 17844,
+          "funcname": "noctua_academic_definition",
+          "self_time": 19.327,
+          "total_time": 19.327
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.813,
+          "total_time": 16.318
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 14.91,
+          "total_time": 15.228
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.116,
+          "total_time": 4.362
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 3.418,
+          "total_time": 3.418
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.745,
+          "total_time": 0.745
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.144,
+          "total_time": 0.669
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.246,
+          "total_time": 0.383
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.127,
+          "total_time": 0.127
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 195211.46,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 2,
+      "variant": "before",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "d25d5f686d6b84aecaa9320441dbf88304b057b7e023c7f116fb42c3438f16a7"
+    },
+    {
+      "elapsed_ms": 195218.082,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 200877.81,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4734.131,
+        "server_execution_ms": 4731.433,
+        "residual_http_ms": 2.698,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 201604.014,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 208697.083,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 7076.105,
+        "server_execution_ms": 7073.179,
+        "residual_http_ms": 2.926,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.043,
+          "total_time": 7073.205
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.133,
+          "total_time": 7073.161
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.816,
+          "total_time": 7072.899
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 1607.247,
+          "total_time": 3582.259
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 3182.624,
+          "total_time": 3208.21
+        },
+        {
+          "calls": 20920,
+          "funcname": "noctua_d_get",
+          "self_time": 1743.92,
+          "total_time": 1743.92
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 19.234,
+          "total_time": 1326.951
+        },
+        {
+          "calls": 5508,
+          "funcname": "noctua_academic_validate",
+          "self_time": 183.262,
+          "total_time": 444.812
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 259.212,
+          "total_time": 262.528
+        },
+        {
+          "calls": 15313,
+          "funcname": "noctua_academic_shape",
+          "self_time": 221.872,
+          "total_time": 221.872
+        },
+        {
+          "calls": 6832,
+          "funcname": "noctua_academic_key",
+          "self_time": 56.37,
+          "total_time": 66.138
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_index",
+          "self_time": 22.951,
+          "total_time": 22.951
+        },
+        {
+          "calls": 17844,
+          "funcname": "noctua_academic_definition",
+          "self_time": 17.205,
+          "total_time": 17.205
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.781,
+          "total_time": 16.244
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 15.024,
+          "total_time": 15.268
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 0.915,
+          "total_time": 3.623
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 2.801,
+          "total_time": 2.801
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.663,
+          "total_time": 0.663
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.138,
+          "total_time": 0.488
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.221,
+          "total_time": 0.339
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.12,
+          "total_time": 0.12
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 209508.049,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "before",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "76f2f27c66e7380388db3ba2fff7c828a7cf6303e06aaf31eeafeebf80711eaa"
+    },
+    {
+      "elapsed_ms": 209514.105,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "prepare",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "budget": "8s"
+    },
+    {
+      "elapsed_ms": 215192.832,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "seed-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 41,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4830.332,
+        "server_execution_ms": 4826.533,
+        "residual_http_ms": 3.799,
+        "residual_includes_serialization_commit_network_client": true
+      }
+    },
+    {
+      "elapsed_ms": 215924.26,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-start",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1
+    },
+    {
+      "elapsed_ms": 220385.285,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "commit-result",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "parts": 1,
+      "changes": 1,
+      "measurement": {
+        "outcome": "accepted",
+        "wall_ms": 4444.553,
+        "server_execution_ms": 4441.072,
+        "residual_http_ms": 3.481,
+        "residual_includes_serialization_commit_network_client": true
+      },
+      "profile": [
+        {
+          "calls": 1,
+          "funcname": "noctua_h13_commit_probe",
+          "self_time": 0.044,
+          "total_time": 4441.099
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_commit_academic_e",
+          "self_time": 0.127,
+          "total_time": 4441.055
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_guarded_write",
+          "self_time": 1.963,
+          "total_time": 4440.799
+        },
+        {
+          "calls": 3,
+          "funcname": "noctua_d_projection",
+          "self_time": 3628.842,
+          "total_time": 3670.763
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_graph",
+          "self_time": 153.667,
+          "total_time": 1914.285
+        },
+        {
+          "calls": 5508,
+          "funcname": "noctua_academic_validate",
+          "self_time": 155.767,
+          "total_time": 408.38
+        },
+        {
+          "calls": 42,
+          "funcname": "noctua_pull_academic_e",
+          "self_time": 264.305,
+          "total_time": 267.855
+        },
+        {
+          "calls": 15313,
+          "funcname": "noctua_academic_shape",
+          "self_time": 214.841,
+          "total_time": 214.841
+        },
+        {
+          "calls": 20920,
+          "funcname": "noctua_d_get",
+          "self_time": 98.954,
+          "total_time": 98.954
+        },
+        {
+          "calls": 6832,
+          "funcname": "noctua_academic_key",
+          "self_time": 69.129,
+          "total_time": 80.693
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_d_history_guard",
+          "self_time": 29.393,
+          "total_time": 69.163
+        },
+        {
+          "calls": 2,
+          "funcname": "noctua_d_index",
+          "self_time": 51.145,
+          "total_time": 51.145
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_e_write",
+          "self_time": 0.817,
+          "total_time": 19.04
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_academic_graph",
+          "self_time": 17.713,
+          "total_time": 18.033
+        },
+        {
+          "calls": 17844,
+          "funcname": "noctua_academic_definition",
+          "self_time": 17.829,
+          "total_time": 17.829
+        },
+        {
+          "calls": 45,
+          "funcname": "noctua_e_principal",
+          "self_time": 1.061,
+          "total_time": 3.945
+        },
+        {
+          "calls": 47,
+          "funcname": "noctua_sync_principal",
+          "self_time": 2.98,
+          "total_time": 2.98
+        },
+        {
+          "calls": 5,
+          "funcname": "noctua_validate_class",
+          "self_time": 0.796,
+          "total_time": 0.796
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_stage_academic_e",
+          "self_time": 0.145,
+          "total_time": 0.589
+        },
+        {
+          "calls": 1,
+          "funcname": "noctua_begin_academic_e",
+          "self_time": 0.287,
+          "total_time": 0.407
+        },
+        {
+          "calls": 4,
+          "funcname": "noctua_d_subject",
+          "self_time": 0.136,
+          "total_time": 0.136
+        }
+      ],
+      "profile_partial": true
+    },
+    {
+      "elapsed_ms": 221094.426,
+      "mode": "http",
+      "label": "5171-extended-history",
+      "stage": "verified",
+      "records": 5171,
+      "trial": 3,
+      "variant": "after",
+      "case": "single-grade",
+      "integrity_equal": true,
+      "replay_equal": true,
+      "hash": "76f2f27c66e7380388db3ba2fff7c828a7cf6303e06aaf31eeafeebf80711eaa"
+    },
+    {
+      "elapsed_ms": 221101.001,
+      "stage": "measurements-completed",
+      "capacity_blocked": true
+    },
+    {
+      "elapsed_ms": 221106.571,
+      "stage": "cleanup-start"
+    },
+    {
+      "elapsed_ms": 221252.547,
+      "stage": "cleanup-verified",
+      "completed": true
+    }
+  ]
+}

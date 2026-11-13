@@ -1,5 +1,5 @@
--- H13.2: same integral validation; indexed historical lookups and equivalent private getter.
--- Apply only after E4 and H13, following administrative review. No hosted execution by tests.
+-- H13.2 RESEARCH ONLY: rejected for integration by the 8s performance gate.
+-- Not a migration. Never apply to Supabase. Used only by whitelisted disposable tests.
 BEGIN;
 DO $$ BEGIN
  IF to_regprocedure('public.noctua_d_index(jsonb)') IS NULL OR
