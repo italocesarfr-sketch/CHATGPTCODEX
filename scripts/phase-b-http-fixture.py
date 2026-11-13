@@ -11,6 +11,7 @@ f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611020003
 f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611030001_phase_e_paging.sql").read_text())
 f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611030002_phase_e_decisions.sql").read_text())
 f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611030003_phase_e_indexed_graph.sql").read_text())
+f.execute((Path(__file__).resolve().parents[1]/"supabase/migrations/202611130001_h13_registry_cache.sql").read_text())
 SECRET='noctua-phase-b-disposable-jwt-secret-2026-only'
 SID_A='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';SID_A2='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';SID_B='cccccccc-cccc-4ccc-8ccc-cccccccccccc'
 f.execute(f"INSERT INTO auth.sessions VALUES('{SID_A}','{f.A}',NULL),('{SID_A2}','{f.A}',NULL),('{SID_B}','{f.B}',NULL);")

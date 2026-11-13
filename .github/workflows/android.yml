@@ -89,6 +89,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/homologacao.yml
     secrets: inherit
+  h13-performance:
+    name: H13 — benchmark SQL/HTTP/Room descartável
+    if: github.event_name != 'workflow_dispatch' || (inputs.homologacao_only != true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true)
+    uses: ./.github/workflows/h13-performance.yml
   sync-postgres:
     if: github.event_name != 'workflow_dispatch' || (inputs.homologacao_only != true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true)
     name: Sincronização — PostgreSQL, RLS e concorrência (dados fictícios)

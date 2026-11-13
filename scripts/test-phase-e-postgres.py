@@ -7,7 +7,9 @@ spec=importlib.util.spec_from_file_location('phased',Path(__file__).with_name('t
 d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)
 b=d.b;f=d.f;execute=d.execute;A=d.A;B=d.B;literal=d.literal
 MIGRATION=f.ROOT/'supabase/migrations/202611030001_phase_e_paging.sql';execute(MIGRATION.read_text())
+execute((f.ROOT/"supabase/migrations/202611030002_phase_e_decisions.sql").read_text())
 execute((f.ROOT/"supabase/migrations/202611030003_phase_e_indexed_graph.sql").read_text())
+execute((f.ROOT/"supabase/migrations/202611130001_h13_registry_cache.sql").read_text())
 def enable(owner=A,seq=None):
  s=d.status(owner);return json.loads(execute(f"SELECT public.noctua_enable_academic_e({s['academicSequence'] if seq is None else seq});",owner))
 def begin(rows,owner=A,op=None):

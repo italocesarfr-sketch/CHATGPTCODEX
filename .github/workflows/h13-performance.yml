@@ -1,0 +1,92 @@
+name: NOcTuA — H13 desempenho somente descartável
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  performance:
+    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_e_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_e_test
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+      NOCTUA_H13_AVD_NAME: noctua_h13_${{ github.run_id }}_${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Regressão da migração aditiva, sem segredos/Environment
+        run: |
+          mkdir -p build/h13
+          python3 scripts/test-h13-postgres.py > build/h13/regression.txt 2>&1
+      - name: Cinco repetições SQL antes/depois e orçamento de 8s
+        run: python3 scripts/benchmark-h13.py --mode sql --repetitions 5 > build/h13/sql.json
+      - name: Edição incremental de uma nota em acervo de 5.171 registros
+        run: python3 scripts/benchmark-h13-delta.py > build/h13/delta.json
+      - name: Espera por lock, rollback e replay com a mesma operação
+        run: python3 scripts/benchmark-h13-locks.py > build/h13/locks.json
+      - name: PostgREST local, fixtures e cinco repetições HTTP
+        env:
+          PGDATABASE: noctua_phase_b_test
+        run: |
+          createdb noctua_phase_b_test
+          ./scripts/ci/start-phase-b-postgrest.sh > build/h13/backend.txt 2>&1
+          python3 scripts/benchmark-h13.py --mode http --repetitions 5 > build/h13/http.json
+      - name: APKs temporários de teste, sem assinatura permanente
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest > build/h13/build.txt 2>&1
+      - name: Aceleração do novo AVD
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: ${{ env.NOCTUA_H13_AVD_NAME }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
+          script: ./scripts/ci/benchmark-h13-android.sh
+      - name: Encerrar somente PostgREST descartável
+        if: always()
+        run: |
+          if [[ -f build/phaseb-postgrest/server.pid ]]; then kill "$(cat build/phaseb-postgrest/server.pid)" || true; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h13-desempenho-descartavel
+          path: |
+            build/h13/sql.json
+            build/h13/http.json
+            build/h13/delta.json
+            build/h13/locks.json
+            build/h13/android.json
+            build/h13/regression.txt
+          if-no-files-found: error
+          retention-days: 30

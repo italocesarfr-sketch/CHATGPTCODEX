@@ -17,8 +17,9 @@ try:
  if baseline:
   def definition(source,name):
    start=source.index('CREATE OR REPLACE FUNCTION public.'+name+'(')
-   return source[start:source.index('$$;',source.index('AS $$',start))+3]
+   return source[start:source.index('$definition$;',source.index('AS $definition$',start))+len('$definition$;')] if name=='noctua_academic_definition' else source[start:source.index('$$;',source.index('AS $$',start))+3]
   # Restore function bodies only on this disposable fixture, never old scope DDL.
+  f.execute(definition((f.f.ROOT/'supabase/migrations/202611010001_academic_protocol.sql').read_text(),'noctua_academic_definition'))
   f.execute(definition((f.f.ROOT/'supabase/migrations/202611020003_phase_d_scope.sql').read_text(),'noctua_d_graph'))
   f.execute(definition(f.MIGRATION.read_text(),'noctua_commit_academic_e'))
  def measure(rows, label):
@@ -57,7 +58,7 @@ try:
   assert f.execute("SELECT count(*) FROM public.noctua_academic_records WHERE owner_id='"+f.A+"';",f.B)=='0'
   storage=int(f.execute("SELECT sum(pg_total_relation_size(c.oid)) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND c.relname LIKE 'noctua_%';"))
   return dict(label=label,environment='local-disposable-postgresql-psql',graph_variant='baseline' if baseline else 'indexed',
-   records=len(rows),parts=len(parts),kinds=len({r['kind'] for r in rows}),staging_seconds=round(staging,3),
+   registry_variant='original' if baseline else 'h13-cached',records=len(rows),parts=len(parts),kinds=len({r['kind'] for r in rows}),staging_seconds=round(staging,3),
    first_commit_seconds=round(first,3),confirmed_replay_seconds=[round(t,3)for t in replays],
    pull_seconds=round(pull,3),pull_pages=pages,sequence=1,unchanged_receipt=True,
    recovered_payloads_equal=True,foreign_account_denied=True,
@@ -75,4 +76,5 @@ try:
   print(json.dumps(measure(f.large(),'5171-records'),indent=2))
 finally:
  f.execute((f.f.ROOT/'supabase/migrations/202611030003_phase_e_indexed_graph.sql').read_text())
+ f.execute((f.f.ROOT/'supabase/migrations/202611130001_h13_registry_cache.sql').read_text())
  f.b.reset()

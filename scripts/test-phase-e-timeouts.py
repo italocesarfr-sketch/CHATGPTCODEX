@@ -76,11 +76,8 @@ def exact_receipt(operation, rows, reply):
 def recover(operation, rows):
     reply, elapsed, db_ms = commit(operation)
     budget = '8s'
-    if reply is None:
-        # Local diagnosis only: prove the identical manifest can finish, without
-        # changing role/global/protocol configuration or claiming hosted 8s passed.
-        reply, elapsed, db_ms = commit(operation, '20s')
-        budget = '20s-local-diagnostic-only'
+    # H13 preserves the original 8s admission budget even during retry.
+    # A failure here is a capacity blocker; never extend the budget to turn it green.
     assert reply is not None
     replay = exact_receipt(operation, rows, reply)
     return dict(retry_budget=budget, retry_psql_wall_seconds=elapsed, retry_postgres_execution_ms=db_ms, replay=replay)
