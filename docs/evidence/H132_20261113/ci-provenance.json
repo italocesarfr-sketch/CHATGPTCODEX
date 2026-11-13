@@ -1,0 +1,68 @@
+{
+  "run": 43521139894,
+  "workflow": "h131-investigation.yml",
+  "input_suite": "H132",
+  "workflow_number": 3,
+  "source_commit": "47d91ab81902dd793c16c5354ffd461e6d588ff2",
+  "conclusion": "failure",
+  "job_id": 132215409950,
+  "artifact_id": 14084350579,
+  "artifact_zip_sha256": "32e8b20e718f5adbf3be7423db0d1a0e6651147c601de75a8fb596ee79385002",
+  "test_stage": {
+    "jvm": {
+      "cases": 298,
+      "passed": 293,
+      "skipped": 5,
+      "failed": 0
+    },
+    "differential_tests": 6,
+    "existing_regressions": 58,
+    "telemetry_tests": 3,
+    "network_passed": true
+  },
+  "performance": {
+    "measured_sql_confirmations": 42,
+    "sql_accepted": 41,
+    "sql_timed_out": 1,
+    "sql_confirmed_replays": 123,
+    "http_volume_executed": false,
+    "http_reason": "SQL admission exited 1; next step not executed",
+    "cleanup_verified": true
+  },
+  "failure": {
+    "label": "5171-extended-history",
+    "scenario": "bootstrap",
+    "trial": 3,
+    "variant": "after",
+    "records": 5171,
+    "parts": 41,
+    "measurement": {
+      "outcome": "57014-atomic-rollback",
+      "wall_ms": 8029.059,
+      "server_execution_ms": null
+    },
+    "rollback_verified": true,
+    "persisted_parts": 41,
+    "sql_context": [
+      "public.noctua_e_write(uuid,jsonb) line 50 at SQL statement",
+      "public.noctua_e_guarded_write(uuid,jsonb) line 17 at assignment",
+      "public.noctua_commit_academic_e(uuid) line 17 at RETURN"
+    ],
+    "statement": "DELETE FROM public.noctua_academic_links WHERE owner_id=principal AND child_kind=change->>kind AND child_key=change->key (static identifiers only; no parameter values)",
+    "diagnosis": "Cancellation occurred in existing E writer cleanup, before post-write D graph/history guard; exact wait/plan cause not proven",
+    "profile_is_partial": true
+  },
+  "candidate_admitted": false,
+  "full_android_regression_executed": false,
+  "full_postgres_regression_executed": false,
+  "hosted_executed": false,
+  "file_sha256": {
+    "sql.json": "5450556db6affb445a7908815dc57a365a45c9e26d9619b64f2a5b4506624321",
+    "progress-sql.json": "ea7b2f72bf935ca92164e380e340957ff32e5e7f7010f7426826ee6e7cbe0cda",
+    "focused.json": "e3523fe718bd4bedd6ade7e83de4e0640543af30a8e4d7aa12e4ae664db914bb",
+    "regressions.json": "13ee7a09cbbd479f6e56b5c90fab4aef4ba953851796fd08a61a8ce68014d5c6",
+    "network.json": "1d1930d9169cf9db204f2e77fec7bcfadab45a3d18c862f8eb23b4b00a06015d",
+    "jvm-counts.json": "853ac99bdb61b3c6de437596924396e7ead8c4860b293da7a2108bd1795055a5",
+    "focused-progress.json": "9471baacfbb0752eeceea9f5b918720bbbbc15a247fd46ae88c8e2f66a01b313"
+  }
+}

@@ -69,11 +69,11 @@ Local PostgreSQL 17.11, `shared_buffers=128MB`, `work_mem=4MB`, três repetiçõ
 | 5.171 + histórico ampliado / carga | 6.991 → 4.903 | 6.643 → 4.707* | **2 / 1** |
 | 5.171 + histórico ampliado / nota | 7.095 → 4.079 | 7.234 → 4.087 | 3 / 0 |
 
-\*Mediana apenas dos dois aceitos; **não** representa três sucessos. O terceiro ensaio HTTP candidato de carga histórica cancelou com SQLSTATE 57014 / status HTTP 500, parede **8.005,599 ms**, 5.171 registros/41 partes. O status deriva do ramo explícito de tratamento 500/57014 do cliente local. O tempo de execução completo do servidor não está disponível para esse cancelamento. Estado/versões/recibos/cursor inalterados e 41 partes preservadas foram conferidos antes da limpeza da fixture. Perfil parcial e estágio/repetição/variante ficaram no journal; não atribuir tempo parcial de outra chamada ao custo exato da chamada cancelada.
+\*Mediana apenas dos dois aceitos; **não** representa três sucessos. O terceiro ensaio HTTP candidato de carga histórica cancelou com SQLSTATE 57014 / status HTTP 500, parede **8.005,599 ms**, 5.171 registros/41 partes. O status deriva do ramo explícito de tratamento 500/57014 do cliente local. O tempo de execução completo do servidor não está disponível para esse cancelamento. Estado/versões/recibos e head remoto inalterados (não é nova prova de cursor Room) e 41 partes preservadas foram conferidos antes da limpeza da fixture. Perfil parcial e estágio/repetição/variante ficaram no journal; não atribuir tempo parcial de outra chamada ao custo exato da chamada cancelada.
 
 O SQL completou 42 confirmações medidas e 126 reenvios confirmados, sem cancelamentos. O HTTP completou 41/42 confirmações medidas e 123 reenvios confirmados; o cancelado não foi repetido. As cargas-semente de cada ensaio de nota são adicionais e identificadas nos journals. Hashes/revisões e contagens de validadores integrais foram conferidos nas comparações completas; o timeout não foi tratado como rejeição acadêmica.
 
-Passaram localmente três testes do journal, seis testes diferenciais (632 probes do getter, 125 da guarda, seis de chaves/legado e casos transacionais) e **58 regressões existentes D/E/decisões, zero falhas/ignorados**, com candidato efetivamente instalado. A prova HTTP de concorrência/isolamento foi reutilizada e ampliada para comparar todos os 171 payloads/IDs/revisões. Os resultados de CI serão consolidados separadamente; não são inferidos dos resultados do workspace.
+Passaram localmente três testes do journal, seis testes diferenciais (632 probes do getter, 125 da guarda, seis de chaves/legado e casos transacionais) e **58 regressões existentes D/E/decisões, zero falhas/ignorados**, com candidato efetivamente instalado. A prova HTTP de concorrência/isolamento foi reutilizada e ampliada para comparar todos os 171 payloads/IDs/revisões. Os resultados de CI estão separados abaixo; não são inferidos dos resultados do workspace.
 
 **A regressão Android/PostgreSQL completa não foi iniciada nesta rodada**, conforme a ordem exigida, pois o candidato não passou a admissão focada. A #204 permanece evidência histórica aprovada; a #205 permanece reprovada. Não declarar que Android, Room, backup criptografado ou dois AVDs foram revalidados agora.
 
@@ -86,3 +86,48 @@ Conclusão: ganho médio expressivo não demonstrou margem consistente no orçam
 A guarda pode ganhar uma materialização O(n) em memória na chamada, somente se os loops originais precisarem consultar o estado anterior. O grafo mantém ainda duas seleções O(remanejamentos + recomposições), obtidas do mesmo snapshot. Buffers/I/O/temporários e configurações são medidos; isso não equivale a pico de RAM. Acervos maiores, densidade histórica, CPU compartilhada, contenção e transporte externo continuam riscos. Não ampliar timeouts para obter CI verde.
 
 Se a equivalência ou ganho falhar, conservar os helpers funcionais anteriores e o candidato apenas como investigação. Em homologação administrativa futura, inventariar versões e guardar as três definições anteriores antes de qualquer implantação. Reverter somente essas definições é suficiente para remover o candidato, pois não existe migração de dados. Não reaplicar migrações antigas completas nem mexer em guardas de sessão/RLS. O pacote hospedado anteriormente revisado não foi reescrito nesta tarefa; nova implantação depende de revisão/autorização explícita.
+
+
+## CI independente — resultado final
+
+[Execução 43521139894](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43521139894), fonte **`47d91ab81902dd793c16c5354ffd461e6d588ff2`**, **REPROVADA**. Entrada registrada `h131-investigation.yml`, `suite=H132`; job `h132 / focused`. O laboratório H13.1 não foi selecionado, e seu job excluído não conta como teste aprovado. Não é a regressão Android completa nem uma tentativa hospedada. Houve apenas uma execução de CI desta investigação, sem rerun.
+
+Passaram: **JVM 298 casos, 293 aprovados, cinco condicionais ignorados e zero falhas**; três testes do journal, seis diferenciais, 58 regressões D/E/decisões (zero falhas/ignorados) e a prova PostgREST de concorrência, replay, isolamento e igualdade integral dos 171 registros. O wrapper instala explicitamente o candidato só no banco descartável e restaura as definições anteriores, verificando sua igualdade. Nada é habilitado nos bootstraps normais.
+
+A etapa SQL foi **reprovada pelo gate de capacidade**, não por asserção acadêmica: 41/42 confirmações medidas aceitas, uma cancelada, 123 replays confirmados. Candidato de carga com histórico ampliado, **terceiro ensaio**, 5.171 registros/41 partes: SQLSTATE 57014, parede **8.029,059 ms**, rollback integral e partes preservadas. O cancelado não foi repetido. O JSON final e o journal foram preservados mesmo com saída 1; o encerramento/limpeza da fixture foi verificado. A etapa de volume HTTP da CI não executou por causa dessa falha prévia; sua cobertura é apenas a série local já descrita.
+
+PostgreSQL CI **17.12**, compartilhamento 128MB, trabalho 4MB. Não misturar suas amostras com o workspace 17.11:
+
+| Operação | SQL CI antes → candidato (medianas, ms) | Aceitos candidato |
+|---|---:|---:|
+| 41 / carga | 36 → 34 | 3/3 |
+| 171 / carga | 117 → 102 | 3/3 |
+| 671 / carga | 413 → 340 | 3/3 |
+| 5.171 / carga | 3.980 → 2.488 | 3/3 |
+| 5.171 / nota | 3.314 → 880 | 3/3 |
+| Histórico ampliado / carga | 5.988 → 4.877* | **2/3** |
+| Histórico ampliado / nota | 6.738 → 4.232 | 3/3 |
+
+\*Somente os dois aceitos. Isso não apaga o cancelamento em 8s. **O ganho não é consistente o suficiente para admissão.** Os perfis e EXPLAINs completos/contagens dos casos concluídos estão preservados; perfis cancelados permanecem explicitamente parciais. Não houve medição de pico de RAM. Leituras/spills/configurações não devem ser transformados em alegação de memória institucional comprovada.
+
+### Localização do bloqueio, sem atribuição indevida
+
+Os logs PostgreSQL da CI localizam o cancelamento em **`noctua_e_write`, linha 50**, no `DELETE` dos vínculos de `noctua_academic_links` do registro explicitamente alterado, chamado pela atribuição de `noctua_e_guarded_write` linha 17. Essa parte é **original e não foi modificada pelo candidato**. O grafo D/guarda histórica posteriores ainda não tinham sido alcançados nessa chamada. O perfil parcial contém 10.342 validações concluídas (duas passagens de 5.171) e somente a projeção inicial, compatível com a pilha do erro.
+
+Portanto, não atribuir esse cancelamento especificamente à guarda histórica nova nem afirmar uma falha de integridade. A fase de escrita/limpeza não concluiu no orçamento. A pilha identifica onde o cancelamento foi recebido; **não prova que um DELETE isolado consumiu oito segundos**. A distribuição do custo acumulado entre plano escolhido, cache/estatísticas, CPU, I/O ou espera não foi isolada por amostragem de wait-events/planos aninhados. Um checkpoint anterior terminou cerca de 40s antes; isso não demonstra que o checkpoint causou o cancelamento. A consulta já dispõe de chave primária prefixada por proprietário/tipo/chave do filho; não alegar ausência de índice sem examinar o plano real.
+
+Próxima investigação recomendada, separada: medir os planos/repetições dessa limpeza durante crescimento do lote e o custo de concatenação da projeção, preservando exatamente os predicados, FK, ordem necessária, recibos e atomicidade. **Não remover o DELETE de registros novos nem presumir estado anterior válido para ganhar tempo.** Não houve nova otimização dessa etapa ou elevação de timeout aqui.
+
+### Commits, arquivos e decisão
+
+- `3884f91`: checkpoints duráveis sanitizados de commit/timeout.
+- `0af90f9`: candidato e oráculo estruturais, sem ativação, incluindo novas provas e coleta de delta/locks.
+- `e3ba72b`: retirada do candidato da pasta de migrações.
+- `47d91ab`: referências de pesquisa, executor focado e evidências locais; SHA efetivamente executado na CI acima.
+- Consolidação posterior: somente relatório/evidências, sem nova alteração funcional ou execução.
+
+Arquivos funcionais do app, contratos e migrações de produção permanecem **idênticos à base `2273219`**. As mudanças finais são em `scripts/benchmark*`, `scripts/test-phase-e-timeouts.py`, `scripts/h132/`, coleta/roteamento de CI e documentação/evidências. A proposta foi mantida apenas em `scripts/h132/candidate.sql`, com aviso explícito de rejeição para integração. Não há nova migração aprovada, APK ou release.
+
+[Artefato CI](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43521139894/artifacts/14084350579), ZIP SHA-256 `32e8b20e718f5adbf3be7423db0d1a0e6651147c601de75a8fb596ee79385002`. [Proveniência CI](evidence/H132_20261113/ci-provenance.json) e [workspace](evidence/H132_20261113/workspace-provenance.json) registram fontes, hashes, contagens e limites. Os três corpos do candidato foram conferidos idênticos entre a fonte medida e sua mudança de caminho; a mudança não esconde outra implementação.
+
+**Estado final:** instrumentação concluída; candidato semanticamente equivalente nas provas disponíveis, mas **não integrado por falha de capacidade**. Validador funcional anterior mantido. Regra de oito segundos, dados reais, dispositivos, Supabase, `main`, assinatura e interfaces preservados. Regressão completa/Android continuam sem nova aprovação; não anunciar prontidão institucional.

@@ -1,0 +1,126 @@
+{
+  "tests": 6,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "comparisons": [
+    {
+      "case": "getter-generated",
+      "probes": 632,
+      "equal": true
+    },
+    {
+      "case": "historical-guard-generated",
+      "probes": 125,
+      "equal": true
+    },
+    {
+      "case": "all-15-bootstrap",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "grade-None",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "grade-0",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "grade-7",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "grade-10",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "grade--1",
+      "equal": true,
+      "accepted": null,
+      "sqlstate": "P0001",
+      "state_hash_equal": true
+    },
+    {
+      "case": "grade-11",
+      "equal": true,
+      "accepted": null,
+      "sqlstate": "P0001",
+      "state_hash_equal": true
+    },
+    {
+      "case": "stale-grade",
+      "equal": true,
+      "accepted": false,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "activity-compatible",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "activity-would-invalidate-grades",
+      "equal": true,
+      "accepted": null,
+      "sqlstate": "P0001",
+      "state_hash_equal": true
+    },
+    {
+      "case": "immutable-movement-audit",
+      "equal": true,
+      "accepted": null,
+      "sqlstate": "P0001",
+      "state_hash_equal": true
+    },
+    {
+      "case": "immutable-history",
+      "equal": true,
+      "accepted": null,
+      "sqlstate": "P0001",
+      "state_hash_equal": true
+    },
+    {
+      "case": "mixed-invalid-history-rollback",
+      "equal": true,
+      "accepted": null,
+      "sqlstate": "P0001",
+      "state_hash_equal": true
+    },
+    {
+      "case": "movement-source-to-preserved-history",
+      "equal": true,
+      "accepted": true,
+      "sqlstate": null,
+      "state_hash_equal": true
+    },
+    {
+      "case": "confirmed-and-conflict-receipts",
+      "equal": true
+    },
+    {
+      "case": "numeric-jsonb-key-and-legacy-fallback",
+      "probes": 6,
+      "equal": true
+    }
+  ],
+  "hosted_executed": false
+}

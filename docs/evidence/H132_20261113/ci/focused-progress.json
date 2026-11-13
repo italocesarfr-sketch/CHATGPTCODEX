@@ -1,0 +1,17 @@
+{
+  "case": "H13.2-focused",
+  "hosted_executed": false,
+  "events": [
+    {
+      "elapsed_ms": 54694.816,
+      "stage": "finished",
+      "completed": true,
+      "measurement": {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      },
+      "profile": null
+    }
+  ]
+}

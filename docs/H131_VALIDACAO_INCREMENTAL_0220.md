@@ -133,3 +133,6 @@ O perfil de uma nota na variante H13 atual ainda tem **5.187 validações**. Uma
 **Antes/depois em produção: inalterado.** O predicado experimental não foi promovido. H13.1 não demonstra capacidade institucional ampla; históricos, contenção, cache e CPU compartilhada podem exceder o orçamento mesmo com poucos registros físicos.
 
 Supabase hospedado, produção, contas reais, dados/aplicações do proprietário, assinatura e `main` permanecem intocados. Não há APK novo ou release desta investigação.
+
+
+Continuidade posterior: [H13.2](H132_DESEMPENHO_0220.md) investigou materializações da validação **integral**. Houve ganho nos ensaios concluídos, mas o candidato permaneceu apenas no laboratório por cancelamento de carga histórica em oito segundos, reproduzido no workspace e na CI. A pilha da CI localizou o cancelamento na escrita E anterior à guarda histórica. Não houve alteração funcional nem nova aprovação Android.
