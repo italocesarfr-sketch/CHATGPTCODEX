@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """H05 private preparation + disposable CI ADB + strict public report. No hosted HTTP here."""
-import argparse,importlib.util,json,os,re,shutil,stat,subprocess
+import argparse,base64,hashlib,importlib.util,json,os,re,shutil,stat,subprocess
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -109,6 +109,15 @@ def disposable(env,serial,adb):
  need(adb('-s',serial,'shell','getprop','ro.kernel.qemu').decode().strip()=='1','WRONG_DEVICE')
  need(adb('-s',serial,'emu','avd','name').decode().splitlines()[0].strip()==expected,'WRONG_AVD')
 
+def decode_device_report(encoded,digest):
+ need(len(encoded)<=100000,'REPORT_ENCODING')
+ match=re.fullmatch(rb'([0-9a-f]{64})  files/h05-result\.json\s*',digest)
+ need(match is not None,'DEVICE_REPORT_DIGEST')
+ try:raw=base64.b64decode(b''.join(encoded.split()),validate=True)
+ except Exception:raise Blocked('REPORT_ENCODING')from None
+ need(len(raw)<=65536 and hashlib.sha256(raw).hexdigest()==match.group(1).decode(),'DEVICE_REPORT_DIGEST')
+ return raw
+
 def execute(env):
  mode=context(env);need(mode in ('LOCAL','HOSTED'),'PREFLIGHT_CANNOT_EXECUTE')
  p=folder(env);source=p/'input.json'
@@ -133,7 +142,9 @@ def execute(env):
  try:
   raw=adb('-s',serial,'shell','am','instrument','-w','-e','timeout_msec','360000','-e','h05Mode',mode,'-e','h05Authorized','YES' if mode=='HOSTED' else 'NO','-e','class','br.com.diariodeclasse.H05RecoveryProbeTest'+(',br.com.diariodeclasse.H05ReadOnlyGuardTest' if mode=='LOCAL' else ''),package+'.test/br.com.diariodeclasse.AuthTestRunner',timeout=420)
   (p/'instrumentation-private.log').write_bytes(raw)
-  result=adb('-s',serial,'exec-out','run-as',package,'cat','files/h05-result.json')
+  encoded=adb('-s',serial,'shell','-T','run-as',package,'base64','files/h05-result.json')
+  digest=adb('-s',serial,'shell','-T','run-as',package,'sha256sum','files/h05-result.json')
+  result=decode_device_report(encoded,digest)
   try:proof=redacted_proof(result,mode)
   except Blocked as e:
    write_public(env,'BLOCKED_NOT_APPROVED',code=str(e),schema=report_shape(result))

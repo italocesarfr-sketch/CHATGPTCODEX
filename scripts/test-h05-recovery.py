@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline H05 safety tests. No ADB, credentials, Gradle or hosted HTTP calls."""
-import importlib.util,json,os,tempfile,unittest
+import base64,hashlib,importlib.util,json,os,tempfile,unittest
 from pathlib import Path
 from unittest.mock import patch
 spec=importlib.util.spec_from_file_location('h05',Path(__file__).with_name('h05-recovery.py'));f=importlib.util.module_from_spec(spec);spec.loader.exec_module(f)
@@ -55,6 +55,13 @@ class H05Safety(unittest.TestCase):
    with self.assertRaises(f.Blocked):f.redacted_proof(json.dumps(d).encode(),'LOCAL')
  def test_report_mode_is_bound_to_the_selected_runner(self):
   with self.assertRaises(f.Blocked):f.redacted_proof(json.dumps(proof()).encode(),'HOSTED')
+ def test_device_report_transfer_is_byte_exact_and_rejects_corruption(self):
+  raw=json.dumps(proof()).encode();encoded=base64.encodebytes(raw)
+  digest=(hashlib.sha256(raw).hexdigest()+'  files/h05-result.json\n').encode()
+  self.assertEqual(raw,f.decode_device_report(encoded,digest))
+  for b,d in [(encoded+b'PRIVATE_SENTINEL',digest),(encoded,b'0'*64+b'  files/h05-result.json'),(encoded,b'PRIVATE_SENTINEL')]:
+   with self.assertRaises(f.Blocked)as e:f.decode_device_report(b,d)
+   self.assertNotIn('PRIVATE_SENTINEL',str(e.exception))
  def test_report_shape_never_copies_values_or_unknown_field_names(self):
   j=dict(proof(),PRIVATE_SENTINEL='PRIVATE_SENTINEL');j['mode']='PRIVATE_SENTINEL'
   shape=f.report_shape(json.dumps(j).encode())
