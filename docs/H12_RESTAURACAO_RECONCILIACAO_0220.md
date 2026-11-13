@@ -100,13 +100,84 @@ O futuro H12 informará as contagens presentes/zero reais; não os semeará.
 - Python offline: 16 testes do executor Auth + 15 H05 + 14 H12 = **45 aprovados**.
 - JVM debug reexecutada: **298 casos, 293 aprovados, cinco condicionais ignorados,
   zero falhas/erros**. Os condicionais reais de Auth não são aprovados por esta rodada.
-- Compilação Kotlin da instrumentação debug: aprovada.
+- Compilação Kotlin das instrumentações debug e homologacao: aprovadas;
+  a compilação homologacao não empacotou APK sem chave nem fez requisições.
 - `actionlint` 1.7.7 (sem ShellCheck/pyflakes), py_compile e `git diff --check`: aprovados.
-- Prova nova Android/PostgREST/PostgreSQL: **aguardando execução LOCAL da CI**.
+- [CI LOCAL #202](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43438302556):
+  **aprovada**, no código `510c14c5ea1cfbb3508f0ada6b735994aa0eed1f`.
+  **14 testes Android aprovados, zero falhas/ignorados**: uma prova real HTTP/Room,
+  três guardas H12 e os dez testes Room de reconciliação E existentes.
+- No mesmo job: **15 testes PostgreSQL de decisões/restauração aprovados**,
+  e **nove verificações HTTP/segurança** existentes concluídas pelo bootstrap local.
+  Auth/JWT desses cenários são fictícios, não Supabase Auth hospedado.
+- Os 45 testes Python passaram também no job. Os jobs hospedados, H05, regressão
+  Android geral e release ficaram excluídos; não são contabilizados como aprovações.
 - Homologação H12 hospedada: **não executada; depende de autorização posterior**.
 
-As contagens e os links da prova LOCAL serão consolidados após o run, sem
-transformar condicionais/steps não executados em aprovações.
+A regressão Android integral não foi repetida: nenhuma implementação acadêmica
+foi alterada e a prova foi focada em backup/reconciliação e nas guardas compartilhadas.
+Não se executou o ramo HOSTED de reconstrução histórica/conta Auth real; sua
+compilação e guardas não substituem a futura execução hospedada. A interface visual
+de revisão não foi automatizada nesta prova; os mesmos métodos reais de prévia e
+confirmação receberam a escolha explicitamente autorizada pelo runner.
+
+### Evidência LOCAL persistida
+
+[Relatório sanitizado](evidence/H12_LOCAL_20261113.json), extraído do
+[artefato #202](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43438302556/artifacts/14045910728).
+SHA-256 do ZIP de 1.905 bytes:
+`ac770e5c820348912152f3e4a3f27116b893aa0eb096e0ce16e2ae0f28e6a9f4`.
+O ZIP continha somente `result.json`; sua origem SHA e o esquema foram conferidos,
+sem e-mails/UUIDs ou campos desconhecidos.
+
+- Backup antigo: **171 registros / 15 tipos**. Após a alteração no peer local:
+  **172 registros / 15 tipos**, com uma matrícula remota adicional preservada.
+- Tipos finais: turmas 2; bimestres 8; matrículas 38; aulas 3; atividades 2;
+  marcações 71; notas 36; recomposição 1; remanejamento 1; rascunho 1; linhas
+  de exportação 3; arquivamento 1; diários 2; histórico preservado 1; revisões
+  de horário 2. IDs/relações/payloads e hashes iguais em todos os tipos.
+- Restauração persistiu pausa; nenhuma escolha automática. Nota/diário posteriores
+  e matrícula ausente no backup foram recuperados; remanejamento, auditorias,
+  históricos, frequências/FJ e horários mantiveram os payloads íntegros.
+- **Cursor 3 / três recibos**. Outbox, inbox, partes pendentes e fila v1 vazias;
+  revisões/bases/ACKs corretos. Uma decisão `APPLIED`, uma resposta perdida e
+  **uma única escrita de auditoria** no servidor descartável.
+- Banco reaberto e engine executada novamente, sem duplicações. A versão acadêmica
+  remota depois da restauração/reconciliação permaneceu idêntica à anterior à
+  restauração; os três campos/registros do peer foram alterados **antes** dela.
+- Total da prova: **7.645 ms**. Recuperação inicial: **831 ms**; backup cifrado:
+  **1.954 ms**; restauração/verificação da pausa: **2.216 ms**; revisão: **630 ms**;
+  reabertura/replay e conferências: **862 ms**. Leituras status/pull: 39 chamadas,
+  **340 ms** acumulados (exclui peer/decisão; não é benchmark do Supabase).
+- Hash lógico do backup:
+  `62f371fdfecbb1e8b0016dc528a7410c6a1bc3d9e071442bf7010878ae2cabdd`.
+  Hash final local/remoto:
+  `f1f5724d258beaa74d390f724b276861e9bfb8c70822851e187154993d18de64`.
+- `hosted_requests=false`. Supabase hospedado, produção e dispositivos do
+  proprietário não foram acessados por esta prova.
+
+### Commits e comandos
+
+- `510c14c5ea1cfbb3508f0ada6b735994aa0eed1f`: executor, consentimento independente,
+  guardas, teste real e documentação inicial; validado no run #202.
+- A consolidação documental posterior adiciona esta evidência e não modifica código.
+
+Comandos locais executados (sem credenciais hospedadas):
+
+```text
+python3 scripts/test-hosted-auth-checks.py
+python3 scripts/test-h05-recovery.py
+python3 scripts/test-h12-recovery.py
+python3 -m py_compile scripts/h05-recovery.py scripts/test-h12-recovery.py
+actionlint -shellcheck= -pyflakes= .github/workflows/android.yml .github/workflows/h12-restore.yml .github/workflows/h05-recovery.yml
+./gradlew --offline --no-daemon :app:compileDebugAndroidTestKotlin :app:testDebugUnitTest --rerun
+./gradlew --offline --no-daemon -PnoctuaH05HomologacaoInstrumentation=true :app:compileHomologacaoAndroidTestKotlin
+git diff --check
+```
+
+Na CI LOCAL #202: `test-phase-e-decisions.py` com PostgreSQL descartável,
+`start-phase-b-postgrest.sh`, fixture HTTP pequeno `h05-local-fixture.py` e
+`h05-recovery.py --case H12 execute` no AVD novo. Nenhum teste de carga.
 
 ## Procedimento mínimo
 
