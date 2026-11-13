@@ -5,6 +5,9 @@ on:
       authorized:
         type: boolean
         default: false
+      hosted_auth_case:
+        type: string
+        default: ALL
     secrets:
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
         required: false
@@ -23,6 +26,7 @@ jobs:
     timeout-minutes: 20
     env:
       NOCTUA_HOSTED_AUTH_MODE: ${{ inputs.authorized && 'run' || 'preflight' }}
+      NOCTUA_HOSTED_AUTH_CASE: ${{ inputs.hosted_auth_case }}
       NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ${{ inputs.authorized && 'YES' || '' }}
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
       NOCTUA_AUTH_LIVE_FILE: ''
@@ -48,14 +52,19 @@ jobs:
       - name: SDK de compilação (sem emulador ou APK)
         if: inputs.authorized
         run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
-      - name: Executar exclusivamente os quatro casos e redigir resultado
+      - name: Executar somente os casos selecionados e redigir resultado
         if: inputs.authorized
         env:
           GRADLE_USER_HOME: ${{ runner.temp }}/noctua-hosted-h01-h04/gradle-home
         run: |
           python3 scripts/hosted-auth-checks.py start
+          case "$NOCTUA_HOSTED_AUTH_CASE" in
+            ALL) hosted_filter='br.com.diariodeclasse.HomologationHostedAuthTest' ;;
+            H03) hosted_filter='br.com.diariodeclasse.HomologationHostedAuthTest.h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied' ;;
+            *) exit 1 ;;
+          esac
           set +e
-          ./gradlew --no-daemon --no-build-cache --no-configuration-cache --rerun-tasks --project-cache-dir "$RUNNER_TEMP/noctua-hosted-h01-h04/project-cache" :app:validateHomologacaoConfiguration :app:testHomologacaoUnitTest --tests 'br.com.diariodeclasse.HomologationHostedAuthTest' > "$RUNNER_TEMP/noctua-hosted-h01-h04/gradle-private.log" 2>&1
+          ./gradlew --no-daemon --no-build-cache --no-configuration-cache --rerun-tasks --project-cache-dir "$RUNNER_TEMP/noctua-hosted-h01-h04/project-cache" :app:validateHomologacaoConfiguration :app:testHomologacaoUnitTest --tests "$hosted_filter" > "$RUNNER_TEMP/noctua-hosted-h01-h04/gradle-private.log" 2>&1
           hosted_exit=$?
           set -e
           python3 scripts/hosted-auth-checks.py summarize --exit-code "$hosted_exit"

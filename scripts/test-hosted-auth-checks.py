@@ -76,6 +76,49 @@ class HostedAuthSafetyTest(unittest.TestCase):
         cases,ok=f.summarize(xml(),0);self.assertTrue(ok);self.assertTrue(all(c['status']=='PASSED' for c in cases))
         for raw,code in [(xml(),1),(xml('skipped'),0),(xml('failure'),1),(xml('error'),1),(xml(extra=True),0),(b'',0)]:
             with self.subTest(code=code):self.assertFalse(f.summarize(raw,code)[1])
+    def test_h03_selection_does_not_claim_the_other_cases_ran(self):
+        r=ET.fromstring(xml())
+        for node in list(r):
+            if f.METHODS[node.get('name')]!='H03':r.remove(node)
+        r.set('tests','1');raw=ET.tostring(r)
+        cases,approved=f.summarize(raw,0,'H03')
+        self.assertTrue(approved)
+        self.assertEqual({'H01':'NOT_EXECUTED','H02':'NOT_EXECUTED','H03':'PASSED','H04':'NOT_EXECUTED'},
+                         {c['id']:c['status'] for c in cases})
+        self.assertFalse(f.summarize(raw,0,'ALL')[1])
+        self.assertFalse(f.summarize(xml(),0,'H03')[1])
+        with self.assertRaises(f.Blocked):f.selected_methods('PRIVATE_OR_ARBITRARY_FILTER')
+    def test_h03_diagnostics_allow_only_fixed_vocabulary_and_http_status(self):
+        r=ET.fromstring(xml('failure'))
+        ET.SubElement(r,'system-out').text='\n'.join([
+            'PRIVATE_PASSWORD_OR_TOKEN',
+            'H03_DIAG stage=PATCH status=403 code=HTTP',
+            'H03_DIAG stage=HELPER status=404 code=HTTP',
+            'H03_DIAG stage=PATCH status=NONE code=TIMEOUT',
+            'H03_DIAG stage=PRIVATE_PASSWORD_OR_TOKEN status=403 code=HTTP',
+            'H03_DIAG stage=PATCH status=403 code=PRIVATE_PASSWORD_OR_TOKEN',
+            'H03_DIAG stage=PATCH status=403 code=HTTP PRIVATE_PASSWORD_OR_TOKEN',
+            'H03_DIAG stage=PATCH status=999 code=HTTP'])
+        events=f.h03_diagnostics(ET.tostring(r))
+        self.assertEqual([dict(stage='PATCH',status=403,code='HTTP'),
+                          dict(stage='HELPER',status=404,code='HTTP'),
+                          dict(stage='PATCH',status=None,code='TIMEOUT')],events)
+        self.assertNotIn('PRIVATE_PASSWORD_OR_TOKEN',json.dumps(events))
+    def test_h03_only_success_keeps_all_four_passed_false(self):
+        with tempfile.TemporaryDirectory() as directory:
+            r=ET.fromstring(xml())
+            for node in list(r):
+                if f.METHODS[node.get('name')]!='H03':r.remove(node)
+            r.set('tests','1')
+            source=Path(directory)/'h03.xml';source.write_bytes(ET.tostring(r))
+            output=Path(directory)/'redacted.json'
+            env=dict(GITHUB_ACTIONS='true',GITHUB_EVENT_NAME='workflow_dispatch',GITHUB_REF=f.BRANCH,
+                     GITHUB_REPOSITORY=f.REPO,NOCTUA_HOSTED_AUTH_MODE='run',
+                     NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED='YES',NOCTUA_HOSTED_AUTH_CASE='H03')
+            with patch.object(f,'REPORT',output),patch.object(f,'XML',source),patch.dict(os.environ,env,clear=True),patch('sys.argv',['checks','summarize','--exit-code','0']):
+                self.assertEqual(0,f.main())
+            value=json.loads(output.read_text());self.assertFalse(value['all_four_passed'])
+            self.assertTrue(value['selected_cases_passed']);self.assertEqual('PASSED_SELECTED_CASES',value['overall'])
     def test_report_never_copies_failure_message_stream_or_unexpected_test_names(self):
         for raw in (xml('failure'),xml(extra=True),b'PRIVATE_PASSWORD_OR_TOKEN'):
             cases,ok=f.summarize(raw,1)

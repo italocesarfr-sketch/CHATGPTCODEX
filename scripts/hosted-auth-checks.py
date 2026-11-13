@@ -22,6 +22,8 @@ METHODS = {
  'h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied': 'H03',
  'h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc': 'H04',
 }
+H03_STAGES = ('INPUT', 'LOGIN', 'FIXTURE_BEFORE', 'REVISION', 'HELPER', 'PATCH', 'FIXTURE_AFTER', 'COMPARE')
+H03_CODES = ('STARTED', 'HTTP', 'PASSED', 'ASSERTION', 'TIMEOUT', 'RESPONSE_LIMIT', 'NETWORK', 'INTERRUPTED', 'UNEXPECTED')
 
 class Blocked(Exception):
     pass
@@ -38,6 +40,10 @@ def private_dir(env):
     base = Path(env.get('RUNNER_TEMP', '')).resolve()
     require(bool(env.get('RUNNER_TEMP')) and base.is_dir() and not base.is_relative_to(ROOT), 'PRIVATE_TEMP_REQUIRED')
     return base / 'noctua-hosted-h01-h04'
+
+def selected_methods(selection):
+    require(selection in ('ALL', 'H03'), 'INVALID_TEST_SELECTION')
+    return {k:v for k,v in METHODS.items() if selection == 'ALL' or v == selection}
 
 def validate(key, raw, production_key, legacy_owner):
     require(bool(key), 'PUBLISHABLE_KEY_MISSING')
@@ -69,24 +75,44 @@ def base_report(env):
     return dict(project_ref=TARGET, endpoint=f'https://{TARGET}.supabase.co',
                 source_sha=sha if re.fullmatch('[0-9a-f]{40}', sha) else None,
                 mode=env.get('NOCTUA_HOSTED_AUTH_MODE', 'preflight'),
+                selection=env.get('NOCTUA_HOSTED_AUTH_CASE', 'ALL') if env.get('NOCTUA_HOSTED_AUTH_CASE', 'ALL') in ('ALL', 'H03') else None,
                 credentials_redacted=True, all_four_passed=False,
                 hosted_requests_executed=False,
                 cases=[dict(id=v, status='NOT_EXECUTED') for v in METHODS.values()])
 
-def summarize(raw, exit_code):
+def summarize(raw, exit_code, selection='ALL'):
     """Allowlist four IDs/statuses; never copy messages, stack traces, streams or IDs."""
-    cases = {v: 'NOT_REPORTED' for v in METHODS.values()}
+    selected = selected_methods(selection)
+    cases = {v: 'NOT_REPORTED' if v in selected.values() else 'NOT_EXECUTED' for v in METHODS.values()}
     try:
         require(len(raw) <= 2*1024*1024, 'REPORT_TOO_LARGE')
         root = ET.fromstring(raw)
         nodes = list(root.iter('testcase'))
-        require(len(nodes) == 4 and {n.get('name') for n in nodes} == set(METHODS), 'EXACTLY_FOUR_RESULTS_REQUIRED')
+        require(int(root.get('tests', '-1')) == len(selected), 'INCONSISTENT_TEST_COUNT')
+        require(len(nodes) == len(selected) and {n.get('name') for n in nodes} == set(selected), 'EXACT_SELECTED_RESULTS_REQUIRED')
         for n in nodes:
             require(n.get('classname') == 'br.com.diariodeclasse.HomologationHostedAuthTest', 'UNEXPECTED_TEST_CLASS')
             cases[METHODS[n.get('name')]] = 'SKIPPED' if n.find('skipped') is not None else 'FAILED' if n.find('failure') is not None or n.find('error') is not None else 'PASSED'
-        return [dict(id=k, status=v) for k, v in cases.items()], exit_code == 0 and all(v == 'PASSED' for v in cases.values()) and int(root.get('failures', '0')) == 0 and int(root.get('errors', '0')) == 0 and int(root.get('skipped', '0')) == 0
+        return [dict(id=k, status=v) for k, v in cases.items()], exit_code == 0 and all(cases[v] == 'PASSED' for v in selected.values()) and int(root.get('failures', '0')) == 0 and int(root.get('errors', '0')) == 0 and int(root.get('skipped', '0')) == 0
     except Exception:
         return [dict(id=k, status=v) for k, v in cases.items()], False
+
+def h03_diagnostics(raw):
+    """Only a fixed vocabulary and HTTP numbers, never arbitrary XML output/messages."""
+    try:
+        require(len(raw) <= 2*1024*1024, 'REPORT_TOO_LARGE')
+        root = ET.fromstring(raw)
+        pattern = re.compile(r'H03_DIAG stage=('+'|'.join(H03_STAGES)+r') status=(NONE|[1-5][0-9]{2}) code=('+'|'.join(H03_CODES)+r')')
+        events = []
+        for stream in root.iter('system-out'):
+            for line in (stream.text or '').splitlines():
+                match = pattern.fullmatch(line)
+                if match and len(events) < 64:
+                    stage, status, code = match.groups()
+                    events.append(dict(stage=stage, status=None if status=='NONE' else int(status), code=code))
+        return events
+    except Exception:
+        return []
 
 def write_report(value):
     REPORT.parent.mkdir(parents=True, exist_ok=True)
@@ -98,6 +124,8 @@ def write_report(value):
             out.write('Projeto exclusivo: `'+TARGET+'`. Somente resumo redigido.\n\n')
             for case in value['cases']:
                 out.write('- '+case['id']+': '+case['status']+'\n')
+            for event in value.get('h03_diagnostics', []):
+                out.write('- H03 '+event['stage']+': HTTP '+str(event['status'])+' / '+event['code']+'\n')
             if value.get('blocking_code'):
                 out.write('\nBloqueio: `'+value['blocking_code']+'`. Nenhum valor privado foi incluído.\n')
 
@@ -106,6 +134,7 @@ def prepare(env):
     scope(env)
     mode = env.get('NOCTUA_HOSTED_AUTH_MODE', 'preflight')
     require(mode in ('preflight', 'run'), 'INVALID_MODE')
+    selected_methods(env.get('NOCTUA_HOSTED_AUTH_CASE', 'ALL'))
     if mode == 'run':
         require(env.get('NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED') == 'YES', 'EXPLICIT_AUTHORIZATION_REQUIRED')
     gradle = (ROOT/'app/build.gradle.kts').read_text()
@@ -160,11 +189,14 @@ def main():
         if args.action == 'start':
             private = private_dir(env) / 'accounts.json'
             require(env.get('NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE') == str(private) and private.is_file() and stat.S_IMODE(private.stat().st_mode) == 0o600, 'PRIVATE_FILE_NOT_READY')
-            report.update(overall='BUILD_OR_TEST_ATTEMPT_STARTED', cases=[dict(id=v,status='NOT_REPORTED') for v in METHODS.values()])
+            selected = selected_methods(env.get('NOCTUA_HOSTED_AUTH_CASE', 'ALL'))
+            report.update(overall='BUILD_OR_TEST_ATTEMPT_STARTED', cases=[dict(id=v,status='NOT_REPORTED' if v in selected.values() else 'NOT_EXECUTED') for v in METHODS.values()])
             write_report(report); return 0
         report['process_exit_code'] = args.exit_code
-        report['cases'], approved = summarize(XML.read_bytes() if XML.is_file() else b'', args.exit_code)
-        report.update(overall='PASSED' if approved else 'NOT_APPROVED', all_four_passed=approved,
+        raw = XML.read_bytes() if XML.is_file() else b''
+        report['cases'], approved = summarize(raw, args.exit_code, env.get('NOCTUA_HOSTED_AUTH_CASE', 'ALL'))
+        report['h03_diagnostics'] = h03_diagnostics(raw)
+        report.update(overall=('PASSED' if report['selection']=='ALL' else 'PASSED_SELECTED_CASES') if approved else 'NOT_APPROVED', all_four_passed=approved and report['selection']=='ALL', selected_cases_passed=approved,
                       hosted_requests_executed=True if any(c['status']=='PASSED' for c in report['cases']) else None)
         write_report(report); return 0 if approved else 1
     except Blocked as e:

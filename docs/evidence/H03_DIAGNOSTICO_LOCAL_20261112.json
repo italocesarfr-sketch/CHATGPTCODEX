@@ -1,0 +1,37 @@
+{
+  "recorded_date": "2026-11-12",
+  "timezone": "America/Sao_Paulo",
+  "historical_run": {
+    "number": 193,
+    "id": 43345594778,
+    "source_sha": "52f4d9b4c9ef5a55242fc3b55150eb3cb1ae8d47",
+    "H01": "PASSED",
+    "H02": "PASSED",
+    "H03": "FAILED",
+    "H04": "PASSED",
+    "failure_stage_preserved": false
+  },
+  "confirmed_local_defect": "HttpsURLConnection.setRequestMethod(PATCH) throws ProtocolException before connecting on Java 17 and 21",
+  "historical_first_failure": "NOT_DETERMINABLE_FROM_REDACTED_ARTIFACT",
+  "local_debug_jvm": {
+    "tests": 298,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 5
+  },
+  "local_homologacao_tls": {
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "python_tests": {
+    "tests": 16,
+    "failures": 0
+  },
+  "static_validation": "actionlint 1.7.7, py_compile, git diff --check",
+  "new_hosted_requests": false,
+  "new_workflow_dispatches": false,
+  "production_modified": false,
+  "next_hosted_scope": "H03 only, fresh explicit authorization required"
+}

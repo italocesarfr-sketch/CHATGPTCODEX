@@ -13,6 +13,11 @@ on:
         description: 'H01–H04: somente pré-requisitos, ou execução hospedada com autorização abaixo'
         type: boolean
         default: false
+      hosted_auth_case:
+        description: 'Casos hospedados autorizados: conjunto completo ou somente H03'
+        type: choice
+        options: [ALL, H03]
+        default: ALL
       authorize_hosted_h01_h04:
         description: 'AUTORIZO sessões A/B, senha incorreta, refresh, logout local e PATCH contraditório sem linhas apenas em sscexzxtqdcsqdlcytum'
         type: boolean
@@ -29,6 +34,7 @@ jobs:
     uses: ./.github/workflows/hosted-auth.yml
     with:
       authorized: ${{ inputs.authorize_hosted_h01_h04 == true }}
+      hosted_auth_case: ${{ inputs.hosted_auth_case || 'ALL' }}
     secrets:
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
       NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}

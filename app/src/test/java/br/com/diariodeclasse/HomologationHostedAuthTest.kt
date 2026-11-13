@@ -7,10 +7,8 @@ import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
-import java.net.URL
 import java.net.URLEncoder
 import java.util.UUID
-import javax.net.ssl.HttpsURLConnection
 
 /** Opt-in only. Two explicitly authorized fictitious accounts, no SQL/admin fixture. */
 class HomologationHostedAuthTest {
@@ -39,21 +37,17 @@ class HomologationHostedAuthTest {
         require(fixture.length in 1..128)
         return Input(accounts,fixture,j["allowZeroRowPermissionProbe"]?.jsonPrimitive?.booleanOrNull==true)
     }
+    private val transport by lazy { HostedHttpsTransport() }
+    private var h03Diagnostics: H03Diagnostics? = null
     private fun request(path:String,token:String?=null,method:String="GET",body:JsonObject?=null):Pair<Int,JsonElement?> {
         AuthConfig.requireValid()
         check(AuthConfig.URL=="https://sscexzxtqdcsqdlcytum.supabase.co")
-        val c=URL("${AuthConfig.URL}/rest/v1/$path").openConnection() as HttpsURLConnection
-        try {
-            c.instanceFollowRedirects=false;c.requestMethod=method;c.connectTimeout=15000;c.readTimeout=20000
-            c.setRequestProperty("apikey",AuthConfig.KEY);token?.let{c.setRequestProperty("Authorization","Bearer $it")}
-            if(body!=null){c.setRequestProperty("Content-Type","application/json");c.doOutput=true;c.outputStream.use{it.write(body.toString().toByteArray())}}
-            val status=c.responseCode
-            if(status !in 200..299)return status to null // Never log error bodies or bearer values.
-            val bytes=c.inputStream.use{it.readNBytes(262145)};check(bytes.size<=262144)
-            return status to bytes.toString(Charsets.UTF_8).takeIf{it.isNotBlank()}?.let{
-                try{Json.parseToJsonElement(it)}catch(_:Exception){error("Resposta de teste inválida; conteúdo omitido.")}
-            }
-        }finally{c.disconnect()}
+        val response=transport.request(path,AuthConfig.KEY,token,method,body?.toString())
+        h03Diagnostics?.http(response.status)
+        if(response.status !in 200..299)return response.status to null
+        return response.status to response.bytes.toString(Charsets.UTF_8).takeIf{it.isNotBlank()}?.let{
+            try{Json.parseToJsonElement(it)}catch(_:Exception){error("Resposta de teste inválida; conteúdo omitido.")}
+        }
     }
     private fun query(i:Input):String {
         val key=buildJsonObject{put("id",i.fixture)}.toString()
@@ -93,20 +87,31 @@ class HomologationHostedAuthTest {
         }finally{runCatching{c.logout(a)}}
     }
     @Test fun h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied():Unit=runBlocking {
+        val d=H03Diagnostics();h03Diagnostics=d;d.enter(H03Diagnostics.Stage.INPUT)
         val i=input();assumeTrue("Probe de permissão sem linhas não autorizado.",i.permissionProbe)
-        val c=SupabaseAuthClient();val a=c.login(i.accounts[0].email,i.accounts[0].password)
+        d.enter(H03Diagnostics.Stage.LOGIN)
+        val c=SupabaseAuthClient()
+        val a=try{c.login(i.accounts[0].email,i.accounts[0].password)}catch(e:Exception){throw d.failure(e)}
         try {
+            d.enter(H03Diagnostics.Stage.FIXTURE_BEFORE)
             val before=own(i,a);val revision=before.single().jsonObject.getValue("revision").jsonPrimitive.long
-            require(revision>0)
+            d.enter(H03Diagnostics.Stage.REVISION);require(revision>0)
+            d.enter(H03Diagnostics.Stage.HELPER)
             val(helper,_)=request("rpc/noctua_d_index",a.access,"POST",buildJsonObject{put("p_rows",JsonArray(emptyList()))})
             assertTrue("Helper privado executável",helper in setOf(401,403,404))
             // Contradictory predicate: no row can have this positive revision AND revision<0.
             // Even a permission regression cannot modify any record through this request.
-            val filter=query(i)+"&and="+URLEncoder.encode("(revision.eq.$revision,revision.lt.0)","UTF-8")
+            val filter=h03ZeroRowFilter(query(i),revision)
+            d.enter(H03Diagnostics.Stage.PATCH)
             val(patch,_)=request(filter,a.access,"PATCH",buildJsonObject{put("revision",revision)})
             assertTrue("Escrita direta não foi recusada por permissão",patch in setOf(401,403))
-            assertEquals("Fixture mudou durante a prova",before,own(i,a))
-        }finally{runCatching{c.logout(a)}}
+            d.enter(H03Diagnostics.Stage.FIXTURE_AFTER)
+            val after=own(i,a)
+            d.enter(H03Diagnostics.Stage.COMPARE)
+            assertTrue("Fixture mudou durante a prova",before==after)
+            d.emit(H03Diagnostics.Code.PASSED)
+        }catch(e:AssertionError){throw d.failure(e)}catch(e:Exception){throw d.failure(e)}
+        finally{runCatching{c.logout(a)}}
     }
     @Test fun h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc():Unit=runBlocking {
         val i=input();val c=SupabaseAuthClient();val a=c.login(i.accounts[0].email,i.accounts[0].password)

@@ -1,8 +1,13 @@
 # H01–H04 — credenciais privadas e execução hospedada autorizada
 
-Preparação em **10/11/2026, America/Sao_Paulo**. Branch exclusiva
+**Atualização de 12/11:** a execução hospedada #193 aprovou H01/H02/H04 e falhou
+em H03. A incompatibilidade PATCH do cliente antigo foi reproduzida/corrigida
+localmente. Ver [diagnóstico, testes e seleção exclusiva H03](H03_DIAGNOSTICO_0220.md).
+Nenhuma nova execução hospedada foi autorizada ou disparada nesta correção.
+
+Registro histórico da preparação em **10/11/2026, America/Sao_Paulo**. Branch exclusiva
 `sync/academic-complete-0220`. **Nenhuma requisição Supabase foi executada nesta
-preparação; H01–H04 permanecem NÃO EXECUTADOS.**
+preparação; naquele momento H01–H04 estavam NÃO EXECUTADOS.**
 
 ### Correção da pré-verificação #191
 
@@ -137,6 +142,7 @@ Se o Environment exigir Review, haverá a aprovação do deployment no GitHub.
 
 O novo `.github/workflows/hosted-auth.yml` é reutilizável; a entrada é o
 **android.yml já registrado**, sem modificar main. Ele não roda em push/PR.
+`hosted_auth_case=ALL` mantém os quatro casos; `H03` seleciona apenas H03.
 `hosted_auth_only=true` executa somente esse job, sem APK, emulador, fixtures SQL,
 regressão longa ou release. A autorização tem padrão **false**.
 
@@ -171,7 +177,7 @@ em paralelo; rate limit/timeout não deve gerar aprovação ou relaxamento de se
 | Autorização | Apenas workflow_dispatch nessa branch; modo preflight não executa Java/HTTP. | Run explícito + flag YES + consentimento H03 no JSON. |
 | Resultado | XML sanitizado por lista fechada H01–H04; mensagens privadas nunca copiadas. | Exatamente quatro casos executados/aprovados e processo bem-sucedido; skip/ausência/duplicidade não aprovam o conjunto. |
 
-| Caso | O que o runner realmente cobre | Estado atual |
+| Caso | O que o runner realmente cobre | Estado na preparação original (antes de #193) |
 |---|---|---|
 | H01 | Login confirmado A/B, identidade, consulta user, refresh, senha incorreta. | **NÃO EXECUTADO** |
 | H02 | Leitura A positiva da fixture; RPC de estado positiva B; B não lê a linha A conhecida. | **NÃO EXECUTADO** |
@@ -190,7 +196,7 @@ aprovações. O logout normal é local às sessões de teste; uma interrupção 
 pode deixar uma sessão efêmera ativa, sem tokens nos artefatos. Não revogar sessões
 globalmente para “limpar” a execução.
 
-## Validação local desta preparação
+## Validação local da preparação original (antes da correção H03)
 
 - `python3 scripts/test-hosted-auth-checks.py`: **13 aprovados**, zero falhas;
   somente entradas/XML fictícios e arquivos temporários locais. Não chama ADB,
