@@ -62,6 +62,8 @@ android {
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
     sourceSets.getByName("androidTest").assets.srcDir("$projectDir/../test-fixtures")
     testOptions { unitTests.isReturnDefaultValues = true }
+    // Test APK selection only. Normal app builds/regression keep the debug runner.
+    testBuildType = if (providers.gradleProperty("noctuaH05HomologacaoInstrumentation").orNull == "true") "homologacao" else "debug"
 }
 configurations.getByName("homologacaoImplementation").extendsFrom(configurations.getByName("debugImplementation"))
 val validateHomologacaoConfiguration = tasks.register("validateHomologacaoConfiguration") {

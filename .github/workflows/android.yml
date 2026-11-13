@@ -5,6 +5,19 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      h05_only:
+        description: 'Executar exclusivamente o runner H05 (autorização independente)'
+        type: boolean
+        default: false
+      h05_mode:
+        description: 'H05: preflight offline, prova local descartável ou leitura hospedada'
+        type: choice
+        options: [PREFLIGHT, LOCAL, HOSTED]
+        default: PREFLIGHT
+      authorize_hosted_h05:
+        description: 'AUTORIZO H05 somente leitura em sscexzxtqdcsqdlcytum: login A, status/pull E, consentimento local e logout da sessão do teste'
+        type: boolean
+        default: false
       homologacao_only:
         description: 'Gerar somente a variante paralela de homologação (branch sync/academic-complete-0220)'
         type: boolean
@@ -25,12 +38,22 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true && format('android-hosted-auth-{0}', github.ref) || format('android-{0}', github.ref) }}
-  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true) }}
+  group: ${{ github.event_name == 'workflow_dispatch' && (inputs.hosted_auth_only == true || inputs.h05_only == true) && format('android-hosted-auth-{0}', github.ref) || format('android-{0}', github.ref) }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && (inputs.hosted_auth_only == true || inputs.h05_only == true)) }}
 jobs:
+  h05:
+    name: H05 — recuperação isolada
+    if: github.event_name == 'workflow_dispatch' && inputs.h05_only == true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/h05-recovery.yml
+    with:
+      mode: ${{ inputs.h05_mode || 'PREFLIGHT' }}
+      authorized: ${{ inputs.authorize_hosted_h05 == true }}
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
   hosted-auth:
     name: H01–H04 — homologação hospedada
-    if: github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    if: github.event_name == 'workflow_dispatch' && inputs.hosted_auth_only == true && inputs.h05_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/hosted-auth.yml
     with:
       authorized: ${{ inputs.authorize_hosted_h01_h04 == true }}
@@ -40,11 +63,11 @@ jobs:
       NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
   homologacao:
     name: Homologação — variante paralela
-    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && inputs.h05_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/homologacao.yml
     secrets: inherit
   sync-postgres:
-    if: github.event_name != 'workflow_dispatch' || (inputs.homologacao_only != true && inputs.hosted_auth_only != true)
+    if: github.event_name != 'workflow_dispatch' || (inputs.homologacao_only != true && inputs.hosted_auth_only != true && inputs.h05_only != true)
     name: Sincronização — PostgreSQL, RLS e concorrência (dados fictícios)
     runs-on: ubuntu-latest
     services:

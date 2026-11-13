@@ -1,0 +1,157 @@
+name: NOcTuA — H05 recuperação isolada
+on:
+  workflow_call:
+    inputs:
+      mode:
+        type: string
+        default: PREFLIGHT
+      authorized:
+        type: boolean
+        default: false
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
+        required: false
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON:
+        required: false
+permissions:
+  contents: read
+jobs:
+  local-proof:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.mode == 'LOCAL'
+    name: H05 — PostgreSQL/PostgREST e Android descartáveis, Auth fictício
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_b_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NOCTUA_H05_MODE: LOCAL
+      NOCTUA_H05_AUTHORIZED: ''
+      NOCTUA_H05_AVD_NAME: noctua_h05_local_${{ github.run_id }}_${{ github.run_attempt }}
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_b_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Verificações locais sem segredos
+        run: |
+          python3 scripts/test-hosted-auth-checks.py
+          python3 scripts/test-h05-recovery.py
+          python3 scripts/h05-recovery.py prepare
+      - name: Infraestrutura existente, somente PostgreSQL local
+        run: |
+          ./scripts/ci/start-phase-b-postgrest.sh > "$RUNNER_TEMP/noctua-h05-private/backend-private.log" 2>&1
+          python3 scripts/h05-local-fixture.py >> "$RUNNER_TEMP/noctua-h05-private/backend-private.log" 2>&1
+      - name: Compilar somente APKs de teste descartáveis
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest > "$RUNNER_TEMP/noctua-h05-private/build-private.log" 2>&1
+      - name: Aceleração do novo AVD
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: ${{ env.NOCTUA_H05_AVD_NAME }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
+          script: python3 scripts/h05-recovery.py execute
+      - name: Limpar somente temporário privado
+        if: always()
+        run: python3 scripts/h05-recovery.py clean
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h05-local-sanitizado
+          path: build/h05/result.json
+          if-no-files-found: error
+          retention-days: 14
+  hosted-preflight:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.mode != 'LOCAL'
+    name: H05 — ${{ inputs.mode == 'HOSTED' && 'recuperação hospedada autorizada' || 'pré-requisitos, sem requisições' }}
+    environment: noctua-homologacao-h01-h04
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NOCTUA_H05_MODE: ${{ inputs.mode }}
+      NOCTUA_H05_AUTHORIZED: ${{ inputs.authorized && 'YES' || '' }}
+      NOCTUA_H05_AVD_NAME: noctua_h05_hosted_${{ github.run_id }}_${{ github.run_attempt }}
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Pré-verificação offline e autorização independente
+        env:
+          NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
+        run: python3 scripts/h05-recovery.py prepare
+      - uses: actions/setup-java@v4
+        if: inputs.mode == 'HOSTED' && inputs.authorized
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        if: inputs.mode == 'HOSTED' && inputs.authorized
+        with:
+          packages: platform-tools
+      - name: Compilar e verificar variante paralela
+        if: inputs.mode == 'HOSTED' && inputs.authorized
+        env:
+          GRADLE_USER_HOME: ${{ runner.temp }}/noctua-h05-private/gradle-home
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon --no-build-cache --no-configuration-cache -PnoctuaH05HomologacaoInstrumentation=true :app:validateHomologacaoConfiguration :app:assembleHomologacao :app:assembleHomologacaoAndroidTest > "$RUNNER_TEMP/noctua-h05-private/build-private.log" 2>&1
+          python3 scripts/validate-homologacao.py --apk app/build/outputs/apk/homologacao/app-homologacao.apk --build-tools "$ANDROID_HOME/build-tools/35.0.0" > "$RUNNER_TEMP/noctua-h05-private/identity-private.json"
+      - name: Aceleração do novo AVD
+        if: inputs.mode == 'HOSTED' && inputs.authorized
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        if: inputs.mode == 'HOSTED' && inputs.authorized
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: ${{ env.NOCTUA_H05_AVD_NAME }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
+          script: python3 scripts/h05-recovery.py execute
+      - name: Limpar somente temporário privado
+        if: always()
+        run: python3 scripts/h05-recovery.py clean
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h05-hospedado-sanitizado
+          path: build/h05/result.json
+          if-no-files-found: error
+          retention-days: 14

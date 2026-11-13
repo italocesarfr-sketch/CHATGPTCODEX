@@ -45,7 +45,7 @@ def selected_methods(selection):
     require(selection in ('ALL', 'H03'), 'INVALID_TEST_SELECTION')
     return {k:v for k,v in METHODS.items() if selection == 'ALL' or v == selection}
 
-def validate(key, raw, production_key, legacy_owner):
+def validate(key, raw, production_key, legacy_owner, require_zero_probe=True):
     require(bool(key), 'PUBLISHABLE_KEY_MISSING')
     require(bool(re.fullmatch(r'sb_publishable_[A-Za-z0-9_-]{16,200}', key)) and key != production_key, 'PUBLISHABLE_KEY_INVALID_OR_PRODUCTION')
     require(bool(raw), 'ACCOUNTS_SECRET_MISSING')
@@ -63,7 +63,9 @@ def validate(key, raw, production_key, legacy_owner):
             require(str(uuid.UUID(a['expectedId'])) == a['expectedId'] and a['expectedId'] != legacy_owner, 'AUTH_ID_INVALID_OR_LEGACY_OWNER')
         require(len({a['expectedId'] for a in accounts}) == 2 and len({a['email'].lower() for a in accounts}) == 2, 'ACCOUNTS_MUST_DIFFER')
         require(isinstance(data['fixtureClassId'], str) and 1 <= len(data['fixtureClassId']) <= 128 and not any(ord(c) < 32 for c in data['fixtureClassId']) and '<' not in data['fixtureClassId'], 'FIXTURE_CLASS_ID_INVALID')
-        require(data['allowZeroRowPermissionProbe'] is True, 'H03_ZERO_ROW_PROBE_NOT_CONSENTED')
+        require(isinstance(data['allowZeroRowPermissionProbe'], bool), 'H03_PROBE_FLAG_INVALID')
+        if require_zero_probe:
+            require(data['allowZeroRowPermissionProbe'] is True, 'H03_ZERO_ROW_PROBE_NOT_CONSENTED')
         return data
     except Blocked:
         raise

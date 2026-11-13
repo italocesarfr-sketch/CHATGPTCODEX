@@ -8,10 +8,15 @@ import kotlinx.coroutines.runBlocking
 
 /** This class exists only in the separate instrumentation APK, never in the app APK. */
 class AuthTestRunner:AndroidJUnitRunner() {
+    private var h05Mode:String?=null
+    private var h05Authorized=false
     private var phaseB:String?=null
     private var secondary=false
     private var expectedFont:Float?=null
     override fun onCreate(arguments:android.os.Bundle) {
+        h05Mode=arguments.getString("h05Mode")
+        h05Authorized=arguments.getString("h05Authorized")=="YES"
+        h05Mode?.let{require(it in setOf("LOCAL","HOSTED")&&arguments.getString("phaseBNetworkPhase")==null){"H05_INVALID_MODE"}}
         arguments.getString("phaseBNetworkPhase")?.let { phase ->
             phaseB=phase
             secondary=arguments.getString("phaseBDevice")=="secondary"
@@ -46,6 +51,11 @@ class AuthTestRunner:AndroidJUnitRunner() {
         phaseB?.let{app.javaClass.getMethod("verifyPhaseBStartup").invoke(app)}
     }
     override fun newApplication(cl:ClassLoader,name:String,context:Context):Application {
+        h05Mode?.let { mode ->
+            return super.newApplication(cl,"br.com.diariodeclasse.H05RecoveryApplication",context).also {
+                (it as H05RecoveryApplication).configure(mode,h05Authorized)
+            }
+        }
         // AGP emits one instrumentation component. Legacy seed APKs have a final
         // DiaryApplication without auth; never load its new test subclass there.
         val hasAuth=cl.loadClass(name).methods.any{it.name=="getAuth"}
