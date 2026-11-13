@@ -2,13 +2,17 @@
 
 Preparação em **12/11/2026, America/Sao_Paulo**, branch `sync/academic-complete-0220`,
 a partir de `eb16571d194d58fe13fcb24af4cb665429bcb3e5`.
-**Não executar HOSTED sem autorização específica posterior.**
+> **Atualização 13/11/2026:** H05 hospedado foi autorizado e aprovado na
+> [execução #201](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43433812685),
+> para **24 registros dos nove tipos presentes**. Seis tipos estavam ausentes.
+> A autorização dessa execução já foi utilizada; nova execução exige novo consentimento.
 
 ## Estado e escopo
 
 H01/H02/H04 foram aprovados na #193; H03 na #194. Esses resultados não comprovam
 recuperação Android limpa. H05 acrescenta essa prova, sem repetir aqueles testes.
-A preparação não usa contas reais, dados do proprietário ou dispositivos existentes.
+A preparação usou identidades fictícias locais; a execução hospedada usou somente
+a conta fictícia A autorizada. Nenhum dado real ou dispositivo existente foi utilizado.
 
 O executor reutiliza AuthController, KeystoreAuthVault, AccountWorkspaces,
 AcademicCoordinator.engine, AcademicEngine, AcademicStore, SupabaseAcademicSync,
@@ -92,7 +96,7 @@ gh workflow run android.yml --repo italocesarfr-sketch/CHATGPTCODEX \
 gh workflow run android.yml --repo italocesarfr-sketch/CHATGPTCODEX \
  --ref sync/academic-complete-0220 -f h05_only=true -f h05_mode=LOCAL
 
-# SOMENTE APÓS NOVA AUTORIZAÇÃO ESPECÍFICA (não executado nesta preparação):
+# SOMENTE APÓS NOVA AUTORIZAÇÃO ESPECÍFICA; #201 já foi executada uma única vez:
 gh workflow run android.yml --repo italocesarfr-sketch/CHATGPTCODEX \
  --ref sync/academic-complete-0220 -f h05_only=true -f h05_mode=HOSTED \
  -f authorize_hosted_h05=true -f hosted_auth_only=false -f homologacao_only=false
@@ -167,7 +171,74 @@ nesses tempos. Auth nessa prova é **fictício**, com PostgreSQL/PostgREST reais
 SHA-256 do ZIP: `5ba0510135e682a19807a3338c8eb4f9c68ee8d9770057df8fe5abdc7467008d`.
 Não foi necessário duplicar/configurar Secrets nem ampliar permissões. A prova
 confirma formatos/disponibilidade; elegibilidade/escopo E e dados da conta A
-serão conferidos apenas na futura execução hospedada autorizada.
+foram posteriormente conferidos na execução hospedada #201 autorizada.
+O preflight em si permanece uma prova offline, sem sessões ou recuperação.
+
+## H05 hospedado — execução #201 aprovada
+
+Executada uma única vez, com autorização explícita do proprietário, em
+**13/11/2026**, exclusivamente em `noctua-homologacao` (`sscexzxtqdcsqdlcytum`),
+conta fictícia A, AVD novo e app paralelo `br.com.diariodeclasse.homologacao`.
+
+- [Workflow #201 / ID 43433812685](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43433812685).
+- SHA executado: **`5e736b0562e18f415d72c7309c3d6ba47f3cfb2d`**;
+  código igual ao `f9c4f22` validado localmente, com documentação posterior.
+- **Um teste instrumentado aprovado; zero falhas/ignorados no ensaio H05.**
+  H01–H04, LOCAL, regressão geral, APK de distribuição e release não foram executados.
+- [Artefato sanitizado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43433812685/artifacts/14043330784)
+  / [cópia persistente do relatório](evidence/H05_HOSTED_20261113.json).
+- SHA-256 do ZIP: `20f97e4252efde46c0feb4344b8c936d4966dd998f8d59597335db6e399540b9`.
+  Checksum conferido e conteúdo revalidado pelo schema sanitizado antes do registro.
+
+| Tipo | Registros efetivamente recuperados |
+|---|---:|
+| Turmas (`classes`) | 2 |
+| Bimestres (`terms`) | 8 |
+| Matrículas (`students`) | 3 |
+| Aulas (`lessons`) | 2 |
+| Atividades (`activities`) | 1 |
+| Frequências/justificativas (`marks`) | 4 |
+| Notas (`grades`) | 2 |
+| Remanejamentos (`relocations`) | 1 |
+| Diário (`lesson_records`) | 1 |
+| Recomposições, rascunhos, disposição de exportação, arquivamentos, históricos preservados e horários | 0 — ausentes no conjunto remoto |
+
+**Total: 24 registros, nove tipos presentes.** Não criar dados para preencher os
+seis tipos ausentes; eles não receberam cobertura hospedada de recuperação.
+Ausência da entidade `preserved_histories` não significa exclusão do histórico
+acadêmico: vínculos/remanejamento e os registros efetivamente presentes foram
+recuperados, mas não se afirma uma prova adicional dessa entidade ausente.
+
+### Integridade e estado observado
+
+- Instalação sem Room ou sessão anterior confirmada; login real de A, confirmação
+  de identidade e elegibilidade/protocolo E aprovados; consentimento local registrado.
+- IDs/payloads, revisões e referências válidos e iguais ao remoto; hashes globais
+  e por tipo coincidentes. Hash global:
+  `e60421c6f9163c9cc0c46ffe660f53c642293d16a18bdb16ecbd8fdee7c15169`.
+- Cursor **23**, **23 recibos**, zero tombstones; filas/inbox/partes pendentes vazias.
+- **Zero tentativas de escrita acadêmica**. Inventário remoto/cabeça/versões e
+  lotes iguais antes/depois; a instalação vazia não gerou exclusão/sobrescrita.
+- Room fechado/reaberto, engine passada novamente e dados/estado revalidados.
+- Entrada privada removida e etapa de limpeza do runner aprovada. Logout restrito
+  à sessão criada pelo ensaio; nenhum logout global ou intervenção nos emuladores.
+- Status final `PASSED_HOSTED_PRESENT_TYPES`, etapa `DONE`, sem código de falha,
+  crash ou exceção na evidência sanitizada. Não houve nova tentativa automática.
+
+| Medida no Android | Tempo |
+|---|---:|
+| Login | 1.473 ms |
+| Inventário inicial | 2.341 ms |
+| Recuperação pela engine, incluindo Room/HTTP | **2.980 ms** |
+| Conferência local | 46 ms |
+| Conferência remota posterior | 2.020 ms |
+| Reabertura/revalidação | 259 ms |
+| Prova completa, incluindo limpeza | **10.343 ms** |
+
+Transporte de leitura acumulado: **6.956 ms em 79 chamadas status/pull E**, incluindo
+rede/decode. Não é tempo de uma única função SQL nem inclui login/logout, build e
+boot do AVD. Não confundir o tempo total com o limite SQL de oito segundos.
+Nenhuma carga de 5.171 registros foi executada.
 
 ## Falhas corrigidas durante a preparação
 
@@ -206,10 +277,12 @@ Commits: `5ffdb6a` (executor), `f5aa045` (resumo/reabertura), `7d44e67`
 
 ## Pendências e contingência
 
-**Pronto para solicitar autorização de H05 hospedado; não homologado na nuvem.**
+**H05 hospedado aprovado para os nove tipos presentes na #201.** Isso não aprova
+os seis tipos ausentes, recuperação integral de qualquer acervo nem produção.
 
-- Confirmar efetivamente no servidor A elegível, protocolo/escopo E, conjunto
-  presente e recuperação em novo AVD. O preflight não faz essas consultas.
+- Elegibilidade de A, protocolo/escopo E e recuperação dos tipos presentes foram
+  confirmados na #201. Seis tipos permanecem sem prova hospedada por ausência de
+  dados; qualquer ampliação/ensaio adicional exige planejamento e nova autorização.
 - Não fazer mudanças SQL/allowlist para aprovar o teste. Se o estado não estiver
   pronto, preservar o resultado bloqueado e revisar a preparação com o administrador.
 - Não editar a conta fictícia A durante a execução: divergência de cabeça/versões
@@ -229,6 +302,8 @@ Commits: `5ffdb6a` (executor), `f5aa045` (resumo/reabertura), `7d44e67`
 - Em falha, não repetir automaticamente HOSTED. Publicar somente o diagnóstico
   sanitizado e aguardar análise/autorização; LOCAL pode ser usado para regressão.
 
-A próxima ação do proprietário é apenas autorizar a execução HOSTED com a frase
-acima (e aprovar o deployment GitHub, caso o Environment exija). Nenhum segredo
-precisa ser enviado no chat. Main, produção, aparelhos existentes e release intactos.
+Esta execução está encerrada e sua autorização foi consumida. Não há ação manual
+obrigatória para concluir a #201. Planejar separadamente a cobertura dos seis tipos
+ausentes; não criar registros nem repetir testes hospedados sem nova autorização.
+Nenhum segredo precisa ser enviado no chat. Main, produção, aparelhos existentes,
+RLS e release intactos. O registro posterior altera somente documentação/evidência.
