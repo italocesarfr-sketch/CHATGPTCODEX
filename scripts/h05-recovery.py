@@ -122,7 +122,7 @@ def execute(env):
   (p/'instrumentation-private.log').write_bytes(raw)
   result=adb('-s',serial,'exec-out','run-as',package,'cat','files/h05-result.json')
   proof=redacted_proof(result,mode)
-  passed=proof['status']=='PASSED' and (b'OK (3 tests)' if mode=='LOCAL' else b'OK (1 test)') in raw and not any(v in raw for v in (b'FAILURES',b'INSTRUMENTATION_FAILED',b'Process crashed',b'Assumption'))
+  passed=proof['status']=='PASSED' and (b'OK (4 tests)' if mode=='LOCAL' else b'OK (1 test)') in raw and not any(v in raw for v in (b'FAILURES',b'INSTRUMENTATION_FAILED',b'Process crashed',b'Assumption'))
   write_public(env,'PASSED_LOCAL_DISPOSABLE' if passed and mode=='LOCAL' else 'PASSED_HOSTED_PRESENT_TYPES' if passed else 'NOT_APPROVED',proof)
   need(passed,'H05_NOT_APPROVED')
  finally:

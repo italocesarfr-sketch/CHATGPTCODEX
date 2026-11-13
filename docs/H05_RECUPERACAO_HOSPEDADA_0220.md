@@ -114,15 +114,23 @@ senhas/UUIDs/JSON/tokens pelo chat. O consentimento de H01–H04 não é reutili
 - Compilação de instrumentação debug aprovada neste executor.
 - 12 testes offline de segurança H05 aprovados; 16 do runner H01–H04 preservados.
 - actionlint dos workflows e py_compile aprovados.
-- Prova nativa LOCAL em AVD independente: **pendente de execução após o primeiro
-  commit do executor**. Fixture reutilizada da Fase D: 171 registros, 15 tipos,
+- Prova nativa LOCAL em AVD independente: **ainda pendente de aprovação**.
+  A [primeira execução #195](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43353738219)
+  foi bloqueada por `INVALID_REPORT`. Uma função local chamada `put` interceptava
+  o booleano `present` do builder JSON, colocando-o fora do item de tipo. A
+  validação estrita recusou o relatório; não foi flexibilizada. A construção por
+  tipo foi isolada, ganhou regressão nativa e a marca de autenticação passou a
+  ser registrada após conferir a identidade. A reabertura agora repete a engine
+  de leitura e valida revisões/receipts/estado completo. Nova prova LOCAL necessária.
+  Fixture reutilizada da Fase D: 171 registros, 15 tipos,
   36 alunos de origem, um segundo lote de renomeação com históricos preservados.
 - HOSTED: **não executado**, bloqueado por autorização posterior.
 
 No LOCAL, PostgreSQL/PostgREST são descartáveis, com identidades JWT fictícias e
 migrações/fixture existentes. O modo local pode gravar exclusivamente esse banco
 local para semear o cenário. O processo de recuperação usa a mesma barreira de
-leitura do HOSTED. Os dois testes instrumentados adicionais verificam bloqueio dos
-10 métodos de escrita antes da delegação e autorização independente obrigatória.
+leitura do HOSTED. Os três testes instrumentados adicionais verificam bloqueio dos
+10 métodos de escrita antes da delegação, autorização independente obrigatória
+e campos/hash/presença dentro de cada tipo do relatório.
 Não considerar casos ignorados como aprovação. Publicar somente
 `build/h05/result.json`, validado por lista fechada, no artefato sanitizado.

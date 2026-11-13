@@ -31,8 +31,8 @@ class H05RecoveryProbeTest {
         val report=File(app.filesDir,"h05-result.json");val input=File(app.filesDir,"h05-private.json")
         var stage=H05Stage.INPUT;val start=SystemClock.elapsedRealtime()
         val timings=linkedMapOf<String,Long>();val output=linkedMapOf<String,JsonElement>()
-        fun put(k:String,v:Boolean){output[k]=JsonPrimitive(v)}
-        fun put(k:String,v:Long){output[k]=JsonPrimitive(v)}
+        fun record(k:String,v:Boolean){output[k]=JsonPrimitive(v)}
+        fun record(k:String,v:Long){output[k]=JsonPrimitive(v)}
         fun write(status:String,code:String?=null) {
             output["case"]=JsonPrimitive("H05");output["mode"]=JsonPrimitive(app.h05Mode)
             output["status"]=JsonPrimitive(status);output["stage"]=JsonPrimitive(stage.name)
@@ -45,7 +45,7 @@ class H05RecoveryProbeTest {
             stage=value;val t=SystemClock.elapsedRealtime()
             try{return block()}finally{timings[value.name]=SystemClock.elapsedRealtime()-t}
         }
-        fun hash(rows:List<AcademicRow>)=BackupCodec.hash(AcademicRecords.canonical(AcademicRecords.json.encodeToJsonElement(rows.sortedWith(compareBy({it.kind},{AcademicRecords.canonical(it.key)})))).toByteArray())
+        fun hash(rows:List<AcademicRow>)=h05RowsHash(rows)
         fun eligible(s:AcademicProtocolStatus) {need(s.protocol==2&&s.academicScope==5&&s.testAllowed,"SCOPE_NOT_READY");need(s.academicSequence in 1..256,"LIMIT")}
         suspend fun inventory(token:String):H05Inventory {
             val status=app.readonly.status(token);eligible(status)
@@ -109,21 +109,23 @@ class H05RecoveryProbeTest {
                     val dbDir=app.getDatabasePath("diario.db").parentFile!!
                     need(!dbDir.exists()||dbDir.walkTopDown().none{it.isFile},"NOT_CLEAN")
                     need(KeystoreAuthVault(app).read().let{it.session==null&&it.legacyOwner==null&&it.pending==null},"NOT_CLEAN")
-                    app.auth.restore();need(app.auth.state.value.user==null,"NOT_CLEAN");put("clean_install_verified",true)
+                    app.auth.restore();need(app.auth.state.value.user==null,"NOT_CLEAN");record("clean_install_verified",true)
                 }
                 at(H05Stage.AUTH) {
                     app.auth.login(j.getValue("email").jsonPrimitive.content,j.getValue("password").jsonPrimitive.content)
                     need(app.auth.state.value.user?.let{it.id==expected&&it.confirmed}==true,"AUTH_FAILED")
+                    record("authenticated",true)
                 }
+                var inventoryForReopen:H05Inventory?=null
                 val user=app.auth.state.value.user!!;val w=app.workspaces.activate(user);w.academicCoordinator.close()
                 w.syncMutex.withLock {
                     val store=AcademicStore(w.database,user.id)
                     need(AcademicRecords.rows(ClassLifecycle.snapshot(w.repository.readSnapshot())).isEmpty()&&store.dao.states().isEmpty()&&store.dao.control()==null,"NOT_CLEAN")
                     val token=app.auth.syncToken(user.id)
                     at(H05Stage.ELIGIBILITY){eligible(app.readonly.status(token))}
-                    val baseline=at(H05Stage.BASELINE){inventory(token)}
+                    val baseline=at(H05Stage.BASELINE){inventory(token)};inventoryForReopen=baseline
                     need(baseline.rows().any{it.kind=="classes"&&it.key["id"]?.jsonPrimitive?.content==fixture},"FIXTURE_MISSING")
-                    at(H05Stage.CONSENT){AcademicCoordinator.engine(app,w).activate();need(store.stage()=="ACTIVE_E","CONSENT_REQUIRED");put("consent_recorded",true)}
+                    at(H05Stage.CONSENT){AcademicCoordinator.engine(app,w).activate();need(store.stage()=="ACTIVE_E","CONSENT_REQUIRED");record("consent_recorded",true)}
                     at(H05Stage.RECOVERY) {
                         for(turn in 0 until 5) {
                             AcademicCoordinator.engine(app,w).run()
@@ -135,35 +137,32 @@ class H05RecoveryProbeTest {
                     }
                     val rows=at(H05Stage.VERIFY){verify(w,baseline)}
                     val expectedRows=baseline.rows()
-                    output["types"]=JsonArray(AcademicKind.entries.map { k ->
-                        val local=rows.filter{it.kind==k.wire};val remote=expectedRows.filter{it.kind==k.wire}
-                        buildJsonObject{put("kind",k.wire);put("local_count",local.size);put("remote_count",remote.size)
-                            put("local_hash",hash(local));put("remote_hash",hash(remote));put("present",remote.isNotEmpty())}
-                    })
-                    put("records",rows.size.toLong());put("cursor",store.cursor());put("receipts",baseline.pages.size.toLong())
-                    put("tombstones",baseline.versions.values.count{it.payload==null}.toLong())
-                    put("ids_and_payloads_equal",true);put("revisions_equal",true);put("references_valid",true);put("queues_empty",true)
+                    output["types"]=h05TypeSummary(rows,expectedRows)
+                    record("records",rows.size.toLong());record("cursor",store.cursor());record("receipts",baseline.pages.size.toLong())
+                    record("tombstones",baseline.versions.values.count{it.payload==null}.toLong())
+                    record("ids_and_payloads_equal",true);record("revisions_equal",true);record("references_valid",true);record("queues_empty",true)
                     output["remote_hash"]=JsonPrimitive(hash(expectedRows));output["local_hash"]=JsonPrimitive(hash(rows))
-                    at(H05Stage.NO_REMOTE_CHANGE){val after=inventory(token);need(after.versions==baseline.versions&&after.pages==baseline.pages,"REMOTE_CHANGED");put("remote_unchanged",true)}
+                    at(H05Stage.NO_REMOTE_CHANGE){val after=inventory(token);need(after.versions==baseline.versions&&after.pages==baseline.pages,"REMOTE_CHANGED");record("remote_unchanged",true)}
                 }
                 at(H05Stage.REOPEN) {
                     val beforeHash=output.getValue("local_hash").jsonPrimitive.content
                     app.workspaces.lock();val reopened=app.workspaces.activate(user);reopened.academicCoordinator.close()
                     reopened.syncMutex.withLock {
+                        AcademicCoordinator.engine(app,reopened).run()
                         val store=AcademicStore(reopened.database,user.id)
-                        val rows=AcademicRecords.rows(ClassLifecycle.snapshot(reopened.repository.readSnapshot()))
+                        val rows=verify(reopened,requireNotNull(inventoryForReopen))
                         need(hash(rows)==beforeHash&&store.cursor()==output.getValue("cursor").jsonPrimitive.long,"REOPEN_MISMATCH")
                         need(store.dao.pending().isEmpty()&&store.dao.incoming().isEmpty(),"QUEUE_NOT_EMPTY")
                     }
-                    put("reopened_equal",true)
+                    record("reopened_equal",true)
                 }
                 need(app.readonly.blockedWrites==0,"OUTBOUND_BLOCKED")
-                put("blocked_writes",0L);put("read_calls",app.readonly.reads.toLong());put("transport_ms",app.readonly.transportMillis)
+                record("blocked_writes",0L);record("read_calls",app.readonly.reads.toLong());record("transport_ms",app.readonly.transportMillis)
             }
         }catch(e:Exception){failure=when(e){is H05Stop->e.code;is H05BlockedWrite->"OUTBOUND_BLOCKED";is TimeoutCancellationException->"TIMEOUT";is SyncFailure->"TRANSPORT_FAILED";else->"UNEXPECTED"}}
         finally {
             val last=stage
-            try {at(H05Stage.CLEANUP){app.workspaces.lock();app.auth.logout();input.delete();need(!input.exists(),"CLEANUP_FAILED");put("private_input_removed",true)}}
+            try {at(H05Stage.CLEANUP){app.workspaces.lock();app.auth.logout();input.delete();need(!input.exists(),"CLEANUP_FAILED");record("private_input_removed",true)}}
             catch(_:Exception){failure="CLEANUP_FAILED"}
             if(failure==null){stage=H05Stage.DONE;write("PASSED")}else{stage=last;write("FAILED",failure)}
         }

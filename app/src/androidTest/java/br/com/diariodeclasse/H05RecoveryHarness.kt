@@ -66,3 +66,21 @@ class H05ReadOnlyRemote(private val delegate:AcademicRemote):AcademicRemote {
     override suspend fun pullC(token:String,after:Long):List<AcademicPage> = throw IllegalStateException("H05_UNSUPPORTED_READ")
     override suspend fun pullD(token:String,after:Long):List<AcademicPage> = throw IllegalStateException("H05_UNSUPPORTED_READ")
 }
+
+internal fun h05RowsHash(rows:List<AcademicRow>):String = br.com.diariodeclasse.backup.BackupCodec.hash(
+    AcademicRecords.canonical(AcademicRecords.json.encodeToJsonElement(
+        kotlinx.serialization.builtins.ListSerializer(AcademicRow.serializer()),
+        rows.sortedWith(compareBy({it.kind},{AcademicRecords.canonical(it.key)})))).toByteArray())
+
+internal fun h05TypeSummary(local:List<AcademicRow>,remote:List<AcademicRow>) = kotlinx.serialization.json.JsonArray(
+    AcademicKind.entries.map { kind ->
+        val l=local.filter{it.kind==kind.wire};val r=remote.filter{it.kind==kind.wire}
+        kotlinx.serialization.json.buildJsonObject {
+            put("kind",kotlinx.serialization.json.JsonPrimitive(kind.wire))
+            put("local_count",kotlinx.serialization.json.JsonPrimitive(l.size))
+            put("remote_count",kotlinx.serialization.json.JsonPrimitive(r.size))
+            put("local_hash",kotlinx.serialization.json.JsonPrimitive(h05RowsHash(l)))
+            put("remote_hash",kotlinx.serialization.json.JsonPrimitive(h05RowsHash(r)))
+            put("present",kotlinx.serialization.json.JsonPrimitive(r.isNotEmpty()))
+        }
+    })

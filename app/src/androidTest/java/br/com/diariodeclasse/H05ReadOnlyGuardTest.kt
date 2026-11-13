@@ -30,6 +30,18 @@ class H05ReadOnlyGuardTest {
         for(action in actions)try{action();fail("Write was not blocked")}catch(_:H05BlockedWrite){}
         assertEquals(10,remote.blockedWrites);assertEquals(0,writes)
     }
+    @Test fun typeSummaryKeepsPresenceAndHashesInsideEachType() {
+        val rows=AcademicRecords.rows(PhaseDFixture.read())
+        val summary=h05TypeSummary(rows,rows)
+        assertEquals(15,summary.size)
+        for(value in summary) {
+            val r=value.jsonObject
+            assertEquals(setOf("kind","local_count","remote_count","local_hash","remote_hash","present"),r.keys)
+            assertTrue(r.getValue("present").jsonPrimitive.boolean)
+            assertEquals(r.getValue("local_count"),r.getValue("remote_count"))
+            assertEquals(r.getValue("local_hash"),r.getValue("remote_hash"))
+        }
+    }
     @Test fun hostedApplicationCannotBeConfiguredWithoutIndependentAuthorization() {
         try{H05RecoveryApplication().configure("HOSTED",false);fail("Missing authorization accepted")}
         catch(_:IllegalArgumentException){}

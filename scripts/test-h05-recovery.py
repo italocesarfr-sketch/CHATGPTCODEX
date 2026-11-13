@@ -37,7 +37,7 @@ class H05Safety(unittest.TestCase):
  def test_valid_proof_does_not_include_id_email_or_payload(self):
   self.assertEqual(proof(),f.redacted_proof(json.dumps(proof()).encode(),'LOCAL'))
  def test_unknown_report_fields_and_private_messages_are_rejected(self):
-  for k,v in [('email','PRIVATE_SENTINEL'),('message','PRIVATE_SENTINEL'),('stage','PRIVATE_SENTINEL'),('failure_code','PRIVATE_SENTINEL')]:
+  for k,v in [('email','PRIVATE_SENTINEL'),('message','PRIVATE_SENTINEL'),('present',True),('stage','PRIVATE_SENTINEL'),('failure_code','PRIVATE_SENTINEL')]:
    d=proof();d[k]=v
    with self.assertRaises(f.Blocked)as e:f.redacted_proof(json.dumps(d).encode(),'LOCAL')
    self.assertNotIn('PRIVATE_SENTINEL',str(e.exception))
