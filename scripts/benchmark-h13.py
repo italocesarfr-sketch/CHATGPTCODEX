@@ -11,6 +11,8 @@ H13=ROOT/'supabase/migrations/202611130001_h13_registry_cache.sql'
 def load(name,path):
  spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 
+telemetry=load('h13_telemetry',ROOT/'scripts/benchmark_telemetry.py')
+
 def old_definition():
  source=(ROOT/'supabase/migrations/202611010001_academic_protocol.sql').read_text()
  start=source.index('CREATE OR REPLACE FUNCTION public.noctua_academic_definition(')
@@ -115,6 +117,8 @@ def run(mode,repetitions):
  if mode=='http':os.environ['PGDATABASE']=expected
  f.execute('ALTER DATABASE '+expected+" SET track_functions='all'; ALTER DATABASE "+expected+" SET track_io_timing=on;")
  variants=('before','after');results=[];http=None
+ journal=telemetry.Journal(ROOT/('build/h13/progress-'+mode+'.json'),'H13')
+ journal.event(mode=mode,stage='initializing',budget='8s')
  role_setting=None
  try:
   if mode=='http':
@@ -136,6 +140,7 @@ def run(mode,repetitions):
    # Alternate order to reduce the bias of warm filesystem/cache and CPU frequency.
    for trial in range(repetitions):
     for variant in variants if trial%2==0 else variants[::-1]:
+     journal.event(mode=mode,stage='prepare',records=len(rows),parts=(len(rows)+127)//128,trial=trial+1,variant=variant)
      f.execute(old_definition()if variant=='before'else H13.read_text());f.b.reset()
      if http:
       for owner in (f.A,f.B):http.activate(owner)
@@ -153,14 +158,19 @@ def run(mode,repetitions):
      staging=(time.perf_counter()-start)*1000
      assert pull(0,0)==[] and f.d.status()['academicSequence']==0
      f.execute('SELECT pg_stat_reset();');commit=http.commit if http else lambda op:sql_commit(f,op)
+     journal.event(mode=mode,stage='commit-start',records=len(rows),parts=len(parts),trial=trial+1,variant=variant)
      reply,measurement=commit(op)
      profile=function_profile(f)if not http else None
+     journal.event(mode=mode,stage='commit-result',records=len(rows),parts=len(parts),trial=trial+1,variant=variant,measurement=measurement,profile=profile,profile_partial=reply is None)
      item=dict(trial=trial+1,variant=variant,records=len(rows),parts=len(parts),staging_ms=round(staging,3),commit=measurement)
      if profile:item['function_profile']=profile
      if reply is None:
       ensure_cancelled(f,len(parts));item['atomic_timeout_verified']=True
       # Preserve all parts/operation. Recover under the SAME 8s budget using the candidate.
-      f.execute(H13.read_text());reply,recovery=commit(op);assert reply is not None,'Candidate cannot finish under 8s; capacity blocked'
+      journal.event(mode=mode,stage='rollback-verified',records=len(rows),parts=len(parts),trial=trial+1,variant=variant,rollback_verified=True)
+      f.execute(H13.read_text());reply,recovery=commit(op)
+      journal.event(mode=mode,stage='recovery-result',records=len(rows),parts=len(parts),trial=trial+1,variant=variant,measurement=recovery,profile=function_profile(f),profile_partial=reply is None,capacity_blocked=reply is None)
+      assert reply is not None,'Candidate cannot finish under 8s; capacity blocked (see durable progress journal)'
       item['same_operation_recovery_after_optimization']=recovery
      recovered=assertions(f,rows,op,reply,pull);item.update(recovered)
      replays=[]
@@ -175,6 +185,7 @@ def run(mode,repetitions):
      item['foreign_account_denied']=True
      item['table_bytes_including_indexes']=int(f.execute("SELECT sum(pg_total_relation_size(c.oid)) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND c.relname LIKE 'noctua_%';"))
      item['input_json_bytes']=len(json.dumps(rows,ensure_ascii=False).encode());samples[variant].append(item)
+     journal.event(mode=mode,stage='verified',records=len(rows),trial=trial+1,variant=variant,integrity_equal=True,replay_equal=True,hash=item['recovered_sha256'])
    assert len({s['recovered_sha256']for v in samples.values()for s in v})==1
    stats={}
    for variant in variants:
@@ -182,6 +193,7 @@ def run(mode,repetitions):
     stats[variant]=dict(accepted=len(accepted),timed_out=repetitions-len(accepted),server_ms=summary(accepted)if accepted else None,
      wall_ms=summary([s['commit']['wall_ms']for s in samples[variant]]),replay_server_ms=summary([r['server_execution_ms']for s in samples[variant]for r in s['confirmed_replays']]))
    results.append(dict(records=len(rows),parts=len(parts),kinds=len({r['kind']for r in rows}),statistics=stats,samples=samples))
+  journal.event(mode=mode,stage='completed',completed=True)
   return dict(case='H13',mode=mode,environment='disposable-loopback-postgresql-postgrest',hosted_executed=False,real_auth=False,
    statement_timeout='8s',repetitions=repetitions,postgres=settings,sql_time='EXPLAIN ANALYZE execution time; excludes connection/COMMIT fsync'if mode=='sql'else'clock_timestamp around the original commit RPC; excludes response serialization/final COMMIT',
    wall_time='psql connection + SQL + final transaction'if mode=='sql'else'HTTP encoding + RPC + final transaction + transfer + JSON decode',

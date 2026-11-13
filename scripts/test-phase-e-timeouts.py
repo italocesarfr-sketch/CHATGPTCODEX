@@ -28,7 +28,11 @@ b = load('timeout_base', HERE / 'test-phase-b-postgres.py')
 b.reset()
 f = load('timeout_e', HERE / 'test-phase-e-postgres.py')
 f.execute((f.f.ROOT / 'supabase/migrations/202611030002_phase_e_decisions.sql').read_text())
+telemetry = load('timeout_telemetry', HERE / 'benchmark_telemetry.py')
+journal = telemetry.Journal(HERE.parent / 'build/timeout-progress.json', 'E-timeouts')
 results = []
+context = dict(case='initializing', records=0, parts=0)
+last_measurement = None
 
 def setup(rows):
     b.reset(); b.activate(); f.d.c.enable(); f.d.enable(); f.enable()
@@ -45,10 +49,15 @@ def commit(operation, budget='8s'):
            "'"+json.dumps(claims)+"'; SET statement_timeout='"+budget+"';\n"+
            "SELECT current_setting('statement_timeout');\n"+
            "EXPLAIN (ANALYZE, FORMAT JSON, TIMING OFF) SELECT public.noctua_commit_academic_e('"+operation+"');\n")
+    journal.event(**context, stage='commit-start', budget=budget)
     start = time.monotonic()
     run = subprocess.run([PSQL, '-XAtq', '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=verbose'],
                          input=sql, text=True, capture_output=True, timeout=35)
     elapsed = round(time.monotonic()-start, 3)
+    global last_measurement
+    profile = json.loads(f.execute("SELECT coalesce(jsonb_agg(to_jsonb(p) ORDER BY total_time DESC),'[]') FROM (SELECT funcname,calls,total_time,self_time FROM pg_stat_user_functions WHERE calls>0) p;"))
+    last_measurement = dict(wall_ms=elapsed*1000,outcome='failed' if run.returncode else 'accepted')
+    journal.event(**context, stage='commit-result', budget=budget, measurement=last_measurement, profile=profile, profile_partial=bool(run.returncode))
     lines = run.stdout.strip().splitlines()
     assert lines and lines[0] == budget, 'Statement budget not applied'
     if run.returncode:
@@ -78,6 +87,7 @@ def recover(operation, rows):
     budget = '8s'
     # H13 preserves the original 8s admission budget even during retry.
     # A failure here is a capacity blocker; never extend the budget to turn it green.
+    journal.event(**context, stage='recovery-result', measurement=last_measurement, capacity_blocked=reply is None)
     assert reply is not None
     replay = exact_receipt(operation, rows, reply)
     return dict(retry_budget=budget, retry_psql_wall_seconds=elapsed, retry_postgres_execution_ms=db_ms, replay=replay)
@@ -86,6 +96,7 @@ LOCK = 220008
 locker = None
 try:
     small = f.d.rows()
+    context=dict(case='small-budget',records=len(small),parts=(len(small)+127)//128)
     op, parts = setup(small)
     reply, elapsed, db_ms = commit(op)
     assert reply is not None, 'Small transaction failed 8s admission'
@@ -95,6 +106,7 @@ try:
 
     rows = f.large()
     assert len(rows) == 5171
+    context=dict(case='large-natural-budget',records=len(rows),parts=(len(rows)+127)//128)
     op, parts = setup(rows)
     reply, elapsed, db_ms = commit(op)
     evidence = dict(case='large-natural-budget', records=len(rows), parts=parts, statement_timeout='8s',
@@ -106,6 +118,7 @@ try:
         evidence.update(recover(op, rows))
     results.append(evidence)
 
+    context=dict(case='mid-write-timeout-and-retry',records=len(rows),parts=(len(rows)+127)//128)
     op, parts = setup(rows)
     # Test-only hook: a held advisory lock stops the real RPC AFTER academic writes.
     # A sequence witnesses entering that point even though the transaction rolls back.
@@ -139,6 +152,7 @@ CREATE TRIGGER noctua_timeout_hook AFTER INSERT ON public.noctua_academic_record
     assert reply is None, 'Controlled blocking did not exercise statement_timeout'
     assert f.execute('SELECT is_called FROM public.noctua_timeout_probe;') == 't', 'RPC never reached academic writes'
     empty_after_cancel(parts)
+    journal.event(**context,stage='rollback-verified',rollback_verified=True)
     locker.stdin.write('ROLLBACK;\n\\q\n'); locker.stdin.flush(); locker.communicate(timeout=5); locker = None
     f.execute('DROP TRIGGER noctua_timeout_hook ON public.noctua_academic_records; DROP FUNCTION public.noctua_timeout_hook(); DROP SEQUENCE public.noctua_timeout_probe;')
     evidence = dict(case='mid-write-timeout-and-retry', records=len(rows), parts=parts,
