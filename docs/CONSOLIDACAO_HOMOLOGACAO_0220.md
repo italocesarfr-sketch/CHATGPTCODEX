@@ -90,7 +90,7 @@ cobertura local aprovada e, simultaneamente, obrigações hospedadas pendentes.
 | **H09 — conflito/decisão** | SQL decisões 15; Room reconciliação 10; E HTTP local/nuvem, revisão alterada, perda de resposta, variantes/auditoria preservadas. | **Confirmado manualmente:** conflito simultâneo de notas; escolha local; escolha nuvem. | Revalidação/auditoria e mudanças durante a prévia têm prova local; não anunciar inspeção dessas tabelas hospedadas. Conflito legado real intocado. |
 | **H10 — remanejamento/grafo** | D: 27 SQL, 15 Room, 24 fases HTTP; cadeia indivisível, identidade/datas, ciclo, histórico, auditoria imutável e rollback. Comparação completa de payloads na graduação. | **Confirmado manualmente no cenário testado:** movimentação e histórico. | Casos negativos completos têm evidência local; não inferir ensaio hospedado de todas as variantes. Duas regras de produto continuam intactas. |
 | **H11 — exportação/histórico** | D: troca/reordenação sem quebrar posições únicas; ocultações e histórico. Regressão de relatórios/exportação e leitores independentes XLSX/CSV/TSV/planos de aula no CI. | Diário e histórico de remanejamento relatados; exportações, revisões de grade, arquivamentos e rascunhos não relatados explicitamente. | Pendente conferência dos demais tipos recuperados hospedados. Não houve mudança de exportador. |
-| **H12 — backup/reconciliação** | Fase E anterior preservada. Nova prova focada [#202](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43438302556): 14 Android, 15 PostgreSQL e nove verificações HTTP; backup cifrado de 171 registros, restauração pausada e reconciliação com 172 registros/15 tipos, decisão auditada com resposta perdida e replay único. | Não relatado para H12. | **Pendente hospedado:** [runner e autorização próprios](H12_RESTAURACAO_RECONCILIACAO_0220.md). Não restaurar em dispositivos existentes. Os seis tipos ausentes no H05 #201 permanecem sem prova hospedada. |
+| **H12 — backup/reconciliação** | Fase E anterior preservada. Nova prova focada [#202](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43438302556): 14 Android, 15 PostgreSQL e nove verificações HTTP; backup cifrado de 171 registros, restauração pausada e reconciliação com 172 registros/15 tipos, decisão auditada com resposta perdida e replay único. | **Automatizado #203, 13/11:** backup histórico válido com 22 registros, pausa RESTORE e KEEP_REMOTE explícito, 24 registros/nove tipos preservados; um teste aprovado e uma auditoria aceita, sem escrita acadêmica remota. [Evidência](evidence/H12_HOSTED_20261113.json). Não é relato manual. | **Pendente:** seis tipos ausentes em H05/H12, cenários não exercitados e dispositivos físicos. [Limites e relatório](H12_RESTAURACAO_RECONCILIACAO_0220.md). Não restaurar em dispositivos existentes. |
 | **H13 — capacidade/continuidade** | Estado sincronizado exige fila/inbox/partes vazias, revisões reconhecidas e decisões finalizadas. Graduação, hashes finais iguais entre dois AVDs, métricas SQL e HTTP separadas. | Continuidade funcional/offline relatada; sem volume/latência/quota/memória. | **Falha de capacidade no ensaio de 8 s:** 5.171 causou SQLSTATE 57014 na CI final; rollback íntegro. Memória/compute/quota/p95 Free não comprovados. Bloquear progressão a esse patamar até medir margem. Não há SLA nem aprovação de capacidade. |
 
 Referências executáveis principais:
@@ -413,10 +413,16 @@ Arquivos (nenhum pertence ao código funcional de produção ou às migrações)
 ### Preparação específica H12 — 13/11/2026
 
 [Executor, limites e autorização independente](H12_RESTAURACAO_RECONCILIACAO_0220.md).
-Reutiliza a prova E com volume pequeno e AVD novo. H12 hospedado continua pendente;
-a decisão de manter nuvem grava auditoria e exige autorização distinta do H05.
+Reutiliza a prova E com volume pequeno e AVD novo. H12 hospedado foi autorizado
+separadamente e aprovado em #203; a decisão de manter nuvem gravou uma auditoria.
+Qualquer repetição exige nova autorização distinta do H05.
 Os seis tipos ausentes no H05 #201 não ganham cobertura hospedada por testes locais.
 
 Prova H12 LOCAL #202 aprovada no SHA `510c14c5ea1cfbb3508f0ada6b735994aa0eed1f`;
 [relatório persistido](evidence/H12_LOCAL_20261113.json). Não é homologação H12
 hospedada nem autorização para a RPC de auditoria no projeto remoto.
+
+H12 HOSTED #203 aprovado na fonte `90318e7d0f0ce6e093f7b1ab904cbb6b9b5cdf8f`;
+[relatório persistido](evidence/H12_HOSTED_20261113.json). Backup histórico de
+22 registros reconciliado com 24 atuais/nove tipos, hashes iguais, cursor 23,
+filas vazias e auditoria única. Não homologa os seis tipos ausentes, nem produção.

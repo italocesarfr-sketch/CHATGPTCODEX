@@ -1,0 +1,188 @@
+{
+  "case": "H12",
+  "mode": "HOSTED",
+  "source_sha": "90318e7d0f0ce6e093f7b1ab904cbb6b9b5cdf8f",
+  "overall": "PASSED_HOSTED_PRESENT_TYPES",
+  "blocking_code": null,
+  "credentials_redacted": true,
+  "hosted_requests": true,
+  "instrumentation": {
+    "expected_tests": 1,
+    "ok_marker": true,
+    "process_crashed": false,
+    "instrumentation_failed": false,
+    "failures": false,
+    "exception_types": []
+  },
+  "proof": {
+    "clean_install_verified": true,
+    "authenticated": true,
+    "encrypted_backup_verified": true,
+    "historical_backup_reconstructed": true,
+    "backup_hash": "5fe88d774d810777c21ebab3b1e2a53833734e3eea3979a6ef9e6f4903aff4d2",
+    "backup_records": 22,
+    "wrong_account_rejected": true,
+    "remote_only_records": 2,
+    "restore_paused": true,
+    "safety_copy_verified": true,
+    "explicit_review_verified": true,
+    "types": [
+      {
+        "kind": "classes",
+        "local_count": 2,
+        "remote_count": 2,
+        "local_hash": "de3b9d5a2acf08c5442fbe97d5588fb064356f8b5c0c29e3a8e4ebde1346cbde",
+        "remote_hash": "de3b9d5a2acf08c5442fbe97d5588fb064356f8b5c0c29e3a8e4ebde1346cbde",
+        "present": true
+      },
+      {
+        "kind": "terms",
+        "local_count": 8,
+        "remote_count": 8,
+        "local_hash": "c78656737fe35d6e6359164f79e90932836887731c62ce804dc0fb7ea3f1a671",
+        "remote_hash": "c78656737fe35d6e6359164f79e90932836887731c62ce804dc0fb7ea3f1a671",
+        "present": true
+      },
+      {
+        "kind": "students",
+        "local_count": 3,
+        "remote_count": 3,
+        "local_hash": "28838acf6af6a427765a7908fa1959c2420fe4a03eb131e64f21fa0cf4bb9fe4",
+        "remote_hash": "28838acf6af6a427765a7908fa1959c2420fe4a03eb131e64f21fa0cf4bb9fe4",
+        "present": true
+      },
+      {
+        "kind": "lessons",
+        "local_count": 2,
+        "remote_count": 2,
+        "local_hash": "c44e0931640f680d39d300b78b07aedcecb15d0f777a5d6139b3192a9e58cb42",
+        "remote_hash": "c44e0931640f680d39d300b78b07aedcecb15d0f777a5d6139b3192a9e58cb42",
+        "present": true
+      },
+      {
+        "kind": "activities",
+        "local_count": 1,
+        "remote_count": 1,
+        "local_hash": "699edd9b30baa99577f509fda2f9ce93730318cfd01ed68b22f23523d80a66fc",
+        "remote_hash": "699edd9b30baa99577f509fda2f9ce93730318cfd01ed68b22f23523d80a66fc",
+        "present": true
+      },
+      {
+        "kind": "marks",
+        "local_count": 4,
+        "remote_count": 4,
+        "local_hash": "69eab4e2f820abd3369a5cd9bfa56c8169197c4bae51050daa2f406382494552",
+        "remote_hash": "69eab4e2f820abd3369a5cd9bfa56c8169197c4bae51050daa2f406382494552",
+        "present": true
+      },
+      {
+        "kind": "grades",
+        "local_count": 2,
+        "remote_count": 2,
+        "local_hash": "39bbb6511832b7ef110d6c6ff0693a0cc38455356dc44a145920a4a6ffe83164",
+        "remote_hash": "39bbb6511832b7ef110d6c6ff0693a0cc38455356dc44a145920a4a6ffe83164",
+        "present": true
+      },
+      {
+        "kind": "recompositions",
+        "local_count": 0,
+        "remote_count": 0,
+        "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "present": false
+      },
+      {
+        "kind": "relocations",
+        "local_count": 1,
+        "remote_count": 1,
+        "local_hash": "ba51482b4d6fd252031f5df4bd2a1886afee7fac128fc5aa9d3e743a848060c0",
+        "remote_hash": "ba51482b4d6fd252031f5df4bd2a1886afee7fac128fc5aa9d3e743a848060c0",
+        "present": true
+      },
+      {
+        "kind": "import_drafts",
+        "local_count": 0,
+        "remote_count": 0,
+        "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "present": false
+      },
+      {
+        "kind": "export_rows",
+        "local_count": 0,
+        "remote_count": 0,
+        "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "present": false
+      },
+      {
+        "kind": "class_archives",
+        "local_count": 0,
+        "remote_count": 0,
+        "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "present": false
+      },
+      {
+        "kind": "lesson_records",
+        "local_count": 1,
+        "remote_count": 1,
+        "local_hash": "ecaa6392747c44e009eabcd8a67fea83442380ed37f57787eef19956f7a9e5fd",
+        "remote_hash": "ecaa6392747c44e009eabcd8a67fea83442380ed37f57787eef19956f7a9e5fd",
+        "present": true
+      },
+      {
+        "kind": "preserved_histories",
+        "local_count": 0,
+        "remote_count": 0,
+        "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "present": false
+      },
+      {
+        "kind": "weekly_timetables",
+        "local_count": 0,
+        "remote_count": 0,
+        "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "present": false
+      }
+    ],
+    "local_hash": "e60421c6f9163c9cc0c46ffe660f53c642293d16a18bdb16ecbd8fdee7c15169",
+    "remote_hash": "e60421c6f9163c9cc0c46ffe660f53c642293d16a18bdb16ecbd8fdee7c15169",
+    "records": 24,
+    "cursor": 23,
+    "receipts": 23,
+    "decision_writes": 1,
+    "lost_replies": 0,
+    "blocked_writes": 0,
+    "read_calls": 156,
+    "transport_ms": 11695,
+    "remote_unchanged": true,
+    "ids_and_payloads_equal": true,
+    "revisions_equal": true,
+    "references_valid": true,
+    "queues_empty": true,
+    "audit_verified": true,
+    "reopened_equal": true,
+    "private_input_removed": true,
+    "case": "H12",
+    "mode": "HOSTED",
+    "stage": "DONE",
+    "status": "PASSED",
+    "failure_code": null,
+    "total_ms": 21517,
+    "timings_ms": {
+      "AUTH": 1466,
+      "BASELINE": 2728,
+      "RECOVERY": 3187,
+      "BACKUP": 2798,
+      "WRONG_ACCOUNT": 23,
+      "CURRENT": 1813,
+      "RESTORE": 4409,
+      "REVIEW": 2167,
+      "DECISION": 411,
+      "REOPEN": 2220
+    }
+  }
+}

@@ -2,7 +2,9 @@
 
 Preparação em **13/11/2026 (America/Sao_Paulo)**, branch
 `sync/academic-complete-0220`, a partir de `6cc7bef`.
-**H12 hospedado não foi autorizado nem executado nesta preparação.**
+Preparação LOCAL aprovada em #202. **Após autorização expressa independente,
+H12 HOSTED foi executado uma única vez e aprovado em #203, somente para os
+nove tipos presentes na conta fictícia A de homologação.** Evidência abaixo.
 
 ## Implementação e escopo
 
@@ -45,7 +47,7 @@ backup em banco independente, escolhas explícitas e resposta perdida), além de
 três testes de guardas H12. É reabertura do Room, **não** reboot/morte forçada
 real do processo. Essa distinção não é substituída por uma afirmação de resiliência total.
 
-### Futuro HOSTED — somente após autorização própria
+### Executor HOSTED — autorização própria obrigatória
 
 Apenas `br.com.diariodeclasse.homologacao`, endpoint fixo
 `https://sscexzxtqdcsqdlcytum.supabase.co`, conta fictícia A do Environment
@@ -63,9 +65,9 @@ fiel de revisão comprometida no servidor, **não** um arquivo antigo fornecido
 pelo proprietário. Se não existir base segura, bloqueia com
 `H12_NO_SAFE_OLD_BASELINE`, sem aprovação nem criação de dados na nuvem.
 
-A escolha será exclusivamente **manter nuvem**, após revisão explícita, com
+A escolha é exclusivamente **manter nuvem**, após revisão explícita, com
 `hasChanges=false`. Ainda assim, `resolveE` **grava uma auditoria/recibo de decisão
-no servidor**. Portanto, a futura autorização precisa abranger essa escrita de
+no servidor**. Por isso, a autorização de #203 abrangeu essa escrita de
 metadados; a autorização somente leitura do H05 não basta. O guard H12 permite
 somente a requisição congelada e sua operação exata, uma única vez. Bloqueia
 staging, push, tombstones, promoção de escopos, `KEEP_LOCAL`, cancelamento e
@@ -112,12 +114,15 @@ O futuro H12 informará as contagens presentes/zero reais; não os semeará.
   Auth/JWT desses cenários são fictícios, não Supabase Auth hospedado.
 - Os 45 testes Python passaram também no job. Os jobs hospedados, H05, regressão
   Android geral e release ficaram excluídos; não são contabilizados como aprovações.
-- Homologação H12 hospedada: **não executada; depende de autorização posterior**.
+- [H12 HOSTED #203](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43441087893):
+  **um teste Android aprovado, zero falhas/ignorados**, após autorização própria.
+  Fonte `90318e7d0f0ce6e093f7b1ab904cbb6b9b5cdf8f`, sem mudança de código
+  depois da prova LOCAL #202. Os demais jobs ficaram excluídos.
 
 A regressão Android integral não foi repetida: nenhuma implementação acadêmica
 foi alterada e a prova foi focada em backup/reconciliação e nas guardas compartilhadas.
-Não se executou o ramo HOSTED de reconstrução histórica/conta Auth real; sua
-compilação e guardas não substituem a futura execução hospedada. A interface visual
+O ramo HOSTED de reconstrução histórica/conta Auth real foi executado em #203,
+com dados fictícios e sem injeção de falhas/carga. A interface visual
 de revisão não foi automatizada nesta prova; os mesmos métodos reais de prévia e
 confirmação receberam a escolha explicitamente autorizada pelo runner.
 
@@ -156,11 +161,85 @@ sem e-mails/UUIDs ou campos desconhecidos.
 - `hosted_requests=false`. Supabase hospedado, produção e dispositivos do
   proprietário não foram acessados por esta prova.
 
+### Evidência HOSTED #203 — 13/11/2026
+
+[Relatório sanitizado](evidence/H12_HOSTED_20261113.json), extraído do
+[artefato h12-hospedado-sanitizado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43441087893/artifacts/14045774076).
+Resultado `PASSED_HOSTED_PRESENT_TYPES`. SHA-256 do ZIP de 1.681 bytes:
+`094013c80dc31fdab3b25987541cc23fc8d95248086974575d835762d1d19dae`.
+O ZIP continha somente `result.json`; digest, origem SHA, esquema fechado e
+marcador de um teste executado foram verificados antes de persistir o relatório.
+Sem e-mails, UUIDs, dados individuais ou respostas privadas.
+
+- Projeto exclusivo `sscexzxtqdcsqdlcytum`; conta fictícia A, Auth real e
+  consentimentos existentes. Nenhuma nova conta, alteração de allowlist ou SQL.
+- Instalação limpa confirmada no AVD novo da CI. Um backup criptografado foi
+  reconstruído de um grafo histórico remoto válido com **22 registros**.
+  `historical_backup_reconstructed=true`: não foi utilizado um arquivo antigo
+  do proprietário nem foram criadas alterações acadêmicas remotas para o teste.
+- Ao restaurar somente nesse AVD, a sincronização permaneceu em **RESTORE**,
+  desativada, sem decisão automática. Houve cópia de segurança validada e
+  rejeição do backup sob a identidade B, sem abrir sessão de B.
+- A prévia comparou versões divergentes e registros ausentes do backup. A
+  confirmação explícita **KEEP_REMOTE** tinha `hasChanges=false` e **nenhuma
+  mudança acadêmica proposta**. Os **dois registros posteriores ausentes do
+  backup** permaneceram preservados na reconciliação.
+- Resultado final: **24 registros / nove tipos**, mesmos IDs/payloads/hashes,
+  revisões, bases e relacionamentos do servidor. Quantidades abaixo.
+
+| Tipo acadêmico | Preservados |
+|---|---:|
+| classes | 2 |
+| terms | 8 |
+| students (matrículas) | 3 |
+| lessons | 2 |
+| activities | 1 |
+| marks (incluindo estados/motivos presentes) | 4 |
+| grades | 2 |
+| relocations (incluindo payload histórico/auditorias presentes) | 1 |
+| lesson_records | 1 |
+
+**Seis tipos ausentes, todos com contagem zero:** `recompositions`,
+`import_drafts`, `export_rows`, `class_archives`, `preserved_histories` e
+`weekly_timetables`. Não foram criados nem classificados como homologados.
+A igualdade do remanejamento presente não prova conteúdo da entidade
+`preserved_histories`, ausente neste conjunto.
+
+- **Uma única escrita de auditoria/recibo RESTORE/KEEP_REMOTE**, aceita pelo
+  servidor; decisão local `APPLIED`, variantes/revisões congeladas verificadas.
+  Confirmação por RPC e recibo da própria operação; não houve consulta SQL
+  administrativa nem inspeção direta da tabela privada de auditorias.
+- **Cursor 23 e 23 recibos acadêmicos**, sem avanço do head acadêmico pela
+  decisão. Outbox, inbox, partes pendentes e fila v1 vazias. Zero tentativas
+  de push/staging/promoção bloqueadas; nenhuma alteração acadêmica enviada.
+- Inventário acadêmico remoto antes/depois idêntico. Workspace Room reaberto,
+  engine executada novamente, revisão/recibos conferidos e sem duplicações.
+  Nenhuma resposta foi perdida propositalmente neste ensaio hospedado.
+- Total da prova Android: **21.517 ms**. Login: **1.466 ms**; inventário inicial:
+  **2.728 ms**; recuperação inicial: **3.187 ms**; backup cifrado: **2.798 ms**;
+  restauração/verificação de pausa: **4.409 ms**; revisão: **2.167 ms**; decisão:
+  **411 ms**; reabertura/conferências: **2.220 ms**. As 156 leituras status/pull
+  acumularam **11.695 ms** de transporte (exclui login/decisão).
+- Hash lógico do backup histórico:
+  `5fe88d774d810777c21ebab3b1e2a53833734e3eea3979a6ef9e6f4903aff4d2`.
+- Hash final local/remoto, também igual ao inventário remoto pré-restauração:
+  `e60421c6f9163c9cc0c46ffe660f53c642293d16a18bdb16ecbd8fdee7c15169`.
+- Sessão do ensaio encerrada e entrada privada removida. Produção, dados reais,
+  emuladores existentes, RLS, contas, migrações e regras acadêmicas intocados.
+
+Limites: um cenário positivo, uma conta e um novo AVD; sem ensaio hospedado de
+carga, concorrência deliberada, processo morto/reboot ou variante KEEP_LOCAL.
+Não aprova todos os 15 tipos, todos os formatos antigos de backup, dispositivo
+físico, acervos reais ou release de produção. As evidências LOCAL continuam
+separadas e não substituem essas pendências. Não houve repetição automática.
+
 ### Commits e comandos
 
 - `510c14c5ea1cfbb3508f0ada6b735994aa0eed1f`: executor, consentimento independente,
   guardas, teste real e documentação inicial; validado no run #202.
-- A consolidação documental posterior adiciona esta evidência e não modifica código.
+- `90318e7d0f0ce6e093f7b1ab904cbb6b9b5cdf8f`: consolidação LOCAL; também foi a
+  fonte exata da execução HOSTED #203. O código permanece o validado em #202.
+- A consolidação HOSTED posterior adiciona apenas documentação e o JSON sanitizado.
 
 Comandos locais executados (sem credenciais hospedadas):
 
@@ -193,7 +272,11 @@ gh workflow run android.yml --repo italocesarfr-sketch/CHATGPTCODEX \
  --ref sync/academic-complete-0220 -f h12_only=true -f h12_mode=LOCAL
 ```
 
-Para o futuro ensaio hospedado, após aprovação das evidências locais:
+A execução #203 já utilizou `h12_only=true`, `h12_mode=HOSTED` e
+`authorize_hosted_h12=true`, com demais modalidades/autorização desativadas.
+Não há nova execução pendente deste cenário. **Qualquer repetição exige nova
+autorização específica; a autorização de #203 não é permanente.** Procedimento
+para uma futura solicitação:
 
 1. Autorizar explicitamente login A, leituras status/pull E, restauração somente
    no novo AVD e **uma auditoria RESTORE/KEEP_REMOTE sem alterações acadêmicas**,
