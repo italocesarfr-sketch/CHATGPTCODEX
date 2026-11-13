@@ -1,0 +1,380 @@
+{
+  "source_commit": "b95940813b654b99b0512bd401daea272226dff2",
+  "contract": "supabase/contracts/academic-v2.json",
+  "owner_scoped_references": true,
+  "entities": {
+    "classes": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "all four terms and class invariants",
+        "relocation compatibility across source/target classes",
+        "virtual historical school identities"
+      ]
+    },
+    "students": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "official number uniqueness within class",
+        "source exit/joined/status and person lineage",
+        "relocation cycles and repeated classes",
+        "historical connectivity and immutable enrollment identity"
+      ]
+    },
+    "terms": {
+      "primary_key": [
+        "classId",
+        "number"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "four terms per class and valid dates",
+        "all source/target calendars in relocation chains",
+        "student-class term for recomposition",
+        "immutable preserved class context"
+      ]
+    },
+    "lessons": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [
+        [
+          "classId",
+          "date",
+          "ordinal"
+        ]
+      ],
+      "semantic_obligations": [
+        "period uniqueness across live and virtual historical rows",
+        "student/class relationship through marks",
+        "preserved lesson immutability and enrollment-period retention",
+        "audit removed-occurrence snapshots are self-contained"
+      ]
+    },
+    "marks": {
+      "primary_key": [
+        "lessonId",
+        "studentId"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "lessonId"
+          ],
+          "kind": "lessons",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "student/lesson/class",
+        "P/F/FJ/NR and six optional reasons",
+        "preserved marks and immutable removed-occurrence audit snapshots"
+      ]
+    },
+    "activities": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "grade maximum and enrollment/class agreement",
+        "immutable class identity",
+        "preserved activity immutability and enrollment-period retention"
+      ]
+    },
+    "grades": {
+      "primary_key": [
+        "activityId",
+        "studentId"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "activityId"
+          ],
+          "kind": "activities",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "student/activity/class and maximum",
+        "zero, null and absent row distinct",
+        "immutable virtual preserved grade identity; no persisted derived totals"
+      ]
+    },
+    "import_drafts": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "class relation and typed review fields; no student/person FK"
+      ]
+    },
+    "recompositions": {
+      "primary_key": [
+        "studentId",
+        "term"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "student/class term exists",
+        "one per term across connected relocation lineage",
+        "preserved recomposition immutability"
+      ]
+    },
+    "relocations": {
+      "primary_key": [
+        "sourceStudentId"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "sourceStudentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "targetStudentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [
+        [
+          "targetStudentId"
+        ]
+      ],
+      "semantic_obligations": [
+        "source/target enrollment, person, classes and all four terms",
+        "effective date, source exit and target joined",
+        "cycles, duplicate targets and repeated classes",
+        "append-only corrections and removed lesson/mark snapshots",
+        "live/historical storage transitions and preserved connectivity"
+      ]
+    },
+    "export_rows": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        },
+        {
+          "fields": [
+            "studentId"
+          ],
+          "kind": "students",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [
+        [
+          "classId",
+          "position"
+        ],
+        [
+          "studentId"
+        ]
+      ],
+      "semantic_obligations": [
+        "all positions of class contiguous; unique position/student",
+        "student class and stable row ID",
+        "blank row and manualHidden rules; atomic reorder"
+      ]
+    },
+    "class_archives": {
+      "primary_key": [
+        "classId"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "class FK; derived reports are not additional stored rows"
+      ]
+    },
+    "lesson_records": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [
+        {
+          "fields": [
+            "classId"
+          ],
+          "kind": "classes",
+          "key": [
+            "id"
+          ]
+        }
+      ],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "class FK, dates and nonempty title/description; no invented lesson/attendance FK"
+      ]
+    },
+    "preserved_histories": {
+      "primary_key": [
+        "classId"
+      ],
+      "physical_references": [],
+      "unique_constraints": [],
+      "semantic_obligations": [
+        "projects nine virtual kinds into the same identity space",
+        "same-class historical content, links to live enrollments",
+        "before/after immutable fragments and retained records",
+        "cannot be represented by physical academic_links alone"
+      ]
+    },
+    "weekly_timetables": {
+      "primary_key": [
+        "id"
+      ],
+      "physical_references": [],
+      "unique_constraints": [
+        [
+          "year",
+          "effective",
+          "revision"
+        ]
+      ],
+      "semantic_obligations": [
+        "year and optional existing-class year match",
+        "shift/day/ordinal conflicts, including legacy weekend/period values",
+        "stable slot identity across revisions",
+        "immutable existing revisions; append only"
+      ]
+    }
+  },
+  "global_obligations": [
+    "active confirmed session and allowlist/scope",
+    "same owner lock and CAS",
+    "atomic batch and idempotent receipts",
+    "unknown baseline validity must not be assumed",
+    "before/after historical and movement guards",
+    "derived calculations are not invented entities"
+  ]
+}

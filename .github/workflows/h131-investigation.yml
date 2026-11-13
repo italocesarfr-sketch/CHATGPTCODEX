@@ -1,0 +1,95 @@
+name: NOcTuA — H13.1 investigação diferencial local
+on:
+  push:
+    branches: [sync/academic-complete-0220]
+    paths: ['scripts/h131/**', '.github/workflows/h131-investigation.yml', 'docs/H131_DEPENDENCIAS_0220.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  investigation:
+    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_e_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_e_test
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - name: JVM e fixtures de domínio; nenhum teste hospedado
+        run: |
+          mkdir -p build/h131
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon testDebugUnitTest > build/h131/jvm-build.txt 2>&1
+          python3 - <<'PY'
+          import json,glob,xml.etree.ElementTree as ET
+          counts=dict(cases=0,passed=0,skipped=0,failed=0)
+          for file in glob.glob('app/build/test-results/testDebugUnitTest/TEST-*.xml'):
+              root=ET.parse(file).getroot()
+              for c in root.findall('testcase'):
+                  counts['cases']+=1
+                  state='skipped' if c.find('skipped') is not None else 'failed' if c.find('failure') is not None or c.find('error') is not None else 'passed'
+                  counts[state]+=1
+          assert counts['cases']>0 and counts['failed']==0
+          open('build/h131/jvm-counts.json','w').write(json.dumps(counts,indent=2))
+          PY
+      - name: Regressões D, E, decisões e H13
+        run: |
+          set -euo pipefail
+          PGDATABASE=noctua_phase_d_test python3 scripts/test-phase-d-postgres.py > build/h131/d.txt 2>&1
+          python3 scripts/test-phase-e-postgres.py > build/h131/e.txt 2>&1
+          python3 scripts/test-phase-e-decisions.py > build/h131/decisions.txt 2>&1
+          python3 scripts/test-h13-postgres.py > build/h131/h13.txt 2>&1
+      - name: Laboratório diferencial, três amostras e orçamento SQL de 8s
+        run: python3 scripts/h131/investigate.py --repetitions 3 > build/h131/local.json
+      - name: Concorrência, rollback e recibos via PostgREST real descartável
+        env:
+          PGDATABASE: noctua_phase_b_test
+        run: |
+          createdb noctua_phase_b_test
+          ./scripts/ci/start-phase-b-postgrest.sh > build/h131/backend.txt 2>&1
+          python3 scripts/phase-b-http-fixture.py > build/h131/http-fixture.txt
+          python3 scripts/h131/network.py > build/h131/network.json
+      - name: Encerrar somente PostgREST local
+        if: always()
+        run: |
+          if [[ -f build/phaseb-postgrest/server.pid ]]; then kill "$(cat build/phaseb-postgrest/server.pid)" || true; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h131-investigacao-descartavel
+          path: |
+            build/h131/local.json
+            build/h131/network.json
+            build/h131/jvm-counts.json
+            build/h131/d.txt
+            build/h131/e.txt
+            build/h131/decisions.txt
+            build/h131/h13.txt
+          if-no-files-found: error
+          retention-days: 30
