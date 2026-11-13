@@ -25,11 +25,12 @@ def context(env):
  return mode
 def folder(env):
  return auth.private_dir(env).parent/'noctua-h05-private'
-def write_public(env,overall,proof=None,code=None):
+def write_public(env,overall,proof=None,code=None,schema=None):
  value=dict(case='H05',mode=env.get('NOCTUA_H05_MODE','PREFLIGHT') if env.get('NOCTUA_H05_MODE','PREFLIGHT') in MODES else None,
   source_sha=env.get('GITHUB_SHA') if re.fullmatch('[0-9a-f]{40}',env.get('GITHUB_SHA','')) else None,
   overall=overall,blocking_code=code,credentials_redacted=True,
   hosted_requests=False if env.get('NOCTUA_H05_MODE')!='HOSTED' or overall=='PREREQUISITES_READY_NOT_EXECUTED' else None)
+ if schema is not None:value['report_shape']=schema
  if proof:
   value['proof']=proof
   if proof.get('authenticated') and proof.get('mode')=='HOSTED':value['hosted_requests']=True
@@ -59,23 +60,24 @@ def prepare(env):
 def redacted_proof(raw,mode):
  need(len(raw)<=65536,'INVALID_REPORT')
  try:
-  j=json.loads(raw)
-  need(isinstance(j,dict) and not set(j)-FLAGS-NUMBERS-TEXT-{'types','timings_ms'},'INVALID_REPORT')
-  need(j.get('case')=='H05' and j.get('mode')==mode and j.get('status') in ('PASSED','FAILED'),'INVALID_REPORT')
-  need(j.get('stage') in STAGES and j.get('failure_code') in CODES|{None},'INVALID_REPORT')
-  for k in FLAGS&j.keys():need(type(j[k]) is bool,'INVALID_REPORT')
-  for k in NUMBERS&j.keys():need(type(j[k]) is int and 0<=j[k]<=10_000_000,'INVALID_REPORT')
-  for k in {'local_hash','remote_hash'}&j.keys():need(bool(re.fullmatch('[0-9a-f]{64}',j[k])),'INVALID_REPORT')
-  need(isinstance(j.get('timings_ms'),dict) and not set(j['timings_ms'])-STAGES,'INVALID_REPORT')
-  need(all(type(v) is int and 0<=v<=600000 for v in j['timings_ms'].values()),'INVALID_REPORT')
+  try:j=json.loads(raw)
+  except Exception:raise Blocked('REPORT_JSON_DECODE')from None
+  need(isinstance(j,dict) and not set(j)-FLAGS-NUMBERS-TEXT-{'types','timings_ms'},'REPORT_FIELDS')
+  need(j.get('case')=='H05' and j.get('mode')==mode and j.get('status') in ('PASSED','FAILED'),'REPORT_IDENTITY')
+  need(j.get('stage') in STAGES and j.get('failure_code') in CODES|{None},'REPORT_STAGE_CODE')
+  for k in FLAGS&j.keys():need(type(j[k]) is bool,'REPORT_FLAG_TYPE_'+k)
+  for k in NUMBERS&j.keys():need(type(j[k]) is int and 0<=j[k]<=10_000_000,'REPORT_NUMBER_TYPE_'+k)
+  for k in {'local_hash','remote_hash'}&j.keys():need(bool(re.fullmatch('[0-9a-f]{64}',j[k])),'REPORT_HASH_'+k)
+  need(isinstance(j.get('timings_ms'),dict) and not set(j['timings_ms'])-STAGES,'REPORT_TIMING_STAGES')
+  need(all(type(v) is int and 0<=v<=600000 for v in j['timings_ms'].values()),'REPORT_TIMING_TYPE')
   if 'types' in j:
-   rows=j['types'];need(isinstance(rows,list) and len(rows)==15 and {r.get('kind')for r in rows}==KINDS,'INVALID_REPORT')
+   rows=j['types'];need(isinstance(rows,list) and len(rows)==15 and {r.get('kind')for r in rows}==KINDS,'REPORT_TYPE_SET')
    for r in rows:
-    need(set(r)=={'kind','local_count','remote_count','local_hash','remote_hash','present'},'INVALID_REPORT')
-    need(all(type(r[k]) is int and 0<=r[k]<=1000 for k in ('local_count','remote_count')),'INVALID_REPORT')
-    need(type(r['present']) is bool and r['present']==(r['remote_count']>0),'INVALID_REPORT')
-    need(all(bool(re.fullmatch('[0-9a-f]{64}',r[k])) for k in ('local_hash','remote_hash')),'INVALID_REPORT')
-    need(r['local_count']==r['remote_count'] and r['local_hash']==r['remote_hash'],'INVALID_REPORT')
+    need(set(r)=={'kind','local_count','remote_count','local_hash','remote_hash','present'},'REPORT_TYPE_FIELDS')
+    need(all(type(r[k]) is int and 0<=r[k]<=1000 for k in ('local_count','remote_count')),'REPORT_TYPE_COUNTS')
+    need(type(r['present']) is bool and r['present']==(r['remote_count']>0),'REPORT_TYPE_PRESENT')
+    need(all(bool(re.fullmatch('[0-9a-f]{64}',r[k])) for k in ('local_hash','remote_hash')),'REPORT_TYPE_HASH')
+    need(r['local_count']==r['remote_count'] and r['local_hash']==r['remote_hash'],'REPORT_TYPE_MISMATCH')
   if j['status']=='PASSED':
    need(FLAGS<=j.keys() and all(j[k] is True for k in FLAGS),'INCOMPLETE_PROOF')
    need(NUMBERS<=j.keys() and j['blocked_writes']==0 and j['records'] in range(1,1001),'INCOMPLETE_PROOF')
@@ -85,6 +87,17 @@ def redacted_proof(raw,mode):
   return j
  except Blocked:raise
  except Exception:raise Blocked('INVALID_REPORT')from None
+
+def report_shape(raw):
+ """Only known field names/types and counts; no values or unknown key names."""
+ try:
+  j=json.loads(raw)
+  if not isinstance(j,dict):return {'json_object':False}
+  known=FLAGS|NUMBERS|TEXT|{'types','timings_ms'}
+  def typename(v):
+   return 'null' if v is None else 'bool' if type(v)is bool else 'int' if type(v)is int else 'string' if type(v)is str else 'list' if type(v)is list else 'object' if type(v)is dict else 'other'
+  return dict(json_object=True,known_field_types={k:typename(j[k])for k in sorted(set(j)&known)},unknown_fields=len(set(j)-known))
+ except Exception:return {'json_decodable':False}
 
 def disposable(env,serial,adb):
  need(env.get('RUNNER_ENVIRONMENT')=='github-hosted' and env.get('CI')=='true','DISPOSABLE_GITHUB_RUNNER_REQUIRED')
@@ -121,7 +134,10 @@ def execute(env):
   raw=adb('-s',serial,'shell','am','instrument','-w','-e','timeout_msec','360000','-e','h05Mode',mode,'-e','h05Authorized','YES' if mode=='HOSTED' else 'NO','-e','class','br.com.diariodeclasse.H05RecoveryProbeTest'+(',br.com.diariodeclasse.H05ReadOnlyGuardTest' if mode=='LOCAL' else ''),package+'.test/br.com.diariodeclasse.AuthTestRunner',timeout=420)
   (p/'instrumentation-private.log').write_bytes(raw)
   result=adb('-s',serial,'exec-out','run-as',package,'cat','files/h05-result.json')
-  proof=redacted_proof(result,mode)
+  try:proof=redacted_proof(result,mode)
+  except Blocked as e:
+   write_public(env,'BLOCKED_NOT_APPROVED',code=str(e),schema=report_shape(result))
+   raise Blocked('H05_REPORT_REJECTED')from None
   passed=proof['status']=='PASSED' and (b'OK (4 tests)' if mode=='LOCAL' else b'OK (1 test)') in raw and not any(v in raw for v in (b'FAILURES',b'INSTRUMENTATION_FAILED',b'Process crashed',b'Assumption'))
   write_public(env,'PASSED_LOCAL_DISPOSABLE' if passed and mode=='LOCAL' else 'PASSED_HOSTED_PRESENT_TYPES' if passed else 'NOT_APPROVED',proof)
   need(passed,'H05_NOT_APPROVED')
@@ -142,7 +158,7 @@ def main():
   return 0
  except Blocked as e:
   # Preserve an already sanitized proof when the test itself failed.
-  if str(e)!='H05_NOT_APPROVED':write_public(env,'BLOCKED_NOT_APPROVED',code=str(e))
+  if str(e) not in ('H05_NOT_APPROVED','H05_REPORT_REJECTED'):write_public(env,'BLOCKED_NOT_APPROVED',code=str(e))
  except Exception:write_public(env,'BLOCKED_NOT_APPROVED',code='LOCAL_RUNNER_ERROR')
  print('H05 not approved; see sanitized result only.');return 1
 if __name__=='__main__':raise SystemExit(main())

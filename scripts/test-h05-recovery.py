@@ -55,6 +55,11 @@ class H05Safety(unittest.TestCase):
    with self.assertRaises(f.Blocked):f.redacted_proof(json.dumps(d).encode(),'LOCAL')
  def test_report_mode_is_bound_to_the_selected_runner(self):
   with self.assertRaises(f.Blocked):f.redacted_proof(json.dumps(proof()).encode(),'HOSTED')
+ def test_report_shape_never_copies_values_or_unknown_field_names(self):
+  j=dict(proof(),PRIVATE_SENTINEL='PRIVATE_SENTINEL');j['mode']='PRIVATE_SENTINEL'
+  shape=f.report_shape(json.dumps(j).encode())
+  self.assertEqual(1,shape['unknown_fields']);self.assertEqual('string',shape['known_field_types']['mode'])
+  self.assertNotIn('PRIVATE_SENTINEL',json.dumps(shape))
  def test_disposable_guard_rejects_owner_devices_before_adb(self):
   with tempfile.TemporaryDirectory()as t:
    def no_adb(*args):self.fail('ADB must not be called')
