@@ -1,0 +1,475 @@
+{
+  "run": 43510320045,
+  "number": 205,
+  "source_commit": "e18a1dcc4a471aec9615ec2883f6bf790933da97",
+  "conclusion": "failure",
+  "jvm": {
+    "cases": 298,
+    "passed": 293,
+    "skipped": 5,
+    "failed": 0
+  },
+  "academic_postgres": {
+    "passed": 134,
+    "failed": 0,
+    "skipped": 0,
+    "suites": {
+      "A": 38,
+      "B": 18,
+      "C": 20,
+      "D": 27,
+      "E1": 16,
+      "E2_E3": 15
+    }
+  },
+  "android_instrumented_executed": false,
+  "android_reason": "Blocked before AVD by 8s recovery capacity failure; not a passing or ignored Android suite",
+  "sql_benchmark": {
+    "postgres": {
+      "version": "17.12 (Debian 17.12-1.pgdg13+1)",
+      "work_mem": "4MB",
+      "shared_buffers": "128MB",
+      "track_functions": "all"
+    },
+    "repetitions": 5,
+    "cases": [
+      {
+        "records": 41,
+        "parts": 1,
+        "statistics": {
+          "before": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 45.089,
+              "median": 45.352,
+              "max": 45.74,
+              "sample_p95_nearest_rank": 45.74,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 73.461,
+              "median": 74.732,
+              "max": 105.629,
+              "sample_p95_nearest_rank": 105.629,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 3.701,
+              "median": 3.794,
+              "max": 4.273,
+              "sample_p95_nearest_rank": 4.273,
+              "p95_is_not_an_sla": true
+            }
+          },
+          "after": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 35.399,
+              "median": 35.76,
+              "max": 36.043,
+              "sample_p95_nearest_rank": 36.043,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 64.753,
+              "median": 65.249,
+              "max": 67.476,
+              "sample_p95_nearest_rank": 67.476,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 3.735,
+              "median": 3.783,
+              "max": 3.945,
+              "sample_p95_nearest_rank": 3.945,
+              "p95_is_not_an_sla": true
+            }
+          }
+        }
+      },
+      {
+        "records": 171,
+        "parts": 2,
+        "statistics": {
+          "before": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 156.163,
+              "median": 158.012,
+              "max": 158.469,
+              "sample_p95_nearest_rank": 158.469,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 184.551,
+              "median": 187.304,
+              "max": 187.961,
+              "sample_p95_nearest_rank": 187.961,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 4.385,
+              "median": 4.645,
+              "max": 4.767,
+              "sample_p95_nearest_rank": 4.767,
+              "p95_is_not_an_sla": true
+            }
+          },
+          "after": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 115.761,
+              "median": 116.249,
+              "max": 116.814,
+              "sample_p95_nearest_rank": 116.814,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 144.943,
+              "median": 145.72,
+              "max": 166.651,
+              "sample_p95_nearest_rank": 166.651,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 4.321,
+              "median": 4.657,
+              "max": 5.954,
+              "sample_p95_nearest_rank": 5.954,
+              "p95_is_not_an_sla": true
+            }
+          }
+        }
+      },
+      {
+        "records": 671,
+        "parts": 6,
+        "statistics": {
+          "before": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 560.964,
+              "median": 562.48,
+              "max": 570.399,
+              "sample_p95_nearest_rank": 570.399,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 591.047,
+              "median": 591.501,
+              "max": 701.355,
+              "sample_p95_nearest_rank": 701.355,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 7.102,
+              "median": 7.224,
+              "max": 7.352,
+              "sample_p95_nearest_rank": 7.352,
+              "p95_is_not_an_sla": true
+            }
+          },
+          "after": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 382.642,
+              "median": 411.219,
+              "max": 418.41,
+              "sample_p95_nearest_rank": 418.41,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 440.965,
+              "median": 447.742,
+              "max": 500.555,
+              "sample_p95_nearest_rank": 500.555,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 7.087,
+              "median": 7.225,
+              "max": 7.417,
+              "sample_p95_nearest_rank": 7.417,
+              "p95_is_not_an_sla": true
+            }
+          }
+        }
+      },
+      {
+        "records": 5171,
+        "parts": 41,
+        "statistics": {
+          "before": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 5152.085,
+              "median": 5157.509,
+              "max": 5270.072,
+              "sample_p95_nearest_rank": 5270.072,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 5180.432,
+              "median": 5188.383,
+              "max": 5299.685,
+              "sample_p95_nearest_rank": 5299.685,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 31.007,
+              "median": 31.394,
+              "max": 39.171,
+              "sample_p95_nearest_rank": 39.171,
+              "p95_is_not_an_sla": true
+            }
+          },
+          "after": {
+            "accepted": 5,
+            "timed_out": 0,
+            "server_ms": {
+              "n": 5,
+              "min": 4068.098,
+              "median": 4083.292,
+              "max": 4254.497,
+              "sample_p95_nearest_rank": 4254.497,
+              "p95_is_not_an_sla": true
+            },
+            "wall_ms": {
+              "n": 5,
+              "min": 4097.542,
+              "median": 4111.42,
+              "max": 4314.635,
+              "sample_p95_nearest_rank": 4314.635,
+              "p95_is_not_an_sla": true
+            },
+            "replay_server_ms": {
+              "n": 15,
+              "min": 30.198,
+              "median": 31.347,
+              "max": 32.298,
+              "sample_p95_nearest_rank": 32.298,
+              "p95_is_not_an_sla": true
+            }
+          }
+        }
+      }
+    ]
+  },
+  "delta_benchmark": {
+    "statistics": {
+      "before": {
+        "n": 5,
+        "min": 3847.228,
+        "median": 3859.943,
+        "max": 3868.504,
+        "sample_p95_nearest_rank": 3868.504,
+        "p95_is_not_an_sla": true
+      },
+      "after": {
+        "n": 5,
+        "min": 3285.622,
+        "median": 3312.771,
+        "max": 3345.617,
+        "sample_p95_nearest_rank": 3345.617,
+        "p95_is_not_an_sla": true
+      }
+    },
+    "all_other_records_unchanged": true,
+    "latest_after_function_profile": [
+      {
+        "calls": 1,
+        "funcname": "noctua_commit_academic_e",
+        "self_time": 1.319,
+        "total_time": 3312.321
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_e_guarded_write",
+        "self_time": 2.872,
+        "total_time": 3309.488
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_d_graph",
+        "self_time": 1390.396,
+        "total_time": 2253.046
+      },
+      {
+        "calls": 19640,
+        "funcname": "noctua_d_get",
+        "self_time": 1258.844,
+        "total_time": 1258.844
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_d_history_guard",
+        "self_time": 6.278,
+        "total_time": 888.812
+      },
+      {
+        "calls": 5187,
+        "funcname": "noctua_academic_validate",
+        "self_time": 162.754,
+        "total_time": 395.674
+      },
+      {
+        "calls": 3,
+        "funcname": "noctua_d_projection",
+        "self_time": 205.337,
+        "total_time": 206.266
+      },
+      {
+        "calls": 14509,
+        "funcname": "noctua_academic_shape",
+        "self_time": 198.444,
+        "total_time": 198.444
+      },
+      {
+        "calls": 5231,
+        "funcname": "noctua_academic_key",
+        "self_time": 27.82,
+        "total_time": 31.939
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_d_index",
+        "self_time": 25.83,
+        "total_time": 25.83
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_e_write",
+        "self_time": 2.465,
+        "total_time": 19.208
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_academic_graph",
+        "self_time": 15.277,
+        "total_time": 16.296
+      },
+      {
+        "calls": 15602,
+        "funcname": "noctua_academic_definition",
+        "self_time": 11.184,
+        "total_time": 11.184
+      },
+      {
+        "calls": 5,
+        "funcname": "noctua_sync_principal",
+        "self_time": 2.854,
+        "total_time": 2.854
+      },
+      {
+        "calls": 5,
+        "funcname": "noctua_validate_class",
+        "self_time": 1.579,
+        "total_time": 1.579
+      },
+      {
+        "calls": 1,
+        "funcname": "noctua_e_principal",
+        "self_time": 0.316,
+        "total_time": 1.513
+      },
+      {
+        "calls": 4,
+        "funcname": "noctua_d_subject",
+        "self_time": 0.117,
+        "total_time": 0.117
+      }
+    ]
+  },
+  "locks": {
+    "case": "H13-locks",
+    "hosted_executed": false,
+    "owner_lock_observed": true,
+    "wait_event_type": "Lock",
+    "blocked": {
+      "outcome": "57014-atomic-rollback",
+      "wall_ms": 8028.897,
+      "server_execution_ms": null
+    },
+    "other_owner_accepted_while_lock_held": true,
+    "other_owner_wall_ms": 61.82,
+    "atomic_rollback_verified": true,
+    "persisted_parts": 1,
+    "same_operation_retry": {
+      "outcome": "accepted",
+      "wall_ms": 63.754,
+      "server_execution_ms": 35.11,
+      "shared_hit_blocks": 4259,
+      "shared_read_blocks": 0,
+      "temp_written_blocks": 0,
+      "io_read_ms": 0.0
+    },
+    "confirmed_replay": {
+      "outcome": "accepted",
+      "wall_ms": 30.899,
+      "server_execution_ms": 3.479,
+      "shared_hit_blocks": 1147,
+      "shared_read_blocks": 0,
+      "temp_written_blocks": 0,
+      "io_read_ms": 0.0
+    },
+    "integrity": {
+      "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+      "recovery_ms": 62.883,
+      "payloads_ids_revisions_equal": true,
+      "sequence": 1,
+      "records": 41,
+      "receipt_count": 1,
+      "batch_count": 1
+    }
+  },
+  "failed_jobs": [
+    {
+      "job_id": 132178555769,
+      "step": "PostgREST local, fixtures e cinco repetições HTTP",
+      "source": "scripts/benchmark-h13.py:163",
+      "diagnostic": "Candidate cannot finish under 8s; capacity blocked",
+      "measurement_incomplete": true,
+      "size_trial_variant_not_persisted": true
+    },
+    {
+      "job_id": 132178793046,
+      "step": "Homologação — volume gradual e timeout somente no PostgreSQL descartável",
+      "source": "scripts/test-phase-e-timeouts.py:148 (recover:81)",
+      "diagnostic": "Retry after controlled mid-write rollback returned no reply within 8s",
+      "records": 5171,
+      "parts": 41,
+      "rollback_and_persisted_parts_asserted_before_retry": true
+    }
+  ],
+  "no_timeout_increase": true,
+  "no_automatic_rerun": true,
+  "hosted_jobs_excluded": true
+}

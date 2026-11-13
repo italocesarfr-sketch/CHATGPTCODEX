@@ -1,0 +1,51 @@
+{
+  "branch": "sync/academic-complete-0220",
+  "production_code_unchanged_since": "9677b022695af4c5579e0598c8c84fccaef3d5cd",
+  "research_commit": "e18a1dcc4a471aec9615ec2883f6bf790933da97",
+  "runner_fix_commit": "8293374db38b199fc2be7703c556f2b82aa6d7c9",
+  "lab": {
+    "run": 43510544704,
+    "workflow_number": 2,
+    "source_commit": "8293374db38b199fc2be7703c556f2b82aa6d7c9",
+    "conclusion": "success",
+    "artifact_id": 14078980479,
+    "zip_sha256": "aeb2f4c61b55c4faceeb57e89122d23317aff734e30cd3de3a6bd67b7ea58378"
+  },
+  "cancelled_setup_run": 43510320061,
+  "cancelled_reason": "Runner preflight omitted creation of separate disposable D database; corrected before rerun",
+  "regression": {
+    "run": 43510320045,
+    "number": 205,
+    "conclusion": "failure",
+    "source_commit": "e18a1dcc4a471aec9615ec2883f6bf790933da97",
+    "artifacts": [
+      {
+        "id": 14077609191,
+        "sha256": "c948877f37717722d910173dc4532eb6a1ea33e3962709bd3295970556986c9e"
+      },
+      {
+        "id": 14078642077,
+        "sha256": "c6f042f7694cdb3e5bfe8689327de8ed08b77ccb186a08429de1b9798a8969d4"
+      }
+    ]
+  },
+  "source_sha256": {
+    "scripts/h131/focal-grade-lab.sql": "b71597beca7a2313ea02b08c054f69090828c1d4c2413edb188a0614346458b6",
+    "scripts/h131/investigate.py": "b2341715931871bb7713242046fecca5aceed9b0ac329c58ea6f251949cba217",
+    "scripts/h131/network.py": "ccacab70d630e3b6bd75b9b879589afc8be7eceadbd6fb984276e82551d7ed54",
+    "docs/H131_DEPENDENCIAS_0220.json": "b958a2592be2080d63f5589c4e35d3877a19fb8424a88be5a6fd0b095804f7a2",
+    ".github/workflows/h131-investigation.yml": "3c78c60efc8184c4944f97028d3937c5ac3c52801630d8f9d7be2064a19708a7"
+  },
+  "evidence_sha256": {
+    "regression-205.json": "b0232fe7101346ab38b999ab6f068d6673b5033c5a7d7f340310d0714c3f628a",
+    "workspace/network.json": "6fcefdd2a839c0b53362e981b8c4afeaef87ac9c138e90af67cd117cc6d5ebf3",
+    "workspace/local.json": "9d0949c0a7788861b808328193bc0bc8294bd20f3bce37d7d9fde6e3490ad256",
+    "ci/jvm-counts.json": "853ac99bdb61b3c6de437596924396e7ead8c4860b293da7a2108bd1795055a5",
+    "ci/network.json": "8b81c1836bd8a8719974013d97b1d56f7f3e5c56323b70bf3d7cc27cb04ba9d3",
+    "ci/suites.json": "0414160acbb034a6fd0e384c0c2815ceadb5f63b4135a90c8910414e2be4ddb6",
+    "ci/local.json": "99a80716ec8b9ed7282e56501420163bc42b19c9955ef40f3adfecdfeaa166ae"
+  },
+  "hosted_executed": false,
+  "real_auth": false,
+  "replacement_authorized": false
+}

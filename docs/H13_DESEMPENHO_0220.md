@@ -317,3 +317,8 @@ O job `.github/workflows/h13-performance.yml` arquiva métricas JSON e resultado
 da regressão, sem APK. A instrumentação só aceita opt-in H13 no novo AVD da CI.
 A ausência desse opt-in na suíte geral é condicional ignorado, não aprovação;
 a prova focada deve executar efetivamente seu único teste e doze ensaios Room.
+
+
+## Continuidade H13.1 — resultado posterior à #204
+
+A investigação [H13.1](H131_VALIDACAO_INCREMENTAL_0220.md) preservou este código e não substituiu o validador integral. O laboratório diferencial foi aprovado, mas a regressão **#205 falhou em dois testes do orçamento de 8s**, antes dos AVDs. A aprovação histórica #204 permanece registrada; ela não equivale à aprovação dessa rodada posterior nem garante capacidade para históricos maiores. Detalhes, métricas e bloqueadores estão no relatório H13.1.

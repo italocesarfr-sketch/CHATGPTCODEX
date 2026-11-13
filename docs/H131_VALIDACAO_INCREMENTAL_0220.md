@@ -85,7 +85,50 @@ Não apontar esses runners a qualquer banco hospedado. Eles exigem nomes de banc
 
 ## Resultados e continuidade
 
-A consolidação de contagens, métricas, SHAs e links será feita após a execução da CI desta investigação. Resultados locais preliminares não substituem esse registro.
+Código do laboratório: `e18a1dcc4a471aec9615ec2883f6bf790933da97`. Ajuste do runner (criação do banco D descartável): `8293374db38b199fc2be7703c556f2b82aa6d7c9`.
+
+[Laboratório aprovado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43510544704), fonte `8293374`, workflow específico execução #2. [Artefato](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43510544704/artifacts/14078980479), ZIP SHA-256 `aeb2f4c61b55c4faceeb57e89122d23317aff734e30cd3de3a6bd67b7ea58378`. A primeira execução `43510320061` foi cancelada por falta desse pré-requisito no runner, sem ser contada como aprovação. A segunda terminou com:
+
+- JVM: **298 casos, 293 aprovados, cinco condicionais ignorados, zero falhas**.
+- PostgreSQL: **65 testes aprovados, zero falhas/ignorados**: D 27, E1 16, decisões 15, H13 sete. São reexecuções de suítes existentes, não 65 testes novos.
+- Laboratório diferencial: **40 cenários executados conforme a hipótese**, 39 coincidências/fallbacks e **um contraexemplo sintético esperado**. Desses 40, 19 usaram `FULL_REQUIRED`; não são equivalência de um algoritmo incremental para esses tipos. Zero cancelamentos nesse executor. A CI verde comprova que a investigação reproduziu os resultados esperados; **não aprova a substituição**, pois exige justamente detectar a diferença.
+- HTTP: cenário real descartável concluído; 171 registros, head 6, sete recibos, igualdade do replay, concorrência/CAS, null/zero, recusa da conta B, sessão inválida e helper privado, rollback e partes preservadas. Não foi Supabase Auth real nem morte de processo Android.
+
+[Regressão completa #205](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43510320045), fonte `e18a1dc`: **falhou; não declarar CI integralmente verde**. O commit posterior `8293374` altera apenas o runner do laboratório e não o aplicativo/protocolo.
+
+- Compilação de debug/instrumentação e JVM: passaram; novamente 298/293/cinco ignorados/zero falhas.
+- PostgreSQL acadêmico A–E: **134 aprovados, zero falhas/ignorados** (38 + 18 + 20 + 27 + 16 + 15). Job PostgreSQL v1 também aprovado.
+- Job H13: sete regressões H13, séries SQL de 41/171/671/5.171, delta e lock/replay concluíram. **A série HTTP falhou** em `benchmark-h13.py:163`: `Candidate cannot finish under 8s; capacity blocked`. O arquivo `http.json` ficou vazio; tamanho, repetição e variante dessa falha não foram preservados. Não inferir esses detalhes nem anunciar uma série HTTP completa.
+- Job de regressão: falhou em `test-phase-e-timeouts.py:148`, `recover:81`, na retomada em 8s depois do timeout controlado durante escrita de **5.171 registros/41 partes**. O teste conferiu rollback integral, head zero e partes preservadas antes dessa tentativa. A nova tentativa também cancelou; não foi confirmada como sincronizada.
+- **A suíte Android, as provas de dois AVDs e o benchmark Room desta rodada não chegaram a executar**, por falha prévia. Sua evidência anterior na #204 é preservada como histórica (416 Android aprovados/17 condicionais ignorados e benchmark dedicado), sem atribuí-la à #205.
+- Nenhuma asserção foi removida, timeout ampliado ou nova execução disparada para esconder o bloqueio.
+
+Os dois jobs com falha foram diagnosticados por logs sanitizados e artefatos. Os erros acadêmicos/permissões provocados pelos testes negativos anteriores não são a causa desses dois encerramentos. [Proveniência e evidências preservadas](evidence/H131_20261113/provenance.json) incluem hashes dos ZIPs, fontes, métricas, contagens e resumo das falhas. Os arquivos originais da regressão estão nos artefatos [H13 parcial](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43510320045/artifacts/14077609191) e [regressão](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43510320045/artifacts/14078642077).
+
+### Tempos e orçamento
+
+Milissegundos, três amostras por base no laboratório. PostgreSQL CI 17.12, `shared_buffers=128MB`, `work_mem=4MB`. O writer inclui rollback do oráculo; o predicado focal é uma consulta sem gravação. As colunas **não representam um antes/depois de sincronizadores equivalentes**.
+
+| Base | Linhas físicas / projetadas | Writer integral mediana / máximo | Predicado focal mín.–máx. | Margem nominal 8s − máximo integral |
+|---|---:|---:|---:|---:|
+| Base original | 5.171 / 5.183 | 2.299 / 2.341 | 5,27–5,42 | 5,659s |
+| Seis turmas vivas, três históricos e três movimentações | 5.513 / 5.549 | 2.813 / 2.867 | 5,25–5,49 | 5,133s |
+| Histórico com mais 320 registros virtuais | 5.171 / 5.503 | 5.186 / 5.214 | 5,16–5,47 | 2,786s |
+
+A margem é aritmética do corpo medido, sem garantia para transporte, concorrência ou outro hardware. Em amostra EXPLAIN separada, os três perfis usaram 58.377 / 79.578 / 3.949 shared-hit blocks, zero shared reads e zero temp-written blocks. Ausência de I/O/spill não implica baixo custo JSONB/CPU; não houve medição de pico de RAM.
+
+No workspace PostgreSQL **17.11**, separadamente, os mesmos três ensaios produziram mediana/máximo integral **3.555/3.622 ms** e **4.298/4.377 ms** nas duas primeiras bases. O histórico ampliado admitiu bootstrap em **7.135 ms**, mas as três edições pequenas cancelaram em 8s, com hashes/metadados preservados. Elas são **inconclusivas para equivalência**, não aprovações. Um ensaio exploratório anterior também cancelou o bootstrap; não apagar essa observação porque uma repetição posterior passou. Não misturar essas séries com a CI 17.12 para inferir ganho.
+
+A série pareada H13 da #205, ainda usando validação integral em ambas as variantes, repetiu cinco amostras: bootstrap SQL 5.171 mediana **5.158 → 4.083 ms** (helper original → cache H13); nota única **3.860 → 3.313 ms**. Isso reafirma o efeito **já existente** da H13, não um ganho H13.1. Replay SQL grande candidato mediana 31 ms. O teste de lock pequeno comprovou cancelamento, partes intactas, outra conta progredindo, retomada da mesma operação em 35 ms e replay em 3,5 ms.
+
+O perfil de uma nota na variante H13 atual ainda tem **5.187 validações**. Uma amostra registra grafo D 2.253 ms inclusivos, `noctua_d_get` 19.640 chamadas/1.259 ms próprios, guarda histórica 889 ms inclusivos, três projeções 206 ms inclusivos e escrita E 19 ms inclusivos. Tempos inclusivos são sobrepostos: não somá-los. A guarda histórica ainda consulta arrays antes/depois; reutilizar índice de identidade nesse caminho é uma alternativa a investigar sem eliminar predicados. **Não foi implantada aqui.**
+
+### Bloqueadores e próxima ação
+
+1. Equivalência do predicado focal sem pré-condição de estado válido: refutada pela injeção administrativa; equivalência restrita a estados válidos continua apenas hipótese. Recibos anteriores não identificam por si só a versão exata das regras nem certificam todos os caminhos legados/administrativos. Não foi demonstrado um bypass comum de usuário.
+2. Admissão sob 8s não é robusta: timeout no workspace com histórico extenso e dois bloqueios na #205. Não há autorização de capacidade ampla/institucional.
+3. Próxima rodada recomendada: instrumentação persistente de contexto sanitizado antes de um benchmark falhar; depois perfil/otimização estrutural das buscas da guarda histórica integral, mantendo os mesmos predicados. Somente após prova do invariante/certificação e fecho completo retomar o atalho incremental.
+4. Nova regressão Android/dois AVDs e provas de tempo precisam ser concluídas numa futura alteração segura; não há regressão acadêmica demonstrada nesses encerramentos, mas a execução completa atual **não foi aprovada**.
 
 **Antes/depois em produção: inalterado.** O predicado experimental não foi promovido. H13.1 não demonstra capacidade institucional ampla; históricos, contenção, cache e CPU compartilhada podem exceder o orçamento mesmo com poucos registros físicos.
 

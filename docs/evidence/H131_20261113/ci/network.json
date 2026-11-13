@@ -1,0 +1,23 @@
+{
+  "case": "H13.1-network",
+  "hosted_executed": false,
+  "real_auth": false,
+  "production_validator": "INTEGRAL_UNCHANGED",
+  "client_fixture_restart_not_android_process_death": true,
+  "offline_pending_preserved": true,
+  "lost_response_replay_exact": true,
+  "same_record_conflict_preserved": true,
+  "independent_records_converged": true,
+  "stale_parent_revalidated": true,
+  "invalid_history_atomic_rollback": true,
+  "pending_failed_parts_preserved": true,
+  "foreign_account_denied": true,
+  "invalid_session_denied": true,
+  "private_helper_denied": true,
+  "public_functions_unchanged": true,
+  "records": 171,
+  "head": 6,
+  "receipts": 7,
+  "final_sha256": "afda5f676d53d4d1b038f1a4379432f0ee4f21de0e57ef148bc1baa6e9d747d8",
+  "wall_ms": 772.895
+}
