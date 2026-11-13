@@ -109,37 +109,126 @@ não é consentimento de H05 e não provoca PATCH neste teste. Para autorizar de
 Se o Environment exigir revisão, aprovar o deployment no GitHub. Não enviar
 senhas/UUIDs/JSON/tokens pelo chat. O consentimento de H01–H04 não é reutilizado.
 
-## Validação e continuidade
+## Resultados consolidados
 
-- Compilação de instrumentação debug aprovada neste executor.
-- 15 testes offline de segurança H05 aprovados; 16 do runner H01–H04 preservados.
-- actionlint dos workflows e py_compile aprovados.
-- Prova nativa LOCAL em AVD independente: **ainda pendente de aprovação**.
-  A [primeira execução #195](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43353738219)
-  foi bloqueada por `INVALID_REPORT`. Uma função local chamada `put` interceptava
-  o booleano `present` do builder JSON, colocando-o fora do item de tipo. A
-  validação estrita recusou o relatório; não foi flexibilizada. A construção por
-  tipo foi isolada, ganhou regressão nativa e a marca de autenticação passou a
-  ser registrada após conferir a identidade. A reabertura agora repete a engine
-  de leitura e valida revisões/receipts/estado completo. Nova prova LOCAL necessária.
-  As #196/#197 continuaram sem relatório válido; #197 identificou falha de decode.
-  Na #198, a leitura com shell V2/checksum retornou erro do ADB. A seleção da
-  Application dependia de argumentos ainda indisponíveis em `newApplication`.
-  H05 passou a configurar a Application de instrumentação existente em
-  `callApplicationOnCreate`, usando o mesmo ponto das fases B–E. O executor agora
-  distingue ausência de relatório de falha de esquema, preservando somente
-  marcadores/nomes de exceção permitidos, nunca mensagens ou stacks privados.
-  A transferência do relatório usa base64 e confere o SHA-256 do arquivo no AVD.
-  Essas execuções permanecem falhas, sem aprovar recuperação ou acesso hospedado.
-  Fixture reutilizada da Fase D: 171 registros, 15 tipos,
-  36 alunos de origem, um segundo lote de renomeação com históricos preservados.
-- HOSTED: **não executado**, bloqueado por autorização posterior.
+**Código validado: `f9c4f22396bc12f221a0da9725bf19f68d34f888`.**
 
-No LOCAL, PostgreSQL/PostgREST são descartáveis, com identidades JWT fictícias e
-migrações/fixture existentes. O modo local pode gravar exclusivamente esse banco
-local para semear o cenário. O processo de recuperação usa a mesma barreira de
-leitura do HOSTED. Os três testes instrumentados adicionais verificam bloqueio dos
-10 métodos de escrita antes da delegação, autorização independente obrigatória
-e campos/hash/presença dentro de cada tipo do relatório.
-Não considerar casos ignorados como aprovação. Publicar somente
-`build/h05/result.json`, validado por lista fechada, no artefato sanitizado.
+- [CI LOCAL #199](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43358380746):
+  **aprovada**. Quatro testes Android executados, zero falhas/ignorados: recuperação,
+  bloqueio dos 10 métodos de escrita, autorização independente e resumo por tipo.
+- [Pré-verificação #200](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43358646359):
+  **PREREQUISITES_READY_NOT_EXECUTED**. Secrets/formatos prontos; sem Java/AVD,
+  sessões Auth ou chamadas Supabase. Não aprova H05 hospedado.
+- 15 testes Python H05 + 16 do executor H01–H04: **31 aprovados**.
+- JVM debug reexecutada com `:app:testDebugUnitTest --rerun`: **298 casos,
+  293 aprovados, cinco condicionais ignorados, zero falhas**. Os cinco são
+  SupabaseLiveAuthTest/H01–H04, não aprovados por esta rodada.
+- Instrumentação debug compilada; instrumentação homologacao compilada com
+  `-PnoctuaH05HomologacaoInstrumentation=true`, sem chave/contas ou execução real.
+- actionlint 1.7.7 (sem ShellCheck/pyflakes), py_compile e diff --check aprovados.
+- Regressão Android completa não foi reexecutada; a prova nativa foi focada nos
+  quatro casos H05. Nenhuma regra/entidade/DAO/Room/SQL de produção foi alterada.
+
+### Prova LOCAL de recuperação
+
+[Relatório sanitizado](evidence/H05_LOCAL_20261112.json), extraído do
+[artefato #199](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43358380746/artifacts/14007043539).
+SHA-256 do ZIP: `5bbfb9a024f436990a1d7ff8aa57e32c1aa241e84f8ee0f539c652f19d383c21`.
+
+A instalação sem Room/sessão anterior recuperou **171 registros**, **15 tipos** e
+**37 matrículas** (36 na origem e uma de destino da mesma pessoa histórica),
+com todas as identidades/payloads, revisões, referências e hashes iguais.
+
+| Tipo | Registros recuperados |
+|---|---:|
+| classes / terms / students | 2 / 8 / 37 |
+| lessons / activities / marks / grades | 3 / 2 / 71 / 36 |
+| recompositions / relocations | 1 / 1 |
+| import_drafts / export_rows / class_archives | 1 / 3 / 1 |
+| lesson_records / preserved_histories / weekly_timetables | 2 / 1 / 2 |
+
+- Cursor **2**, dois recibos de lotes atômicos; outbox/inbox/partes pendentes vazias.
+- **Zero tentativas de escrita** pela engine; inventário remoto antes/depois igual.
+- Segundo lote alterou nome de turma, preservando alunos e históricos.
+- Reabertura do workspace, nova passagem da engine e verificação completa aprovadas.
+- Entrada privada removida. H01–H04/release e job hospedado ficaram fora da prova.
+- Hash global local/remoto:
+  `62f371fdfecbb1e8b0016dc528a7410c6a1bc3d9e071442bf7010878ae2cabdd`.
+
+Tempos **locais, não estimativas de Supabase Free**: recuperação pela engine **826 ms**,
+prova completa **2.265 ms**, baseline **200 ms**, conferência **130 ms**, reabertura
+**326 ms**. Transporte acumulado: **216 ms em 19 RPCs de leitura**, incluindo rede
+local e decode; não isola tempo SQL no servidor. Compilação/boot do AVD não estão
+nesses tempos. Auth nessa prova é **fictício**, com PostgreSQL/PostgREST reais.
+
+### Pré-verificação dos Secrets
+
+[Relatório #200](evidence/H05_PREFLIGHT_20261112.json) / [artefato](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43358646359/artifacts/14007880222).
+SHA-256 do ZIP: `5ba0510135e682a19807a3338c8eb4f9c68ee8d9770057df8fe5abdc7467008d`.
+Não foi necessário duplicar/configurar Secrets nem ampliar permissões. A prova
+confirma formatos/disponibilidade; elegibilidade/escopo E e dados da conta A
+serão conferidos apenas na futura execução hospedada autorizada.
+
+## Falhas corrigidas durante a preparação
+
+As execuções locais #195–#198 **falharam** e não contam como aprovação.
+
+- Um helper local `put` podia interceptar o campo `present` do builder JSON.
+  A construção por tipo foi isolada e recebeu regressão; não se afrouxou o schema.
+  A marca de autenticação só é registrada após conferir a identidade.
+- A leitura `exec-out` não expunha corretamente a ausência do relatório nativo:
+  texto de erro era tratado como conteúdo JSON. A leitura usa shell V2/base64,
+  SHA-256 conferido no AVD e distinção entre arquivo ausente e schema inválido.
+- A seleção da Application em `newApplication` dependia de argumentos ainda
+  indisponíveis. H05 agora configura a Application existente em
+  `callApplicationOnCreate`, como as fases B–E, antes de qualquer startup normal.
+  Isso eliminou a Application incorreta e a ausência do relatório antes do teste.
+- Falhas sem relatório preservam somente marcadores/nomes de exceção permitidos;
+  nunca mensagens, stacks ou dados privados. A #199 executou os quatro casos.
+
+Commits: `5ffdb6a` (executor), `f5aa045` (resumo/reabertura), `7d44e67`
+(diagnóstico de schema), `bc88f45` (transferência byte a byte), `f9c4f22`
+(ciclo de vida, código aprovado). O commit documental posterior não muda esse código.
+
+## Arquivos alterados
+
+- `AuthTestRunner.kt`, `H05RecoveryHarness.kt`, `H05RecoveryProbeTest.kt`,
+  `H05ReadOnlyGuardTest.kt`: instrumentação e controles de leitura.
+- `app/build.gradle.kts`: apenas escolha explícita do buildType da instrumentação;
+  padrão debug, app oficial e configuração de assinatura preservados.
+- `scripts/h05-recovery.py`, `scripts/test-h05-recovery.py`,
+  `scripts/h05-local-fixture.py`, `scripts/hosted-auth-checks.py`: executor,
+  privacidade/transferência, fixture descartável e reuso de validação de Secrets.
+  O padrão de consentimento H03 continua obrigatório no executor H01–H04.
+- `.github/workflows/android.yml`, `.github/workflows/h05-recovery.yml`: entrada
+  manual independente, jobs LOCAL/PREFLIGHT/HOSTED, artefato único sanitizado.
+- Este documento e `docs/evidence/H05_*_20261112.json`.
+
+## Pendências e contingência
+
+**Pronto para solicitar autorização de H05 hospedado; não homologado na nuvem.**
+
+- Confirmar efetivamente no servidor A elegível, protocolo/escopo E, conjunto
+  presente e recuperação em novo AVD. O preflight não faz essas consultas.
+- Não fazer mudanças SQL/allowlist para aprovar o teste. Se o estado não estiver
+  pronto, preservar o resultado bloqueado e revisar a preparação com o administrador.
+- Não editar a conta fictícia A durante a execução: divergência de cabeça/versões
+  bloqueia aprovação em vez de sobrescrever dados.
+- O ensaio LOCAL tem **zero tombstones**. Seu tratamento é mantido no recebimento,
+  mas essa fixture não prova uma exclusão real nova. As fases anteriores têm
+  regressões de exclusão; não anunciar nova cobertura hospedada de tombstones.
+- Somente registros **confirmados no remoto** são recuperados. Pendências offline,
+  variantes/conflitos locais e arquivos de backup de outro dispositivo não são
+  magicamente recuperados. Não apresentar sincronização como backup administrativo.
+- Tempos de Supabase Free e o risco de commit grande/timeout de 8 s permanecem
+  fora deste teste somente leitura; nenhuma carga de 5.171 registros foi enviada.
+- A Application de instrumentação controla jobs/startup para esta prova. Ela não
+  homologa navegação visual, reboot do aparelho, assinatura permanente ou produção.
+- Cancelamento/crash pode deixar uma sessão Auth efêmera ativa; não revogar sessões
+  globalmente. Arquivos privados não são artefatos e o AVD/runner são descartados.
+- Em falha, não repetir automaticamente HOSTED. Publicar somente o diagnóstico
+  sanitizado e aguardar análise/autorização; LOCAL pode ser usado para regressão.
+
+A próxima ação do proprietário é apenas autorizar a execução HOSTED com a frase
+acima (e aprovar o deployment GitHub, caso o Environment exija). Nenhum segredo
+precisa ser enviado no chat. Main, produção, aparelhos existentes e release intactos.

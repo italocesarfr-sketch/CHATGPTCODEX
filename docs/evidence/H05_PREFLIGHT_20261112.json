@@ -1,0 +1,9 @@
+{
+  "case": "H05",
+  "mode": "PREFLIGHT",
+  "source_sha": "f9c4f22396bc12f221a0da9725bf19f68d34f888",
+  "overall": "PREREQUISITES_READY_NOT_EXECUTED",
+  "blocking_code": null,
+  "credentials_redacted": true,
+  "hosted_requests": false
+}
