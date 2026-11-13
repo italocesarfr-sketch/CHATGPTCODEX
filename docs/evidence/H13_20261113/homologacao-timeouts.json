@@ -1,0 +1,58 @@
+{
+  "environment": "local-disposable-postgresql",
+  "real_supabase_auth": false,
+  "postgrest_timeout_tested": false,
+  "android_timeout_tested": false,
+  "timings": "psql wall time includes connection; successful statements also report PostgreSQL EXPLAIN ANALYZE Execution Time (ms); explicit 8s session budget",
+  "results": [
+    {
+      "case": "small-budget",
+      "records": 171,
+      "parts": 2,
+      "statement_timeout": "8s",
+      "outcome": "accepted",
+      "psql_wall_seconds": 0.148,
+      "postgres_execution_ms": 117.794,
+      "replay": {
+        "psql_wall_seconds": 0.039,
+        "postgres_execution_ms": 4.824
+      }
+    },
+    {
+      "case": "large-natural-budget",
+      "records": 5171,
+      "parts": 41,
+      "statement_timeout": "8s",
+      "outcome": "accepted",
+      "psql_wall_seconds": 5.761,
+      "postgres_execution_ms": 5730.703,
+      "replay": {
+        "psql_wall_seconds": 0.063,
+        "postgres_execution_ms": 32.885
+      }
+    },
+    {
+      "case": "mid-write-timeout-and-retry",
+      "records": 5171,
+      "parts": 41,
+      "statement_timeout": "8s",
+      "outcome": "57014-atomic-rollback",
+      "reached_academic_writes": true,
+      "psql_wall_seconds": 8.03,
+      "postgres_execution_ms": null,
+      "persisted_parts": 41,
+      "academic_rows_after_cancel": 0,
+      "versions_after_cancel": 0,
+      "receipts_after_cancel": 0,
+      "sequence_after_cancel": 0,
+      "retry_budget": "8s",
+      "retry_psql_wall_seconds": 5.757,
+      "retry_postgres_execution_ms": 5726.127,
+      "replay": {
+        "psql_wall_seconds": 0.062,
+        "postgres_execution_ms": 32.949
+      }
+    }
+  ],
+  "passed": 3
+}

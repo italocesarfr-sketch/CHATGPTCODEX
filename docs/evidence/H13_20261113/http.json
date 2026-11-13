@@ -1,0 +1,2137 @@
+{
+  "case": "H13",
+  "mode": "http",
+  "environment": "disposable-loopback-postgresql-postgrest",
+  "hosted_executed": false,
+  "real_auth": false,
+  "statement_timeout": "8s",
+  "repetitions": 5,
+  "postgres": {
+    "version": "17.12 (Debian 17.12-1.pgdg13+1)",
+    "work_mem": "4MB",
+    "shared_buffers": "128MB",
+    "track_functions": "all"
+  },
+  "sql_time": "clock_timestamp around the original commit RPC; excludes response serialization/final COMMIT",
+  "wall_time": "HTTP encoding + RPC + final transaction + transfer + JSON decode",
+  "baseline_changes": "only original academic_definition registry helper",
+  "candidate_migration": "202611130001_h13_registry_cache.sql",
+  "results": [
+    {
+      "records": 41,
+      "parts": 1,
+      "kinds": 3,
+      "statistics": {
+        "before": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 32.605,
+            "median": 33.013,
+            "max": 40.697,
+            "sample_p95_nearest_rank": 40.697,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 34.956,
+            "median": 35.267,
+            "max": 43.971,
+            "sample_p95_nearest_rank": 43.971,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 0.332,
+            "median": 0.404,
+            "max": 0.606,
+            "sample_p95_nearest_rank": 0.606,
+            "p95_is_not_an_sla": true
+          }
+        },
+        "after": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 23.241,
+            "median": 24.331,
+            "max": 30.652,
+            "sample_p95_nearest_rank": 30.652,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 25.459,
+            "median": 26.742,
+            "max": 33.179,
+            "sample_p95_nearest_rank": 33.179,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 0.362,
+            "median": 0.405,
+            "max": 0.582,
+            "sample_p95_nearest_rank": 0.582,
+            "p95_is_not_an_sla": true
+          }
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "trial": 1,
+            "variant": "before",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 27.076,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 43.971,
+              "server_execution_ms": 40.697,
+              "residual_http_ms": 3.274,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 6.712,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.262,
+                "server_execution_ms": 0.606,
+                "residual_http_ms": 1.656,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 3.043,
+                "server_execution_ms": 0.542,
+                "residual_http_ms": 2.501,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.913,
+                "server_execution_ms": 0.509,
+                "residual_http_ms": 1.404,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 2,
+            "variant": "before",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 11.106,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 36.079,
+              "server_execution_ms": 33.761,
+              "residual_http_ms": 2.318,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 5.84,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.734,
+                "server_execution_ms": 0.431,
+                "residual_http_ms": 1.303,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.567,
+                "server_execution_ms": 0.357,
+                "residual_http_ms": 1.21,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 75.985,
+                "server_execution_ms": 0.339,
+                "residual_http_ms": 75.646,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 3,
+            "variant": "before",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 11.53,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 35.267,
+              "server_execution_ms": 33.013,
+              "residual_http_ms": 2.254,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 6.046,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.746,
+                "server_execution_ms": 0.439,
+                "residual_http_ms": 1.307,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.615,
+                "server_execution_ms": 0.411,
+                "residual_http_ms": 1.204,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.584,
+                "server_execution_ms": 0.378,
+                "residual_http_ms": 1.206,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 4,
+            "variant": "before",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 11.596,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 35.018,
+              "server_execution_ms": 32.605,
+              "residual_http_ms": 2.413,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 5.455,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.737,
+                "server_execution_ms": 0.438,
+                "residual_http_ms": 1.299,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.551,
+                "server_execution_ms": 0.379,
+                "residual_http_ms": 1.172,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.552,
+                "server_execution_ms": 0.392,
+                "residual_http_ms": 1.16,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 5,
+            "variant": "before",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 11.146,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 34.956,
+              "server_execution_ms": 32.662,
+              "residual_http_ms": 2.294,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 5.255,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.629,
+                "server_execution_ms": 0.404,
+                "residual_http_ms": 1.225,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.556,
+                "server_execution_ms": 0.376,
+                "residual_http_ms": 1.18,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 170.778,
+                "server_execution_ms": 0.332,
+                "residual_http_ms": 170.446,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          }
+        ],
+        "after": [
+          {
+            "trial": 1,
+            "variant": "after",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 9.239,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 33.179,
+              "server_execution_ms": 30.652,
+              "residual_http_ms": 2.527,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 8.517,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 40.599,
+                "server_execution_ms": 0.582,
+                "residual_http_ms": 40.017,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.352,
+                "server_execution_ms": 0.485,
+                "residual_http_ms": 1.867,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.702,
+                "server_execution_ms": 0.409,
+                "residual_http_ms": 1.293,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 2,
+            "variant": "after",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 9.629,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 26.742,
+              "server_execution_ms": 24.331,
+              "residual_http_ms": 2.411,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 5.525,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.782,
+                "server_execution_ms": 0.425,
+                "residual_http_ms": 1.357,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.552,
+                "server_execution_ms": 0.374,
+                "residual_http_ms": 1.178,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.558,
+                "server_execution_ms": 0.381,
+                "residual_http_ms": 1.177,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 3,
+            "variant": "after",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 9.184,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 27.186,
+              "server_execution_ms": 24.816,
+              "residual_http_ms": 2.37,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 5.354,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.726,
+                "server_execution_ms": 0.398,
+                "residual_http_ms": 1.328,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.577,
+                "server_execution_ms": 0.362,
+                "residual_http_ms": 1.215,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.548,
+                "server_execution_ms": 0.373,
+                "residual_http_ms": 1.175,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 4,
+            "variant": "after",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 9.1,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 25.61,
+              "server_execution_ms": 23.241,
+              "residual_http_ms": 2.369,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 5.678,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.74,
+                "server_execution_ms": 0.411,
+                "residual_http_ms": 1.329,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.669,
+                "server_execution_ms": 0.38,
+                "residual_http_ms": 1.289,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.552,
+                "server_execution_ms": 0.379,
+                "residual_http_ms": 1.173,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          },
+          {
+            "trial": 5,
+            "variant": "after",
+            "records": 41,
+            "parts": 1,
+            "staging_ms": 10.409,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 25.459,
+              "server_execution_ms": 23.243,
+              "residual_http_ms": 2.216,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+            "recovery_ms": 6.191,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.851,
+                "server_execution_ms": 0.433,
+                "residual_http_ms": 1.418,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.757,
+                "server_execution_ms": 0.451,
+                "residual_http_ms": 1.306,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 1.674,
+                "server_execution_ms": 0.405,
+                "residual_http_ms": 1.269,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 540672,
+            "input_json_bytes": 10484
+          }
+        ]
+      }
+    },
+    {
+      "records": 171,
+      "parts": 2,
+      "kinds": 15,
+      "statistics": {
+        "before": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 139.227,
+            "median": 139.732,
+            "max": 147.253,
+            "sample_p95_nearest_rank": 147.253,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 141.685,
+            "median": 146.86,
+            "max": 224.0,
+            "sample_p95_nearest_rank": 224.0,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 0.905,
+            "median": 0.998,
+            "max": 1.078,
+            "sample_p95_nearest_rank": 1.078,
+            "p95_is_not_an_sla": true
+          }
+        },
+        "after": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 98.69,
+            "median": 107.3,
+            "max": 112.008,
+            "sample_p95_nearest_rank": 112.008,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 101.608,
+            "median": 114.709,
+            "max": 134.358,
+            "sample_p95_nearest_rank": 134.358,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 0.905,
+            "median": 1.002,
+            "max": 1.154,
+            "sample_p95_nearest_rank": 1.154,
+            "p95_is_not_an_sla": true
+          }
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "trial": 1,
+            "variant": "before",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 36.097,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 149.686,
+              "server_execution_ms": 147.253,
+              "residual_http_ms": 2.433,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 14.877,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.265,
+                "server_execution_ms": 1.003,
+                "residual_http_ms": 1.262,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.118,
+                "server_execution_ms": 0.925,
+                "residual_http_ms": 1.193,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.09,
+                "server_execution_ms": 0.905,
+                "residual_http_ms": 1.185,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 2,
+            "variant": "before",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 35.763,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 141.791,
+              "server_execution_ms": 139.495,
+              "residual_http_ms": 2.296,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 15.392,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.442,
+                "server_execution_ms": 1.013,
+                "residual_http_ms": 1.429,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.193,
+                "server_execution_ms": 0.949,
+                "residual_http_ms": 1.244,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.151,
+                "server_execution_ms": 0.948,
+                "residual_http_ms": 1.203,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 3,
+            "variant": "before",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 35.79,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 146.86,
+              "server_execution_ms": 143.288,
+              "residual_http_ms": 3.572,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 15.769,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.499,
+                "server_execution_ms": 1.078,
+                "residual_http_ms": 1.421,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.325,
+                "server_execution_ms": 1.03,
+                "residual_http_ms": 1.295,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.28,
+                "server_execution_ms": 1.023,
+                "residual_http_ms": 1.257,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 4,
+            "variant": "before",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 37.476,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 141.685,
+              "server_execution_ms": 139.227,
+              "residual_http_ms": 2.458,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 15.652,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.419,
+                "server_execution_ms": 1.026,
+                "residual_http_ms": 1.393,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.33,
+                "server_execution_ms": 1.015,
+                "residual_http_ms": 1.315,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.21,
+                "server_execution_ms": 0.931,
+                "residual_http_ms": 1.279,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 5,
+            "variant": "before",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 38.218,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 224.0,
+              "server_execution_ms": 139.732,
+              "residual_http_ms": 84.268,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 15.533,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.305,
+                "server_execution_ms": 0.998,
+                "residual_http_ms": 1.307,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.102,
+                "server_execution_ms": 0.921,
+                "residual_http_ms": 1.181,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.088,
+                "server_execution_ms": 0.914,
+                "residual_http_ms": 1.174,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          }
+        ],
+        "after": [
+          {
+            "trial": 1,
+            "variant": "after",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 24.637,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 101.608,
+              "server_execution_ms": 99.191,
+              "residual_http_ms": 2.417,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 14.938,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.337,
+                "server_execution_ms": 0.994,
+                "residual_http_ms": 1.343,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.158,
+                "server_execution_ms": 0.935,
+                "residual_http_ms": 1.223,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.093,
+                "server_execution_ms": 0.905,
+                "residual_http_ms": 1.188,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 2,
+            "variant": "after",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 26.249,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 115.932,
+              "server_execution_ms": 98.69,
+              "residual_http_ms": 17.242,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 18.591,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.381,
+                "server_execution_ms": 1.011,
+                "residual_http_ms": 1.37,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.192,
+                "server_execution_ms": 0.93,
+                "residual_http_ms": 1.262,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.238,
+                "server_execution_ms": 0.953,
+                "residual_http_ms": 1.285,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 3,
+            "variant": "after",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 67.315,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 114.462,
+              "server_execution_ms": 111.972,
+              "residual_http_ms": 2.49,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 16.414,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.528,
+                "server_execution_ms": 1.099,
+                "residual_http_ms": 1.429,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.233,
+                "server_execution_ms": 0.973,
+                "residual_http_ms": 1.26,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.14,
+                "server_execution_ms": 0.91,
+                "residual_http_ms": 1.23,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 4,
+            "variant": "after",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 29.567,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 134.358,
+              "server_execution_ms": 107.3,
+              "residual_http_ms": 27.058,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 17.949,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.711,
+                "server_execution_ms": 1.154,
+                "residual_http_ms": 1.557,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.899,
+                "server_execution_ms": 1.093,
+                "residual_http_ms": 1.806,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 3.94,
+                "server_execution_ms": 1.078,
+                "residual_http_ms": 2.862,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          },
+          {
+            "trial": 5,
+            "variant": "after",
+            "records": 171,
+            "parts": 2,
+            "staging_ms": 28.845,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 114.709,
+              "server_execution_ms": 112.008,
+              "residual_http_ms": 2.701,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d2529145d6f28a5ae88bf163ef7e690177482360e64f48d290b38a7b7ff10c20",
+            "recovery_ms": 16.124,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.605,
+                "server_execution_ms": 1.112,
+                "residual_http_ms": 1.493,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.493,
+                "server_execution_ms": 1.088,
+                "residual_http_ms": 1.405,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 2.305,
+                "server_execution_ms": 1.002,
+                "residual_http_ms": 1.303,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 860160,
+            "input_json_bytes": 39165
+          }
+        ]
+      }
+    },
+    {
+      "records": 671,
+      "parts": 6,
+      "kinds": 15,
+      "statistics": {
+        "before": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 541.111,
+            "median": 549.87,
+            "max": 569.573,
+            "sample_p95_nearest_rank": 569.573,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 543.49,
+            "median": 552.242,
+            "max": 573.708,
+            "sample_p95_nearest_rank": 573.708,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 2.683,
+            "median": 2.812,
+            "max": 2.985,
+            "sample_p95_nearest_rank": 2.985,
+            "p95_is_not_an_sla": true
+          }
+        },
+        "after": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 390.998,
+            "median": 396.959,
+            "max": 409.493,
+            "sample_p95_nearest_rank": 409.493,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 393.409,
+            "median": 399.463,
+            "max": 411.875,
+            "sample_p95_nearest_rank": 411.875,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 2.742,
+            "median": 2.963,
+            "max": 3.127,
+            "sample_p95_nearest_rank": 3.127,
+            "p95_is_not_an_sla": true
+          }
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "trial": 1,
+            "variant": "before",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 138.096,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 573.708,
+              "server_execution_ms": 569.573,
+              "residual_http_ms": 4.135,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 59.377,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.497,
+                "server_execution_ms": 2.937,
+                "residual_http_ms": 1.56,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.272,
+                "server_execution_ms": 2.782,
+                "residual_http_ms": 1.49,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.035,
+                "server_execution_ms": 2.705,
+                "residual_http_ms": 1.33,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 2,
+            "variant": "before",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 185.652,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 552.242,
+              "server_execution_ms": 549.87,
+              "residual_http_ms": 2.372,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 61.45,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.715,
+                "server_execution_ms": 2.984,
+                "residual_http_ms": 1.731,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.37,
+                "server_execution_ms": 2.843,
+                "residual_http_ms": 1.527,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.427,
+                "server_execution_ms": 2.835,
+                "residual_http_ms": 1.592,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 3,
+            "variant": "before",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 126.086,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 543.49,
+              "server_execution_ms": 541.111,
+              "residual_http_ms": 2.379,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 64.328,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.588,
+                "server_execution_ms": 2.985,
+                "residual_http_ms": 1.603,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.093,
+                "server_execution_ms": 2.787,
+                "residual_http_ms": 1.306,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.055,
+                "server_execution_ms": 2.706,
+                "residual_http_ms": 1.349,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 4,
+            "variant": "before",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 132.712,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 547.815,
+              "server_execution_ms": 541.993,
+              "residual_http_ms": 5.822,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 60.167,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.667,
+                "server_execution_ms": 2.965,
+                "residual_http_ms": 1.702,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.247,
+                "server_execution_ms": 2.812,
+                "residual_http_ms": 1.435,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.027,
+                "server_execution_ms": 2.683,
+                "residual_http_ms": 1.344,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 5,
+            "variant": "before",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 123.531,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 563.1,
+              "server_execution_ms": 560.627,
+              "residual_http_ms": 2.473,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 59.779,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.521,
+                "server_execution_ms": 2.95,
+                "residual_http_ms": 1.571,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.102,
+                "server_execution_ms": 2.71,
+                "residual_http_ms": 1.392,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.272,
+                "server_execution_ms": 2.739,
+                "residual_http_ms": 1.533,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          }
+        ],
+        "after": [
+          {
+            "trial": 1,
+            "variant": "after",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 86.986,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 399.463,
+              "server_execution_ms": 396.959,
+              "residual_http_ms": 2.504,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 66.795,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.917,
+                "server_execution_ms": 3.116,
+                "residual_http_ms": 1.801,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.722,
+                "server_execution_ms": 3.011,
+                "residual_http_ms": 1.711,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.688,
+                "server_execution_ms": 2.963,
+                "residual_http_ms": 1.725,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 2,
+            "variant": "after",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 87.855,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 405.658,
+              "server_execution_ms": 401.402,
+              "residual_http_ms": 4.256,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 61.618,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.913,
+                "server_execution_ms": 3.031,
+                "residual_http_ms": 1.882,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.627,
+                "server_execution_ms": 2.902,
+                "residual_http_ms": 1.725,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.33,
+                "server_execution_ms": 2.797,
+                "residual_http_ms": 1.533,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 3,
+            "variant": "after",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 88.89,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 393.409,
+              "server_execution_ms": 390.998,
+              "residual_http_ms": 2.411,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 62.421,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 5.088,
+                "server_execution_ms": 3.127,
+                "residual_http_ms": 1.961,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.688,
+                "server_execution_ms": 3.027,
+                "residual_http_ms": 1.661,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.6,
+                "server_execution_ms": 2.977,
+                "residual_http_ms": 1.623,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 4,
+            "variant": "after",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 99.945,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 411.875,
+              "server_execution_ms": 409.493,
+              "residual_http_ms": 2.382,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 61.674,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.548,
+                "server_execution_ms": 2.936,
+                "residual_http_ms": 1.612,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.111,
+                "server_execution_ms": 2.774,
+                "residual_http_ms": 1.337,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.213,
+                "server_execution_ms": 2.742,
+                "residual_http_ms": 1.471,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          },
+          {
+            "trial": 5,
+            "variant": "after",
+            "records": 671,
+            "parts": 6,
+            "staging_ms": 88.671,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 395.346,
+              "server_execution_ms": 392.973,
+              "residual_http_ms": 2.373,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "d02019ae5eb78cc70f4b8c49515aee746d3e9e75c841af1fcc44f4246f81ade1",
+            "recovery_ms": 61.898,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.636,
+                "server_execution_ms": 3.016,
+                "residual_http_ms": 1.62,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.337,
+                "server_execution_ms": 2.877,
+                "residual_http_ms": 1.46,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 4.307,
+                "server_execution_ms": 2.858,
+                "residual_http_ms": 1.449,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 1835008,
+            "input_json_bytes": 137846
+          }
+        ]
+      }
+    },
+    {
+      "records": 5171,
+      "parts": 41,
+      "kinds": 15,
+      "statistics": {
+        "before": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 6896.783,
+            "median": 7037.705,
+            "max": 7292.119,
+            "sample_p95_nearest_rank": 7292.119,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 6899.331,
+            "median": 7040.187,
+            "max": 7294.692,
+            "sample_p95_nearest_rank": 7294.692,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 25.162,
+            "median": 26.432,
+            "max": 29.66,
+            "sample_p95_nearest_rank": 29.66,
+            "p95_is_not_an_sla": true
+          }
+        },
+        "after": {
+          "accepted": 5,
+          "timed_out": 0,
+          "server_ms": {
+            "n": 5,
+            "min": 5824.113,
+            "median": 6017.15,
+            "max": 6246.359,
+            "sample_p95_nearest_rank": 6246.359,
+            "p95_is_not_an_sla": true
+          },
+          "wall_ms": {
+            "n": 5,
+            "min": 5826.574,
+            "median": 6019.836,
+            "max": 6248.684,
+            "sample_p95_nearest_rank": 6248.684,
+            "p95_is_not_an_sla": true
+          },
+          "replay_server_ms": {
+            "n": 15,
+            "min": 25.479,
+            "median": 27.9,
+            "max": 29.575,
+            "sample_p95_nearest_rank": 29.575,
+            "p95_is_not_an_sla": true
+          }
+        }
+      },
+      "samples": {
+        "before": [
+          {
+            "trial": 1,
+            "variant": "before",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 1146.979,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 7269.404,
+              "server_execution_ms": 7266.71,
+              "residual_http_ms": 2.694,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1067.497,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 29.005,
+                "server_execution_ms": 26.166,
+                "residual_http_ms": 2.839,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.489,
+                "server_execution_ms": 26.432,
+                "residual_http_ms": 2.057,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 31.77,
+                "server_execution_ms": 29.66,
+                "residual_http_ms": 2.11,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 2,
+            "variant": "before",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 1032.687,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 7040.187,
+              "server_execution_ms": 7037.705,
+              "residual_http_ms": 2.482,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1186.592,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 31.302,
+                "server_execution_ms": 28.798,
+                "residual_http_ms": 2.504,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 31.042,
+                "server_execution_ms": 28.837,
+                "residual_http_ms": 2.205,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 29.998,
+                "server_execution_ms": 27.875,
+                "residual_http_ms": 2.123,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 3,
+            "variant": "before",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 1084.941,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 6899.331,
+              "server_execution_ms": 6896.783,
+              "residual_http_ms": 2.548,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1080.779,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 27.759,
+                "server_execution_ms": 25.477,
+                "residual_http_ms": 2.282,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 27.766,
+                "server_execution_ms": 25.74,
+                "residual_http_ms": 2.026,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 39.026,
+                "server_execution_ms": 25.87,
+                "residual_http_ms": 13.156,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 4,
+            "variant": "before",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 1157.106,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 7294.692,
+              "server_execution_ms": 7292.119,
+              "residual_http_ms": 2.573,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1063.425,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.366,
+                "server_execution_ms": 25.99,
+                "residual_http_ms": 2.376,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 27.141,
+                "server_execution_ms": 25.162,
+                "residual_http_ms": 1.979,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 27.531,
+                "server_execution_ms": 25.422,
+                "residual_http_ms": 2.109,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 5,
+            "variant": "before",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 1060.227,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 7007.882,
+              "server_execution_ms": 7005.385,
+              "residual_http_ms": 2.497,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1140.465,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 29.441,
+                "server_execution_ms": 27.075,
+                "residual_http_ms": 2.366,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.791,
+                "server_execution_ms": 26.77,
+                "residual_http_ms": 2.021,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 30.172,
+                "server_execution_ms": 28.079,
+                "residual_http_ms": 2.093,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          }
+        ],
+        "after": [
+          {
+            "trial": 1,
+            "variant": "after",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 819.466,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 5826.574,
+              "server_execution_ms": 5824.113,
+              "residual_http_ms": 2.461,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1045.065,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 30.439,
+                "server_execution_ms": 28.026,
+                "residual_http_ms": 2.413,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.394,
+                "server_execution_ms": 26.372,
+                "residual_http_ms": 2.022,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.513,
+                "server_execution_ms": 26.447,
+                "residual_http_ms": 2.066,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 2,
+            "variant": "after",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 764.675,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 6174.488,
+              "server_execution_ms": 6171.881,
+              "residual_http_ms": 2.607,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1120.333,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 32.053,
+                "server_execution_ms": 29.575,
+                "residual_http_ms": 2.478,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 30.266,
+                "server_execution_ms": 28.22,
+                "residual_http_ms": 2.046,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 30.308,
+                "server_execution_ms": 28.196,
+                "residual_http_ms": 2.112,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 3,
+            "variant": "after",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 843.253,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 6248.684,
+              "server_execution_ms": 6246.359,
+              "residual_http_ms": 2.325,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1095.885,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 30.175,
+                "server_execution_ms": 27.9,
+                "residual_http_ms": 2.275,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 27.525,
+                "server_execution_ms": 25.563,
+                "residual_http_ms": 1.962,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 29.416,
+                "server_execution_ms": 27.386,
+                "residual_http_ms": 2.03,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 4,
+            "variant": "after",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 713.194,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 5933.667,
+              "server_execution_ms": 5931.01,
+              "residual_http_ms": 2.657,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1110.356,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 31.64,
+                "server_execution_ms": 29.19,
+                "residual_http_ms": 2.45,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 31.087,
+                "server_execution_ms": 28.977,
+                "residual_http_ms": 2.11,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 30.08,
+                "server_execution_ms": 28.021,
+                "residual_http_ms": 2.059,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          },
+          {
+            "trial": 5,
+            "variant": "after",
+            "records": 5171,
+            "parts": 41,
+            "staging_ms": 882.788,
+            "commit": {
+              "outcome": "accepted",
+              "wall_ms": 6019.836,
+              "server_execution_ms": 6017.15,
+              "residual_http_ms": 2.686,
+              "residual_includes_serialization_commit_network_client": true
+            },
+            "recovered_sha256": "63d57cf16816d6e3b1ffa1c251ed8a8c04997a83b88522b0943a0708f6f801a0",
+            "recovery_ms": 1046.11,
+            "payloads_ids_revisions_equal": true,
+            "sequence": 1,
+            "receipt_count": 1,
+            "batch_count": 1,
+            "confirmed_replays": [
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.87,
+                "server_execution_ms": 26.604,
+                "residual_http_ms": 2.266,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 28.859,
+                "server_execution_ms": 26.932,
+                "residual_http_ms": 1.927,
+                "residual_includes_serialization_commit_network_client": true
+              },
+              {
+                "outcome": "accepted",
+                "wall_ms": 27.435,
+                "server_execution_ms": 25.479,
+                "residual_http_ms": 1.956,
+                "residual_includes_serialization_commit_network_client": true
+              }
+            ],
+            "foreign_account_denied": true,
+            "table_bytes_including_indexes": 10231808,
+            "input_json_bytes": 1037433
+          }
+        ]
+      }
+    }
+  ]
+}

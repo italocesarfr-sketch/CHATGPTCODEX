@@ -1,0 +1,40 @@
+{
+  "case": "H13",
+  "environment": "GitHub Actions disposable PostgreSQL/PostgREST/Android",
+  "hosted_executed": false,
+  "source_sha": "9677b022695af4c5579e0598c8c84fccaef3d5cd",
+  "run": 204,
+  "run_id": 43450126832,
+  "run_url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43450126832",
+  "performance_job": "success",
+  "full_regression": "success",
+  "artifact_id": 14053035022,
+  "artifact_sha256": "51d761894d48995dee658201999f59e7c1c1bfaa9a7b7482207b8136f56dd1b9",
+  "sql_repetitions_per_variant_per_volume": 5,
+  "http_repetitions_per_variant_per_volume": 5,
+  "android_repetitions_per_volume": 3,
+  "registry_regression_tests": 7,
+  "regression_artifact_id": 14053727138,
+  "regression_artifact_sha256": "6c22be871809a18a62a08c4707f39df9ee3bb6780012a0ff08937ed0a876abb5",
+  "jvm": {
+    "total": 298,
+    "passed": 293,
+    "ignored": 5,
+    "failed": 0
+  },
+  "android": {
+    "total": 433,
+    "passed": 416,
+    "ignored": 17,
+    "failed": 0
+  },
+  "network_phases": {
+    "B": 10,
+    "C": 13,
+    "D": 24,
+    "E": 23
+  },
+  "controlled_receive_process_deaths": 2,
+  "academic_postgres_tests": 134,
+  "two_avd_final_sha256": "b2ba3c74e7934490780af68f80ef0003b6d3d4006f32ad552ab618a19b6738bd"
+}

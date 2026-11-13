@@ -1,0 +1,82 @@
+{
+  "jvm": {
+    "totals": {
+      "tests": 298,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 5,
+      "passed": 293
+    },
+    "ignored": [
+      "br.com.diariodeclasse.HomologationHostedAuthTest.h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc",
+      "br.com.diariodeclasse.HomologationHostedAuthTest.h02RealOrdinaryAccountCannotReadTheOtherOwnersKnownFixture",
+      "br.com.diariodeclasse.HomologationHostedAuthTest.h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied",
+      "br.com.diariodeclasse.HomologationHostedAuthTest.h01ConfirmedLoginIdentityRefreshAndWrongPassword",
+      "br.com.diariodeclasse.SupabaseLiveAuthTest.confirmedLoginRefreshLogoutAndRevokedRefreshUseTheRealKotlinClient"
+    ]
+  },
+  "android": {
+    "totals": {
+      "tests": 433,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 17,
+      "passed": 416
+    },
+    "ignored": [
+      "br.com.diariodeclasse.AuthProcessProbeTest.protectedSessionAndAcademicDataSurviveRebootWithoutAnOnlineBypass",
+      "br.com.diariodeclasse.AuthSignedUpgradeProbeTest.originalSignedDataStaysLockedUntilVerifiedOwnerBindingAndNeverAppearsInAnotherAccount",
+      "br.com.diariodeclasse.FrequencyProcessProbeTest.committedLastCellSurvivesProcessRestart",
+      "br.com.diariodeclasse.H05ReadOnlyGuardTest.hostedApplicationCannotBeConfiguredWithoutIndependentAuthorization",
+      "br.com.diariodeclasse.H05ReadOnlyGuardTest.typeSummaryKeepsPresenceAndHashesInsideEachType",
+      "br.com.diariodeclasse.H05ReadOnlyGuardTest.everyMutationIsRejectedBeforeReachingTheTransport",
+      "br.com.diariodeclasse.H05RecoveryProbeTest.cleanInstallationRecoversReadOnly",
+      "br.com.diariodeclasse.H12RestoreProbeTest.oldEncryptedBackupRequiresExplicitCloudReconciliation",
+      "br.com.diariodeclasse.H13RoomBenchmarkTest.graduatedAtomicRecoveryAndConfirmedReplay",
+      "br.com.diariodeclasse.PhaseBNetworkProbeTest.actualAndroidClientPersistsSendsRecoversAndConflictsAcrossInstallations",
+      "br.com.diariodeclasse.PhaseCNetworkProbeTest.actualAcademicCTransportAcrossTwoIndependentAndroidInstallations",
+      "br.com.diariodeclasse.PhaseDNetworkProbeTest.fifteenAcademicTypesOnIndependentInstallations",
+      "br.com.diariodeclasse.PhaseENetworkProbeTest.largeAcademicTransactionsStagePersistAndRecoverAcrossInstallations",
+      "br.com.diariodeclasse.ReleaseContinuityProbeTest.releasePreservesSnapshotPreferencesAndBackupRoundTrip",
+      "br.com.diariodeclasse.StableUpgradeProbeTest.sameOwnerSignaturePreservesEveryRowPreferencesAndBackup",
+      "br.com.diariodeclasse.SyncProcessProbeTest.durableQueueAfterProcessDeath",
+      "br.com.diariodeclasse.UpgradeProbeTest.allSyntheticRowsSurviveInInstalledApp"
+    ]
+  },
+  "network_phase_summaries": {
+    "phaseb": "10 Android HTTP phases passed on two independent emulators. PostgreSQL/PostgREST local; Auth JWT fixtures, not hosted Supabase.",
+    "phasec": "13 Android HTTP phases C passed; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.",
+    "phased": "24 Android HTTP phases D passed plus one deliberate mid-receive process kill/rollback proof; two independent emulators, PostgreSQL/PostgREST local; signed Auth fixtures, not hosted Supabase.",
+    "phasee": "23 Android E1/E2/E3 HTTP phases plus a required process kill after durable staging passed; 5,171 initial records, 5,172 after explicit backup reconciliation, 15 kinds, two independent AVDs; local PostgreSQL/PostgREST and synthetic Auth only."
+  },
+  "postgres": {
+    "academic": {
+      "tests": 38,
+      "passed": true
+    },
+    "phaseb": {
+      "tests": 18,
+      "passed": true
+    },
+    "phasec": {
+      "tests": 20,
+      "passed": true
+    },
+    "phased": {
+      "tests": 27,
+      "passed": true
+    },
+    "phasee": {
+      "tests": 16,
+      "passed": true
+    },
+    "phasee-decisions": {
+      "tests": 15,
+      "passed": true
+    }
+  },
+  "run_id": 43450126832,
+  "source_sha": "9677b022695af4c5579e0598c8c84fccaef3d5cd",
+  "artifact_id": 14053727138,
+  "artifact_sha256": "6c22be871809a18a62a08c4707f39df9ee3bb6780012a0ff08937ed0a876abb5"
+}

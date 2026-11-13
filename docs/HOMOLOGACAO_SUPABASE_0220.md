@@ -500,3 +500,14 @@ f7785853b4438e72aea24a17b8b91812c4a250efd0a5e6ab8d61c8c3e44b54bf  supabase/migra
 Pacote A–E preparado nesta revisão: SHA-256
 `7fd28b6dbce5f72724abc1a2644041f19f373fc7675eb37a24bd17fa9a46659b`.
 Arquivo gerado é local/revisável, não uma migração implantada nem uma autorização.
+
+
+## Nota posterior — H13, 13/11/2026
+
+[Diagnóstico/otimização H13 e CI #204](H13_DESEMPENHO_0220.md): a migração aditiva
+`202611130001_h13_registry_cache.sql` foi validada somente em ambientes
+descartáveis. Não está incluída no pacote A–E já publicado nem foi aplicada
+nos projetos hospedados. Deve ser revisada separadamente, após E4, com autorização
+administrativa futura. O orçamento de 8s permanece; não se aprovou capacidade
+institucional nem se autorizou carga hospedada. Benchmarks comparativos e
+variação por camada estão no relatório; resultados antigos permanecem históricos.

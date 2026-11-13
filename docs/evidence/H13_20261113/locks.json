@@ -1,0 +1,42 @@
+{
+  "case": "H13-locks",
+  "hosted_executed": false,
+  "owner_lock_observed": true,
+  "wait_event_type": "Lock",
+  "blocked": {
+    "outcome": "57014-atomic-rollback",
+    "wall_ms": 8037.973,
+    "server_execution_ms": null
+  },
+  "other_owner_accepted_while_lock_held": true,
+  "other_owner_wall_ms": 77.294,
+  "atomic_rollback_verified": true,
+  "persisted_parts": 1,
+  "same_operation_retry": {
+    "outcome": "accepted",
+    "wall_ms": 68.514,
+    "server_execution_ms": 36.679,
+    "shared_hit_blocks": 4252,
+    "shared_read_blocks": 0,
+    "temp_written_blocks": 0,
+    "io_read_ms": 0.0
+  },
+  "confirmed_replay": {
+    "outcome": "accepted",
+    "wall_ms": 34.313,
+    "server_execution_ms": 3.835,
+    "shared_hit_blocks": 1147,
+    "shared_read_blocks": 0,
+    "temp_written_blocks": 0,
+    "io_read_ms": 0.0
+  },
+  "integrity": {
+    "recovered_sha256": "39ee700ef99cee5fe96c04cb890749a76b4619317493bf171363d276b12f920c",
+    "recovery_ms": 69.655,
+    "payloads_ids_revisions_equal": true,
+    "sequence": 1,
+    "records": 41,
+    "receipt_count": 1,
+    "batch_count": 1
+  }
+}
