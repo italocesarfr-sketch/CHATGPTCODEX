@@ -25,12 +25,13 @@ def context(env):
  return mode
 def folder(env):
  return auth.private_dir(env).parent/'noctua-h05-private'
-def write_public(env,overall,proof=None,code=None,schema=None):
+def write_public(env,overall,proof=None,code=None,schema=None,native=None):
  value=dict(case='H05',mode=env.get('NOCTUA_H05_MODE','PREFLIGHT') if env.get('NOCTUA_H05_MODE','PREFLIGHT') in MODES else None,
   source_sha=env.get('GITHUB_SHA') if re.fullmatch('[0-9a-f]{40}',env.get('GITHUB_SHA','')) else None,
   overall=overall,blocking_code=code,credentials_redacted=True,
   hosted_requests=False if env.get('NOCTUA_H05_MODE')!='HOSTED' or overall=='PREREQUISITES_READY_NOT_EXECUTED' else None)
  if schema is not None:value['report_shape']=schema
+ if native is not None:value['instrumentation']=native
  if proof:
   value['proof']=proof
   if proof.get('authenticated') and proof.get('mode')=='HOSTED':value['hosted_requests']=True
@@ -109,6 +110,13 @@ def disposable(env,serial,adb):
  need(adb('-s',serial,'shell','getprop','ro.kernel.qemu').decode().strip()=='1','WRONG_DEVICE')
  need(adb('-s',serial,'emu','avd','name').decode().splitlines()[0].strip()==expected,'WRONG_AVD')
 
+def native_diagnostics(raw,expected):
+ """Never publish an instrumentation message/stack; only fixed markers/classes."""
+ known=('ClassCastException','ClassNotFoundException','IllegalStateException','IllegalArgumentException','SecurityException','AssertionError','NoClassDefFoundError')
+ return dict(expected_tests=expected,ok_marker=(f'OK ({expected} tests)' if expected!=1 else 'OK (1 test)').encode()in raw,
+   process_crashed=b'Process crashed'in raw,instrumentation_failed=b'INSTRUMENTATION_FAILED'in raw,
+   failures=b'FAILURES'in raw,exception_types=[name for name in known if name.encode()in raw])
+
 def decode_device_report(encoded,digest):
  need(len(encoded)<=100000,'REPORT_ENCODING')
  match=re.fullmatch(rb'([0-9a-f]{64})  files/h05-result\.json\s*',digest)
@@ -142,15 +150,20 @@ def execute(env):
  try:
   raw=adb('-s',serial,'shell','am','instrument','-w','-e','timeout_msec','360000','-e','h05Mode',mode,'-e','h05Authorized','YES' if mode=='HOSTED' else 'NO','-e','class','br.com.diariodeclasse.H05RecoveryProbeTest'+(',br.com.diariodeclasse.H05ReadOnlyGuardTest' if mode=='LOCAL' else ''),package+'.test/br.com.diariodeclasse.AuthTestRunner',timeout=420)
   (p/'instrumentation-private.log').write_bytes(raw)
+  native=native_diagnostics(raw,4 if mode=='LOCAL' else 1)
+  present=adb('-s',serial,'shell','-T','run-as',package,'sh','-c',"'test -f files/h05-result.json && echo H05_REPORT_PRESENT'",check=False)
+  if present.strip()!=b'H05_REPORT_PRESENT':
+   write_public(env,'BLOCKED_NOT_APPROVED',code='NATIVE_REPORT_MISSING',native=native)
+   raise Blocked('H05_REPORT_REJECTED')
   encoded=adb('-s',serial,'shell','-T','run-as',package,'base64','files/h05-result.json')
   digest=adb('-s',serial,'shell','-T','run-as',package,'sha256sum','files/h05-result.json')
   result=decode_device_report(encoded,digest)
   try:proof=redacted_proof(result,mode)
   except Blocked as e:
-   write_public(env,'BLOCKED_NOT_APPROVED',code=str(e),schema=report_shape(result))
+   write_public(env,'BLOCKED_NOT_APPROVED',code=str(e),schema=report_shape(result),native=native)
    raise Blocked('H05_REPORT_REJECTED')from None
   passed=proof['status']=='PASSED' and (b'OK (4 tests)' if mode=='LOCAL' else b'OK (1 test)') in raw and not any(v in raw for v in (b'FAILURES',b'INSTRUMENTATION_FAILED',b'Process crashed',b'Assumption'))
-  write_public(env,'PASSED_LOCAL_DISPOSABLE' if passed and mode=='LOCAL' else 'PASSED_HOSTED_PRESENT_TYPES' if passed else 'NOT_APPROVED',proof)
+  write_public(env,'PASSED_LOCAL_DISPOSABLE' if passed and mode=='LOCAL' else 'PASSED_HOSTED_PRESENT_TYPES' if passed else 'NOT_APPROVED',proof,native=native)
   need(passed,'H05_NOT_APPROVED')
  finally:
   adb('-s',serial,'shell','run-as',package,'rm','-f','files/h05-private.json',check=False)

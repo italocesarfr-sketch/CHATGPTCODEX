@@ -55,6 +55,10 @@ class H05Safety(unittest.TestCase):
    with self.assertRaises(f.Blocked):f.redacted_proof(json.dumps(d).encode(),'LOCAL')
  def test_report_mode_is_bound_to_the_selected_runner(self):
   with self.assertRaises(f.Blocked):f.redacted_proof(json.dumps(proof()).encode(),'HOSTED')
+ def test_instrumentation_diagnostics_do_not_echo_private_failure_text(self):
+  value=f.native_diagnostics(b'ClassCastException: PRIVATE_SENTINEL email PRIVATE_SENTINEL FAILURES',4)
+  self.assertEqual(['ClassCastException'],value['exception_types'])
+  self.assertFalse(value['ok_marker']);self.assertNotIn('PRIVATE_SENTINEL',json.dumps(value))
  def test_device_report_transfer_is_byte_exact_and_rejects_corruption(self):
   raw=json.dumps(proof()).encode();encoded=base64.encodebytes(raw)
   digest=(hashlib.sha256(raw).hexdigest()+'  files/h05-result.json\n').encode()

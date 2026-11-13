@@ -27,7 +27,7 @@ class H05RecoveryProbeTest {
     @Test fun cleanInstallationRecoversReadOnly():Unit=runBlocking {
         val args=InstrumentationRegistry.getArguments()
         org.junit.Assume.assumeTrue("H05 requires its separate disposable runner opt-in",args.getString("h05Mode") in setOf("LOCAL","HOSTED"))
-        val app=InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as H05RecoveryApplication
+        val app=InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as AcademicTestApplication
         val report=File(app.filesDir,"h05-result.json");val input=File(app.filesDir,"h05-private.json")
         var stage=H05Stage.INPUT;val start=SystemClock.elapsedRealtime()
         val timings=linkedMapOf<String,Long>();val output=linkedMapOf<String,JsonElement>()

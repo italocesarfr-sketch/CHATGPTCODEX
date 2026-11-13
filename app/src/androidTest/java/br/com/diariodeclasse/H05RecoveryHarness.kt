@@ -4,7 +4,7 @@ import br.com.diariodeclasse.auth.*
 import br.com.diariodeclasse.sync.academic.*
 import kotlinx.serialization.json.JsonObject
 
-class H05RecoveryApplication:DiaryApplication() {
+class H05RecoverySupport(private val app:AcademicTestApplication) {
     var h05Mode="";private set
     fun configure(mode:String,authorized:Boolean) {
         require(BuildConfig.DEBUG)
@@ -17,20 +17,16 @@ class H05RecoveryApplication:DiaryApplication() {
         }
         h05Mode=mode
     }
-    // Controlled test lifecycle: do not start Activity/scheduled jobs before consent.
-    // Real AuthController/Keystore/workspace/Room/engine remain in use below.
-    override fun onCreate() { require(h05Mode in setOf("LOCAL","HOSTED")) }
-    override val auth by lazy {
+    val auth by lazy {
         val client:AuthClient=if(h05Mode=="HOSTED")SupabaseAuthClient()else object:AuthClient by PhaseBNetworkHarness.Client() {
             override suspend fun login(email:String,password:String):AuthSession {
                 AcademicTestClient().login(email,password) // Existing synthetic credential validator, local only.
                 return fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token())
             }
         }
-        AuthController(client,KeystoreAuthVault(this))
+        AuthController(client,KeystoreAuthVault(app))
     }
     val readonly by lazy { H05ReadOnlyRemote(if(h05Mode=="HOSTED")SupabaseAcademicSync()else PhaseBNetworkHarness.raw()) }
-    override fun academicRemote():AcademicRemote=readonly
 }
 
 class H05BlockedWrite:Exception("H05_OUTBOUND_WRITE_BLOCKED")

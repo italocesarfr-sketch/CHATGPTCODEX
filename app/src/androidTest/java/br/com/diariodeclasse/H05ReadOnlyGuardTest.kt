@@ -43,7 +43,7 @@ class H05ReadOnlyGuardTest {
         }
     }
     @Test fun hostedApplicationCannotBeConfiguredWithoutIndependentAuthorization() {
-        try{H05RecoveryApplication().configure("HOSTED",false);fail("Missing authorization accepted")}
+        try{AcademicTestApplication().configureH05("HOSTED",false);fail("Missing authorization accepted")}
         catch(_:IllegalArgumentException){}
     }
 }

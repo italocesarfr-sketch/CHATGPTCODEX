@@ -112,7 +112,7 @@ senhas/UUIDs/JSON/tokens pelo chat. O consentimento de H01–H04 não é reutili
 ## Validação e continuidade
 
 - Compilação de instrumentação debug aprovada neste executor.
-- 12 testes offline de segurança H05 aprovados; 16 do runner H01–H04 preservados.
+- 15 testes offline de segurança H05 aprovados; 16 do runner H01–H04 preservados.
 - actionlint dos workflows e py_compile aprovados.
 - Prova nativa LOCAL em AVD independente: **ainda pendente de aprovação**.
   A [primeira execução #195](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43353738219)
@@ -122,6 +122,15 @@ senhas/UUIDs/JSON/tokens pelo chat. O consentimento de H01–H04 não é reutili
   tipo foi isolada, ganhou regressão nativa e a marca de autenticação passou a
   ser registrada após conferir a identidade. A reabertura agora repete a engine
   de leitura e valida revisões/receipts/estado completo. Nova prova LOCAL necessária.
+  As #196/#197 continuaram sem relatório válido; #197 identificou falha de decode.
+  Na #198, a leitura com shell V2/checksum retornou erro do ADB. A seleção da
+  Application dependia de argumentos ainda indisponíveis em `newApplication`.
+  H05 passou a configurar a Application de instrumentação existente em
+  `callApplicationOnCreate`, usando o mesmo ponto das fases B–E. O executor agora
+  distingue ausência de relatório de falha de esquema, preservando somente
+  marcadores/nomes de exceção permitidos, nunca mensagens ou stacks privados.
+  A transferência do relatório usa base64 e confere o SHA-256 do arquivo no AVD.
+  Essas execuções permanecem falhas, sem aprovar recuperação ou acesso hospedado.
   Fixture reutilizada da Fase D: 171 registros, 15 tipos,
   36 alunos de origem, um segundo lote de renomeação com históricos preservados.
 - HOSTED: **não executado**, bloqueado por autorização posterior.

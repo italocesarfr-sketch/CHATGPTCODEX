@@ -47,15 +47,11 @@ class AuthTestRunner:AndroidJUnitRunner() {
         // Reflection retains compatibility with the final baseline v1 Application.
         phaseB?.let{phase->
             app.javaClass.getMethod("configurePhaseB",String::class.java,Boolean::class.javaPrimitiveType).invoke(app,phase,secondary)}
+        h05Mode?.let{mode->(app as AcademicTestApplication).configureH05(mode,h05Authorized)}
         super.callApplicationOnCreate(app)
         phaseB?.let{app.javaClass.getMethod("verifyPhaseBStartup").invoke(app)}
     }
     override fun newApplication(cl:ClassLoader,name:String,context:Context):Application {
-        h05Mode?.let { mode ->
-            return super.newApplication(cl,"br.com.diariodeclasse.H05RecoveryApplication",context).also {
-                (it as H05RecoveryApplication).configure(mode,h05Authorized)
-            }
-        }
         // AGP emits one instrumentation component. Legacy seed APKs have a final
         // DiaryApplication without auth; never load its new test subclass there.
         val hasAuth=cl.loadClass(name).methods.any{it.name=="getAuth"}
@@ -83,10 +79,23 @@ class AcademicTestClient:AuthClient {
     override suspend fun password(session:AuthSession,password:String){}
 }
 class AcademicTestApplication:DiaryApplication() {
+    private var started=false
+    private var h05Support:H05RecoverySupport?=null
+    fun configureH05(mode:String,authorized:Boolean) {
+        check(!started&&h05Support==null){"H05_STARTUP_ONLY"}
+        h05Support=H05RecoverySupport(this).also{it.configure(mode,authorized)}
+    }
+    val h05Mode get()=requireNotNull(h05Support).h05Mode
+    val readonly get()=requireNotNull(h05Support).readonly
+    override fun onCreate() {
+        started=true
+        // Controlled H05 lifecycle only: no normal job or Activity startup before consent.
+        if(h05Support==null)super.onCreate()
+    }
     private val fixtureVault=AcademicTestVault()
     private val ordinaryAuth by lazy{AuthController(AcademicTestClient(),fixtureVault)}
     private var networkAuth:AuthController?=null
-    override val auth get()=networkAuth ?: ordinaryAuth
+    override val auth get()=h05Support?.auth ?: networkAuth ?: ordinaryAuth
     fun configurePhaseB(phase:String,secondary:Boolean){
         PhaseBNetworkHarness.phase=phase;PhaseBNetworkHarness.secondary=secondary
         networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(session=fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token()),legacyOwner=null)}).also{runBlocking{it.restore()}}
@@ -97,10 +106,10 @@ class AcademicTestApplication:DiaryApplication() {
         // The same controller must still own this manager when the Activity opens.
         workspaces
     }
-    override fun academicRemote()=if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
+    override fun academicRemote()=h05Support?.readonly ?: if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.
     // Production DiaryApplication has no such override or test credentials.
     private val fixtureWorkspace by lazy{AccountWorkspace(this,fixtureUser,true)}
-    override val workspace get()=if(PhaseBNetworkHarness.phase!=null)workspaces.current()else fixtureWorkspace
+    override val workspace get()=if(h05Support!=null||PhaseBNetworkHarness.phase!=null)workspaces.current()else fixtureWorkspace
     fun restoreFixtureUser()=runBlocking {auth.logout();auth.login(fixtureUser.email,"Fixture-Password-2026")}
 }
