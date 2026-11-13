@@ -408,3 +408,11 @@ Arquivos (nenhum pertence ao código funcional de produção ou às migrações)
 - `docs/ANDROID_HOMOLOGACAO_0220.md`: estado atual e autorização do runner.
 - `docs/evidence/HOMOLOGACAO_RELATOS_20261109.json`: dez relatos, não resultados automatizados.
 - `docs/evidence/HOMOLOGACAO_LOCAL_20261109.json`: contagens, hashes e medições sem payloads/credenciais.
+
+
+### Preparação específica H12 — 13/11/2026
+
+[Executor, limites e autorização independente](H12_RESTAURACAO_RECONCILIACAO_0220.md).
+Reutiliza a prova E com volume pequeno e AVD novo. H12 hospedado continua pendente;
+a decisão de manter nuvem grava auditoria e exige autorização distinta do H05.
+Os seis tipos ausentes no H05 #201 não ganham cobertura hospedada por testes locais.

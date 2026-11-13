@@ -18,10 +18,6 @@ import java.io.File
 private enum class H05Stage { INPUT, CLEAN_INSTALL, AUTH, ELIGIBILITY, BASELINE, CONSENT, RECOVERY, VERIFY, REOPEN, NO_REMOTE_CHANGE, CLEANUP, DONE }
 private class H05Stop(val code:String):Exception()
 private fun need(value:Boolean,code:String="STATE") {if(!value)throw H05Stop(code)}
-private data class H05Inventory(val versions:Map<AcademicKey,AcademicVersion>,val pages:List<AcademicPage>,val head:Long) {
-    fun rows()=versions.values.filter{it.payload!=null}.map { val c=PhaseBGuard.normalized(it.change());AcademicRow(c.kind,c.key,c.payload!!) }
-}
-
 /** One clean account workspace, real Room and existing engine. No UI dump, raw database or APK artifact. */
 class H05RecoveryProbeTest {
     @Test fun cleanInstallationRecoversReadOnly():Unit=runBlocking {
@@ -47,32 +43,7 @@ class H05RecoveryProbeTest {
         }
         fun hash(rows:List<AcademicRow>)=h05RowsHash(rows)
         fun eligible(s:AcademicProtocolStatus) {need(s.protocol==2&&s.academicScope==5&&s.testAllowed,"SCOPE_NOT_READY");need(s.academicSequence in 1..256,"LIMIT")}
-        suspend fun inventory(token:String):H05Inventory {
-            val status=app.readonly.status(token);eligible(status)
-            var cursor=0L;var calls=0;var bytes=0L;var received=0
-            val versions=linkedMapOf<AcademicKey,AcademicVersion>();val pages=mutableListOf<AcademicPage>()
-            while(cursor<status.academicSequence) {
-                var offset=0;var operation="";var total=0;val records=mutableListOf<AcademicVersion>()
-                do {
-                    need(++calls<=128,"LIMIT")
-                    val list=app.readonly.pullE(token,cursor,offset);need(list.size==1,"REMOTE_CHANGED")
-                    val f=list.single();f.validate();need(f.sequence==cursor+1&&f.offset==offset,"INVALID_DATA")
-                    if(offset==0){operation=f.operation;total=f.total;need(total<=1000,"LIMIT")}
-                    need(f.operation==operation&&f.total==total,"INVALID_DATA")
-                    received+=f.records.size;need(received<=4096,"LIMIT")
-                    bytes+=AcademicRecords.json.encodeToString(f).toByteArray().size;need(bytes<=8*1024*1024,"LIMIT")
-                    records+=f.records;offset+=f.records.size
-                }while(offset<total)
-                need(offset==total,"INVALID_DATA")
-                val page=AcademicPage(operation,cursor+1,records);page.validate(AcademicPaging.MAX_RECORDS)
-                for(v in records){need(v.revision==(versions[v.identity]?.revision ?: 0L)+1,"INVALID_DATA");versions[v.identity]=v}
-                pages+=page;cursor++
-            }
-            need(app.readonly.pullE(token,cursor,0).isEmpty(),"REMOTE_CHANGED")
-            val after=app.readonly.status(token);eligible(after);need(after==status,"REMOTE_CHANGED")
-            need(versions.values.count{it.payload!=null}<=1000,"LIMIT")
-            return H05Inventory(versions,pages,cursor).also { AcademicRecords.snapshot(it.rows()) }
-        }
+        suspend fun inventory(token:String)=recoveryInventory(app.readonly,token)
         suspend fun verify(w:AccountWorkspace,expected:H05Inventory):List<AcademicRow> {
             val db=w.database;val store=AcademicStore(db,w.user.id)
             val snapshot=ClassLifecycle.snapshot(w.repository.readSnapshot()).canonical();BackupCodec.validate(snapshot)

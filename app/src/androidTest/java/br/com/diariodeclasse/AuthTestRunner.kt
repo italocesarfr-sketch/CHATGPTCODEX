@@ -10,11 +10,16 @@ import kotlinx.coroutines.runBlocking
 class AuthTestRunner:AndroidJUnitRunner() {
     private var h05Mode:String?=null
     private var h05Authorized=false
+    private var h12Mode:String?=null
+    private var h12Authorized=false
     private var phaseB:String?=null
     private var secondary=false
     private var expectedFont:Float?=null
     override fun onCreate(arguments:android.os.Bundle) {
         h05Mode=arguments.getString("h05Mode")
+        h12Mode=arguments.getString("h12Mode")
+        h12Authorized=arguments.getString("h12Authorized")=="YES"
+        h12Mode?.let{require(it in setOf("LOCAL","HOSTED")&&h05Mode==null&&arguments.getString("phaseBNetworkPhase")==null){"H12_INVALID_MODE"}}
         h05Authorized=arguments.getString("h05Authorized")=="YES"
         h05Mode?.let{require(it in setOf("LOCAL","HOSTED")&&arguments.getString("phaseBNetworkPhase")==null){"H05_INVALID_MODE"}}
         arguments.getString("phaseBNetworkPhase")?.let { phase ->
@@ -48,6 +53,10 @@ class AuthTestRunner:AndroidJUnitRunner() {
         phaseB?.let{phase->
             app.javaClass.getMethod("configurePhaseB",String::class.java,Boolean::class.javaPrimitiveType).invoke(app,phase,secondary)}
         h05Mode?.let{mode->(app as AcademicTestApplication).configureH05(mode,h05Authorized)}
+        h12Mode?.let{mode->
+            // Reuse the controlled, read-only startup; H05 authorization cannot admit H12.
+            (app as AcademicTestApplication).configureH05(mode,h12Authorized)
+        }
         super.callApplicationOnCreate(app)
         phaseB?.let{app.javaClass.getMethod("verifyPhaseBStartup").invoke(app)}
     }
