@@ -49,6 +49,7 @@ def commit(operation, budget='8s'):
            "'"+json.dumps(claims)+"'; SET statement_timeout='"+budget+"';\n"+
            "SELECT current_setting('statement_timeout');\n"+
            "EXPLAIN (ANALYZE, FORMAT JSON, TIMING OFF) SELECT public.noctua_commit_academic_e('"+operation+"');\n")
+    f.execute('SELECT pg_stat_reset();')
     journal.event(**context, stage='commit-start', budget=budget)
     start = time.monotonic()
     run = subprocess.run([PSQL, '-XAtq', '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=verbose'],

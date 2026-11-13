@@ -9,10 +9,14 @@ assert os.environ.get('PGDATABASE')=='noctua_phase_e_test' and os.environ.get('P
 def load(n,file):
  s=importlib.util.spec_from_file_location(n,ROOT/'scripts'/file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 b=load('delta_b','test-phase-b-postgres.py');b.reset();f=load('delta_e','test-phase-e-postgres.py');bench=load('delta_bench','benchmark-h13.py')
+journal=bench.telemetry.Journal(ROOT/'build/h13/progress-delta.json','H13-delta')
 try:
+ journal.event(stage='seed-start',records=5171,parts=41,budget='8s')
  b.activate();f.d.c.enable();f.d.enable();f.enable();rows=f.large();op,parts,_=f.begin(rows)
  for n,p in enumerate(parts):f.stage(op,n,p)
- reply,_=bench.sql_commit(f,op);assert reply and reply['accepted']
+ reply,seed_measurement=bench.sql_commit(f,op)
+ journal.event(stage='seed-result',records=5171,parts=len(parts),measurement=seed_measurement,profile=bench.function_profile(f),profile_partial=reply is None)
+ assert reply and reply['accepted']
  source=next(r for r in rows if r['kind']=='grades');payload=source['payload'];revision=1;sequence=1;samples=[]
  for trial in range(5):
   for variant in (('before','after')if trial%2==0 else('after','before')):
@@ -20,7 +24,9 @@ try:
    payload=dict(payload,value=1 if payload['value']==0 else 0)
    operation,parts,_=f.begin([dict(source,base=revision,payload=payload)])
    for n,p in enumerate(parts):f.stage(operation,n,p)
+   journal.event(stage='commit-start',records=5171,changes=1,parts=len(parts),trial=trial+1,variant=variant)
    f.execute('SELECT pg_stat_reset();');reply,measurement=bench.sql_commit(f,operation)
+   journal.event(stage='commit-result',records=5171,changes=1,parts=len(parts),trial=trial+1,variant=variant,measurement=measurement,profile=bench.function_profile(f),profile_partial=reply is None)
    assert reply and reply['accepted'] and reply['sequence']==sequence+1
    profile=bench.function_profile(f);replay,replay_time=bench.sql_commit(f,operation);assert replay==reply
    revision+=1;sequence+=1
@@ -34,6 +40,7 @@ try:
  expected=[dict(kind=r['kind'],key=r['key'],revision=revision if r['kind']==source['kind']and r['key']==source['key']else 1,payload=payload if r['kind']==source['kind']and r['key']==source['key']else r['payload'])for r in rows]
  assert bench.canonical(actual)==bench.canonical(expected)
  stats={v:bench.summary([s['commit']['server_execution_ms']for s in samples if s['variant']==v])for v in ('before','after')}
+ journal.event(stage='verified',records=5171,integrity_equal=True,replay_equal=True,hash=bench.digest(actual))
  print(json.dumps(dict(case='H13-delta',hosted_executed=False,statement_timeout='8s',initial_records=5171,changes_per_operation=1,initial_migration='h13',
   statistics=stats,samples=samples,all_other_records_unchanged=True,final_sha256=bench.digest(actual),final_sequence=sequence,receipt_count=sequence),indent=2))
 finally:f.execute(bench.H13.read_text());b.reset()

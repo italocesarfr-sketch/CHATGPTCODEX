@@ -1,0 +1,78 @@
+name: NOcTuA — H13.2 validação integral estrutural
+on:
+  push:
+    branches: [sync/academic-complete-0220]
+    paths: ['scripts/h132/**', 'scripts/benchmark_telemetry.py', 'supabase/migrations/202611130002_h132_structural_history.sql', '.github/workflows/h132-performance.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused:
+    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_e_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_e_test
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - name: JVM e fixture de remanejamento existente
+        run: |
+          mkdir -p build/h132
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon testDebugUnitTest > build/h132/jvm-build.txt 2>&1
+      - name: Checkpoints duráveis e oráculo integral diferencial
+        run: |
+          python3 -m unittest discover -s scripts/h132 -p test_telemetry.py
+          python3 scripts/h132/focused.py > build/h132/focused-run.txt 2>&1
+          python3 scripts/h132/regressions.py > build/h132/regressions-run.txt 2>&1
+      - name: Três repetições pareadas SQL e históricos extensos, sempre 8s
+        run: python3 scripts/h132/benchmark.py --mode sql --repetitions 3 > build/h132/sql.json
+      - name: PostgREST real descartável, três repetições HTTP e segurança
+        env:
+          PGDATABASE: noctua_phase_b_test
+        run: |
+          createdb noctua_phase_b_test
+          ./scripts/ci/start-phase-b-postgrest.sh > build/h132/backend.txt 2>&1
+          python3 scripts/h132/benchmark.py --mode http --repetitions 3 > build/h132/http.json
+          python3 scripts/phase-b-http-fixture.py > build/h132/http-fixture.txt
+          python3 scripts/h132/network.py > build/h132/network.json
+      - name: Encerrar apenas PostgREST descartável
+        if: always()
+        run: |
+          if [[ -f build/phaseb-postgrest/server.pid ]]; then kill "$(cat build/phaseb-postgrest/server.pid)" || true; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: h132-integral-descartavel
+          path: |
+            build/h132/*.json
+            build/h132/focused-run.txt
+            build/h132/regressions-run.txt
+          if-no-files-found: error
+          retention-days: 30

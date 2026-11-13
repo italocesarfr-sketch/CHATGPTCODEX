@@ -8,7 +8,9 @@ def load(n,file):
  s=importlib.util.spec_from_file_location(n,ROOT/'scripts'/file);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 b=load('lock_base','test-phase-b-postgres.py');b.reset();f=load('lock_e','test-phase-e-postgres.py');bench=load('lock_bench','benchmark-h13.py')
 locker=None
+journal=bench.telemetry.Journal(ROOT/'build/h13/progress-locks.json','H13-locks')
 try:
+ journal.event(stage='initializing',records=41,parts=1,budget='8s')
  for owner in (f.A,f.B):b.activate(owner);f.d.c.enable(owner);f.d.enable(owner);f.enable(owner)
  rows=bench.cases(f)[0];op,parts,_=f.begin(rows)
  for n,part in enumerate(parts):f.stage(op,n,part)
@@ -31,10 +33,15 @@ try:
    if event:observed=True
    time.sleep(.02)
   reply,blocked=worker.result()
+ journal.event(stage='blocked-result',records=41,measurement=blocked,profile=bench.function_profile(f),profile_partial=True)
  assert observed and reply is None and blocked['outcome']=='57014-atomic-rollback'
  bench.ensure_cancelled(f,len(parts))
+ journal.event(stage='rollback-verified',records=41,rollback_verified=True)
  locker.stdin.write('ROLLBACK;\n\\q\n');locker.stdin.flush();locker.communicate(timeout=5);locker=None
- reply,retry=bench.sql_commit(f,op);assert reply and reply['accepted'];replay,replay_time=bench.sql_commit(f,op);assert replay==reply
+ journal.event(stage='retry-start',records=41,parts=1)
+ reply,retry=bench.sql_commit(f,op)
+ journal.event(stage='retry-result',records=41,measurement=retry,profile=bench.function_profile(f),profile_partial=reply is None)
+ assert reply and reply['accepted'];replay,replay_time=bench.sql_commit(f,op);assert replay==reply
  evidence=bench.assertions(f,rows,op,reply,lambda after,offset:f.fragment(after,offset))
  assert int(f.execute('SELECT count(*) FROM public.noctua_academic_records;',f.B))==41
  assert f.execute("SELECT count(*) FROM public.noctua_academic_records WHERE owner_id='"+f.A+"';",f.B)=='0'

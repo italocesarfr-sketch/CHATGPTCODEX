@@ -333,6 +333,7 @@ jobs:
             build/phasee-db-benchmark.json
             build/homologacao-volumes.json
             build/homologacao-timeouts.json
+            build/timeout-progress.json
             build/phasee-postgres.txt
             build/phasee-large-payload.txt
             build/phasee-focused.txt

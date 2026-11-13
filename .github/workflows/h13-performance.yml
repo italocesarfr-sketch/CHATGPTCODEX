@@ -88,5 +88,6 @@ jobs:
             build/h13/locks.json
             build/h13/android.json
             build/h13/regression.txt
+            build/h13/progress-*.json
           if-no-files-found: error
           retention-days: 30
