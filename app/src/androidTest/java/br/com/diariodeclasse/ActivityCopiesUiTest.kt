@@ -28,6 +28,9 @@ class ActivityCopiesUiTest {
         app.repository.saveActivity(a);app.repository.saveGrade(a.id,students[0].id,0.0)
         app.selectionStore.write(AppSelection(2026,c.id));compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()};waitTag("nav-2");compose.onNodeWithTag("nav-2").performClick();waitTag("activities-list")
         compose.onNodeWithText("3º bim.").performClick()
+        compose.waitUntil(10000){compose.onAllNodes(hasText("3º bim.") and isSelected()).fetchSemanticsNodes().isNotEmpty()}
+        // Large system fonts place the card below the fold; request its lazy composition.
+        compose.onNodeWithTag("activities-list").performScrollToNode(hasTestTag("activity-grades-${a.id}"))
         compose.waitUntil(10000){compose.onAllNodesWithTag("activity-grades-${a.id}").fetchSemanticsNodes().isNotEmpty()}
     }
     @After fun cleanup():Unit=runBlocking{
