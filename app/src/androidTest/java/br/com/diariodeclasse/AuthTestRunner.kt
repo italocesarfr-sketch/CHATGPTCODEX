@@ -8,6 +8,9 @@ import kotlinx.coroutines.runBlocking
 
 /** This class exists only in the separate instrumentation APK, never in the app APK. */
 class AuthTestRunner:AndroidJUnitRunner() {
+    private var p1Mode:String?=null
+    private var p1Authorized=false
+    private var p1Second=false
     private var h05Mode:String?=null
     private var h05Authorized=false
     private var h12Mode:String?=null
@@ -16,6 +19,8 @@ class AuthTestRunner:AndroidJUnitRunner() {
     private var secondary=false
     private var expectedFont:Float?=null
     override fun onCreate(arguments:android.os.Bundle) {
+        p1Mode=arguments.getString("p1Mode");p1Authorized=arguments.getString("p1Authorized")=="YES";p1Second=arguments.getString("p1Device")=="SECOND"
+        p1Mode?.let{require(it in setOf("LOCAL","HOSTED")&&listOf("h05Mode","h12Mode","phaseBNetworkPhase").all{key->arguments.getString(key)==null}){"P1_INVALID_MODE"}}
         h05Mode=arguments.getString("h05Mode")
         h12Mode=arguments.getString("h12Mode")
         h12Authorized=arguments.getString("h12Authorized")=="YES"
@@ -52,6 +57,7 @@ class AuthTestRunner:AndroidJUnitRunner() {
         // Reflection retains compatibility with the final baseline v1 Application.
         phaseB?.let{phase->
             app.javaClass.getMethod("configurePhaseB",String::class.java,Boolean::class.javaPrimitiveType).invoke(app,phase,secondary)}
+        p1Mode?.let{mode->(app as AcademicTestApplication).configureP1(mode,p1Authorized,p1Second)}
         h05Mode?.let{mode->(app as AcademicTestApplication).configureH05(mode,h05Authorized)}
         h12Mode?.let{mode->
             // Reuse the controlled, read-only startup; H05 authorization cannot admit H12.
@@ -90,6 +96,12 @@ class AcademicTestClient:AuthClient {
 class AcademicTestApplication:DiaryApplication() {
     private var started=false
     private var h05Support:H05RecoverySupport?=null
+    private var p1Support:P1RecoverySupport?=null
+    fun configureP1(mode:String,authorized:Boolean,second:Boolean) {
+        check(!started&&h05Support==null&&p1Support==null)
+        p1Support=P1RecoverySupport(this,mode,authorized,second)
+    }
+    val p1 get()=requireNotNull(p1Support)
     fun configureH05(mode:String,authorized:Boolean) {
         check(!started&&h05Support==null){"H05_STARTUP_ONLY"}
         h05Support=H05RecoverySupport(this).also{it.configure(mode,authorized)}
@@ -104,7 +116,7 @@ class AcademicTestApplication:DiaryApplication() {
     private val fixtureVault=AcademicTestVault()
     private val ordinaryAuth by lazy{AuthController(AcademicTestClient(),fixtureVault)}
     private var networkAuth:AuthController?=null
-    override val auth get()=h05Support?.auth ?: networkAuth ?: ordinaryAuth
+    override val auth get()=p1Support?.auth ?: h05Support?.auth ?: networkAuth ?: ordinaryAuth
     fun configurePhaseB(phase:String,secondary:Boolean){
         PhaseBNetworkHarness.phase=phase;PhaseBNetworkHarness.secondary=secondary
         networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(session=fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token()),legacyOwner=null)}).also{runBlocking{it.restore()}}
@@ -115,11 +127,11 @@ class AcademicTestApplication:DiaryApplication() {
         // The same controller must still own this manager when the Activity opens.
         workspaces
     }
-    override fun automaticAcademicRecovery()=PhaseBNetworkHarness.phase?.startsWith("e-auto-")==true
-    override fun academicRemote()=h05Support?.readonly ?: if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
+    override fun automaticAcademicRecovery()=p1Support!=null || PhaseBNetworkHarness.phase?.startsWith("e-auto-")==true
+    override fun academicRemote()=p1Support?.remote ?: h05Support?.readonly ?: if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.
     // Production DiaryApplication has no such override or test credentials.
     private val fixtureWorkspace by lazy{AccountWorkspace(this,fixtureUser,true)}
-    override val workspace get()=if(h05Support!=null||PhaseBNetworkHarness.phase!=null)workspaces.current()else fixtureWorkspace
+    override val workspace get()=if(p1Support!=null||h05Support!=null||PhaseBNetworkHarness.phase!=null)workspaces.current()else fixtureWorkspace
     fun restoreFixtureUser()=runBlocking {auth.logout();auth.login(fixtureUser.email,"Fixture-Password-2026")}
 }

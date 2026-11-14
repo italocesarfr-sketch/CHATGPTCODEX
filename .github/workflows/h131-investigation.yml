@@ -1,4 +1,4 @@
-name: NOcTuA — H13.1 investigação diferencial local
+name: NOcTuA — laboratório local e preparação P1
 on:
   push:
     branches: [sync/academic-complete-0220]
@@ -6,13 +6,32 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: 'Laboratório local: H131 original ou H132 estrutural (sem hospedado)'
+        description: 'Selecionar prova local, pré-verificação P1 ou P1 hospedada com autorização independente'
         type: choice
-        options: [H131, H132, FUNCTIONAL]
+        options: [H131, H132, FUNCTIONAL, P1_LOCAL, P1_PREFLIGHT, P1_HOSTED]
         default: H131
+      authorize_hosted_p1:
+        description: "Autoriza exclusivamente P1 hospedada: login, SELECT/status/pull e logout das próprias sessões"
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
+  p1-local:
+    if: github.event_name == 'workflow_dispatch' && inputs.suite == 'P1_LOCAL' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/p1-recovery.yml
+    with:
+      mode: LOCAL
+      authorized: false
+  p1-protected:
+    if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'P1_PREFLIGHT' || inputs.suite == 'P1_HOSTED') && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/p1-recovery.yml
+    with:
+      mode: ${{ inputs.suite == 'P1_HOSTED' && 'HOSTED' || 'PREFLIGHT' }}
+      authorized: ${{ inputs.authorize_hosted_p1 }}
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
   functional:
     if: github.event_name == 'workflow_dispatch' && inputs.suite == 'FUNCTIONAL' && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/functional-improvements.yml
@@ -20,7 +39,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.suite == 'H132' && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/h132-performance.yml
   investigation:
-    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132' && inputs.suite != 'FUNCTIONAL'
+    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132' && inputs.suite != 'FUNCTIONAL' && !startsWith(inputs.suite, 'P1_')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
