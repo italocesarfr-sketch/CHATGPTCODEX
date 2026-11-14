@@ -1,0 +1,613 @@
+{
+  "case": "P1",
+  "mode": "LOCAL",
+  "overall": "PASSED_LOCAL_DISPOSABLE",
+  "project_ref": null,
+  "credentials_redacted": true,
+  "source_sha": "6509f36dd0567b7316ad0c20f1e5ebdb150abe97",
+  "hosted_requests": false,
+  "proofs": [
+    {
+      "case": "P1",
+      "mode": "LOCAL",
+      "status": "PASSED",
+      "stage": "DONE",
+      "failure_code": null,
+      "total_ms": 5383,
+      "timings_ms": {
+        "CLEAN": 9,
+        "LOGIN_A": 1780,
+        "RECOVER_A": 223,
+        "VERIFY_A": 795,
+        "LOGIN_B": 946,
+        "RECOVER_B": 25,
+        "VERIFY_B": 316,
+        "RETURN_A": 797,
+        "VERIFY_RETURN": 102
+      },
+      "blocked_writes": 0,
+      "read_calls": 40,
+      "login_calls": 3,
+      "logout_calls": 3,
+      "clean_install_verified": true,
+      "ui_login_a_verified": true,
+      "types_a": [
+        {
+          "kind": "classes",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "4951f76de010c2bfc489c6da94b4f6d4506c6470755d386c14a42066c07da245",
+          "remote_hash": "4951f76de010c2bfc489c6da94b4f6d4506c6470755d386c14a42066c07da245",
+          "present": true
+        },
+        {
+          "kind": "terms",
+          "local_count": 8,
+          "remote_count": 8,
+          "local_hash": "2dbff118921955a5c4c111841498246fb2dfb80b8e5a2bd147ff1148938a98fa",
+          "remote_hash": "2dbff118921955a5c4c111841498246fb2dfb80b8e5a2bd147ff1148938a98fa",
+          "present": true
+        },
+        {
+          "kind": "students",
+          "local_count": 37,
+          "remote_count": 37,
+          "local_hash": "f0842039443e5be8a982f63e394fa1357cff72d17141fed5d5a09f83e8f46524",
+          "remote_hash": "f0842039443e5be8a982f63e394fa1357cff72d17141fed5d5a09f83e8f46524",
+          "present": true
+        },
+        {
+          "kind": "lessons",
+          "local_count": 3,
+          "remote_count": 3,
+          "local_hash": "e5d4cac69ef36e8a5566e16771a64a9e57ba5e7df79066b60168bbb35857926d",
+          "remote_hash": "e5d4cac69ef36e8a5566e16771a64a9e57ba5e7df79066b60168bbb35857926d",
+          "present": true
+        },
+        {
+          "kind": "activities",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "efeb42502e276a75580886eb8900f84edccc61c228ae78fbf1312486ecffa24d",
+          "remote_hash": "efeb42502e276a75580886eb8900f84edccc61c228ae78fbf1312486ecffa24d",
+          "present": true
+        },
+        {
+          "kind": "marks",
+          "local_count": 71,
+          "remote_count": 71,
+          "local_hash": "50128cc2f8fdedf7c5329b38330519f72c4d9e1761b0fd8fdddef9b0cfab3d6b",
+          "remote_hash": "50128cc2f8fdedf7c5329b38330519f72c4d9e1761b0fd8fdddef9b0cfab3d6b",
+          "present": true
+        },
+        {
+          "kind": "grades",
+          "local_count": 36,
+          "remote_count": 36,
+          "local_hash": "863f55867890ea4cb9da80f1678029c83ce2a5add0b7be8a2e25f783bc0684d6",
+          "remote_hash": "863f55867890ea4cb9da80f1678029c83ce2a5add0b7be8a2e25f783bc0684d6",
+          "present": true
+        },
+        {
+          "kind": "recompositions",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "16c8e116bd8ff24a23a9630e1f6553b72c86344d233dafdc696cee65be498066",
+          "remote_hash": "16c8e116bd8ff24a23a9630e1f6553b72c86344d233dafdc696cee65be498066",
+          "present": true
+        },
+        {
+          "kind": "relocations",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "a1ad3d0a9aa138e2b38a658ab8b1e034710a428df8ed515c32ac9757a641cef4",
+          "remote_hash": "a1ad3d0a9aa138e2b38a658ab8b1e034710a428df8ed515c32ac9757a641cef4",
+          "present": true
+        },
+        {
+          "kind": "import_drafts",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "ce7449de618852240c1c065cfe83d91ba52bc74e9f2b0105aa2528b36bcd33e1",
+          "remote_hash": "ce7449de618852240c1c065cfe83d91ba52bc74e9f2b0105aa2528b36bcd33e1",
+          "present": true
+        },
+        {
+          "kind": "export_rows",
+          "local_count": 3,
+          "remote_count": 3,
+          "local_hash": "a4dc0c2646e162517ab77329627c4de26a31dde32f72830d9f15c05e0e5ebb1a",
+          "remote_hash": "a4dc0c2646e162517ab77329627c4de26a31dde32f72830d9f15c05e0e5ebb1a",
+          "present": true
+        },
+        {
+          "kind": "class_archives",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "7a571facae33806b8731612cf641f720d510898b0835f455bea1739f7a298a5c",
+          "remote_hash": "7a571facae33806b8731612cf641f720d510898b0835f455bea1739f7a298a5c",
+          "present": true
+        },
+        {
+          "kind": "lesson_records",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "f253e108c66f44519b6456c190943e555d8c08df623e6dad6184a452fe941e26",
+          "remote_hash": "f253e108c66f44519b6456c190943e555d8c08df623e6dad6184a452fe941e26",
+          "present": true
+        },
+        {
+          "kind": "preserved_histories",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "e1213c6f26bca8ed224d56d0ad5fd4a3605fac22d50523219d72cb519bf458f7",
+          "remote_hash": "e1213c6f26bca8ed224d56d0ad5fd4a3605fac22d50523219d72cb519bf458f7",
+          "present": true
+        },
+        {
+          "kind": "weekly_timetables",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "d05345b120b787cad51ec3a9204ca83a64e65258f01b303b8d1cb36b2cf4f8c0",
+          "remote_hash": "d05345b120b787cad51ec3a9204ca83a64e65258f01b303b8d1cb36b2cf4f8c0",
+          "present": true
+        }
+      ],
+      "a_hash": "62f371fdfecbb1e8b0016dc528a7410c6a1bc3d9e071442bf7010878ae2cabdd",
+      "a_head": 2,
+      "a_records": 171,
+      "automatic_startup_verified": true,
+      "ui_login_b_verified": true,
+      "types_b": [
+        {
+          "kind": "classes",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "2bc8f0f167c69564bf42226539d9816d9e5ec7fb32d48a758ad4df5f5e9b3133",
+          "remote_hash": "2bc8f0f167c69564bf42226539d9816d9e5ec7fb32d48a758ad4df5f5e9b3133",
+          "present": true
+        },
+        {
+          "kind": "terms",
+          "local_count": 4,
+          "remote_count": 4,
+          "local_hash": "e7b925cb22ec8fe32cde378291ddd947ce4754492bb89ab223b0daaca9ccdc06",
+          "remote_hash": "e7b925cb22ec8fe32cde378291ddd947ce4754492bb89ab223b0daaca9ccdc06",
+          "present": true
+        },
+        {
+          "kind": "students",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "878b49e0518229ed6091f5381df8c1d0739cb31aaf538ec69c4c72aad71d9cc4",
+          "remote_hash": "878b49e0518229ed6091f5381df8c1d0739cb31aaf538ec69c4c72aad71d9cc4",
+          "present": true
+        },
+        {
+          "kind": "lessons",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "activities",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "marks",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "grades",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "recompositions",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "relocations",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "import_drafts",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "export_rows",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "class_archives",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "lesson_records",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "preserved_histories",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "weekly_timetables",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        }
+      ],
+      "b_hash": "cd84f192e4bff10ee728ae2393fa75caa8d2dbfa6c7e8e88cbff6471cc551470",
+      "b_head": 1,
+      "b_records": 6,
+      "ids_payloads_equal": true,
+      "revisions_equal": true,
+      "receipts_equal": true,
+      "references_valid": true,
+      "queues_empty": true,
+      "remote_unchanged": true,
+      "audits_unchanged": true,
+      "a_b_a_isolated": true,
+      "sessions_cleanup_verified": true,
+      "private_input_removed": true
+    },
+    {
+      "case": "P1",
+      "mode": "LOCAL",
+      "status": "PASSED",
+      "stage": "DONE",
+      "failure_code": null,
+      "total_ms": 5094,
+      "timings_ms": {
+        "CLEAN": 3,
+        "LOGIN_A": 1419,
+        "RECOVER_A": 254,
+        "VERIFY_A": 747,
+        "LOGIN_B": 1056,
+        "RECOVER_B": 26,
+        "VERIFY_B": 312,
+        "RETURN_A": 770,
+        "VERIFY_RETURN": 117
+      },
+      "blocked_writes": 0,
+      "read_calls": 40,
+      "login_calls": 3,
+      "logout_calls": 3,
+      "clean_install_verified": true,
+      "ui_login_a_verified": true,
+      "types_a": [
+        {
+          "kind": "classes",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "4951f76de010c2bfc489c6da94b4f6d4506c6470755d386c14a42066c07da245",
+          "remote_hash": "4951f76de010c2bfc489c6da94b4f6d4506c6470755d386c14a42066c07da245",
+          "present": true
+        },
+        {
+          "kind": "terms",
+          "local_count": 8,
+          "remote_count": 8,
+          "local_hash": "2dbff118921955a5c4c111841498246fb2dfb80b8e5a2bd147ff1148938a98fa",
+          "remote_hash": "2dbff118921955a5c4c111841498246fb2dfb80b8e5a2bd147ff1148938a98fa",
+          "present": true
+        },
+        {
+          "kind": "students",
+          "local_count": 37,
+          "remote_count": 37,
+          "local_hash": "f0842039443e5be8a982f63e394fa1357cff72d17141fed5d5a09f83e8f46524",
+          "remote_hash": "f0842039443e5be8a982f63e394fa1357cff72d17141fed5d5a09f83e8f46524",
+          "present": true
+        },
+        {
+          "kind": "lessons",
+          "local_count": 3,
+          "remote_count": 3,
+          "local_hash": "e5d4cac69ef36e8a5566e16771a64a9e57ba5e7df79066b60168bbb35857926d",
+          "remote_hash": "e5d4cac69ef36e8a5566e16771a64a9e57ba5e7df79066b60168bbb35857926d",
+          "present": true
+        },
+        {
+          "kind": "activities",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "efeb42502e276a75580886eb8900f84edccc61c228ae78fbf1312486ecffa24d",
+          "remote_hash": "efeb42502e276a75580886eb8900f84edccc61c228ae78fbf1312486ecffa24d",
+          "present": true
+        },
+        {
+          "kind": "marks",
+          "local_count": 71,
+          "remote_count": 71,
+          "local_hash": "50128cc2f8fdedf7c5329b38330519f72c4d9e1761b0fd8fdddef9b0cfab3d6b",
+          "remote_hash": "50128cc2f8fdedf7c5329b38330519f72c4d9e1761b0fd8fdddef9b0cfab3d6b",
+          "present": true
+        },
+        {
+          "kind": "grades",
+          "local_count": 36,
+          "remote_count": 36,
+          "local_hash": "863f55867890ea4cb9da80f1678029c83ce2a5add0b7be8a2e25f783bc0684d6",
+          "remote_hash": "863f55867890ea4cb9da80f1678029c83ce2a5add0b7be8a2e25f783bc0684d6",
+          "present": true
+        },
+        {
+          "kind": "recompositions",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "16c8e116bd8ff24a23a9630e1f6553b72c86344d233dafdc696cee65be498066",
+          "remote_hash": "16c8e116bd8ff24a23a9630e1f6553b72c86344d233dafdc696cee65be498066",
+          "present": true
+        },
+        {
+          "kind": "relocations",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "a1ad3d0a9aa138e2b38a658ab8b1e034710a428df8ed515c32ac9757a641cef4",
+          "remote_hash": "a1ad3d0a9aa138e2b38a658ab8b1e034710a428df8ed515c32ac9757a641cef4",
+          "present": true
+        },
+        {
+          "kind": "import_drafts",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "ce7449de618852240c1c065cfe83d91ba52bc74e9f2b0105aa2528b36bcd33e1",
+          "remote_hash": "ce7449de618852240c1c065cfe83d91ba52bc74e9f2b0105aa2528b36bcd33e1",
+          "present": true
+        },
+        {
+          "kind": "export_rows",
+          "local_count": 3,
+          "remote_count": 3,
+          "local_hash": "a4dc0c2646e162517ab77329627c4de26a31dde32f72830d9f15c05e0e5ebb1a",
+          "remote_hash": "a4dc0c2646e162517ab77329627c4de26a31dde32f72830d9f15c05e0e5ebb1a",
+          "present": true
+        },
+        {
+          "kind": "class_archives",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "7a571facae33806b8731612cf641f720d510898b0835f455bea1739f7a298a5c",
+          "remote_hash": "7a571facae33806b8731612cf641f720d510898b0835f455bea1739f7a298a5c",
+          "present": true
+        },
+        {
+          "kind": "lesson_records",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "f253e108c66f44519b6456c190943e555d8c08df623e6dad6184a452fe941e26",
+          "remote_hash": "f253e108c66f44519b6456c190943e555d8c08df623e6dad6184a452fe941e26",
+          "present": true
+        },
+        {
+          "kind": "preserved_histories",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "e1213c6f26bca8ed224d56d0ad5fd4a3605fac22d50523219d72cb519bf458f7",
+          "remote_hash": "e1213c6f26bca8ed224d56d0ad5fd4a3605fac22d50523219d72cb519bf458f7",
+          "present": true
+        },
+        {
+          "kind": "weekly_timetables",
+          "local_count": 2,
+          "remote_count": 2,
+          "local_hash": "d05345b120b787cad51ec3a9204ca83a64e65258f01b303b8d1cb36b2cf4f8c0",
+          "remote_hash": "d05345b120b787cad51ec3a9204ca83a64e65258f01b303b8d1cb36b2cf4f8c0",
+          "present": true
+        }
+      ],
+      "a_hash": "62f371fdfecbb1e8b0016dc528a7410c6a1bc3d9e071442bf7010878ae2cabdd",
+      "a_head": 2,
+      "a_records": 171,
+      "automatic_startup_verified": true,
+      "ui_login_b_verified": true,
+      "types_b": [
+        {
+          "kind": "classes",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "2bc8f0f167c69564bf42226539d9816d9e5ec7fb32d48a758ad4df5f5e9b3133",
+          "remote_hash": "2bc8f0f167c69564bf42226539d9816d9e5ec7fb32d48a758ad4df5f5e9b3133",
+          "present": true
+        },
+        {
+          "kind": "terms",
+          "local_count": 4,
+          "remote_count": 4,
+          "local_hash": "e7b925cb22ec8fe32cde378291ddd947ce4754492bb89ab223b0daaca9ccdc06",
+          "remote_hash": "e7b925cb22ec8fe32cde378291ddd947ce4754492bb89ab223b0daaca9ccdc06",
+          "present": true
+        },
+        {
+          "kind": "students",
+          "local_count": 1,
+          "remote_count": 1,
+          "local_hash": "878b49e0518229ed6091f5381df8c1d0739cb31aaf538ec69c4c72aad71d9cc4",
+          "remote_hash": "878b49e0518229ed6091f5381df8c1d0739cb31aaf538ec69c4c72aad71d9cc4",
+          "present": true
+        },
+        {
+          "kind": "lessons",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "activities",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "marks",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "grades",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "recompositions",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "relocations",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "import_drafts",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "export_rows",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "class_archives",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "lesson_records",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "preserved_histories",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        },
+        {
+          "kind": "weekly_timetables",
+          "local_count": 0,
+          "remote_count": 0,
+          "local_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "remote_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "present": false
+        }
+      ],
+      "b_hash": "cd84f192e4bff10ee728ae2393fa75caa8d2dbfa6c7e8e88cbff6471cc551470",
+      "b_head": 1,
+      "b_records": 6,
+      "ids_payloads_equal": true,
+      "revisions_equal": true,
+      "receipts_equal": true,
+      "references_valid": true,
+      "queues_empty": true,
+      "remote_unchanged": true,
+      "audits_unchanged": true,
+      "a_b_a_isolated": true,
+      "sessions_cleanup_verified": true,
+      "private_input_removed": true
+    }
+  ],
+  "instrumentation": [
+    {
+      "expected_tests": 5,
+      "ok_marker": true,
+      "process_crashed": false,
+      "instrumentation_failed": false,
+      "failures": false,
+      "exception_types": []
+    },
+    {
+      "expected_tests": 5,
+      "ok_marker": true,
+      "process_crashed": false,
+      "instrumentation_failed": false,
+      "failures": false,
+      "exception_types": []
+    }
+  ],
+  "apk_sha256": "d1deee0e2c45eebe67d2732f9492ab0f2a0715eb08051930c51ca5038bf5c3c8",
+  "test_apk_sha256": "b9ca2b64cb94787557c0a7aee56b2a5976e231456673dc1301c213afa93c53f7",
+  "apk_identity": {
+    "application_id": "br.com.diariodeclasse",
+    "version_code": 45,
+    "certificate_sha256": "2339d3fa12e816d8386156fe611ab8ea7a95fddf533ee2f9f3852b2461bd9ec4",
+    "signature_verified": true
+  },
+  "hosted_requests_executed": false,
+  "two_independent_installations": true
+}

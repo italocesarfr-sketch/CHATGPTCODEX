@@ -3,9 +3,17 @@
 Preparação em **14/11/2026, UTC**. Repositório `italocesarfr-sketch/CHATGPTCODEX`,
 branch `sync/academic-complete-0220`.
 
-**Estado: plano revisável preparado; execução hospedada não autorizada nem
-realizada.** Não é homologação antecipada nem executor hospedado já implementado.
-Nesta tarefa só foram alterados este documento e seu relatório de evidências.
+**Atualização após a preparação P1:** APK #208 publicado; executor UI e prova local
+em dois AVDs aprovados no código `6509f36` / CI `43635622151`. O estado atual,
+hashes, limites e parâmetros independentes estão em
+[P1_EXECUTOR_0220.md](P1_EXECUTOR_0220.md). **P1 hospedada continua não autorizada
+nem executada; P2/P3 não executadas.**
+
+**Registro original do plano (`6f3ae05`):** naquele commit o plano era revisável,
+o executor ainda não estava implementado e apenas documentação havia mudado.
+As seções abaixo preservam esse inventário e o escopo original; os bloqueadores
+APK/executor foram tratados na continuação vinculada acima. Isso não representa
+homologação hospedada antecipada.
 
 ## 1. Base preservada e fatos verificados
 
