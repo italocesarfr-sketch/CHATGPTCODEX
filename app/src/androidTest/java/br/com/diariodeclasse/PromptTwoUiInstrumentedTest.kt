@@ -87,7 +87,9 @@ class PromptTwoUiInstrumentedTest {
         assertGrade(b,"7,50")
         compose.onNode(hasText(h.name,substring=true) and hasAnyAncestor(hasTestTag("report-row-${b.id}-name")),useUnmergedTree=true).assertExists()
         shot("02-busca-global")
-        tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
+        hideKeyboard()
+        compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
+        tag("report-search-clear").performScrollTo().assertIsDisplayed().performClick()
         try {
             hideKeyboard()
             compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
@@ -107,7 +109,9 @@ class PromptTwoUiInstrumentedTest {
         runBlocking{app.selectionStore.write(AppSelection(2027,null))};waitText("2027 ▾");report();search("aurea")
         assertGrade(a,"0,00");assertGrade(b,"7,50")
         assertEquals(AppSelection(2027,null),app.selectionStore.read())
-        tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
+        hideKeyboard()
+        compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
+        tag("report-search-clear").performScrollTo().assertIsDisplayed().performClick()
         waitText("Selecione uma turma ou pesquise um aluno em todas as turmas.")
     }
     private fun openDay() {
