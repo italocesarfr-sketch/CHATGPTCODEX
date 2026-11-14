@@ -24,7 +24,7 @@ class ActivityCopiesRoomTest {
     private val store get()=AcademicStore(db,owner)
     @Before fun open():Unit=runBlocking{filename="copies-${newId()}.db";db=DiaryDatabase.open(context,filename);for(school in listOf(c,other)){repo.saveClass(school,"2026-01-01");repo.saveStudent(Student("student-${school.id}","person-${school.id}",school.id,"Fictício",1,"2026-01-01"))}}
     @After fun close(){db.close();context.deleteDatabase(filename)}
-    private suspend fun plan()=ActivityCopies.plan(repo.readSnapshot(),c.id,a,ActivityScope.ALL,emptySet())
+    private suspend fun plan()=ActivityCopies.plan(repo.readSnapshot(),c.id,a,ActivityScope.CUSTOM,setOf(c.id,other.id))
     @Test fun independentActivitiesGradesAndRetrySurviveReopen():Unit=runBlocking{
         val p=plan();val created=repo.createActivities(p);assertEquals(2,created.size)
         for((i,copy)in created.withIndex())repo.saveGrade(copy.id,"student-${copy.classId}",if(i==0)0.0 else null)
@@ -46,11 +46,37 @@ class ActivityCopiesRoomTest {
         try{repo.createActivities(p);fail()}catch(_:IllegalArgumentException){}
         assertTrue(repo.readSnapshot().activities.isEmpty())
     }
-    @Test fun allSelectionChangesRequireFreshReview():Unit=runBlocking{
-        val request=plan();repo.saveClass(c.copy(id="copies-new",name="3º Nova Fictícia"),"2026-01-01")
+    @Test fun changedSelectedClassRequiresFreshReview():Unit=runBlocking{
+        val request=plan();repo.dao.save(other.copy(subject="Geografia"))
         try{repo.createActivities(request);fail()}catch(_:IllegalArgumentException){}
         assertTrue(repo.readSnapshot().activities.isEmpty())
-        assertEquals(3,repo.createActivities(plan()).size)
+    }
+    @Test fun newUnselectedClassDoesNotExpandManualConfirmation():Unit=runBlocking{
+        val request=plan();val third=c.copy(id="copies-third",name="3º C Fictícia");repo.saveClass(third,"2026-01-01")
+        val created=repo.createActivities(request)
+        assertEquals(setOf(c.id,other.id),created.map{it.classId}.toSet());assertTrue(repo.readSnapshot().activities.none{it.classId==third.id})
+    }
+    @Test fun mixedSchoolYearsAndOldOverrideRequestRollbackWithoutChangingLegacyActivity():Unit=runBlocking{
+        val future=c.copy(id="copies-future",name="1º K Fictícia 2027",year=2027);repo.saveClass(future,"2027-01-01")
+        val pupil=Student("future-pupil","future-person",future.id,"Fictício 2027",1,"2027-01-01");repo.saveStudent(pupil)
+        val legacy=a.copy(id="legacy-2027-activity",classId=future.id,date="2027-08-10");repo.saveActivity(legacy);repo.saveGrade(legacy.id,pupil.id,0.0)
+        val third=c.copy(id="copies-third",name="3º C Fictícia");repo.saveClass(third,"2026-01-01")
+        val remote=PhaseBRoomTest.Remote();val engine=AcademicEngine(store,remote,{owner},{true});engine.activate();engine.run();engine.activateC();engine.run()
+        val before=repo.readSnapshot();val states=store.dao.states()
+        val valid=ActivityCopies.plan(before,c.id,a,ActivityScope.CUSTOM,setOf(c.id,other.id,third.id))
+        for(dates in listOf(emptyMap(),mapOf(future.id to "2027-08-10"))) {
+            val forged=valid.copy(selected=valid.selected+future.id,dates=dates)
+            try{repo.createActivities(forged);fail()}catch(_:IllegalArgumentException){}
+            assertEquals(before,repo.readSnapshot());assertEquals(states,store.dao.states());assertNull(store.prepare())
+        }
+        try{repo.createActivities(valid.copy(scope=ActivityScope.ALL));fail()}catch(_:IllegalArgumentException){}
+        assertEquals(before,repo.readSnapshot());assertNull(store.prepare())
+        val created=repo.createActivities(valid);assertEquals(3,created.size)
+        val batch=AcademicRecords.json.decodeFromString<AcademicBatch>(store.prepare()!!.body)
+        assertEquals(3,batch.changes.size);assertTrue(batch.changes.all{it.kind=="activities"})
+        db.close();db=DiaryDatabase.open(context,filename)
+        assertEquals(legacy,repo.dao.activity(legacy.id));assertEquals(0.0,repo.dao.activityGrades(legacy.id).single().value!!,0.0)
+        assertEquals(created.toSet(),repo.readSnapshot().activities.filter{it.id!=legacy.id}.toSet())
     }
     @Test fun incompatibleManualSelectionNeverPartiallySaves():Unit=runBlocking{
         val bad=other.copy(id="wrong",subject="Geografia");repo.saveClass(bad,"2026-01-01")

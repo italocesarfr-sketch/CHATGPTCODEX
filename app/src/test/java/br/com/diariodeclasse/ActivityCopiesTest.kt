@@ -5,28 +5,43 @@ import org.junit.Test
 import org.junit.Assert.*
 
 class ActivityCopiesTest {
-    private val c=SchoolClass("a",name="1º A",subject="História",year=2026)
+    private val c=SchoolClass("a",name="1º K",subject="História",year=2026)
     private val b=c.copy(id="b",name="2º B")
+    private val third=c.copy(id="third",name="3º C")
     private val future=c.copy(id="future",name="2º Futuro",year=2027)
     private val activity=Activity("original",c.id,"Produção",type="Produção textual",date="2026-08-10",term=3,maximum=7.5)
-    private fun data()=DiarySnapshot(classes=listOf(c,b,future,c.copy(id="wrong",subject="Geografia")),terms=listOf(c,b,future).map{Term(it.id,3,"${it.year}-07-01","${it.year}-09-30")})
+    private fun data()=DiarySnapshot(classes=listOf(c,b,third,future,c.copy(id="wrong",subject="Geografia")),terms=listOf(c,b,third,future).map{Term(it.id,3,"${it.year}-07-01","${it.year}-09-30")})
     private fun rejects(block:()->Unit){try{block();fail("Expected validation failure")}catch(_:IllegalArgumentException){}}
-    @Test fun currentIsDefaultAndAllIncludesSameCalendarYearOnly() {
+    @Test fun currentIsDefaultAndRetainsTheOriginalActivity() {
         assertEquals(listOf(activity),ActivityCopies.plan(data(),c.id,activity,ActivityScope.CURRENT,emptySet()).activities)
-        val all=ActivityCopies.plan(data(),c.id,activity,ActivityScope.ALL,emptySet())
-        assertEquals(setOf(c.id,b.id),all.activities.map{it.classId}.toSet());assertEquals(2,all.activities.map{it.id}.toSet().size)
-        assertTrue(all.activities.all{it.maximum==7.5&&it.type=="Produção textual"})
-        assertEquals(all,ActivityCopies.plan(data(),c.id,activity,ActivityScope.ALL,emptySet()))
+        assertEquals(listOf(ActivityScope.CURRENT,ActivityScope.CUSTOM),ActivityCopies.creationScopes)
     }
-    @Test fun manualOtherYearRequiresExplicitDateAndPreservesIndependentId() {
+    @Test fun automaticScopeCannotInferSeriesFromNamesOrStage() {
+        val sameNamedSeries=c.copy(id="same-series",name="1º H")
+        val fixture=data().copy(classes=data().classes+sameNamedSeries,terms=data().terms+Term(sameNamedSeries.id,3,"2026-07-01","2026-09-30"))
+        rejects{ActivityCopies.plan(fixture,c.id,activity,ActivityScope.ALL,emptySet())}
+        rejects{ActivityCopies.plan(fixture,c.id,activity,ActivityScope.ALL,setOf(c.id,sameNamedSeries.id))}
+        rejects{ActivityCopies.plan(fixture.copy(classes=fixture.classes.map{it.copy(name="Turma sem série identificada")}),c.id,activity,ActivityScope.ALL,emptySet())}
+    }
+    @Test fun manualCanCombineFirstSecondAndThirdGradesInTheSameSchoolYear() {
+        val selected=setOf(c.id,b.id,third.id)
+        val plan=ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,selected)
+        assertEquals(selected,plan.activities.map{it.classId}.toSet());assertEquals(3,plan.activities.map{it.id}.toSet().size)
+        assertTrue(plan.activities.all{it.maximum==7.5&&it.type=="Produção textual"&&it.date==activity.date})
+        assertEquals(plan,ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,selected))
+    }
+    @Test fun manualOtherSchoolYearIsRejectedEvenWithItsOwnDate() {
+        rejects{ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,setOf(c.id,future.id))}
+        rejects{ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,setOf(c.id,future.id),mapOf(future.id to "2027-08-20"))}
         rejects{ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,setOf(future.id))}
-        val result=ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,setOf(future.id),mapOf(future.id to "2027-08-20"))
-        assertEquals("2027-08-20",result.activities.single().date);assertNotEquals(activity.id,result.activities.single().id)
-        rejects{ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,setOf(future.id),mapOf(future.id to "2026-08-20"))}
     }
-    @Test fun invalidTargetDoesNotSilentlyShrinkAllSelection() {
+    @Test fun candidatesExcludeOtherSchoolYearsButIncludeDifferentSchoolGrades() {
+        assertEquals(setOf(c.id,b.id,third.id),ActivityCopies.candidates(data(),c).map{it.id}.toSet())
+        assertFalse(ActivityCopies.compatible(c,future));assertTrue(ActivityCopies.compatible(c,third))
+    }
+    @Test fun invalidTargetDoesNotSilentlyShrinkManualSelection() {
         val changed=data().copy(terms=data().terms.map{if(it.classId==b.id)it.copy(start="2026-08-20")else it})
-        rejects{ActivityCopies.plan(changed,c.id,activity,ActivityScope.ALL,emptySet())}
+        rejects{ActivityCopies.plan(changed,c.id,activity,ActivityScope.CUSTOM,setOf(c.id,b.id))}
     }
     @Test fun manualRejectsEmptyIncompatibleArchivedAndMissingClass() {
         for(ids in listOf(emptySet(),setOf("wrong"),setOf("missing"))) rejects{ActivityCopies.plan(data(),c.id,activity,ActivityScope.CUSTOM,ids)}

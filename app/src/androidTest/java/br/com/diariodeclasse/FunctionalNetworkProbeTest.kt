@@ -91,34 +91,45 @@ class FunctionalNetworkProbeTest {
                 assertTrue(removed.all{it.revision==2L})
             }
             "c-functional-activities"->{
-                val target=school.copy(id="functional-other-class",name="2º H Fictícia",year=2027)
-                w.repository.saveClass(target,"2027-01-01")
-                w.repository.saveStudent(alpha.copy(id="functional-other-student",personId="functional-other-person",classId=target.id,joined="2027-01-01"))
+                val target=school.copy(id="functional-other-class",name="2º H Fictícia")
+                val third=school.copy(id="functional-third-class",name="3º I Fictícia")
+                val future=school.copy(id="functional-future-class",name="1º K Fictícia 2027",year=2027)
+                for(c in listOf(target,third,future))w.repository.saveClass(c,"${c.year}-01-01")
+                w.repository.saveStudent(alpha.copy(id="functional-other-student",personId="functional-other-person",classId=target.id,joined="2026-01-01"))
+                w.repository.saveStudent(alpha.copy(id="functional-third-student",personId="functional-third-person",classId=third.id))
                 w.academicCoordinator.request();synced()
                 w.syncMutex.withLock {
                     val template=Activity("functional-activity",school.id,"Produção Fictícia em Lote",type="Produção textual",date=day,term=3,maximum=7.5)
-                    val request=ActivityCopies.plan(w.repository.readSnapshot(),school.id,template,ActivityScope.CUSTOM,setOf(school.id,target.id),mapOf(target.id to "2027-08-10"))
+                    val before=w.repository.readSnapshot();val states=store.dao.states()
+                    for(dates in listOf(emptyMap(),mapOf(future.id to "2027-08-10"))) {
+                        try{ActivityCopies.plan(before,school.id,template,ActivityScope.CUSTOM,setOf(school.id,future.id),dates);fail()}catch(_:IllegalArgumentException){}
+                    }
+                    try{ActivityCopies.plan(before,school.id,template,ActivityScope.ALL,emptySet());fail()}catch(_:IllegalArgumentException){}
+                    assertEquals(before,w.repository.readSnapshot());assertEquals(states,store.dao.states());assertNull(store.prepare())
+                    val request=ActivityCopies.plan(before,school.id,template,ActivityScope.CUSTOM,setOf(school.id,target.id,third.id))
                     val copies=w.repository.createActivities(request)
-                    assertEquals(2,copies.size)
+                    assertEquals(3,copies.size)
                     val op=store.prepare()!!;val changes=AcademicRecords.json.decodeFromString<AcademicBatch>(op.body).changes
-                    assertEquals(2,changes.size);assertTrue(changes.all{it.kind=="activities"})
+                    assertEquals(3,changes.size);assertTrue(changes.all{it.kind=="activities"})
                     assertEquals(copies,w.repository.createActivities(request))
-                    for(copy in copies)w.repository.saveGrade(copy.id,if(copy.classId==school.id)alpha.id else "functional-other-student",if(copy.classId==school.id)0.0 else null)
+                    for(copy in copies)w.repository.saveGrade(copy.id,when(copy.classId){school.id->alpha.id;third.id->"functional-third-student";else->"functional-other-student"},when(copy.classId){school.id->0.0;third.id->5.0;else->null})
                 }
                 w.academicCoordinator.request();synced();preserved()
             }
             "c-functional-activities-recover"->{
-                w.academicCoordinator.request();waitFor{w.repository.readSnapshot().activities.size==2&&w.repository.readSnapshot().grades.size==2};synced()
+                w.academicCoordinator.request();waitFor{w.repository.readSnapshot().activities.size==3&&w.repository.readSnapshot().grades.size==3};synced()
                 val copies=w.repository.readSnapshot().activities
-                assertEquals(setOf(school.id,"functional-other-class"),copies.map{it.classId}.toSet())
+                assertEquals(setOf(school.id,"functional-other-class","functional-third-class"),copies.map{it.classId}.toSet())
                 assertEquals(0.0,w.repository.dao.activityGrades("functional-activity").single().value!!,0.0)
-                val other=copies.single{it.classId!=school.id};assertEquals("2027-08-10",other.date);assertNull(w.repository.dao.activityGrades(other.id).single().value)
+                val other=copies.single{it.classId=="functional-other-class"};assertEquals("2026-08-10",other.date);assertNull(w.repository.dao.activityGrades(other.id).single().value)
+                assertEquals(5.0,w.repository.readSnapshot().grades.single{it.studentId=="functional-third-student"}.value!!,0.0)
+                assertTrue(w.repository.readSnapshot().activities.none{it.classId=="functional-future-class"})
                 w.repository.saveGrade(other.id,"functional-other-student",6.5);w.academicCoordinator.request();synced();preserved()
             }
             "c-functional-activities-final"->{
                 w.academicCoordinator.request();waitFor{w.repository.readSnapshot().grades.any{it.studentId=="functional-other-student"&&it.value==6.5}};synced()
                 assertEquals(0.0,w.repository.dao.activityGrades("functional-activity").single().value!!,0.0)
-                assertEquals(2,w.repository.readSnapshot().activities.size);preserved()
+                assertEquals(3,w.repository.readSnapshot().activities.size);assertEquals(5.0,w.repository.readSnapshot().grades.single{it.studentId=="functional-third-student"}.value!!,0.0);preserved()
             }
             else->error("Unknown functional phase")
         }

@@ -206,7 +206,6 @@ import java.time.LocalDate
     val a = remember(c.id,creationId) { original ?: Activity(id=creationId,classId = c.id, name = "", date = today().coerceIn(period?.start ?: today(), period?.end ?: today()), term = term, maximum = 10.0) }
     var scopeName by rememberSaveable(creationId) { mutableStateOf(ActivityScope.CURRENT.name) }
     var selected by rememberSaveable(creationId) { mutableStateOf(listOf(c.id)) }
-    var targetDates by rememberSaveable(creationId) { mutableStateOf(mapOf<String,String>()) }
     var name by rememberSaveable { mutableStateOf(a.name) }; var type by rememberSaveable { mutableStateOf(a.type) }
     var day by rememberSaveable { mutableStateOf(shortDate(a.date)) }; var max by rememberSaveable { mutableStateOf(editableNumber(a.maximum)) }
     var description by rememberSaveable { mutableStateOf(a.description) }; var notes by rememberSaveable { mutableStateOf(a.notes) }
@@ -221,9 +220,10 @@ import java.time.LocalDate
         Field("Observações", notes, { notes = it }, lines = 2)
         if(original==null) {
             val scope=ActivityScope.valueOf(scopeName)
-            Choice("Criar em",ActivityScope.entries.map{it.label},scope.label) {scopeName=ActivityScope.entries.first{scope->scope.label==it}.name}
+            Choice("Criar em",ActivityCopies.creationScopes.map{it.label},scope.label) {scopeName=ActivityScope.entries.first{scope->scope.label==it}.name}
             val candidates=ActivityCopies.candidates(data,c)
-            val common=candidates.filter{it.year==c.year}.map{it.id}.toSet()
+            if(scope==ActivityScope.ALL) Text("A série escolar ainda não está cadastrada. Escolha Selecionar turmas.",color=MaterialTheme.colorScheme.error)
+            if(scope==ActivityScope.CUSTOM && selected.any{id->candidates.none{it.id==id}}) Text("A seleção contém turmas fora do ano letivo ou indisponíveis. Desmarque todas e selecione novamente.",color=MaterialTheme.colorScheme.error)
             if(scope==ActivityScope.CUSTOM) {
                 TextButton(onClick={selected=candidates.map{it.id}},modifier=Modifier.testTag("activity-select-all")) {Text("Selecionar todas")}
                 TextButton(onClick={selected=emptyList()},modifier=Modifier.testTag("activity-deselect-all")) {Text("Desmarcar todas")}
@@ -234,21 +234,20 @@ import java.time.LocalDate
                             Checkbox(target.id in selected,null)
                             Text(target.name,modifier=Modifier.weight(1f))
                         }
-                        if(target.id in selected && target.year!=c.year) Field("Data em ${target.year} — ${target.name} (dd/mm/aaaa)",targetDates[target.id].orEmpty(),{targetDates=targetDates+(target.id to it)},modifier=Modifier.testTag("activity-date-${target.id}"))
                     }
                 }
             }
-            val ids=when(scope){ActivityScope.CURRENT->setOf(c.id);ActivityScope.ALL->common;else->selected.toSet()}
+            val ids=when(scope){ActivityScope.CURRENT->setOf(c.id);ActivityScope.ALL->emptySet();else->selected.toSet()}
             Text(if(scope==ActivityScope.CURRENT)c.name else "${counted(ids.size,"turma","turmas")}: "+candidates.filter{it.id in ids}.joinToString{it.name},modifier=Modifier.testTag("activity-target-summary"))
-            if(scope!=ActivityScope.CURRENT) Text("Mesma etapa e disciplina. Confira a data e o bimestre de cada turma. As notas serão independentes.",style=MaterialTheme.typography.bodyMedium)
+            if(scope!=ActivityScope.CURRENT) Text("Selecione as turmas de ${c.year}, inclusive de séries diferentes. Mesma etapa e disciplina; cada turma terá notas próprias.",style=MaterialTheme.typography.bodyMedium)
         }
         Button(enabled = !saving, onClick = {
-            val formScope=ActivityScope.valueOf(scopeName);val formSelected=selected.toSet();val formDates=targetDates;val shownData=data
+            val formScope=ActivityScope.valueOf(scopeName);val formSelected=selected.toSet();val shownData=data
             val formName=name;val formType=type;val formDay=day;val formTerm=selectedTerm;val formMax=max;val formDescription=description;val formNotes=notes
             vm.act {
                 val value=a.copy(name=formName.trim(),type=formType,date=iso(formDay),term=formTerm.toInt(),maximum=requiredDecimal(formMax),description=formDescription,notes=formNotes)
                 if (original == null) {
-                    val request=ActivityCopies.plan(shownData,c.id,value,formScope,formSelected,if(formScope==ActivityScope.CUSTOM)formDates.filterKeys{it in formSelected}.mapValues{iso(it.value)}else emptyMap())
+                    val request=ActivityCopies.plan(shownData,c.id,value,formScope,formSelected)
                     val created=vm.repository.createActivities(request)
                     val opened=created.firstOrNull{it.classId==c.id} ?: created.first()
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) { saved(opened) }

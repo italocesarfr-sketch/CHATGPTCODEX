@@ -19,11 +19,13 @@ class ActivityCopiesUiTest {
     private var previous:AppSelection?=null
     private val c=SchoolClass("copies-ui-a",name="1º A Fictícia Cópias",subject="História",year=2026)
     private val b=c.copy(id="copies-ui-b",name="2º B Fictícia Cópias")
+    private val third=c.copy(id="copies-ui-third",name="3º C Fictícia Cópias")
+    private val future=c.copy(id="copies-ui-future",name="1º K Fictícia 2027",year=2027)
     private val a=Activity("copies-ui-main",c.id,"Produção Fictícia",type="Produção textual",date="2026-08-10",term=3,maximum=7.5)
     private val students=listOf(Student("copies-ui-z","copies-person-z",c.id,"Zélia Fictícia",1,"2026-01-01"),Student("copies-ui-a","copies-person-a",c.id,"Álvaro Fictício",2,"2026-01-01"))
     @Before fun setup():Unit=runBlocking{
         app=compose.activity.application as DiaryApplication;app.commands.awaitPendingWrites();previous=app.selectionStore.read()
-        for(school in listOf(c,b))app.repository.saveClass(school,"2026-01-01")
+        for(school in listOf(c,b,third,future))app.repository.saveClass(school,"${school.year}-01-01")
         for(s in students)app.repository.saveStudent(s)
         app.repository.saveActivity(a);app.repository.saveGrade(a.id,students[0].id,0.0)
         app.selectionStore.write(AppSelection(2026,c.id));compose.waitUntil(10000){compose.onAllNodesWithText(c.name).fetchSemanticsNodes().isNotEmpty()};waitTag("nav-2");compose.onNodeWithTag("nav-2").performClick();waitTag("activities-list")
@@ -35,7 +37,7 @@ class ActivityCopiesUiTest {
     }
     @After fun cleanup():Unit=runBlocking{
         app.commands.awaitPendingWrites()
-        for(id in listOf(c.id,b.id)){val p=app.repository.previewClassDeletion(id);app.repository.deleteClass(p,p.confirmation)}
+        for(id in listOf(c.id,b.id,third.id,future.id)){val p=app.repository.previewClassDeletion(id);app.repository.deleteClass(p,p.confirmation)}
         app.selectionStore.write(previous)
     }
     private fun waitTag(tag:String){compose.waitUntil(10000){compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()}}
@@ -64,23 +66,26 @@ class ActivityCopiesUiTest {
         compose.onNodeWithTag("activities-list").performScrollToIndex(0);compose.onNodeWithText("+ Criar atividade").performClick()
         compose.onNodeWithText("Nome da atividade").performTextReplacement("Cópia Fictícia UI")
         compose.onNodeWithText("Data (dd/mm/aaaa)").performScrollTo().performTextReplacement("10/08/2026");hideKeyboard()
-        compose.onNodeWithText("Turma atual ▾").performScrollTo().performClick();compose.onNodeWithText("Selecionar turmas").performClick()
+        compose.onNodeWithText("Turma atual ▾").performScrollTo().performClick();compose.onNodeWithText("Todas as turmas da mesma série").assertDoesNotExist();compose.onNodeWithText("Todas as compatíveis do mesmo ano").assertDoesNotExist();compose.onNodeWithText("Selecionar turmas").performClick()
+        compose.onNodeWithTag("activity-target-${future.id}").assertDoesNotExist()
+        compose.onNodeWithTag("activity-date-${future.id}").assertDoesNotExist()
         compose.onNodeWithTag("activity-select-all").performScrollTo().performClick()
+        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("3 turmas: ${c.name}, ${b.name}, ${third.name}")
         compose.onNodeWithTag("activity-deselect-all").performScrollTo().performClick()
         compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("0 turmas: ")
-        for(id in listOf(c.id,b.id))compose.onNodeWithTag("activity-target-$id").performScrollTo().performClick()
-        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("2 turmas: ${c.name}, ${b.name}")
+        for(id in listOf(c.id,b.id,third.id))compose.onNodeWithTag("activity-target-$id").performScrollTo().performClick()
+        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("3 turmas: ${c.name}, ${b.name}, ${third.name}")
         shot("02-selecao-de-turmas")
         compose.onNodeWithText("Salvar e lançar notas").performScrollTo().performClick();waitTag("grades-list")
         val copies=runBlocking{app.repository.readSnapshot().activities.filter{it.name=="Cópia Fictícia UI"}}
-        assertEquals(setOf(c.id,b.id),copies.map{it.classId}.toSet());assertEquals(2,copies.map{it.id}.toSet().size)
+        assertEquals(setOf(c.id,b.id,third.id),copies.map{it.classId}.toSet());assertEquals(3,copies.map{it.id}.toSet().size)
         for(copy in copies)assertTrue(runBlocking{app.repository.dao.activityGrades(copy.id).isEmpty()})
     }
     @Test fun selectingOnlyAnotherClassOpensItsOwnGrades(){
         compose.onNodeWithTag("activities-list").performScrollToIndex(0);compose.onNodeWithText("+ Criar atividade").performClick()
         compose.onNodeWithText("Nome da atividade").performTextReplacement("Outra Turma Fictícia")
         compose.onNodeWithText("Data (dd/mm/aaaa)").performScrollTo().performTextReplacement("10/08/2026");hideKeyboard()
-        compose.onNodeWithText("Turma atual ▾").performScrollTo().performClick();compose.onNodeWithText("Selecionar turmas").performClick()
+        compose.onNodeWithText("Turma atual ▾").performScrollTo().performClick();compose.onNodeWithText("Todas as turmas da mesma série").assertDoesNotExist();compose.onNodeWithText("Todas as compatíveis do mesmo ano").assertDoesNotExist();compose.onNodeWithText("Selecionar turmas").performClick()
         compose.onNodeWithTag("activity-deselect-all").performScrollTo().performClick()
         compose.onNodeWithTag("activity-target-${b.id}").performScrollTo().performClick()
         compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("1 turma: ${b.name}")
