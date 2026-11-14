@@ -33,6 +33,32 @@ class PhaseCRoomTest {
         repo.dao.save(Recomposition(students[0].id,3,0.0,"2026-08-10"))
         repo.dao.insertRecord(LessonRecord("cj",c.id,"2026-08-10","Local","Diário não sincronizado"))
     }
+    @Test fun clearingPfIsDurableTombstoneAndRecoversInIndependentRoom():Unit=runBlocking {
+        seedB();seedC();engine().activateC();engine().run()
+        val before=repo.readSnapshot()
+        repo.toggleMark("cl",students[0].id,"P")
+        assertTrue(repo.dao.attendance("cl").none{it.studentId==students[0].id})
+        val pending=store.prepare()!!
+        val change=AcademicRecords.json.decodeFromString<AcademicBatch>(pending.body).changes.single()
+        assertEquals("marks",change.kind);assertNull(change.payload)
+        db.close();db=DiaryDatabase.open(context,name)
+        assertTrue(repo.dao.attendance("cl").none{it.studentId==students[0].id})
+        remote.lost=true;engine().run();assertEquals(pending.id,store.pending()!!.id)
+        engine().run();assertNull(store.pending())
+        val receiverName="pf-receiver-${newId()}.db";val receiverDb=DiaryDatabase.open(context,receiverName)
+        try {
+            val receiver=AcademicStore(receiverDb,owner);engine(receiver).activate();engine(receiver).run();engine(receiver).run()
+            val received=DiaryRepository(receiverDb).readSnapshot()
+            assertTrue(received.marks.none{it.lessonId=="cl"&&it.studentId==students[0].id})
+            assertEquals(before.marks.filterNot{it.lessonId=="cl"&&it.studentId==students[0].id}.toSet(),received.marks.toSet())
+            assertTrue(receiver.dao.incoming().isEmpty());assertTrue(receiver.dao.pending().isEmpty())
+        } finally {receiverDb.close();context.deleteDatabase(receiverName)}
+        repeat(20){repo.toggleMark("cl",students[0].id,"F")}
+        assertTrue(repo.dao.attendance("cl").none{it.studentId==students[0].id})
+        repo.toggleMark("cl",students[2].id,"F")
+        assertEquals(Attendance("cl",students[2].id,"F"),repo.dao.attendance("cl").single{it.studentId==students[2].id})
+        assertEquals("NR",repo.dao.attendance("cl").single{it.studentId==students[3].id}.mark)
+    }
     @Test fun scopeExpansionRequiresConsentAndPreservesPreviouslyLocalRecords():Unit=runBlocking {
         seedB();seedC();engine().run();assertEquals(41,remote.rows.size);assertTrue(store.dao.states().none{it.kind in phaseCKinds-phaseBKinds})
         engine().activateC();assertEquals("ACTIVE_C",store.stage());engine().run()

@@ -478,8 +478,13 @@ class DiaryRepository(val db: DiaryDatabase) {
     /** Resolve o segundo toque dentro da transação, inclusive com cliques rápidos antes do Flow. */
     suspend fun toggleMark(lessonId: String, studentId: String, value: String) = db.withTransaction {
         require(value in listOf("P", "F", "FJ", "NR"))
-        val current = dao.attendance(lessonId).firstOrNull { it.studentId == studentId }?.mark
-        mark(lessonId, studentId, if(value != "NR" && current == value) "NR" else value)
+        val current = dao.attendance(lessonId).firstOrNull { it.studentId == studentId }
+        if (value in listOf("P", "F") && current?.mark == value) {
+            val lesson = requireNotNull(dao.lesson(lessonId)); val student = requireNotNull(dao.student(studentId))
+            ensureWritable(student)
+            require(lesson.state == "REALIZADA" && student.classId == lesson.classId && student.enrolled(lesson.date)) { "Aula ou matrícula não permite chamada." }
+            check(dao.removeMark(lessonId, studentId, value) == 1)
+        } else mark(lessonId, studentId, if(value == "FJ" && current?.mark == value) "NR" else value)
     }
     suspend fun startLesson(id: String) = db.withTransaction {
         val lesson = requireNotNull(dao.lesson(id)); require(lesson.state != "CANCELADA") { "Reative a aula antes de registrar." }

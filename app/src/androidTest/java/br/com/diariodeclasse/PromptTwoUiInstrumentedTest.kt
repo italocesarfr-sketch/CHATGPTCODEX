@@ -118,12 +118,14 @@ class PromptTwoUiInstrumentedTest {
             throw AssertionError("Abertura da data: "+compose.onRoot().printToString(),e)
         }
     }
-    @Test fun largePAndFRecordDirectlyAndExplicitNrSurvivesRecreation() {
+    @Test fun secondLargePAndFClearsOccurrenceAndExplicitNrSurvivesRecreation() {
         val id="${c.id}:$day:1";val before=runBlocking{app.backupManager.snapshot()};openDay()
         fun waitMark(value:String){compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(id).any{it.studentId==a.id&&it.mark==value}}}}
         for(value in listOf("P","F")) {
             tag("cell-$id-${a.id}-$value").performScrollTo().performClick();waitMark(value)
-            tag("cell-$id-${a.id}-$value").performClick();waitMark(value)
+            tag("cell-$id-${a.id}-$value").performClick()
+            compose.waitUntil(10000){runBlocking{app.repository.dao.attendance(id).none{it.studentId==a.id}}}
+            tag("cell-$id-${a.id}-$value").assertIsNotSelected()
             tag("cell-menu-$id-${a.id}").performClick();tag("attendance-unregister").performClick();waitMark("NR")
         }
         tag("cell-menu-$id-${a.id}").performScrollTo().performClick();compose.onNodeWithText("FJ — falta justificada").performClick();waitMark("FJ")

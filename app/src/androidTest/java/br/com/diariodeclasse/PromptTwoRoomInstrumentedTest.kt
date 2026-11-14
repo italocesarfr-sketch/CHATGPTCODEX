@@ -46,7 +46,7 @@ class PromptTwoRoomInstrumentedTest {
         try{repo.confirmImport(c.id,"2026-01-01");fail()}catch(_:IllegalArgumentException){}
         assertEquals(reviewed,manager.snapshot())
     }
-    @Test fun secondTapPersistsNrRecalculatesFrequencyAndPreservesOtherDatesAndPupils()=runBlocking {
+    @Test fun secondTapRemovesPfRecalculatesFrequencyAndPreservesOtherDatesAndPupils()=runBlocking {
         val other=s.copy(id="p2-room-other",personId="p2-room-other-person",number=2,name="Estudante Fictício Outro")
         repo.saveStudent(other);repo.setDayHours(c.id,"2026-08-28",2);repo.setDayHours(c.id,"2026-08-29",1)
         val first=repo.dao.day(c.id,"2026-08-28").first();val next=repo.dao.day(c.id,"2026-08-29").first()
@@ -54,20 +54,21 @@ class PromptTwoRoomInstrumentedTest {
         val before=manager.snapshot()
         for(value in listOf("P","F","FJ")) {
             repo.toggleMark(first.id,s.id,value);assertEquals(value,repo.dao.attendance(first.id).first{it.studentId==s.id}.mark)
-            repo.toggleMark(first.id,s.id,value);assertEquals("NR",repo.dao.attendance(first.id).first{it.studentId==s.id}.mark)
+            repo.toggleMark(first.id,s.id,value);if(value in listOf("P","F")) assertTrue(repo.dao.attendance(first.id).none{it.studentId==s.id}) else assertEquals("NR",repo.dao.attendance(first.id).first{it.studentId==s.id}.mark)
         }
         repo.toggleMark(first.id,s.id,"P");repo.toggleMark(first.id,s.id,"F");assertEquals("F",repo.dao.attendance(first.id).first{it.studentId==s.id}.mark)
         repo.toggleMark(first.id,s.id,"P");repo.toggleMark(first.id,s.id,"P")
         val snap=manager.snapshot();val d=snap.diarySnapshot();val f=SchoolReports(d,c).student(s,3).attendance!!
         assertEquals(3,f.performed);assertEquals(1,f.valid);assertEquals(0,f.present);assertEquals(0,f.absent);assertEquals(1,f.justified)
         assertEquals(before.marks,snap.marks.filterNot{it.lessonId==first.id&&it.studentId==s.id})
-        db.close();open();assertEquals("NR",repo.dao.attendance(first.id).first{it.studentId==s.id}.mark)
+        db.close();open();assertTrue(repo.dao.attendance(first.id).none{it.studentId==s.id})
         assertEquals(snap,manager.snapshot())
     }
     @Test fun exportAndShareAreReadOnlyAndNrAndReviewSurviveBackupRestoration()=runBlocking {
         repo.appendDrafts(c.id,listOf(CsvRoster.Row("Estudante Fictício Rascunho",2)));repo.reviewDrafts(c.id,repo.dao.draftRows(c.id).map{it.id}.toSet(),true)
         repo.setDayHours(c.id,"2026-08-28",2);val lessons=repo.dao.day(c.id,"2026-08-28")
         repo.mark(lessons[0].id,s.id,"FJ");repo.toggleMark(lessons[1].id,s.id,"P");repo.toggleMark(lessons[1].id,s.id,"P")
+        repo.mark(lessons[1].id,s.id,"NR") // Explicit NR remains independent from clearing P/F.
         val before=manager.snapshot();val table=AttendanceExportProjection.build(before.diarySnapshot(),c,"2026-08-01","2026-08-31")
         val file=SpreadsheetShare.prepare(context,table);val intent=SpreadsheetShare.intent(context,file)
         assertEquals(android.content.Intent.ACTION_SEND,intent.action)

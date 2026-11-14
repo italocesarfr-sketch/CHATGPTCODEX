@@ -80,7 +80,7 @@ private data class AttendanceMenuKey(val lessonId: String, val studentId: String
                         } else {
                             val lesson = columns[index]
                             val attendance = byMark[lesson.id to student.id]
-                            val current = attendance?.mark ?: "NR"
+                            val current = attendance?.mark ?: ""
                             if (daily) {
                                 val occurrence = AttendanceMenuKey(lesson.id, student.id)
                                 AttendanceCell(lesson, student, attendance, activeMenu == occurrence,
@@ -106,7 +106,7 @@ private data class AttendanceMenuKey(val lessonId: String, val studentId: String
 
 @Composable private fun AttendanceCell(lesson: Lesson, student: Student, attendance: Attendance?, menu: Boolean, open: () -> Unit, dismiss: () -> Unit, change: (Lesson, Student, String) -> Unit,
     justification: (Attendance, String?) -> Unit) {
-    val current = attendance?.mark ?: "NR"
+    val current = attendance?.mark ?: ""
     val eligible = student.enrolled(lesson.date)
     val enabled = eligible && student.status!="Remanejado" && lesson.state == "REALIZADA"
     DisposableEffect(lesson.id, student.id) { onDispose { dismiss() } }
@@ -123,7 +123,7 @@ private data class AttendanceMenuKey(val lessonId: String, val studentId: String
                 }) { Text(value, style = MaterialTheme.typography.labelLarge) }
         }
         Box(if (current in listOf("F", "FJ")) Modifier.testTag("reason-${lesson.id}-${student.id}") else Modifier) {
-            TextButton(onClick = open, enabled = enabled, contentPadding = PaddingValues(0.dp), modifier = Modifier.width(48.dp).height(48.dp).testTag("cell-menu-${lesson.id}-${student.id}").semantics { contentDescription = "Outras marcações de ${student.name}, ${lesson.ordinal}º horário. Atual: $current${if(current=="FJ") ", motivo: ${attendance?.reason ?: "sem motivo"}" else ""}" }) {
+            TextButton(onClick = open, enabled = enabled, contentPadding = PaddingValues(0.dp), modifier = Modifier.width(48.dp).height(48.dp).testTag("cell-menu-${lesson.id}-${student.id}").semantics { contentDescription = "Outras marcações de ${student.name}, ${lesson.ordinal}º horário. Atual: ${current.ifEmpty { "sem marcação" }}${if(current=="FJ") ", motivo: ${attendance?.reason ?: "sem motivo"}" else ""}" }) {
                 Text(if (!eligible) "—" else "$current ▾", style = MaterialTheme.typography.labelSmall)
             }
             DropdownMenu(menu, dismiss, modifier = Modifier.testTag("attendance-menu"),

@@ -66,7 +66,11 @@ class FjPopupInstrumentedTest {
             val density=LocalDensity.current.density;val solid=MaterialTheme.colorScheme.surfaceContainer
             SideEffect {pixels=density;menuColor=solid}
             Surface(Modifier.width(320.dp).height(560.dp)) {
-                FrequencyGrid(shown,school,shown.lessons,null,true,mark={l,s,value->save(Attendance(l.id,s.id,value))},options={},openDay={},
+                FrequencyGrid(shown,school,shown.lessons,null,true,mark={l,s,value->
+                    if(value in listOf("P","F")&&shown.marks.any{it.lessonId==l.id&&it.studentId==s.id&&it.mark==value}) {
+                        writes++;shown=shown.copy(marks=shown.marks.filterNot{it.lessonId==l.id&&it.studentId==s.id})
+                    } else save(Attendance(l.id,s.id,value))
+                },options={},openDay={},
                     justification={expected,reason->check(shown.marks.any{it==expected});save(AbsenceJustifications.apply(expected,reason))})
             }
         } }
@@ -129,7 +133,8 @@ class FjPopupInstrumentedTest {
     @Test fun largeButtonsAndSixReasonsUseOneIndicatorAndExplicitRemoval() {
         grid(mark=null)
         val f=tag("cell-fj-mock-l1-fj-mock-s1-F");val p=tag("cell-fj-mock-l1-fj-mock-s1-P")
-        f.performClick();f.performClick();compose.onNode(isPopup()).assertDoesNotExist();assertEquals("F",shown.marks.single().mark)
+        f.performClick();f.performClick();compose.onNode(isPopup()).assertDoesNotExist();assertTrue(shown.marks.isEmpty());f.assertIsNotSelected()
+        f.performClick();assertEquals("F",shown.marks.single().mark)
         tag("cell-menu-fj-mock-l1-fj-mock-s1").assertTextEquals("F ▾").performClick()
         tag("justification-remove").assertDoesNotExist();compose.onNodeWithText("Sem motivo").assertDoesNotExist();compose.onNodeWithText("FJ — falta justificada").assertDoesNotExist()
         back();assertEquals("F",shown.marks.single().mark)

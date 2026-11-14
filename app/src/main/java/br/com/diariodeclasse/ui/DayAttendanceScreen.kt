@@ -66,7 +66,7 @@ import kotlinx.coroutines.*
                     else Text(shortDate(day), Modifier.weight(1f).align(Alignment.CenterVertically).testTag("attendance-day-date"),
                         style=MaterialTheme.typography.titleSmall,textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=1,softWrap=false)
                     TextButton(onClick = termView) { Text("Bimestre") }
-                    ContextHelp("Ajuda da chamada", "P e F registram a chamada. Use a seta de F para justificar e NR para limpar.")
+                    ContextHelp("Ajuda da chamada", "Toque em P ou F para registrar; toque novamente no mesmo botão para limpar. Use a seta de F para justificar.")
                 }
                 if(dateOnOwnLine) Text(shortDate(day),Modifier.fillMaxWidth().padding(horizontal=NoctuaSpace.medium).testTag("attendance-day-date"),
                     style=MaterialTheme.typography.titleSmall,textAlign=androidx.compose.ui.text.style.TextAlign.Center,maxLines=1,softWrap=false)
@@ -97,7 +97,7 @@ import kotlinx.coroutines.*
             Box(if(scrollControls) Modifier.height(gridHeight) else Modifier.weight(1f)) { FrequencyGrid(data, c, lessons, period, true,
                 mark = { lesson, student, value ->
                     val lessonId = lesson.id; val studentId = student.id
-                    vm.act(context = context, key = "mark:$lessonId:$studentId") { vm.repository.mark(lessonId, studentId, value) }
+                    vm.act(context = context, key = "mark:$lessonId:$studentId") { if (value in listOf("P", "F")) vm.repository.toggleMark(lessonId, studentId, value) else vm.repository.mark(lessonId, studentId, value) }
                 }, options = { option = it; action = "menu" }, openDay = {},
                 justification = { expectedMark, reason ->
                     vm.act(context = context, key = "mark:${expectedMark.lessonId}:${expectedMark.studentId}") {
