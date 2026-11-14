@@ -147,8 +147,9 @@ class FjPopupInstrumentedTest {
         assertEquals("F",shown.marks.single().mark);assertNull(shown.marks.single().reason)
         tag("cell-menu-fj-mock-l1-fj-mock-s1").performClick();tag("justification-option-Outro").performClick();f.performClick()
         assertEquals(Attendance("fj-mock-l1","fj-mock-s1","F"),shown.marks.single());compose.onNode(isPopup()).assertDoesNotExist()
-        tag("cell-menu-fj-mock-l1-fj-mock-s1").performClick();tag("justification-option-Atestado médico").performClick();p.performClick();p.performClick()
+        tag("cell-menu-fj-mock-l1-fj-mock-s1").performClick();tag("justification-option-Atestado médico").performClick();p.performClick()
         assertEquals(Attendance("fj-mock-l1","fj-mock-s1","P"),shown.marks.single());compose.onNode(isPopup()).assertDoesNotExist()
+        p.performClick();assertTrue(shown.marks.isEmpty());p.assertIsNotSelected();compose.onNode(isPopup()).assertDoesNotExist()
     }
     @Test fun studentsAndHoursKeepTheirOwnReasonsAfterBothScrollDirections() {
         grid(students=60,hours=20)

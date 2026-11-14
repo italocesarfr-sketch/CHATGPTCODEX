@@ -88,6 +88,7 @@ class PromptTwoUiInstrumentedTest {
         compose.onNode(hasText(h.name,substring=true) and hasAnyAncestor(hasTestTag("report-row-${b.id}-name")),useUnmergedTree=true).assertExists()
         shot("02-busca-global")
         tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
+        tag("reports-list").performScrollToNode(hasText("Boletim 3º Bim"))
         waitText("Boletim 3º Bim");assertGrade(a,"0,00")
         compose.onAllNodesWithTag("report-row-${b.id}").assertCountEquals(0)
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
