@@ -1,0 +1,52 @@
+{
+  "validated_code": "8974312ef3e7eec414cd04f4635869bc14a3f759",
+  "workflow": 43552621657,
+  "artifact": 14096378442,
+  "jvm": {
+    "total": 306,
+    "passed": 301,
+    "failed": 0,
+    "skipped": 5
+  },
+  "android_selected": {
+    "passed": 57,
+    "failed": 0,
+    "ignored": 0
+  },
+  "android_compact_150": {
+    "passed": 3,
+    "failed": 0,
+    "ignored": 0
+  },
+  "two_avd_http_phases": 10,
+  "disposable_http_security_checks": 9,
+  "hosted_executed": false,
+  "official_release": false,
+  "screenshots": {
+    "chamada-sem-marcacao.png": {
+      "bytes": 47323,
+      "sha256": "d8025230188e91a7ce1e9c36723b41b8c1c877a9c0656416fc5bf0c6c04d56b9",
+      "origin_run": 43550063150
+    },
+    "notas-busca-ordenacao.png": {
+      "bytes": 36113,
+      "sha256": "1394d1d58e3144909ac30c1051ae343da3a25fd4245dbe78628bc42dca8c7b17",
+      "origin_run": 43552621657
+    },
+    "atividades-selecao.png": {
+      "bytes": 33236,
+      "sha256": "128a86711a16df56fd09d0538bced8d26aec931f8bf05e955344db78aac0a160",
+      "origin_run": 43552621657
+    },
+    "atividades-fonte-150.png": {
+      "bytes": 96940,
+      "sha256": "fb841f00cc60d1207f2bb2275cdce84fe895eb4e9e35b9844e88c18982830b25",
+      "origin_run": 43552621657
+    },
+    "notas-fonte-150.png": {
+      "bytes": 98478,
+      "sha256": "7121ae7c74cfcd32c97b3a5f6ce5045925539e1c2f195867ea152218b142438f",
+      "origin_run": 43552621657
+    }
+  }
+}
