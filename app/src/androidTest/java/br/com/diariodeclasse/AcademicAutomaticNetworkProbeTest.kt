@@ -77,8 +77,8 @@ class AcademicAutomaticNetworkProbeTest {
             }
             "e-auto-receive-offline"->{
                 waitFor{w.repository.dao.activityGrades("d-a1").any{it.studentId=="ds2"&&it.value==5.5}};synced()
-                assertEquals(PhaseDFixture.read().marks,snapshot().marks)
-                assertEquals(PhaseDFixture.read().relocations,snapshot().relocations)
+                assertEquals(PhaseDFixture.read().canonical().marks,snapshot().marks)
+                assertEquals(PhaseDFixture.read().canonical().relocations,snapshot().relocations)
                 val other=PhaseBNetworkHarness.token(true)
                 // Other synthetic tenant has no E scope, no permission to read this account.
                 try{PhaseBNetworkHarness.raw().pullE(other,0,0);fail()}catch(e:br.com.diariodeclasse.sync.SyncFailure){assertEquals("SESSION",e.code)}

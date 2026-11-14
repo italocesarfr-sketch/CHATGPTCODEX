@@ -48,7 +48,13 @@ homologação específica; não foi feita alteração remota nesta tarefa.
 - Prova HTTP/Android preparada: duas instalações CI independentes, 15 tipos,
   recuperação sem ativação/botão, edição inversa, logout offline, reinício,
   resposta perdida e replay. Nenhuma chamada a Supabase hospedado.
-- Resultado Android/CI: registrar após execução; não aprovado por compilação.
+- Primeira CI `43623031779` / `a4e01aa`: 304 JVM aprovados, cinco
+  condicionais ignorados; 64 Android funcionais e três compactos aprovados;
+  nove verificações HTTP de segurança aprovadas. Dez fases HTTP funcionais e
+  sete novas fases automáticas passaram. A oitava falhou ao comparar uma
+  fixture não ordenada com snapshot canônico. Correção do oráculo: canonicalizar
+  ambos os lados, preservando comparação exata (incluindo motivos e IDs).
+  A execução geral falhou e não representa aprovação integral. Reexecutar.
 
 A injeção `automaticAcademicRecovery()` da Application permite manter os antigos
 ensaios de consentimento/transferência controlados. Só a Application de testes
