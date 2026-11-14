@@ -1,0 +1,78 @@
+name: NOcTuA — melhorias funcionais em ambiente descartável
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  tests:
+    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_b_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_b_test
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - name: JVM e APKs temporários (nenhuma assinatura oficial)
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon testDebugUnitTest assembleDebug assembleDebugAndroidTest
+      - name: PostgREST descartável — protocolo funcional anterior, sem candidatos H13
+        run: ./scripts/ci/start-phase-b-postgrest.sh
+      - name: KVM apenas do runner
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: noctua_functional_${{ github.run_id }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
+          script: |
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            mkdir -p build/functional-tests
+            adb shell am instrument -w -e class br.com.diariodeclasse.PromptTwoRoomInstrumentedTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.FjFlowInstrumentedTest,br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.PromptTwoUiInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/functional-tests/android.txt
+            python3 scripts/check-instrumentation.py build/functional-tests/android.txt
+            adb exec-out run-as br.com.diariodeclasse tar -C files -cf - fj-flow-screenshots prompt2-screenshots > build/functional-tests/screenshots.tar || true
+            ./scripts/ci/test-functional-network.sh
+      - name: Encerrar somente backend descartável
+        if: always()
+        run: |
+          if [[ -f build/phaseb-postgrest/server.pid ]]; then kill "$(cat build/phaseb-postgrest/server.pid)" || true; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: functional-improvements-evidence
+          path: |
+            build/functional-tests/
+            build/functional-network/
+            app/build/test-results/testDebugUnitTest/
+          retention-days: 30

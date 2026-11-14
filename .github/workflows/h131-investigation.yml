@@ -8,16 +8,19 @@ on:
       suite:
         description: 'Laboratório local: H131 original ou H132 estrutural (sem hospedado)'
         type: choice
-        options: [H131, H132]
+        options: [H131, H132, FUNCTIONAL]
         default: H131
 permissions:
   contents: read
 jobs:
+  functional:
+    if: github.event_name == 'workflow_dispatch' && inputs.suite == 'FUNCTIONAL' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/functional-improvements.yml
   h132:
     if: github.event_name == 'workflow_dispatch' && inputs.suite == 'H132' && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/h132-performance.yml
   investigation:
-    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132'
+    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132' && inputs.suite != 'FUNCTIONAL'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
