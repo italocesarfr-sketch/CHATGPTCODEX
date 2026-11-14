@@ -167,3 +167,96 @@ A variante compacta dessa rodada não executou, pois a seleção anterior falhou
 A revisão também acrescentou o bloqueio do popup automático durante pausa
 explícita e sua prova de pausa/retomada, mantendo ambas as variantes/cursor.
 Reexecutar antes de declarar aprovação da etapa 2.
+
+
+## Resultado final local — etapa 2
+
+[CI 43627336525](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43627336525)
+**aprovada**, SHA `b8206c39188cebf2bf0baa28c4c61164e08e85c5`.
+Commits da etapa: `a841e59` (popup e provas), `b8206c3` (pausa explícita e espera
+por controles acionáveis na regressão de exportação). A documentação posterior
+não altera o código validado.
+
+| Verificação | Resultado efetivamente executado |
+| --- | --- |
+| JVM completa | 313 aprovados, 5 condicionais hospedados ignorados, 0 falhas |
+| Android selecionada | 96 aprovados, 0 ignorados, 0 falhas |
+| Compacto 360×640 dp / fonte nativa 150% | 8 aprovados, 0 ignorados, 0 falhas |
+| HTTP/Android em duas instalações independentes | 27 fases aprovadas |
+| PostgreSQL de decisões | 18 aprovados |
+| HTTP de segurança/isolamento | 9 verificações aprovadas |
+| Regras D em PostgreSQL local nesta tarefa | 27 aprovadas; nenhuma alteração SQL |
+
+Os oito testes compactos são repetições de cenários de UI; as 27 fases são
+invocações de integração, não 27 novos métodos de teste. A seleção Android
+inclui isolamento de contas, migrações 12→13→14, backup criptografado com conta
+incorreta, restauração pausada em banco independente, auditoria/reconciliação,
+partes persistentes e regressões de chamada, FJ, atividades, notas e exportações.
+Não foi executada novamente toda a suíte Android histórica.
+
+Provas entre AVDs: 171 registros / 15 tipos, 37 matrículas vivas (36 na origem),
+recuperação automática sem ativação local no receptor, IDs preservados, mudança
+inversa, logout offline aguardando gravação, reinício, retomada e recibos sem
+nova operação. Nota concorrente 6/8: dispensa sem decisão e escolha explícita
+de 8. Segundo conflito 6/9: terceira revisão 9,5 injetada por HTTP com a sessão
+sintética do segundo dispositivo, confirmação antiga bloqueada, prévia renovada,
+escolha explícita de 6, resposta perdida, force-stop e reaplicação da mesma
+decisão. A edição normal 8→8,5 sobre a revisão atual convergiu sem conflito.
+A pausa ocultou o popup; a retomada reapresentou as mesmas variantes sem avançar
+o cursor. As auditorias originais e os
+históricos de frequência/remanejamento continuaram preservados.
+
+Artefato [functional-improvements-evidence](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43627336525/artifacts/14126539209):
+SHA-256 `9cf39f6788fe2373b0381660e581dcf349b47e7cc7be32d48dbe16e6bf769793`.
+Os XMLs, saídas de instrumentação, resumo das 27 fases e screenshots foram
+baixados e conferidos. [Manifesto](evidence/AUTOMATICA_NOTAS_0220.json) registra
+os hashes e resultados, inclusive rodadas anteriores reprovadas.
+
+Capturas reais inspecionadas do SHA aprovado, sem alteração da imagem:
+
+- [Popup no aplicativo](evidence/AUTOMATICA_NOTAS_20261114/popup-nota.png).
+- [Terceira revisão bloqueada](evidence/AUTOMATICA_NOTAS_20261114/previa-desatualizada.png).
+- [Tela compacta / fonte 150%](evidence/AUTOMATICA_NOTAS_20261114/popup-fonte-150.png).
+- [Prévia desatualizada / fonte 150%](evidence/AUTOMATICA_NOTAS_20261114/bloqueio-fonte-150.png).
+
+Os botões continuam acessíveis; o corpo do aviso pode rolar na fonte ampliada.
+As capturas compactas usam fixture de UI; as duas primeiras vêm da integração
+no aplicativo com backend local real. São dados fictícios, não dados hospedados.
+
+**Consolidação técnica local aprovada.** A elegibilidade experimental permanece;
+nenhuma aprovação de produção, conta geral ou migração do conflito legado está
+implícita. Permanecem pendentes a homologação hospedada/Android do novo fluxo,
+a avaliação da ativação geral e a atualização assinada em ambiente autorizado.
+Main, projetos Supabase e aparelhos existentes não foram alterados.
+
+### Arquivos modificados nesta tarefa
+
+- `.github/workflows/functional-improvements.yml`
+- `app/src/androidTest/java/br/com/diariodeclasse/AcademicAutomaticNetworkProbeTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/AcademicAutomaticRoomTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/AcademicGradeConflictUiTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/AuthTestRunner.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseENetworkProbeTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PhaseEReconciliationTest.kt`
+- `app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt`
+- `app/src/main/java/br/com/diariodeclasse/DiaryApplication.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/SyncJobs.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/SyncPanel.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicAutomaticStatus.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicEngine.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeConflict.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeDialog.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReconciliation.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReviewDialog.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt`
+- `app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicStore.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt`
+- `app/src/main/java/br/com/diariodeclasse/ui/DiaryViewModel.kt`
+- `app/src/test/java/br/com/diariodeclasse/AcademicNumericGradeTest.kt`
+- `docs/SINCRONIZACAO_AUTOMATICA_NOTAS_0220.md`
+- `scripts/ci/test-functional-android.sh`
+- `scripts/ci/test-functional-network.sh`
+- `scripts/test-phase-e-decisions.py`
+
+Além desses arquivos, este relatório inclui o manifesto e as quatro capturas acima.

@@ -1,0 +1,160 @@
+{
+  "branch": "sync/academic-complete-0220",
+  "scope": "Local disposable PostgreSQL/PostgREST and two CI AVDs. Synthetic Auth and academic data only.",
+  "stage1": {
+    "code_commit": "a4e01aa03da81c603f7c5d14c1d0858cd86c6c4a",
+    "validated_sha": "c4387b66721797c70b9e511875a1736cc3ebf75b",
+    "run_id": 43624510478,
+    "conclusion": "success",
+    "jvm": {
+      "passed": 304,
+      "skipped": 5,
+      "failed": 0
+    },
+    "android_selected": {
+      "passed": 64,
+      "ignored": 0,
+      "failed": 0
+    },
+    "android_compact": {
+      "passed": 3,
+      "ignored": 0,
+      "failed": 0
+    },
+    "two_avd_phases": 18,
+    "http_security_checks": 9,
+    "artifact_id": 14125872370,
+    "artifact_sha256": "6eb972bd4e6c8034dcb868ab8d29dd1cce9ade3e721c3cd48d23f940487a54d9"
+  },
+  "stage2": {
+    "feature_commit": "a841e59fcd185c2e5eaf4d93771e7a4101ed4690",
+    "validated_sha": "b8206c39188cebf2bf0baa28c4c61164e08e85c5",
+    "run_id": 43627336525,
+    "conclusion": "success",
+    "jvm": {
+      "passed": 313,
+      "skipped": 5,
+      "failed": 0
+    },
+    "android_selected": {
+      "passed": 96,
+      "ignored": 0,
+      "failed": 0
+    },
+    "android_compact": {
+      "passed": 8,
+      "ignored": 0,
+      "failed": 0,
+      "display_dp": "360x640",
+      "system_font_scale": 1.5
+    },
+    "two_avd_phases": 27,
+    "postgresql_decisions": 18,
+    "http_security_checks": 9,
+    "artifact_id": 14126539209,
+    "artifact_sha256": "9cf39f6788fe2373b0381660e581dcf349b47e7cc7be32d48dbe16e6bf769793",
+    "network_phases": [
+      "primary-c-functional-activities-final",
+      "primary-c-functional-activities",
+      "primary-c-functional-clear-offline",
+      "primary-c-functional-final",
+      "primary-c-functional-reopen",
+      "primary-c-functional-seed",
+      "primary-c-functional-sent",
+      "primary-e-auto-conflict-local",
+      "primary-e-auto-grade-high",
+      "primary-e-auto-grade-replay",
+      "primary-e-auto-grade-stale-low",
+      "primary-e-auto-observe",
+      "primary-e-auto-offline-logout",
+      "primary-e-auto-reconnect-lost",
+      "primary-e-auto-reconnect",
+      "primary-e-auto-reopen-offline",
+      "primary-e-auto-second-local",
+      "primary-e-auto-seed",
+      "secondary-c-functional-activities-recover",
+      "secondary-c-functional-receive-remove",
+      "secondary-c-functional-recover",
+      "secondary-e-auto-conflict-remote",
+      "secondary-e-auto-observe-high",
+      "secondary-e-auto-observe-low",
+      "secondary-e-auto-receive-offline",
+      "secondary-e-auto-recover",
+      "secondary-e-auto-second-remote"
+    ]
+  },
+  "fixture": {
+    "records": 171,
+    "types": 15,
+    "live_students": 37,
+    "source_enrollments": 36
+  },
+  "faults": [
+    "Lost committed upload response then process force-stop and same-operation replay",
+    "Concurrent offline grade edits on two AVDs",
+    "Third remote grade revision injected by HTTP with the synthetic second-device session before confirmation",
+    "Lost committed decision response then process force-stop and audited decision replay"
+  ],
+  "limits": [
+    "Automatic recovery only for already-authorized E experimental accounts and nonlegacy workspaces",
+    "Initial activation, legacy/v1 conflicts and restored backups are not silently adopted or resolved",
+    "Simplified suggestion only for an isolated valid numeric grade conflict; other sets retain full review",
+    "Five conditional hosted JVM cases skipped, not approved",
+    "Android selection and compact reruns, not a full Android suite",
+    "No new hosted/physical/permanent-signature validation",
+    "No SQL/RLS/schema/backup format/signing/version changes; no release",
+    "H13 capacity constraints remain unchanged"
+  ],
+  "superseded_runs": [
+    {
+      "run_id": 43623031779,
+      "outcome": "failure",
+      "cause": "new fixture comparison used original instead of canonical order"
+    },
+    {
+      "run_id": 43623719336,
+      "outcome": "failure",
+      "cause": "secondary AVD settings service not ready; no network phase executed"
+    },
+    {
+      "run_id": 43626412238,
+      "outcome": "failure",
+      "cause": "27 network phases passed; one legacy export UI case did not await actionable sheet after document-picker return; compact not executed"
+    }
+  ],
+  "screenshots_sha256": {
+    "docs/evidence/AUTOMATICA_NOTAS_20261114/popup-nota.png": "3ee72f06b9d855b93e67cd877886347272711270d815d6481d8879270fc7fb21",
+    "docs/evidence/AUTOMATICA_NOTAS_20261114/previa-desatualizada.png": "25e698b46bcf1511b8e6a079b001c46915e718f0f737c2a06bd05753623de9f9",
+    "docs/evidence/AUTOMATICA_NOTAS_20261114/popup-fonte-150.png": "53e6963abd6ce933e3343e2866d6e6d41861d185761c99dea6fe55d9ad6d2d16",
+    "docs/evidence/AUTOMATICA_NOTAS_20261114/bloqueio-fonte-150.png": "badb08442ea3b108bca56b9d5cae2a6e01dd9bf0e42e4f3ed8bf73561c36dc28"
+  },
+  "changed_files": [
+    ".github/workflows/functional-improvements.yml",
+    "app/src/androidTest/java/br/com/diariodeclasse/AcademicAutomaticNetworkProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/AcademicAutomaticRoomTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/AcademicGradeConflictUiTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/AuthTestRunner.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PhaseENetworkProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PhaseEReconciliationTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PromptTwoUiInstrumentedTest.kt",
+    "app/src/main/java/br/com/diariodeclasse/DiaryApplication.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/SyncJobs.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/SyncPanel.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicAutomaticStatus.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicEngine.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeConflict.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeDialog.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReconciliation.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReviewDialog.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicStore.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryViewModel.kt",
+    "app/src/test/java/br/com/diariodeclasse/AcademicNumericGradeTest.kt",
+    "docs/SINCRONIZACAO_AUTOMATICA_NOTAS_0220.md",
+    "scripts/ci/test-functional-android.sh",
+    "scripts/ci/test-functional-network.sh",
+    "scripts/test-phase-e-decisions.py"
+  ]
+}
