@@ -64,9 +64,9 @@ class ActivityCopiesUiTest {
         compose.onNodeWithText("Turma atual ▾").performScrollTo().performClick();compose.onNodeWithText("Selecionar turmas").performClick()
         compose.onNodeWithTag("activity-select-all").performScrollTo().performClick()
         compose.onNodeWithTag("activity-deselect-all").performScrollTo().performClick()
-        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextContains("0 turmas")
+        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("0 turmas: ")
         for(id in listOf(c.id,b.id))compose.onNodeWithTag("activity-target-$id").performScrollTo().performClick()
-        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextContains("2 turmas")
+        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("2 turmas: ${c.name}, ${b.name}")
         shot("02-selecao-de-turmas")
         compose.onNodeWithText("Salvar e lançar notas").performScrollTo().performClick();waitTag("grades-list")
         val copies=runBlocking{app.repository.readSnapshot().activities.filter{it.name=="Cópia Fictícia UI"}}
@@ -80,7 +80,7 @@ class ActivityCopiesUiTest {
         compose.onNodeWithText("Turma atual ▾").performScrollTo().performClick();compose.onNodeWithText("Selecionar turmas").performClick()
         compose.onNodeWithTag("activity-deselect-all").performScrollTo().performClick()
         compose.onNodeWithTag("activity-target-${b.id}").performScrollTo().performClick()
-        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextContains("1 turma")
+        compose.onNodeWithTag("activity-target-summary").performScrollTo().assertTextEquals("1 turma: ${b.name}")
         compose.onNodeWithText("Salvar e lançar notas").performScrollTo().performClick();waitTag("grades-list")
         compose.waitUntil(10000){compose.onAllNodesWithText(b.name).fetchSemanticsNodes().isNotEmpty()}
         val copies=runBlocking{app.repository.readSnapshot().activities.filter{it.name=="Outra Turma Fictícia"}}
