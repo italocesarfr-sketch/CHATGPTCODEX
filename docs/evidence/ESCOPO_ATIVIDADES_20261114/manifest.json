@@ -1,0 +1,37 @@
+{
+  "validated_code": "bbeb0c056d17e5c8204dd6b0327667dc42e6d7e6",
+  "workflow": 43597997812,
+  "artifact": 14114513955,
+  "jvm": {
+    "total": 309,
+    "passed": 304,
+    "failed": 0,
+    "skipped": 5
+  },
+  "android_selected": {
+    "passed": 59,
+    "failed": 0,
+    "ignored": 0
+  },
+  "android_compact_150": {
+    "passed": 3,
+    "failed": 0,
+    "ignored": 0
+  },
+  "http_two_avds": 10,
+  "http_security_local": 9,
+  "hosted_executed": false,
+  "room_migration": false,
+  "protocol_changed": false,
+  "automatic_school_grade_scope": "blocked_without_structured_metadata",
+  "screenshots": {
+    "selecao-manual-2026.png": {
+      "bytes": 34384,
+      "sha256": "3cc4e2b1e825e42805c24fe644c1fef9babdf0bb51a1b1890810a47a9b2e23c7"
+    },
+    "selecao-manual-fonte-150.png": {
+      "bytes": 106881,
+      "sha256": "75531d85b0ac9e69317556880142f358a156d55316bca065539175bc4d3bedf6"
+    }
+  }
+}

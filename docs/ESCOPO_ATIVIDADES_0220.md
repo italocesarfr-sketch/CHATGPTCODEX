@@ -33,4 +33,35 @@ Uma preferência só local ou associação transitória pelo nome não resolve a
 
 Fixtures de 1º, 2º e 3º anos de 2026, outra turma de 2027 e nomes livres sem série confiável. Testar bloqueio do automático sem metadado, seleção manual entre séries, visibilidade apenas de 2026, rejeição de mistura 2026/2027 e de datas individuais antigas, ausência de criação parcial/outbox em erro, idempotência, duplicatas, notas independentes e recuperação Android por HTTP em dois AVDs descartáveis. Preservar a regressão de chamada e os testes anteriores de criação atômica.
 
-Resultados desta correção serão registrados após execução; a CI antiga não aprova automaticamente a regra nova. Nenhum teste hospedado ou instalação existente será utilizado.
+## Implementação e validação concluída em ambiente descartável
+
+- `6336462`: avaliação e decisão antes da alteração funcional.
+- `bbeb0c0`: escopo automático bloqueado no planejador e retirado das opções comuns; manual restrito ao ano letivo da origem; campos de data por destino removidos; preservada a revalidação transacional existente.
+- Somente dois arquivos de produção alterados: `data/ActivityCopies.kt` e `ui/Forms.kt`. Nenhum código de chamada, cálculo, exportação, backup ou transporte foi alterado.
+- Testes atualizados: `ActivityCopiesTest`, `ActivityCopiesRoomTest`, `ActivityCopiesUiTest` e `FunctionalNetworkProbeTest`. As provas de criação independente, rollback, duplicatas, reabertura, resposta perdida e sincronização continuam presentes; não foi reduzida a cobertura de segurança.
+- Comando local: JDK 17, `./gradlew --offline --no-daemon testDebugUnitTest assembleDebug assembleDebugAndroidTest`. BUILD SUCCESSFUL; 309 casos JVM, 304 aprovados, zero falhas e cinco condicionais hospedados não executados. Nenhum resultado condicional foi contado como aprovação.
+- [CI 43597997812 aprovada](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43597997812), SHA `bbeb0c056d17e5c8204dd6b0327667dc42e6d7e6`, job `functional / tests`.
+
+| Prova executada | Aprovados | Falhas | Não executados/ignorados |
+|---|---:|---:|---:|
+| JVM completo | 304 | 0 | 5 condicionais hospedados |
+| Android selecionado, nove classes (inclui dez testes Room de cópias) | 59 | 0 | 0 |
+| Repetição UI a 360×640 dp e fonte nativa 150% | 3 | 0 | 0 |
+| Room/HTTP real em dois AVDs independentes | 10 fases | 0 | 0 |
+| HTTP de segurança em PostgreSQL/PostgREST descartável | 9 | 0 | 0 |
+
+Os cinco condicionais JVM são H01–H04 e SupabaseLiveAuthTest, sem credenciais/autorização nesta rodada. Os jobs H131/H132 ficaram fora da seleção e não representam aprovações. Não foi reexecutada a suíte Android global nem a investigação de volume.
+
+**Provas específicas:** origem 1º K, pares 1º H e turmas do 2º/3º anos com a mesma etapa não habilitam o automático sem série estruturada. A interface não oferece esse escopo nem turmas de 2027 quando a origem é de 2026. Selecionar todas no modo manual inclui somente as três turmas elegíveis de 2026. Seleção individual entre 1º/2º/3º anos, resumo, salvamento e notas independentes foram testados; não se usa análise do nome para decidir compatibilidade.
+
+No Room, pedidos forjados que acrescentam 2027, com ou sem data individual, e o escopo automático antigo foram rejeitados sem alterar o snapshot, versões ou outbox. Uma atividade antiga de 2027 com nota zero foi sincronizada pelo Remote controlado do teste Room e preservada após a rejeição e a reabertura do banco; isso não é homologação hospedada. Um novo destino não selecionado não entra no pedido existente.
+
+Na prova HTTP real local, duas instalações recuperaram as três atividades de 1º/2º/3º anos de 2026 com os mesmos IDs; zero, pendente e 5,0 permaneceram distintos. Alterar a nota da segunda turma para 6,5 no outro emulador preservou zero na primeira e 5,0 na terceira. A tentativa com 2027 não criou atividades nem operações pendentes; a turma de 2027 pode existir e sincronizar normalmente sem participar da criação em lote. A regressão P/F/FJ/NR continuou aprovada.
+
+[Artefato completo 14114513955](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43597997812/artifacts/14114513955). Capturas nativas inspecionadas e copiadas sem edição: [normal](evidence/ESCOPO_ATIVIDADES_20261114/selecao-manual-2026.png), [fonte 150%](evidence/ESCOPO_ATIVIDADES_20261114/selecao-manual-fonte-150.png). [Manifesto com contagens e hashes](evidence/ESCOPO_ATIVIDADES_20261114/manifest.json).
+
+**Pendência deliberada:** a seleção automática por série não está implementada como função utilizável. Está bloqueada até avaliação/aprovação da evolução estrutural descrita acima e seus testes de migração/compatibilidade. A seleção manual segura está funcional e validada localmente; não equivale à homologação física/hospedada da nova regra.
+
+A restrição vale para o comando local de criação em lote. O protocolo continua transportando registros independentes de múltiplos anos letivos, inclusive atividades antigas de 2027: impedir isso no transporte corromperia a recuperação normal da conta. Nenhum lote antigo é reinterpretado como novo pedido de criação.
+
+A CI antiga não aprova automaticamente a regra nova. Nenhum teste hospedado ou instalação existente foi utilizado.

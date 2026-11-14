@@ -2,6 +2,8 @@
 
 Branch: `sync/academic-complete-0220`. Continuidade da base funcional H13 preservada; os candidatos H13.1/H13.2 não foram integrados. Somente dados sintéticos e infraestrutura descartável são autorizados nesta rodada.
 
+> Regra de produto atualizada após esta evidência: consulte [Escopo de atividades](ESCOPO_ATIVIDADES_0220.md). A seleção manual agora se limita ao mesmo ano letivo e a seleção automática por série está bloqueada até existir série estruturada. O ensaio anterior entre 2026/2027 abaixo é histórico e não representa uma criação atualmente permitida.
+
 ## Etapa 1 — chamada
 
 - `08ffc24`: segundo toque em P/F consulta o estado real dentro de `Room.withTransaction` e exclui a ocorrência. Ausência não é NR.
