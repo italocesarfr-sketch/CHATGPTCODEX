@@ -41,7 +41,7 @@ class ActivityCopiesUiTest {
     private fun waitTag(tag:String){compose.waitUntil(10000){compose.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty()}}
     private fun hideKeyboard(){compose.runOnIdle{(app.getSystemService(Context.INPUT_METHOD_SERVICE)as InputMethodManager).hideSoftInputFromWindow(compose.activity.window.decorView.windowToken,0)}}
     private fun shot(name:String){hideKeyboard();compose.waitForIdle();val f=File(app.filesDir,"activity-copies-screenshots");f.mkdirs();val screenshot=InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot();checkNotNull(screenshot);File(f,"$name.png").outputStream().use{screenshot.compress(Bitmap.CompressFormat.PNG,100,it)};screenshot.recycle()}
-    private fun listAction(tag:String){compose.onNodeWithTag("activities-list").performScrollToNode(hasTestTag(tag));compose.onNodeWithTag(tag).performClick()}
+    private fun listAction(tag:String){compose.onNodeWithTag("activities-list").performScrollToNode(hasTestTag(tag));compose.onNodeWithTag(tag).performScrollTo().assertIsDisplayed().performClick()}
     private fun search(q:String){compose.onNodeWithTag("grades-list").performScrollToIndex(1);compose.onNodeWithTag("grade-search").performTextReplacement(q);hideKeyboard()}
     @Test fun gradeSearchSortAndInvalidDraftSurviveFilteringAndRecreation(){
         listAction("activity-grades-${a.id}");waitTag("grades-list")
