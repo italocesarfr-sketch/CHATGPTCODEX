@@ -67,7 +67,24 @@ seleciona esse controle; a Application real usa o caminho automático. Os novos
 ensaios ativam o caminho real, sem chamar `run`/`request` depois de editar ou
 reconectar.
 
+### Aprovação local da etapa 1
+
+CI [43624510478](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43624510478),
+código `a4e01aa03da81c603f7c5d14c1d0858cd86c6c4a`, testes consolidados em
+`c4387b66721797c70b9e511875a1736cc3ebf75b`: **success**.
+304 JVM aprovados, cinco condicionais hospedados ignorados; 64 Android
+funcionais + três compactos aprovados, nenhum ignorado/falho nessas seleções;
+18 fases HTTP/Android (dez anteriores + oito automáticas) aprovadas em dois
+AVDs independentes; nove verificações HTTP de segurança aprovadas.
+Recuperação dos 15 tipos com 36 matrículas na origem, edição inversa, logout
+com gravação offline, reinício, perda de resposta e replay foram executados.
+PostgreSQL local adicional: 27 regras D + 15 decisões E aprovadas.
+Não é execução da suíte Android integral nem homologação hospedada nova.
+
+Commits da etapa: `a4e01aa` (produto e provas), `3461033` (oráculo canônico),
+`c4387b6` (prontidão dos serviços do segundo AVD).
+
 ## Etapa 2
 
-A implementar somente depois da validação e commit independente da etapa 1.
+Iniciar após esta aprovação local; nenhuma mudança remota de contrato prevista.
 Nenhum APK ou release oficial é produzido nesta tarefa.
