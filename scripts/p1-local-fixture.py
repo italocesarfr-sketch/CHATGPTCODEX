@@ -5,9 +5,13 @@ from pathlib import Path
 f=runpy.run_path(str(Path(__file__).with_name('h05-local-fixture.py')))
 jwt=f['f'].token('99999999-9999-4999-8999-999999999999','93939393-9393-4393-8393-939393939393')
 def rpc(name,body=None):return f['f'].request('/rpc/'+name,body,jwt)
-s=rpc('noctua_academic_status_c');assert s['protocol']==1
+s=rpc('noctua_academic_status_c');assert s['protocol']==1 and s['testAllowed'] is True
 rpc('noctua_activate_academic',dict(p_expected_sequence=s['v1Sequence'],p_expected_v1=s['v1']))
-for stage in ('c','d','e'):rpc('noctua_enable_academic_'+stage,dict(p_expected_sequence=0))
+for stage,scope in (('c',3),('d',4),('e',5)):
+ rpc('noctua_enable_academic_'+stage,dict(p_expected_sequence=0))
+ status=rpc('noctua_academic_status_c')
+ assert status['protocol']==2 and status['academicScope']==scope and status['testAllowed'] is True
+ assert (status['protocol']==2 and status['academicScope']==5 and status['testAllowed'])==(stage=='e')
 source=f['s'];cls=dict(source['classes'][0],id='p1-b-class',name='P1 synthetic B')
 terms=[dict(t,classId=cls['id'])for t in source['terms']if t['classId']==source['classes'][0]['id']]
 assert len(terms)==4

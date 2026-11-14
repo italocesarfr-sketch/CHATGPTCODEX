@@ -46,10 +46,18 @@ def proof(raw,mode):
  need(len(raw)<=65536,'REPORT_LIMIT')
  try:j=json.loads(raw)
  except Exception:raise Blocked('REPORT_JSON')from None
- allowed=FLAGS|NUMBERS|{'case','mode','status','stage','failure_code','timings_ms','a_hash','b_hash','types_a','types_b'}
+ allowed=FLAGS|NUMBERS|{'case','mode','status','stage','failure_code','timings_ms','a_hash','b_hash','types_a','types_b','eligibility'}
  need(isinstance(j,dict)and not set(j)-allowed,'REPORT_FIELDS')
  need(j.get('case')=='P1'and j.get('mode')==mode and j.get('status')in ('PASSED','FAILED'),'REPORT_IDENTITY')
  need(j.get('stage')in STAGES and j.get('failure_code')in {None}|CODES|{'P1_'+x for x in CODES},'REPORT_STAGE')
+ if 'eligibility'in j:
+  observed=j['eligibility'];need(isinstance(observed,dict)and not set(observed)-{'A','B'},'REPORT_ELIGIBILITY')
+  for row in observed.values():
+   need(isinstance(row,dict)and set(row)=={'protocol','scope','test_allowed','ready'},'REPORT_ELIGIBILITY')
+   need(row['protocol']in ('V1','V2','OTHER')and row['scope']in ('B','C','D','E','OTHER'),'REPORT_ELIGIBILITY')
+   need(type(row['test_allowed'])is bool and type(row['ready'])is bool,'REPORT_ELIGIBILITY')
+   need(row['ready']==(row['protocol']=='V2'and row['scope']=='E'and row['test_allowed']),'REPORT_ELIGIBILITY')
+  if j['status']=='PASSED':need(set(observed)=={'A','B'}and all(v['ready']for v in observed.values()),'REPORT_ELIGIBILITY')
  for k in FLAGS&j.keys():need(type(j[k])is bool,'REPORT_FLAG')
  for k in NUMBERS&j.keys():need(type(j[k])is int and 0<=j[k]<=600000,'REPORT_NUMBER')
  for k in {'a_hash','b_hash'}&j.keys():need(type(j[k])is str and bool(re.fullmatch('[0-9a-f]{64}',j[k])),'REPORT_HASH')
@@ -134,7 +142,7 @@ def execute(env):
    cases='br.com.diariodeclasse.P1RecoveryProbeTest'+(',br.com.diariodeclasse.P1GuardTest'if mode=='LOCAL'else'')
    raw=adb('-s',serial,'shell','am','instrument','-w','-e','timeout_msec','360000','-e','p1Mode',mode,'-e','p1Authorized','YES'if mode=='HOSTED'else'NO','-e','p1Device','SECOND'if index else'FIRST','-e','class',cases,package+'.test/br.com.diariodeclasse.AuthTestRunner',timeout=420,check=False)
    (p/f'private-native-{index}.log').write_bytes(raw)
-   diag=h05.native_diagnostics(raw,5 if mode=='LOCAL'else 1);native.append(diag)
+   diag=h05.native_diagnostics(raw,6 if mode=='LOCAL'else 1);native.append(diag)
    encoded=adb('-s',serial,'exec-out','run-as',package,'base64','files/p1-result.json')
    digest=adb('-s',serial,'exec-out','run-as',package,'sha256sum','files/p1-result.json')
    m=re.fullmatch(rb'([0-9a-f]{64})  files/p1-result\.json\s*',digest);need(m is not None and len(encoded)<=100000,'REPORT_DIGEST')
@@ -142,6 +150,7 @@ def execute(env):
    record=proof(decoded,mode);reports.append(record)
    public(env,'RUNNING',proofs=reports,instrumentation=native,apk_sha256=apk_hash,test_apk_sha256=test_hash,apk_identity=apk_identity)
    need(diag['ok_marker']and not any(diag[k]for k in ('process_crashed','instrumentation_failed','failures','exception_types'))and record['status']=='PASSED'and b'Assumption'not in raw,'ANDROID_PROOF_FAILED')
+  need(all(set(r.get('eligibility',{}))=={'A','B'}and all(v['ready']for v in r['eligibility'].values())for r in reports),'ELIGIBILITY_EVIDENCE_MISSING')
   for key in ('a_hash','b_hash','a_head','b_head','a_records','b_records','types_a','types_b'):need(reports[0][key]==reports[1][key],'INSTALLATIONS_DIFFER')
   public(env,'PASSED_LOCAL_DISPOSABLE'if mode=='LOCAL'else'PASSED_HOSTED_PRESENT_TYPES',proofs=reports,instrumentation=native,apk_sha256=apk_hash,test_apk_sha256=test_hash,apk_identity=apk_identity,hosted_requests_executed=mode=='HOSTED',two_independent_installations=True)
  finally:

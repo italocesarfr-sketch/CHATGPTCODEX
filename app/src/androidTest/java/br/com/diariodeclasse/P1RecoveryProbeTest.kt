@@ -33,6 +33,7 @@ class P1RecoveryProbeTest {
             out["failure_code"]=failure?.let{JsonPrimitive(it)} ?: JsonNull
             out["total_ms"]=JsonPrimitive(SystemClock.elapsedRealtime()-start)
             out["timings_ms"]=JsonObject(times.mapValues{JsonPrimitive(it.value)})
+            out["eligibility"]=support.eligibility
             out["blocked_writes"]=JsonPrimitive(support.readonly.blockedWrites);out["read_calls"]=JsonPrimitive(support.readCalls)
             out["login_calls"]=JsonPrimitive(support.loginCalls);out["logout_calls"]=JsonPrimitive(support.logoutCalls)
             report.writeText(JsonObject(out).toString())
@@ -90,7 +91,7 @@ class P1RecoveryProbeTest {
                 val a=support.accounts[0];val b=support.accounts[1]
                 at("LOGIN_A"){login(a);flag("ui_login_a_verified")}
                 val tokenA=app.auth.syncToken(a.id)
-                val baselineA=at("RECOVER_A"){support.inventory(tokenA)}
+                val baselineA=at("RECOVER_A"){support.inventory(tokenA,"A")}
                 p1Need(baselineA.rows().any{it.kind=="classes"&&it.key["id"]?.jsonPrimitive?.content==support.fixture},"FIXTURE")
                 val ledgerA=support.ledgerHash(support.select(tokenA,a.id,true))
                 val rowsA=at("VERIFY_A"){verify(a,baselineA)}
@@ -100,18 +101,18 @@ class P1RecoveryProbeTest {
                 flag("automatic_startup_verified")
                 at("LOGIN_B"){logout();login(b);flag("ui_login_b_verified")}
                 val tokenB=app.auth.syncToken(b.id)
-                val baselineB=at("RECOVER_B"){support.inventory(tokenB)}
+                val baselineB=at("RECOVER_B"){support.inventory(tokenB,"B")}
                 val ledgerB=support.ledgerHash(support.select(tokenB,b.id,true))
                 val rowsB=at("VERIFY_B"){verify(b,baselineB)}
                 p1Need(support.select(tokenB,a.id,false).isEmpty(),"ISOLATION")
-                p1Need(support.inventory(tokenB)==baselineB&&support.ledgerHash(support.select(tokenB,b.id,true))==ledgerB,"REMOTE_CHANGED")
+                p1Need(support.inventory(tokenB,"B")==baselineB&&support.ledgerHash(support.select(tokenB,b.id,true))==ledgerB,"REMOTE_CHANGED")
                 out["types_b"]=h05TypeSummary(rowsB,baselineB.rows());out["b_hash"]=JsonPrimitive(h05RowsHash(rowsB))
                 out["b_head"]=JsonPrimitive(baselineB.head);out["b_records"]=JsonPrimitive(rowsB.size)
                 at("RETURN_A"){logout();login(a)}
                 val returned=at("VERIFY_RETURN"){verify(a,baselineA)}
                 p1Need(returned.associateBy{it.identity}==rowsA.associateBy{it.identity},"DATA")
                 val newToken=app.auth.syncToken(a.id)
-                p1Need(support.inventory(newToken)==baselineA&&support.ledgerHash(support.select(newToken,a.id,true))==ledgerA,"REMOTE_CHANGED")
+                p1Need(support.inventory(newToken,"A")==baselineA&&support.ledgerHash(support.select(newToken,a.id,true))==ledgerA,"REMOTE_CHANGED")
                 for(f in listOf("ids_payloads_equal","revisions_equal","receipts_equal","references_valid","queues_empty","remote_unchanged","audits_unchanged","a_b_a_isolated"))flag(f)
             }
         }catch(e:Exception){failure=when(e){is P1Stop->e.code;is TimeoutCancellationException->"TIMEOUT";is H05BlockedWrite->"WRITE_ATTEMPT";else->"UNEXPECTED"}}

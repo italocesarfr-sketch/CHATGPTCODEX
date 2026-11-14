@@ -20,6 +20,14 @@ internal class P1ReadBudget {
     @Synchronized fun size()=count
 }
 
+/** Fixed tags only: never include owner/session IDs or a raw server response. */
+internal fun p1Eligibility(s:AcademicProtocolStatus)=buildJsonObject {
+    put("protocol",JsonPrimitive(when(s.protocol){1->"V1";2->"V2";else->"OTHER"}))
+    put("scope",JsonPrimitive(when(s.academicScope){2->"B";3->"C";4->"D";5->"E";else->"OTHER"}))
+    put("test_allowed",JsonPrimitive(s.testAllowed))
+    put("ready",JsonPrimitive(s.protocol==2&&s.academicScope==5&&s.testAllowed))
+}
+
 /** Instrumentation only. Normal Application startup, real Auth UI and account workspaces. */
 class P1RecoverySupport(private val app:AcademicTestApplication,val mode:String,authorized:Boolean,second:Boolean) {
     init {
@@ -128,7 +136,12 @@ class P1RecoverySupport(private val app:AcademicTestApplication,val mode:String,
             AcademicRecords.json.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonArray.also{p1Need(it.size<=if(audits)256 else 1,"LIMIT")}
         }finally{c.disconnect()}
     }
-    internal suspend fun inventory(token:String)=p1Inventory(readonly,token)
+    private val observedEligibility=linkedMapOf<String,JsonObject>()
+    internal val eligibility get()=JsonObject(observedEligibility.toMap())
+    internal suspend fun inventory(token:String,account:String):H05Inventory {
+        p1Need(account in setOf("A","B"),"INPUT")
+        return p1Inventory(readonly,token){status->observedEligibility[account]=p1Eligibility(status)}
+    }
     internal suspend fun cleanup():Boolean {
         for(r in synchronized(created){created.toList()})if(!r.ended) {
             try{tracked.logout(r.session)}catch(_:Exception){return false}
@@ -138,8 +151,9 @@ class P1RecoverySupport(private val app:AcademicTestApplication,val mode:String,
     internal fun ledgerHash(rows:JsonArray)=BackupCodec.hash(AcademicRecords.canonical(rows).toByteArray())
 }
 
-internal suspend fun p1Inventory(remote:H05ReadOnlyRemote,token:String):H05Inventory {
+internal suspend fun p1Inventory(remote:H05ReadOnlyRemote,token:String,observed:(AcademicProtocolStatus)->Unit={}):H05Inventory {
     val s=remote.status(token)
+    observed(s) // Capture existing response before the unchanged fail-closed predicate.
     p1Need(s.protocol==2&&s.academicScope==5&&s.testAllowed,"SCOPE");p1Need(s.academicSequence in 0..256,"LIMIT")
     if(s.academicSequence==0L) {
         p1Need(remote.pullE(token,0,0).isEmpty()&&remote.status(token)==s,"REMOTE_CHANGED")
