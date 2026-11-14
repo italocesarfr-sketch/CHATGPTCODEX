@@ -139,7 +139,7 @@ private val pages = listOf(
     }; returnDetail = "" }
     BackHandler(detail.isNotEmpty() && !navigating) { back() }
     Scaffold(
-        topBar = { TopAppBar(title = {
+        topBar = { Column { TopAppBar(title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Image(painterResource(R.drawable.noctua_logo), "Logo do Noctua: coruja em forma de N",
                     Modifier.size(32.dp).testTag("noctua-logo"), contentScale = ContentScale.Fit)
@@ -158,7 +158,9 @@ private val pages = listOf(
             }
             TextButton(enabled = !exportBusy,contentPadding=PaddingValues(8.dp), onClick = {
             if(importGuard != null || exportDraft != null || recordDraft != null) navigate { showBackup = true } else showBackup = true
-        }) { Text("Backup") } }) },
+        }) { Text("Backup") } })
+            br.com.diariodeclasse.sync.academic.AcademicAutomaticStatus((vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).workspace){showSync=true}
+        } },
         bottomBar = { NavigationBar {
             pages.forEachIndexed { index, item ->
                 val active=page==index

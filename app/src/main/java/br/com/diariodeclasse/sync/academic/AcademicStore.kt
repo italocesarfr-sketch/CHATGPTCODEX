@@ -147,6 +147,18 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             val (a,b)=r.identity.parts();dao.save(AcademicState(r.kind,a,b,owner))
         }
     }
+    /** Only a previously authorized E account can be adopted automatically. Never replace
+     * a local consent, pause, restore, orphaned queue or the legacy v1 experiment. */
+    suspend fun canRecoverAuthorizedE()=db.withTransaction {
+        control()==null && dao.states().isEmpty() && dao.pendingHeaders().isEmpty() &&
+            dao.incomingHeaders().isEmpty() && dao.parts().isEmpty() && dao.decisionHeaders().isEmpty() &&
+            db.syncDao().control()==null && db.syncDao().states().isEmpty() && db.syncDao().operations().isEmpty()
+    }
+    suspend fun recoverAuthorizedE(remote:AcademicProtocolStatus)=db.withTransaction {
+        require(remote.protocol==2 && remote.academicScope==5 && remote.testAllowed)
+        check(canRecoverAuthorizedE())
+        prepareConsent(remote);prepareE(remote);activateE(remote)
+    }
     /** Explicit consent is durable before the network transition. No legacy conflict is cleared. */
     suspend fun prepareConsent(remote:AcademicProtocolStatus)=db.withTransaction {
         require(remote.protocol in 1..2 && remote.v1Sequence>=0)

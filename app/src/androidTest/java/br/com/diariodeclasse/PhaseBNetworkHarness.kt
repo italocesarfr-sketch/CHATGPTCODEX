@@ -59,7 +59,7 @@ object PhaseBNetworkHarness {
                 return measureE("decisionE"){delegate.decisionE(token,operation)}
             }
             override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment> {
-                if(phase=="e-admission-stop" || phase=="e-lost"&&committed)throw SyncFailure("NETWORK")
+                if(phase=="e-admission-stop" || phase in setOf("e-lost","e-auto-reconnect-lost")&&committed)throw SyncFailure("NETWORK")
                 return measureE("pullE"){delegate.pullE(token,after,offset)}
             }
             override suspend fun pushE(token:String,batch:AcademicBatch,admitted:()->Boolean):AcademicPushReply {
@@ -67,7 +67,7 @@ object PhaseBNetworkHarness {
                     lastEFailure=(e as? SyncFailure)?.code ?: (e.javaClass.simpleName+":"+e.stackTrace.firstOrNull{it.className.startsWith("br.com.diariodeclasse")})
                     throw e
                 }
-                if(phase=="e-lost"){committed=true;throw SyncFailure("NETWORK")}
+                if(phase in setOf("e-lost","e-auto-reconnect-lost")){committed=true;throw SyncFailure("NETWORK")}
                 return reply
             }
             override suspend fun pullD(token:String,after:Long):List<AcademicPage> {

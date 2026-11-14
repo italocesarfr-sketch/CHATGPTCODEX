@@ -9,10 +9,10 @@ mkdir -p build/functional-network
 cleanup(){ adb -s "$secondary" emu kill >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 probe(){
-  local device="$1" phase="$2" side="$3"
+  local device="$1" phase="$2" side="$3" testcase="${4:-FunctionalNetworkProbeTest}"
   adb -s "$device" shell am force-stop br.com.diariodeclasse
   timeout --signal=INT --kill-after=10s 3m adb -s "$device" shell am instrument -w -e timeout_msec 120000 \
-    -e phaseBNetworkPhase "$phase" -e phaseBDevice "$side" -e class br.com.diariodeclasse.FunctionalNetworkProbeTest \
+    -e phaseBNetworkPhase "$phase" -e phaseBDevice "$side" -e class "br.com.diariodeclasse.$testcase" \
     br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/functional-network/$side-$phase.txt"
   cat "build/functional-network/$side-$phase.txt"
   python3 - "$side" "$phase" <<'PY'
@@ -64,3 +64,14 @@ probe "$primary" c-functional-activities primary
 probe "$secondary" c-functional-activities-recover secondary
 probe "$primary" c-functional-activities-final primary
 printf '%s\n' '10 functional P/F phases passed on two disposable AVDs and real local HTTP.' > build/functional-network/summary.txt
+
+# A separate synthetic tenant and two fresh Room workspaces; no hosted credentials.
+probe "$primary" e-auto-seed primary AcademicAutomaticNetworkProbeTest
+probe "$secondary" e-auto-recover secondary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-observe primary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-offline-logout primary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-reopen-offline primary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-reconnect-lost primary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-reconnect primary AcademicAutomaticNetworkProbeTest
+probe "$secondary" e-auto-receive-offline secondary AcademicAutomaticNetworkProbeTest
+printf '%s\n' '10 functional + 8 automatic phases passed on two disposable AVDs and real local HTTP.' > build/functional-network/summary.txt

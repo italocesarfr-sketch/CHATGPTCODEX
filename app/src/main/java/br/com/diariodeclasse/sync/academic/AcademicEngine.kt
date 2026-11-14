@@ -5,6 +5,17 @@ import kotlinx.coroutines.CancellationException
 
 class AcademicEngine(private val store:AcademicStore,private val remote:AcademicRemote,
     private val session:suspend()->String,private val admitted:()->Boolean) {
+    /** Recover a scope already authorized on the server: no remote activation, no
+     * implicit upgrade of v1, no adoption of unbound data. Caller holds workspace mutex. */
+    suspend fun recoverAuthorizedE():Boolean {
+        check(admitted())
+        if(!store.canRecoverAuthorizedE())return false
+        val token=session();check(admitted())
+        val status=remote.status(token);check(admitted())
+        if(status.protocol!=2 || status.academicScope!=5 || !status.testAllowed)return false
+        store.recoverAuthorizedE(status)
+        return true
+    }
     /** Called only after explicit test consent. Resuming PREPARED never invents a fresh consent. */
     suspend fun activate() {
         check(admitted())

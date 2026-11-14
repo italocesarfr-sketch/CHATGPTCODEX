@@ -35,6 +35,14 @@ class DiaryViewModel(application: Application) : AndroidViewModel(application) {
     fun message(text: String) { messages.trySend(text) }
     fun logout() {
         if(commands.error.value!=null || commands.attendanceError.value!=null){message("Resolva ou descarte as alterações não salvas antes de sair.");return}
-        app.authScope.launch { app.auth.logout() }
+        app.authScope.launch {
+            // Finish queued Room writes before revoking access. Unsent committed work
+            // stays in this account's durable outbox; logout never clears it.
+            commands.awaitPendingWrites()
+            if(commands.error.value!=null || commands.attendanceError.value!=null) {
+                message("Resolva ou descarte as alterações não salvas antes de sair.");return@launch
+            }
+            app.auth.logout()
+        }
     }
 }

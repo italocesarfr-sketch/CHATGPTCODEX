@@ -115,6 +115,7 @@ class AcademicTestApplication:DiaryApplication() {
         // The same controller must still own this manager when the Activity opens.
         workspaces
     }
+    override fun automaticAcademicRecovery()=PhaseBNetworkHarness.phase?.startsWith("e-auto-")==true
     override fun academicRemote()=h05Support?.readonly ?: if(PhaseBNetworkHarness.phase!=null)PhaseBNetworkHarness.remote()else super.academicRemote()
     // The academic suite uses the same legacy fixture DB, independently of UI authentication tests.
     // Production DiaryApplication has no such override or test credentials.

@@ -5,7 +5,7 @@ set -euo pipefail
 mkdir -p build/functional-tests
 collect(){ adb exec-out run-as br.com.diariodeclasse tar -C files -cf - fj-flow-screenshots prompt2-screenshots activity-copies-screenshots etapa4a-screenshots > "build/functional-tests/screenshots-$1.tar" 2>/dev/null || true; }
 trap 'collect final' EXIT
-classes=br.com.diariodeclasse.PromptTwoRoomInstrumentedTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.FjFlowInstrumentedTest,br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.PromptTwoUiInstrumentedTest,br.com.diariodeclasse.ActivityCopiesRoomTest,br.com.diariodeclasse.ActivityCopiesUiTest,br.com.diariodeclasse.ActivityChangesInstrumentedTest,br.com.diariodeclasse.ActivityChangesUiInstrumentedTest
+classes=br.com.diariodeclasse.AcademicAutomaticRoomTest,br.com.diariodeclasse.PromptTwoRoomInstrumentedTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.FjFlowInstrumentedTest,br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.PromptTwoUiInstrumentedTest,br.com.diariodeclasse.ActivityCopiesRoomTest,br.com.diariodeclasse.ActivityCopiesUiTest,br.com.diariodeclasse.ActivityChangesInstrumentedTest,br.com.diariodeclasse.ActivityChangesUiInstrumentedTest
 adb shell am instrument -w -e class "$classes" br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/functional-tests/android.txt
 python3 scripts/check-instrumentation.py build/functional-tests/android.txt
 collect normal
