@@ -54,7 +54,12 @@ homologação específica; não foi feita alteração remota nesta tarefa.
   sete novas fases automáticas passaram. A oitava falhou ao comparar uma
   fixture não ordenada com snapshot canônico. Correção do oráculo: canonicalizar
   ambos os lados, preservando comparação exata (incluindo motivos e IDs).
-  A execução geral falhou e não representa aprovação integral. Reexecutar.
+  A execução geral falhou e não representa aprovação integral.
+- Segunda CI `43623719336` / `3461033`: compilação, nove verificações HTTP,
+  64 Android funcionais e três compactos aprovados. A infraestrutura do segundo
+  AVD retornou `settings: Broken pipe` antes de qualquer fase de rede. A prontidão
+  agora exige boot, Settings e Package observados, em polling limitado. Não há
+  retry automático de testes falhos nem redução de asserções. Reexecutar.
 
 A injeção `automaticAcademicRecovery()` da Application permite manter os antigos
 ensaios de consentimento/transferência controlados. Só a Application de testes

@@ -10,6 +10,7 @@ cleanup(){ adb -s "$secondary" emu kill >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 probe(){
   local device="$1" phase="$2" side="$3" testcase="${4:-FunctionalNetworkProbeTest}"
+  printf 'probe=%s side=%s\n' "$phase" "$side"
   adb -s "$device" shell am force-stop br.com.diariodeclasse
   timeout --signal=INT --kill-after=10s 3m adb -s "$device" shell am instrument -w -e timeout_msec 120000 \
     -e phaseBNetworkPhase "$phase" -e phaseBDevice "$side" -e class "br.com.diariodeclasse.$testcase" \
@@ -39,10 +40,21 @@ echo no | avdmanager create avd --force --name noctua_functional_secondary --pac
 timeout 180 adb -s "$secondary" wait-for-device
 python3 - "$secondary" <<'PY'
 import subprocess,sys,time
-for _ in range(120):
-    if subprocess.check_output(['adb','-s',sys.argv[1],'shell','getprop','sys.boot_completed'],text=True).strip()=='1':break
-    time.sleep(1)
-else:raise SystemExit('Secondary emulator did not boot')
+serial=sys.argv[1];deadline=time.monotonic()+180
+stable=0
+while time.monotonic()<deadline:
+    try:
+        def shell(*args):return subprocess.run(['adb','-s',serial,'shell',*args],capture_output=True,text=True,timeout=5)
+        boot=shell('getprop','sys.boot_completed')
+        settings=shell('settings','get','global','window_animation_scale')
+        package=shell('pm','path','android')
+        ready=boot.returncode==0 and boot.stdout.strip()=='1' and settings.returncode==0 and package.returncode==0 and 'package:' in package.stdout
+        if ready:float(settings.stdout.strip()) # Binder success, not merely an attached adb transport.
+        stable=stable+1 if ready else 0
+        if stable>=2:break
+    except (subprocess.TimeoutExpired,ValueError):stable=0
+    time.sleep(1) # Bounded polling of observed services, not a fixed boot delay.
+else:raise SystemExit('Secondary Android boot/settings/package services not ready')
 PY
 adb -s "$secondary" shell input keyevent 82
 for option in window_animation_scale transition_animation_scale animator_duration_scale; do adb -s "$secondary" shell settings put global "$option" 0; done
