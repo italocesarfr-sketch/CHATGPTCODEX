@@ -78,8 +78,15 @@ class FunctionalNetworkProbeTest {
             "c-functional-final"->{
                 w.academicCoordinator.request();waitFor{w.repository.dao.attendance(lesson(3)).isEmpty()};synced();preserved()
                 assertTrue(w.repository.dao.attendance(lesson(1)).none{it.studentId==alpha.id})
-                val pages=PhaseBNetworkHarness.raw().pullC(PhaseBNetworkHarness.token(),0)
-                val removed=pages.flatMap{it.records}.filter{it.kind=="marks"&&it.payload==null}
+                // C returns one committed batch per pull; inspect all pages, not just bootstrap.
+                val versions=mutableListOf<AcademicVersion>();var after=0L;var count=0
+                while(true){
+                    check(count++<128)
+                    val pages=PhaseBNetworkHarness.raw().pullC(PhaseBNetworkHarness.token(),after)
+                    if(pages.isEmpty())break
+                    assertTrue(pages.first().sequence>after);versions.addAll(pages.flatMap{it.records});after=pages.last().sequence
+                }
+                val removed=versions.filter{it.kind=="marks"&&it.payload==null}
                 assertEquals(setOf(lesson(1),lesson(3)),removed.map{it.key.getValue("lessonId").jsonPrimitive.content}.toSet())
                 assertTrue(removed.all{it.revision==2L})
             }

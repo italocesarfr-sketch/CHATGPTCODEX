@@ -56,8 +56,17 @@ class PromptTwoUiInstrumentedTest {
     private fun hideKeyboard(){compose.runOnIdle{(app.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(compose.activity.window.decorView.windowToken,0)}}
     private fun shot(name:String){compose.waitForIdle();val f=File(app.filesDir,"prompt2-screenshots");f.mkdirs();File(f,"$name.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
     private fun report(){tag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick();waitTag("reports-list")}
-    private fun search(value:String){tag("reports-list").performScrollToIndex(0);tag("report-search").performTextReplacement(value);tag("report-search").performImeAction()}
-    private fun assertGrade(student:Student,value:String){tag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}"));compose.onNodeWithTag("report-row-${student.id}-current",useUnmergedTree=true).onChild().assertTextEquals(value)}
+    private fun search(value:String){tag("reports-list").performScrollToIndex(0);tag("report-search").performScrollTo().assertIsDisplayed().performTextReplacement(value);tag("report-search").performImeAction();hideKeyboard()}
+    private fun assertGrade(student:Student,value:String){
+        // A query replaces the lazy rows and resets its scroll in a LaunchedEffect.
+        // Reacquire the exact cell after layout; never retain a node from the previous list.
+        compose.waitUntil(10000){
+            if(compose.onAllNodesWithTag("report-row-${student.id}-current",useUnmergedTree=true).fetchSemanticsNodes().isEmpty()) {
+                tag("reports-list").performScrollToNode(hasTestTag("report-row-${student.id}"));false
+            } else true
+        }
+        compose.onNodeWithTag("report-row-${student.id}-current",useUnmergedTree=true).onChild().assertTextEquals(value)
+    }
     @Test fun selectAllTriStateAndIndividualReviewPersistWithoutEnrollingAnyStudent() {
         runBlocking {
             app.repository.appendDrafts(c.id,listOf(CsvRoster.Row("Estudante Fictício Beta",2),CsvRoster.Row("Estudante Fictício Gama",3)))
