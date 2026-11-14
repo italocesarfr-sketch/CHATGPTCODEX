@@ -59,7 +59,7 @@ O APK anterior de homologação da execução `42438137774` foi baixado novament
 
 ## Instalação segura e teste funcional
 
-1. Use **outro emulador novo ou perfil/dispositivo de teste sem `br.com.diariodeclasse.homologacao` instalado**. Preserve o aplicativo oficial e os dois emuladores existentes. Não desinstale, limpe dados ou restaure backups reais para contornar incompatibilidade de assinatura.
+1. Use **outro emulador novo ou outro dispositivo de teste sem `br.com.diariodeclasse.homologacao` instalado em nenhum perfil**. Um perfil novo no mesmo aparelho não elimina a incompatibilidade de assinatura de um pacote já instalado. Preserve o aplicativo oficial e os dois emuladores existentes. Não desinstale, limpe dados ou restaure backups reais para contornar incompatibilidade de assinatura.
 2. Baixe o artefato correto, extraia o APK e confira o SHA-256 acima. Para instalação inicial por ADB, indique explicitamente o dispositivo novo e não use `-r`:
 
    ```bash
