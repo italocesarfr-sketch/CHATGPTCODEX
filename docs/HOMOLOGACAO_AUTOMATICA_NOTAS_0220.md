@@ -6,8 +6,10 @@ branch `sync/academic-complete-0220`.
 **Atualização após a preparação P1:** APK #208 publicado; executor UI e prova local
 em dois AVDs aprovados no código `6509f36` / CI `43635622151`. O estado atual,
 hashes, limites e parâmetros independentes estão em
-[P1_EXECUTOR_0220.md](P1_EXECUTOR_0220.md). **P1 hospedada continua não autorizada
-nem executada; P2/P3 não executadas.**
+[P1_EXECUTOR_0220.md](P1_EXECUTOR_0220.md). **A P1 hospedada #25 foi posteriormente autorizada e executada uma única vez;
+parou em RECOVER_B/SCOPE.** Ver [diagnóstico](P1_HOSTED_25_0220.md).
+P1 completa não aprovada; nova execução depende de nova autorização. P2/P3 não
+executadas.
 
 **Registro original do plano (`6f3ae05`):** naquele commit o plano era revisável,
 o executor ainda não estava implementado e apenas documentação havia mudado.

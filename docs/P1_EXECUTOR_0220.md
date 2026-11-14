@@ -1,5 +1,12 @@
 # P1 — recuperação automática pela UI em dois AVDs
 
+**Atualização da execução hospedada:** a P1 #25 foi autorizada e executada uma
+vez; parou em `RECOVER_B / SCOPE`, após recuperar automaticamente A. A prova
+completa permanece reprovada, sem repetição autorizada. Ver
+[diagnóstico e evidência original](P1_HOSTED_25_0220.md). O complemento de diagnóstico `03b11e2` passou na CI local #26, sem nova consulta
+hospedada. As seções de preparação abaixo registram o estado anterior ao ensaio
+e não representam aprovação hospedada.
+
 Continuação de [HOMOLOGACAO_AUTOMATICA_NOTAS_0220.md](HOMOLOGACAO_AUTOMATICA_NOTAS_0220.md).
 Somente preparação/local nesta entrega; P1 hospedada, P2 e P3 não autorizadas.
 
