@@ -263,6 +263,9 @@ private val pages = listOf(
         "As alterações deste registro ainda não foram salvas. Cancelar mantém o texto; confirmar descarta somente esta edição.",
         {pendingRecordNavigation=null}, {pendingRecordNavigation=null;action()}) }
     if (showBackup) BackupDialog(vm) { showBackup = false }
+    br.com.diariodeclasse.sync.academic.AcademicGradeConflictHost(
+        (vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).workspace,
+        enabled=!showSync&&!showBackup)
     if (showSync) br.com.diariodeclasse.sync.SyncPanel((vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).workspace,data.classes){showSync=false}
     if (classForm) ClassForm(vm, editingClass, selected.year, { classForm = false },
         administrativeFinished = { notice ->

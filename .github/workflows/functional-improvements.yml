@@ -40,6 +40,12 @@ jobs:
         run: |
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
           ./gradlew --no-daemon testDebugUnitTest assembleDebug assembleDebugAndroidTest
+      - name: Decisões PostgreSQL — auditoria de notas e terceira revisão
+        run: |
+          mkdir -p build/functional-postgres
+          createdb noctua_phase_e_test
+          PGDATABASE=noctua_phase_e_test python3 scripts/test-phase-e-decisions.py > build/functional-postgres/decisions.txt 2>&1
+          tail -5 build/functional-postgres/decisions.txt
       - name: PostgREST descartável — protocolo funcional anterior, sem candidatos H13
         run: ./scripts/ci/start-phase-b-postgrest.sh
       - name: KVM apenas do runner
@@ -68,6 +74,7 @@ jobs:
         with:
           name: functional-improvements-evidence
           path: |
+            build/functional-postgres/
             build/functional-tests/
             build/functional-network/
             build/phaseb-http.txt

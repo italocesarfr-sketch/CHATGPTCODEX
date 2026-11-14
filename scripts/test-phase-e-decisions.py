@@ -87,4 +87,28 @@ class PhaseEDecisionPostgresTest(unittest.TestCase):
  def test_15_cancel_after_lost_confirmation_returns_original_confirmed_receipt(self):
   self.current();req=self.request();op,r=self.resolve(req,[e.f.change('lesson_records',self.journal('Local'),2)])
   self.assertEqual(r,self.resolve(req,op=op,cancel=True)[1]);self.assertEqual(3,e.d.status()['academicSequence'])
+ def numeric_conflict(self):
+  row=copy.deepcopy(e.d.SNAP['grades'][1]);self.assertEqual('ds2',row['studentId'])
+  row['value']=4;e.push([e.f.change('grades',row,1)])
+  row['value']=8;e.push([e.f.change('grades',row,2)])
+  local=dict(row,value=6);key={'activityId':row['activityId'],'studentId':row['studentId']}
+  return local,key
+ def test_16_higher_numeric_remote_choice_retains_values_and_does_not_rewrite_grade(self):
+  local,key=self.numeric_conflict();req=self.request(choice='KEEP_REMOTE',kind='grades',key=key,base=2,revision=3,head=3,local=local)
+  _,r=self.resolve(req);self.assertTrue(r['accepted']);self.assertEqual(3,r['sequence'])
+  ev=json.loads(execute('SELECT evidence FROM public.noctua_e_decisions;',A))[0]
+  self.assertEqual(6,ev['local']['value']);self.assertEqual(8,ev['remote']['value'])
+  self.assertEqual('3',execute("SELECT revision FROM public.noctua_academic_records WHERE kind='grades' AND key="+literal(key)+';',A))
+ def test_17_lower_numeric_local_choice_has_one_revision_and_idempotent_receipt(self):
+  local,key=self.numeric_conflict();req=self.request(kind='grades',key=key,base=2,revision=3,head=3,local=local)
+  op,r=self.resolve(req,[e.f.change('grades',local,3)]);self.assertTrue(r['accepted']);self.assertEqual(4,r['sequence'])
+  self.assertEqual(r,self.resolve(req,op=op)[1]);self.assertEqual('4',execute("SELECT revision FROM public.noctua_academic_records WHERE kind='grades' AND key="+literal(key)+';',A))
+  ev=json.loads(execute('SELECT evidence FROM public.noctua_e_decisions;',A))[0]
+  self.assertEqual((6,8),(ev['local']['value'],ev['remote']['value']))
+ def test_18_third_numeric_revision_rejects_frozen_decision_without_overwrite(self):
+  local,key=self.numeric_conflict();req=self.request(kind='grades',key=key,base=2,revision=3,head=3,local=local)
+  e.push([e.f.change('grades',dict(local,value=9),3)])
+  _,r=self.resolve(req,[e.f.change('grades',local,3)]);self.assertFalse(r['accepted'])
+  self.assertEqual('9',execute("SELECT payload->>'value' FROM public.noctua_academic_records WHERE kind='grades' AND key="+literal(key)+';',A))
+  self.assertEqual(4,e.d.status()['academicSequence'])
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -94,6 +94,14 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
         return AcademicPreview(original,restore,c.cursor,status.academicSequence,base,local,rows,known,latest,versions.values.toList(),receipts,
             AcademicResolution.evidence(base,local,rows,known,latest,restore,group),group)
     }
+    /** UI confirmations check the current head again; the RPC still checks atomically
+     * afterwards, covering a third edit arriving between this read and server commit. */
+    suspend fun confirmCurrent(preview:AcademicPreview,choice:AcademicChoice):AcademicDecision {
+        val current=this.preview()
+        if(current.context!=preview.context || current.head!=preview.head || current.latest!=preview.latest || current.evidence!=preview.evidence)
+            throw SyncFailure("CONFLICT")
+        return confirm(preview,choice)
+    }
     suspend fun confirm(preview:AcademicPreview,choice:AcademicChoice):AcademicDecision=db.withTransaction {
         check(admitted()&&context()==preview.context)
         check(dao.decisions().none{it.phase in setOf("PENDING","CONFIRMED")})

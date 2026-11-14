@@ -48,11 +48,20 @@ class PhaseENetworkProbeTest {
             // Use the merged, actionable UI state, as the existing capture/readiness probes do.
             compose.waitUntil(10000){compose.onAllNodesWithTag("academic-review").fetchSemanticsNodes().singleOrNull()?.let{isEnabled().matches(it)&&hasClickAction().matches(it)}==true}
             compose.onNodeWithTag("academic-review").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
-            compose.waitUntil(120000){compose.onAllNodesWithTag("academic-choice-${choice.name}").fetchSemanticsNodes().isNotEmpty()}
-            compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled()
-            compose.onNodeWithTag("academic-choice-${choice.name}").performScrollTo().performClick()
-            compose.onNodeWithTag("academic-confirm-decision").performClick()
-            compose.waitUntil(10000){compose.onAllNodesWithTag("academic-confirm-decision").fetchSemanticsNodes().isEmpty()}
+            val decisionCount=store.dao.decisions().size
+            compose.waitUntil(120000){compose.onAllNodesWithTag("academic-choice-${choice.name}").fetchSemanticsNodes().isNotEmpty() || compose.onAllNodesWithTag("grade-keep-${choice.name}").fetchSemanticsNodes().isNotEmpty()}
+            assertEquals(decisionCount,store.dao.decisions().size) // Opening never confirms anything.
+            if(compose.onAllNodesWithTag("grade-keep-${choice.name}").fetchSemanticsNodes().isNotEmpty()) {
+                compose.onNodeWithTag("grade-keep-KEEP_LOCAL").assertIsEnabled()
+                compose.onNodeWithTag("grade-keep-KEEP_REMOTE").assertIsEnabled()
+                compose.onNodeWithTag("grade-keep-${choice.name}").assertIsDisplayed().performClick()
+                compose.waitUntil(10000){compose.onAllNodesWithTag("grade-conflict-dialog").fetchSemanticsNodes().isEmpty()}
+            } else {
+                compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled()
+                compose.onNodeWithTag("academic-choice-${choice.name}").performScrollTo().performClick()
+                compose.onNodeWithTag("academic-confirm-decision").performClick()
+                compose.waitUntil(10000){compose.onAllNodesWithTag("academic-confirm-decision").fetchSemanticsNodes().isEmpty()}
+            }
             compose.onNodeWithText("Concluído").performClick()
           }catch(failure:Throwable) {
             val dir=File(app.filesDir,"phasee-network").apply{mkdirs()}

@@ -86,5 +86,67 @@ Commits da etapa: `a4e01aa` (produto e provas), `3461033` (oráculo canônico),
 
 ## Etapa 2
 
-Iniciar após esta aprovação local; nenhuma mudança remota de contrato prevista.
+Implementação após a aprovação local da etapa 1, reutilizando
+`AcademicReconciliation`/decisões E; nenhuma mudança remota de contrato, esquema,
+RLS, máximos ou cálculo acadêmico.
+
+- Popup automático de **um conflito isolado de nota numérica válida**, com nome,
+  turma, atividade, valores local/remoto e duas decisões explícitas. Maior nota
+  é só sugestão; não há opção pré-confirmada nem política automática de máximo.
+- Ambos os candidatos passam pelos validadores existentes e pelas proteções de
+  histórico. Alterações de matrícula/atividade/máximo, múltiplos conflitos,
+  conjuntos dependentes, restauração, nota nula, exclusão, valor inválido ou
+  igualdade não usam essa sugestão. A conferência existente permanece disponível.
+  Zero continua sendo nota; ausência e `null` não são zero.
+- Fechar só guarda a dispensa na interface por conjunto; não modifica a fila,
+  cursor, notas ou variantes. A conferência pode ser reaberta pelo estado de
+  sincronização. Reinício recupera os conflitos/decisões no Room.
+- Confirmação de nota reconsulta contexto/cabeça remota antes de criar a decisão
+  durável. A RPC continua revalidando atomicamente a revisão depois disso.
+  Se houver terceira edição, a prévia é bloqueada e exige atualização explícita.
+- Auditoria existente conserva valores originais, base, variantes, escolha,
+  requisição congelada, filas anteriores e recibo. Resposta perdida reutiliza
+  o identificador persistido. Frequência, FJ, diário, restauração e conjuntos
+  consistentes continuam com a política de resolução anterior.
+- Exibição decimal preserva valores distinguíveis, sem arredondar duas variantes
+  diferentes para o mesmo rótulo.
+
+Validações em curso: nove testes JVM novos; dois testes Room de auditoria e
+revalidação, quatro testes UI normais/compactos; nove fases HTTP/Android novas
+sobre o mesmo par de AVDs (27 no total), incluindo dispensa, maior/menor nota,
+edição posterior normal, terceira revisão, resposta de decisão perdida e reinício.
+18 testes PostgreSQL de decisões passaram localmente (15 anteriores + três novos).
+O teste inicial de fixture com valores inválidos foi corrigido no oráculo:
+o backup já rejeitava a fixture antes do teste; agora o helper é exercitado com
+payload inválido explícito. Não houve flexibilização do validador.
+Resultados Android/CI da etapa 2 ainda pendentes; compilação não é aprovação.
 Nenhum APK ou release oficial é produzido nesta tarefa.
+
+
+## Limitações e próxima homologação
+
+- Nada foi executado contra Supabase hospedado nesta tarefa. As aprovações
+  hospedadas H01–H05/H12 anteriores não validam automaticamente este novo código.
+- A nova prova utiliza 171 registros sintéticos dos 15 tipos e 36 matrículas na
+  origem. Não amplia a capacidade institucional nem os limites H13/8 segundos.
+- A atualização de assinatura permanente/0.21.0 e a instalação em dispositivos
+  do proprietário não foram realizadas. Não instalar o debug de testes sobre
+  aplicações existentes. Não há APK oficial nem mudança de versão/assinatura.
+- Campos nulos/exclusões e múltiplas divergências mantêm revisão de conjunto,
+  sem sugerir uma nota máxima. Uma terceira edição após o preflight ainda é
+  rejeitada atomicamente pela RPC, mantendo decisão/variantes para nova análise.
+- Falta futura homologação Android hospedada autorizada com variante paralela
+  e certificado compatível ou instalação nova isolada. Três testes prioritários:
+  1. Login em instalação nova da conta fictícia já autorizada em E; conferir
+     recuperação sem botão/backup e ausência de duplicações.
+  2. Alteração offline, saída/reabertura e login válido; reconexão e conferência
+     da alteração no outro dispositivo, sem reiniciar para reenviar.
+  3. Conflito de nota: dispensar, reabrir, escolher maior e menor; provocar nova
+     revisão antes de confirmar e conferir bloqueio/auditoria.
+
+Os comandos locais usados foram `testDebugUnitTest assembleDebug
+assembleDebugAndroidTest`, `scripts/test-phase-d-postgres.py` (27),
+`scripts/test-phase-e-decisions.py` (18 após os casos novos), `bash -n`,
+`git diff --check` e detector Impeccable (sem achados; não substitui renderização).
+A execução CI usa o despacho FUNCTIONAL existente e PostgreSQL/PostgREST/AVDs
+descartáveis, sem Environment Secrets hospedados ou candidatos H13 rejeitados.

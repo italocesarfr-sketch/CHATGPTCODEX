@@ -87,3 +87,15 @@ probe "$primary" e-auto-reconnect-lost primary AcademicAutomaticNetworkProbeTest
 probe "$primary" e-auto-reconnect primary AcademicAutomaticNetworkProbeTest
 probe "$secondary" e-auto-receive-offline secondary AcademicAutomaticNetworkProbeTest
 printf '%s\n' '10 functional + 8 automatic phases passed on two disposable AVDs and real local HTTP.' > build/functional-network/summary.txt
+
+probe "$primary" e-auto-conflict-local primary AcademicAutomaticNetworkProbeTest
+probe "$secondary" e-auto-conflict-remote secondary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-grade-high primary AcademicAutomaticNetworkProbeTest
+probe "$secondary" e-auto-observe-high secondary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-second-local primary AcademicAutomaticNetworkProbeTest
+probe "$secondary" e-auto-second-remote secondary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-grade-stale-low primary AcademicAutomaticNetworkProbeTest
+probe "$primary" e-auto-grade-replay primary AcademicAutomaticNetworkProbeTest
+probe "$secondary" e-auto-observe-low secondary AcademicAutomaticNetworkProbeTest
+adb -s "$primary" exec-out run-as br.com.diariodeclasse tar -C files -cf - automatic-grade-screenshots > build/functional-network/grade-screenshots.tar
+printf '%s\n' '27 functional/automatic/grade phases passed on two disposable AVDs and real local HTTP.' > build/functional-network/summary.txt

@@ -53,6 +53,23 @@ class PhaseEReconciliationTest {
         conflict();review.confirm(review.preview(),AcademicChoice.KEEP_REMOTE);engine().run()
         assertEquals(8.0,grade()!!,0.0);assertEquals(2,remote.base.pages.size);assertEquals(2,store.cursor());assertNull(store.pending());assertTrue(store.dao.incoming().isEmpty())
     }
+    @Test fun numericConfirmationRereadsHeadAndRejectsThirdRemoteEditBeforeQueueing():Unit=runBlocking {
+        conflict();val preview=review.preview();assertNotNull(AcademicNumericGrade.suggestion(preview))
+        peer(9.0)
+        try{review.confirmCurrent(preview,AcademicChoice.KEEP_REMOTE);fail()}catch(e:SyncFailure){assertEquals("CONFLICT",e.code)}
+        assertTrue(store.dao.decisions().isEmpty());assertEquals(6.0,grade()!!,0.0)
+        assertEquals(1,store.cursor());assertTrue(store.blocked())
+    }
+    @Test fun numericChoicesKeepBothOriginalVariantsInDurableDecisionAudit():Unit=runBlocking {
+        conflict();val preview=review.preview();val numeric=AcademicNumericGrade.suggestion(preview)!!
+        val decision=review.confirmCurrent(preview,numeric.otherChoice);engine().run()
+        assertEquals(6.0,grade()!!,0.0)
+        val frozen=AcademicRecords.json.decodeFromString<AcademicFrozenDecision>(store.dao.decisions().single().body)
+        assertEquals(AcademicChoice.KEEP_LOCAL,frozen.choice)
+        assertEquals(6.0,preview.evidence.single().local!!.getValue("value").jsonPrimitive.double,0.0)
+        assertEquals(8.0,frozen.remote.single{it.kind=="grades"&&it.key==preview.evidence.single().key}.payload!!.getValue("value").jsonPrimitive.double,0.0)
+        assertEquals("APPLIED",store.dao.decisions().single().phase);assertTrue(remote.decisions.containsKey(decision.id))
+    }
     @Test fun localChangeBetweenPreviewAndConfirmRejectsTheOldPreview():Unit=runBlocking {
         conflict();val preview=review.preview();db.dao().save(Grade("d-a1","ds2",7.0))
         try{review.confirm(preview,AcademicChoice.KEEP_REMOTE);fail()}catch(_:IllegalStateException){}

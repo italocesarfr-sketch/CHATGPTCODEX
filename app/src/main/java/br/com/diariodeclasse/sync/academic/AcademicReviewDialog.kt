@@ -60,6 +60,20 @@ private fun evidenceTitle(preview:AcademicPreview,e:AcademicEvidence):String {
 /** Review only; a single explicit confirmation freezes the decision for safe retry. */
 @Composable fun AcademicReviewDialog(preview:AcademicPreview,busy:Boolean,error:String,onRefresh:()->Unit,
     onClose:()->Unit,onConfirm:(AcademicChoice)->Unit) {
+    if(!preview.restore && preview.evidence.singleOrNull()?.let{it.kind=="grades"&&it.fields==listOf("value")}==true) {
+        val examined by produceState<Pair<Boolean,NumericGradeConflict?>>(false to null,preview) {
+            value=true to kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default){AcademicNumericGrade.suggestion(preview)}
+        }
+        if(!examined.first) {
+            AlertDialog(onDismissRequest=onClose,title={Text("Conferir versões")},text={Text("Conferindo versões…")},
+                confirmButton={},dismissButton={TextButton(onClose){Text("Cancelar")}})
+            return
+        }
+        examined.second?.let { value->
+            NumericGradeConflictDialog(value,busy,error,onRefresh,onClose,onConfirm)
+            return
+        }
+    }
     var choice by remember(preview.context,preview.head){mutableStateOf<AcademicChoice?>(null)}
     var index by remember(preview.context,preview.head){mutableIntStateOf(0)}
     AlertDialog(onDismissRequest={if(!busy)onClose()},title={Text(if(preview.restore)"Conferir backup e nuvem"else"Conferir versões")},text={

@@ -136,7 +136,11 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     },confirmButton={TextButton(close){Text("Concluído")}})
     preview?.let { current->AcademicReviewDialog(current,busy,reviewError,{review()},{preview=null;reviewError=""}) { choice->
         busy=true;reviewError="";scope.launch {
-            try {workspace.syncMutex.withLock{reconciliation().confirm(current,choice)};preview=null;workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)}
+            try {workspace.syncMutex.withLock{
+                val reviewer=reconciliation()
+                if(!current.restore && current.evidence.singleOrNull()?.kind=="grades")reviewer.confirmCurrent(current,choice)
+                else reviewer.confirm(current,choice)
+            };preview=null;workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)}
             catch(_:Exception){reviewError="Não foi possível confirmar este conjunto. Os dados ou seus vínculos podem ter mudado. Atualize a prévia antes de decidir novamente."}
             finally{busy=false}
         }
