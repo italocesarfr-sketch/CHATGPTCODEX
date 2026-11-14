@@ -58,11 +58,7 @@ jobs:
           script: |
             adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            mkdir -p build/functional-tests
-            adb shell am instrument -w -e class br.com.diariodeclasse.PromptTwoRoomInstrumentedTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.FjFlowInstrumentedTest,br.com.diariodeclasse.FjPopupInstrumentedTest,br.com.diariodeclasse.PromptTwoUiInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/functional-tests/android.txt
-            adb exec-out run-as br.com.diariodeclasse tar -C files -cf - fj-flow-screenshots prompt2-screenshots > build/functional-tests/screenshots.tar || true
-            python3 scripts/check-instrumentation.py build/functional-tests/android.txt
-            ./scripts/ci/test-functional-network.sh
+            ./scripts/ci/run-functional-validation.sh
       - name: Encerrar somente backend descartável
         if: always()
         run: |

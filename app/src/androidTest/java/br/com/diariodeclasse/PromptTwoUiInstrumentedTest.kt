@@ -89,6 +89,7 @@ class PromptTwoUiInstrumentedTest {
         shot("02-busca-global")
         hideKeyboard()
         compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
+        tag("reports-list").performScrollToIndex(0);waitTag("report-search-clear")
         tag("report-search-clear").performScrollTo().assertIsDisplayed().performClick()
         try {
             hideKeyboard()
@@ -111,6 +112,7 @@ class PromptTwoUiInstrumentedTest {
         assertEquals(AppSelection(2027,null),app.selectionStore.read())
         hideKeyboard()
         compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
+        tag("reports-list").performScrollToIndex(0);waitTag("report-search-clear")
         tag("report-search-clear").performScrollTo().assertIsDisplayed().performClick()
         waitText("Selecione uma turma ou pesquise um aluno em todas as turmas.")
     }
