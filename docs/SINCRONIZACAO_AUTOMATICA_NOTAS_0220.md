@@ -150,3 +150,20 @@ assembleDebugAndroidTest`, `scripts/test-phase-d-postgres.py` (27),
 `git diff --check` e detector Impeccable (sem achados; não substitui renderização).
 A execução CI usa o despacho FUNCTIONAL existente e PostgreSQL/PostgREST/AVDs
 descartáveis, sem Environment Secrets hospedados ou candidatos H13 rejeitados.
+
+
+### Primeira CI da etapa 2
+
+`43626412238` / `a841e59`: 313 JVM aprovados e cinco condicionais ignorados;
+18 PostgreSQL de decisões e nove HTTP de segurança aprovados; **27 fases reais
+HTTP/Android aprovadas** em dois AVDs, incluindo ambas as escolhas, dispensa,
+terceira revisão, resposta perdida e reaplicação após reinício. A execução geral
+falhou na seleção Android: 95 aprovados / um reprovado, de 96 executados.
+O teste antigo de exportação anual tentou abrir “Salvar arquivo” sem a folha
+estar na árvore Compose após retornar do seletor de documentos. A automação
+passa a aguardar janela ativa do app, controle habilitado e abertura efetiva da
+folha/opção. Não há alteração no exportador, fórmulas ou asserção de integridade.
+A variante compacta dessa rodada não executou, pois a seleção anterior falhou.
+A revisão também acrescentou o bloqueio do popup automático durante pausa
+explícita e sua prova de pausa/retomada, mantendo ambas as variantes/cursor.
+Reexecutar antes de declarar aprovação da etapa 2.

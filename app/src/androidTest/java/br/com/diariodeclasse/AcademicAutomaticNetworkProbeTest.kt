@@ -113,6 +113,10 @@ class AcademicAutomaticNetworkProbeTest {
             "e-auto-grade-high"->{
                 shell("svc wifi enable");shell("svc data enable")
                 popup(6.0,8.0);val cursor=store.cursor();val before=store.dao.decisions().size
+                store.pause()
+                compose.waitUntil(10000){compose.onAllNodesWithTag("grade-conflict-dialog").fetchSemanticsNodes().isEmpty()}
+                assertTrue(store.blocked());assertEquals(before,store.dao.decisions().size);assertEquals(cursor,store.cursor())
+                store.resume();popup(6.0,8.0)
                 shot("higher-suggestion")
                 InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
                 compose.waitUntil(10000){compose.onAllNodesWithTag("grade-conflict-dialog").fetchSemanticsNodes().isEmpty()}

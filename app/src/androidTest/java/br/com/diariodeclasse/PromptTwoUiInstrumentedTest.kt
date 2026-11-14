@@ -164,11 +164,20 @@ class PromptTwoUiInstrumentedTest {
         assertEquals(before,after.copy(marks=after.marks.filterNot{it.lessonId==id&&it.studentId==a.id}))
     }
     private fun chooseExport(current:String,value:String) {
-        compose.onNodeWithText("$current ▾").performScrollTo().performClick()
-        compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).performClick()
+        waitTag("export-settings");waitText("$current ▾")
+        compose.onNodeWithText("$current ▾").performScrollTo().assertIsDisplayed().assertIsEnabled().performClick()
+        compose.waitUntil(10000){compose.onAllNodes(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
+        compose.onNode(hasText(value) and hasAnyAncestor(isPopup()),useUnmergedTree=true).assertIsDisplayed().performClick()
     }
     private fun shareExport() {
-        tag("export-options").performScrollTo().performClick();chooseExport("Salvar arquivo","Compartilhar")
+        // Compose can expose the underlying screen while the document picker is
+        // still returning focus or its result coroutine is clearing pendingPath.
+        val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
+        compose.waitUntil(10000){automation.rootInActiveWindow?.packageName?.toString()==app.packageName}
+        tag("export-options").performScrollTo().assertIsDisplayed()
+        compose.waitUntil(10000){compose.onAllNodesWithTag("export-options").fetchSemanticsNodes().singleOrNull()?.let{isEnabled().matches(it)}==true}
+        tag("export-options").assertIsEnabled().performClick();waitTag("export-settings")
+        chooseExport("Salvar arquivo","Compartilhar")
         tag("export-settings-done").assertIsDisplayed().performClick();tag("export-file").performClick()
     }
     private fun backFromExternalWindow() {

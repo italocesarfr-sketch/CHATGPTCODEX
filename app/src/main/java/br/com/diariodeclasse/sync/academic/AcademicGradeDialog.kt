@@ -70,7 +70,7 @@ private data class GradeConflictRead(val control:AcademicControl?,val pending:Li
         BackupCodec.hash((data?.incoming.orEmpty().map{it.sequence to it.reason}.toString()+
             data?.pending.orEmpty().filter{it.conflict!=null}.map{it.id}.toString()).toByteArray())
     }
-    val blocked=data?.control?.stage=="ACTIVE_E" && data.states.any{it.kind=="grades"&&it.localVersion>it.acknowledged} && (data.incoming.isNotEmpty()||data.pending.any{it.conflict!=null})
+    val blocked=data?.control?.stage=="ACTIVE_E" && data.control.enabled && data.states.any{it.kind=="grades"&&it.localVersion>it.acknowledged} && (data.incoming.isNotEmpty()||data.pending.any{it.conflict!=null})
     val pending=data?.decisions.orEmpty().any{it.phase in setOf("PENDING","CONFIRMED")}
     fun review()=AcademicReconciliation(AcademicStore(workspace.database,workspace.user.id),app.academicRemote(),
         {app.auth.syncToken(workspace.user.id)},{AcademicCoordinator.admitted(app,workspace)})
