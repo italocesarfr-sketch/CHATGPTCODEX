@@ -47,7 +47,7 @@ cat build/phasec-focused.txt
 python3 - <<'PYPHASEC'
 from pathlib import Path
 text=Path('build/phasec-focused.txt').read_text()
-assert 'OK (10 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
+assert 'OK (11 tests)' in text and all(x not in text for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),text
 PYPHASEC
 timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -e class br.com.diariodeclasse.PhaseDRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/phased-focused.txt
 cat build/phased-focused.txt
