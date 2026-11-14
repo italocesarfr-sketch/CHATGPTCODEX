@@ -55,7 +55,7 @@ class PromptTwoUiInstrumentedTest {
     private fun waitText(value:String){compose.waitUntil(10000){compose.onAllNodesWithText(value,substring=true).fetchSemanticsNodes().isNotEmpty()}}
     private fun hideKeyboard(){compose.runOnIdle{(app.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(compose.activity.window.decorView.windowToken,0)}}
     private fun shot(name:String){compose.waitForIdle();val f=File(app.filesDir,"prompt2-screenshots");f.mkdirs();File(f,"$name.png").outputStream().use{compose.onRoot().captureToImage().asAndroidBitmap().compress(Bitmap.CompressFormat.PNG,100,it)}}
-    private fun report(){tag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick();waitTag("reports-list")}
+    private fun report(){tag("nav-3").performClick();compose.onNodeWithText("3º bim.").performClick();compose.waitUntil(10000){compose.onAllNodes(hasText("3º bim.") and isSelected()).fetchSemanticsNodes().isNotEmpty()};waitTag("reports-list")}
     private fun search(value:String){tag("reports-list").performScrollToIndex(0);tag("report-search").performScrollTo().assertIsDisplayed().performTextReplacement(value);tag("report-search").performImeAction();hideKeyboard()}
     private fun assertGrade(student:Student,value:String){
         // A query replaces the lazy rows and resets its scroll in a LaunchedEffect.
