@@ -9,6 +9,12 @@ import org.junit.Assert.*
 
 class P1GuardTest {
     @Before fun local(){Assume.assumeTrue(InstrumentationRegistry.getArguments().getString("p1Mode")=="LOCAL")}
+    @Test fun sharedBudgetRejectsThe513thReadBeforeTransport() {
+        val budget=P1ReadBudget();var transmitted=0
+        repeat(512){budget.claim();transmitted++}
+        try{budget.claim();transmitted++;fail()}catch(e:P1Stop){assertEquals("LIMIT",e.code)}
+        assertEquals(512,transmitted);assertEquals(512,budget.size())
+    }
     @Test fun reuseEveryH05MutationGuard(){H05ReadOnlyGuardTest().everyMutationIsRejectedBeforeReachingTheTransport()}
     @Test fun independentlyAuthorizedHostOnly() {
         try{AcademicTestApplication().configureP1("HOSTED",false,false);fail()}catch(_:IllegalArgumentException){}

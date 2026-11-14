@@ -134,7 +134,7 @@ def execute(env):
    cases='br.com.diariodeclasse.P1RecoveryProbeTest'+(',br.com.diariodeclasse.P1GuardTest'if mode=='LOCAL'else'')
    raw=adb('-s',serial,'shell','am','instrument','-w','-e','timeout_msec','360000','-e','p1Mode',mode,'-e','p1Authorized','YES'if mode=='HOSTED'else'NO','-e','p1Device','SECOND'if index else'FIRST','-e','class',cases,package+'.test/br.com.diariodeclasse.AuthTestRunner',timeout=420,check=False)
    (p/f'private-native-{index}.log').write_bytes(raw)
-   diag=h05.native_diagnostics(raw,4 if mode=='LOCAL'else 1);native.append(diag)
+   diag=h05.native_diagnostics(raw,5 if mode=='LOCAL'else 1);native.append(diag)
    encoded=adb('-s',serial,'exec-out','run-as',package,'base64','files/p1-result.json')
    digest=adb('-s',serial,'exec-out','run-as',package,'sha256sum','files/p1-result.json')
    m=re.fullmatch(rb'([0-9a-f]{64})  files/p1-result\.json\s*',digest);need(m is not None and len(encoded)<=100000,'REPORT_DIGEST')

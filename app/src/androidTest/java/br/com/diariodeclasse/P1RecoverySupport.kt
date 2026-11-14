@@ -14,6 +14,12 @@ internal class P1Stop(val code:String):Exception("P1_"+code)
 internal fun p1Need(ok:Boolean,code:String){if(!ok)throw P1Stop(code)}
 internal class P1Account(val email:String,val password:String,val id:String){override fun toString()="P1Account(redacted)"}
 
+internal class P1ReadBudget {
+    private var count=0
+    @Synchronized fun claim(){p1Need(count<512,"LIMIT");count++}
+    @Synchronized fun size()=count
+}
+
 /** Instrumentation only. Normal Application startup, real Auth UI and account workspaces. */
 class P1RecoverySupport(private val app:AcademicTestApplication,val mode:String,authorized:Boolean,second:Boolean) {
     init {
@@ -83,9 +89,16 @@ class P1RecoverySupport(private val app:AcademicTestApplication,val mode:String,
         override suspend fun password(session:AuthSession,password:String)=denied()
     }
     val auth by lazy{AuthController(tracked,KeystoreAuthVault(app))}
-    val readonly by lazy{H05ReadOnlyRemote(if(mode=="HOSTED")SupabaseAcademicSync()else PhaseBNetworkHarness.raw())}
-    @Volatile var directReads=0;private set
-    val readCalls get()=readonly.reads+directReads
+    private val budget=P1ReadBudget()
+    private val source by lazy {
+        val transport=if(mode=="HOSTED")SupabaseAcademicSync()else PhaseBNetworkHarness.raw()
+        object:AcademicRemote by transport {
+            override suspend fun status(token:String):AcademicProtocolStatus {budget.claim();return transport.status(token)}
+            override suspend fun pullE(token:String,after:Long,offset:Int):List<AcademicFragment>{budget.claim();return transport.pullE(token,after,offset)}
+        }
+    }
+    val readonly by lazy{H05ReadOnlyRemote(source)}
+    val readCalls get()=budget.size()
     val remote by lazy {object:AcademicRemote by readonly {
         override suspend fun status(token:String):AcademicProtocolStatus {
             p1Need(readCalls<512,"LIMIT")
@@ -97,7 +110,7 @@ class P1RecoverySupport(private val app:AcademicTestApplication,val mode:String,
     }}
     /** Fixed SELECT endpoints only; never a caller-supplied URL/method or administrative token. */
     internal suspend fun select(token:String,owner:String,audits:Boolean):JsonArray=withContext(Dispatchers.IO) {
-        p1Need(java.util.UUID.fromString(owner).toString()==owner&&readCalls<512,"LIMIT");directReads++
+        p1Need(java.util.UUID.fromString(owner).toString()==owner,"LIMIT");budget.claim()
         val base=if(mode=="HOSTED")AuthConfig.URL+"/rest/v1"else"http://10.0.2.2:3000"
         val path=if(audits)"noctua_e_decisions?select=resolution_id,request,evidence,response&owner_id=eq.$owner&order=resolution_id.asc&limit=257"
             else "noctua_academic_records?select=kind&owner_id=eq.$owner&limit=1"
