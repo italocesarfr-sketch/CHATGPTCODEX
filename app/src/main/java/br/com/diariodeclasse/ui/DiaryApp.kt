@@ -288,8 +288,11 @@ private val pages = listOf(
     }
     if (termForm && c != null) TermForm(vm, c, data.terms.filter { it.classId == c.id }) { termForm = false }
     if (activityForm && c != null) ActivityForm(vm, c, term, editingActivity, { activityForm = false }) {
-        activityForm = false; activityId = it.id; term = it.term
-        detail = if (editingActivity == null) "grades" else ""
+        val created=it
+        activityForm = false; activityId = created.id; term = created.term
+        val nextDetail=if (editingActivity == null) "grades" else ""
+        if(created.classId!=c.id) vm.select(AppSelection(data.classes.first {school->school.id==created.classId}.year,created.classId)) { detail=nextDetail }
+        else detail=nextDetail
     }
 }
 

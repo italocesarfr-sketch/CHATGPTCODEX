@@ -544,6 +544,22 @@ class DiaryRepository(val db: DiaryDatabase) {
         // A FK existente remove as notas na mesma transação, mantendo as outras atividades.
         dao.deleteActivity(expected.activity.id)
     }
+    suspend fun createActivities(request: ActivityCreation): List<Activity> = db.withTransaction {
+        val data=readSnapshot()
+        val current=ActivityCopies.plan(data,request.source.id,request.template,request.scope,request.selected,request.dates)
+        require(current==request) { "As turmas ou os bimestres mudaram. Confira a seleção antes de salvar." }
+        val existing=request.activities.mapNotNull { dao.activity(it.id) }
+        if (existing.isNotEmpty()) {
+            require(existing.size==request.activities.size && existing.toSet()==request.activities.toSet()) { "Uma atividade deste envio mudou. Confira os registros; nada foi sobrescrito." }
+            return@withTransaction request.activities // Same creation retried; never overwrite grades.
+        }
+        request.activities.forEach { value ->
+            require(data.academic().activities.none{ActivityCopies.duplicate(it,value)}) { "${data.schoolName(value.classId)}: já existe atividade com este nome, tipo, data e bimestre. Edite a existente ou altere o nome." }
+            validateActivity(value)
+        }
+        request.activities.forEach { dao.insertActivity(it) }
+        request.activities
+    }
     suspend fun saveActivity(value: Activity) = db.withTransaction {
         validateActivity(value)
         val previous = dao.activity(value.id)

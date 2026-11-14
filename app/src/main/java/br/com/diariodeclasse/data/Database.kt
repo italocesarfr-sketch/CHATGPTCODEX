@@ -83,6 +83,7 @@ data class Relocation(@PrimaryKey val sourceStudentId: String, val targetStudent
 
 @Dao
 interface DiaryDao {
+    @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertActivity(value: Activity)
     @Insert(onConflict = OnConflictStrategy.ABORT) suspend fun insertTimetable(value: WeeklyTimetable)
     @Update suspend fun updateRelocation(value: Relocation): Int
     @Query("DELETE FROM marks WHERE lessonId = :lessonId AND studentId = :studentId AND mark = :expected")

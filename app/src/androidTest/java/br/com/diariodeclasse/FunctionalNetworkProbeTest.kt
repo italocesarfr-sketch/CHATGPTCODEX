@@ -90,6 +90,36 @@ class FunctionalNetworkProbeTest {
                 assertEquals(setOf(lesson(1),lesson(3)),removed.map{it.key.getValue("lessonId").jsonPrimitive.content}.toSet())
                 assertTrue(removed.all{it.revision==2L})
             }
+            "c-functional-activities"->{
+                val target=school.copy(id="functional-other-class",name="2º H Fictícia",year=2027)
+                w.repository.saveClass(target,"2027-01-01")
+                w.repository.saveStudent(alpha.copy(id="functional-other-student",personId="functional-other-person",classId=target.id,joined="2027-01-01"))
+                w.academicCoordinator.request();synced()
+                w.syncMutex.withLock {
+                    val template=Activity("functional-activity",school.id,"Produção Fictícia em Lote",type="Produção textual",date=day,term=3,maximum=7.5)
+                    val request=ActivityCopies.plan(w.repository.readSnapshot(),school.id,template,ActivityScope.CUSTOM,setOf(school.id,target.id),mapOf(target.id to "2027-08-10"))
+                    val copies=w.repository.createActivities(request)
+                    assertEquals(2,copies.size)
+                    val op=store.prepare()!!;val changes=AcademicRecords.json.decodeFromString<AcademicBatch>(op.body).changes
+                    assertEquals(2,changes.size);assertTrue(changes.all{it.kind=="activities"})
+                    assertEquals(copies,w.repository.createActivities(request))
+                    for(copy in copies)w.repository.saveGrade(copy.id,if(copy.classId==school.id)alpha.id else "functional-other-student",if(copy.classId==school.id)0.0 else null)
+                }
+                w.academicCoordinator.request();synced();preserved()
+            }
+            "c-functional-activities-recover"->{
+                w.academicCoordinator.request();waitFor{w.repository.readSnapshot().activities.size==2&&w.repository.readSnapshot().grades.size==2};synced()
+                val copies=w.repository.readSnapshot().activities
+                assertEquals(setOf(school.id,"functional-other-class"),copies.map{it.classId}.toSet())
+                assertEquals(0.0,w.repository.dao.activityGrades("functional-activity").single().value!!,0.0)
+                val other=copies.single{it.classId!=school.id};assertEquals("2027-08-10",other.date);assertNull(w.repository.dao.activityGrades(other.id).single().value)
+                w.repository.saveGrade(other.id,"functional-other-student",6.5);w.academicCoordinator.request();synced();preserved()
+            }
+            "c-functional-activities-final"->{
+                w.academicCoordinator.request();waitFor{w.repository.readSnapshot().grades.any{it.studentId=="functional-other-student"&&it.value==6.5}};synced()
+                assertEquals(0.0,w.repository.dao.activityGrades("functional-activity").single().value!!,0.0)
+                assertEquals(2,w.repository.readSnapshot().activities.size);preserved()
+            }
             else->error("Unknown functional phase")
         }
     }

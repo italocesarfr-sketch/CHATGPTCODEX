@@ -60,4 +60,7 @@ adb -s "$primary" shell svc data enable
 probe "$primary" c-functional-sent primary
 probe "$secondary" c-functional-receive-remove secondary
 probe "$primary" c-functional-final primary
-printf '%s\n' '7 functional P/F phases passed on two disposable AVDs and real local HTTP.' > build/functional-network/summary.txt
+probe "$primary" c-functional-activities primary
+probe "$secondary" c-functional-activities-recover secondary
+probe "$primary" c-functional-activities-final primary
+printf '%s\n' '10 functional P/F phases passed on two disposable AVDs and real local HTTP.' > build/functional-network/summary.txt
