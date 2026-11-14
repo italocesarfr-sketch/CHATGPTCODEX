@@ -1,0 +1,212 @@
+{
+  "prepared_at": "2026-11-14T19:19:24Z",
+  "branch": "sync/academic-complete-0220",
+  "initial_head": "388522747436cb106e559c5c65c164cb86b26978",
+  "validated_code": "b8206c39188cebf2bf0baa28c4c61164e08e85c5",
+  "validated_ci": 43627336525,
+  "status": "PLAN_READY_HOSTED_EXECUTION_BLOCKED",
+  "core_source_unchanged": true,
+  "supabase_requests_executed": false,
+  "supabase_sessions_created": 0,
+  "academic_writes_executed": 0,
+  "decision_writes_executed": 0,
+  "apk_built": false,
+  "apk_installed": false,
+  "production_main_or_signing_modified": false,
+  "github_environment": {
+    "name": "noctua-homologacao-h01-h04",
+    "verified_branch": "sync/academic-complete-0220",
+    "secret_list_api_status": 403,
+    "observed_protection_types": [
+      "branch_policy"
+    ],
+    "required_reviewers_verified": false,
+    "secret_values_exposed": false,
+    "secure_workflow_consumed_secrets_for_format_check": true
+  },
+  "secure_offline_preflight": {
+    "workflow": "android.yml",
+    "run_id": 43632066547,
+    "run_number": 207,
+    "conclusion": "success",
+    "mode": "PREFLIGHT",
+    "authorization_flags": false,
+    "result": {
+      "case": "H05",
+      "mode": "PREFLIGHT",
+      "source_sha": "388522747436cb106e559c5c65c164cb86b26978",
+      "overall": "PREREQUISITES_READY_NOT_EXECUTED",
+      "blocking_code": null,
+      "credentials_redacted": true,
+      "hosted_requests": false
+    },
+    "artifact_id": 14128282785,
+    "artifact_sha256": "3bd3ca22a7bf0fba9eefe4c991927d6e6344c58d824847a0cb847c7a961b7c98",
+    "build_avd_hosted_steps": "not executed"
+  },
+  "target": {
+    "project": "noctua-homologacao",
+    "project_ref": "sscexzxtqdcsqdlcytum",
+    "application_id": "br.com.diariodeclasse.homologacao",
+    "callback": "br.com.diariodeclasse.homologacao://auth/callback"
+  },
+  "remote_eligibility": {
+    "account_a_current": "NOT_QUERIED",
+    "account_b_current": "NOT_QUERIED",
+    "account_a_historical": "protocol 2 / E / testAllowed passed H05 and H12",
+    "credentials_format": "PREFLIGHT_PASSED_NO_BACKEND_AUTH",
+    "key_project_association_current": "NOT_QUERIED",
+    "required_conditions": [
+      "confirmed expected Auth identity",
+      "protocol 2",
+      "academicScope 5",
+      "testAllowed true",
+      "fresh nonlegacy account workspace",
+      "no v1 queues, restore or unresolved prior conflicts"
+    ]
+  },
+  "historical_present_types": 9,
+  "historical_present_records": 24,
+  "historical_absent_types": [
+    "recompositions",
+    "import_drafts",
+    "export_rows",
+    "class_archives",
+    "preserved_histories",
+    "weekly_timetables"
+  ],
+  "apk_reinspection": {
+    "parallel_206": {
+      "apk_sha256": "513a6a93bdb08599f95491b9eb397ad1588ac59c511e7945d099ff1bc1929580",
+      "bytes": 12987470,
+      "application_id": "br.com.diariodeclasse.homologacao",
+      "version_code": 45,
+      "version_name": "0.22.0-dev-e2-homologacao",
+      "certificate_sha256": "9864b5240c60d2557b77d86d8a429358d32c06c0a5d77de16915ced67dc1b21a",
+      "signature_verified": true,
+      "target_project_only": true,
+      "v3_verified": false,
+      "new_automatic_and_grade_functions_present": false
+    },
+    "earlier_reference": {
+      "apk_sha256": "d1f57c8dbf43387aa82232d59bb1ced0c7ca56bcbdf738d3b8bf622b9941f87b",
+      "bytes": 12954702,
+      "application_id": "br.com.diariodeclasse.homologacao",
+      "version_code": 45,
+      "version_name": "0.22.0-dev-e2-homologacao",
+      "certificate_sha256": "b6dd351f4e3e1e633c7447e02f449316779e8ff0b14707f9981c80e363d92189",
+      "signature_verified": true,
+      "target_project_only": true,
+      "v3_verified": false,
+      "new_automatic_and_grade_functions_present": false
+    },
+    "compatible_update_to_earlier_reference": false
+  },
+  "new_features_parallel_apk": "NOT_IDENTIFIED; last published parallel artifact is 206 from 4346d55, before the features",
+  "offline_tests": {
+    "hosted_auth_safety": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "offline synthetic inputs and mocks"
+    },
+    "h05_safety": {
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "offline synthetic inputs and mocks"
+    },
+    "h12_safety": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "offline synthetic inputs and mocks"
+    }
+  },
+  "offline_tests_total": 45,
+  "approved_source_sha256": {
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt": "d1326dd9bec74847c8792271df381d1536db34b40ee0ee2912f08e9536924930",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicEngine.kt": "a16978154713bcca52e63aa5cced9643ef0a1ffc0e80c9a8833acaf21d044a68",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicStore.kt": "b930f59b411b13a17be057b74bf27331621f3a811b1b17479f033954fbb2c807",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeConflict.kt": "15cbd8a3269130bfef33555224fcc15ff6de0e9d57eb10a35ac7d084e343e632",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeDialog.kt": "203879cc1e3fe5eac715cdae184fe0edbf4b874605a20ca6018d2fcd9aa4b586",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReconciliation.kt": "0d97092340d9aeb9bfc872603430d3e566d2f7b470900488f4efa96c4f4eea29",
+    "app/src/main/java/br/com/diariodeclasse/auth/AuthEnvironment.kt": "21bac632a279b4f27db6e885c521ab2d603af450b21b62872cb8f6133e81082b",
+    "app/build.gradle.kts": "4a792ea722747a5a265d77ffbe34b6d856ab3214794710781f34fe69420acc90"
+  },
+  "authorization_groups": [
+    {
+      "id": "P1",
+      "implemented": false,
+      "authorized": false,
+      "academic_effect": "read only; no staging/decision",
+      "auth_effect": "test-created sessions and scope-local logout",
+      "needs": [
+        "normal UI automatic-start adapter",
+        "read-only guard",
+        "new admitted parallel APK"
+      ]
+    },
+    {
+      "id": "P2",
+      "implemented": false,
+      "authorized": false,
+      "academic_effect": "at most 8 new fixture records, then value changes only in its new grade",
+      "decision_effect": "forbidden",
+      "needs": [
+        "P1 passed",
+        "fixture-key guard",
+        "complete previous-record baseline witness"
+      ]
+    },
+    {
+      "id": "P3",
+      "implemented": false,
+      "authorized": false,
+      "academic_effect": "only grade value in the proven P2 fixture",
+      "decision_effect": "at most 2 accepted decisions and 1 exceptional rejected audit",
+      "needs": [
+        "P2 passed",
+        "decision evidence/change allowlist",
+        "previous academic records and audits unchanged"
+      ]
+    }
+  ],
+  "planned_limits": {
+    "new_avds_per_phase": 2,
+    "created_auth_sessions_per_authorization": 8,
+    "recovery_records_per_batch_or_live_inventory": 1000,
+    "versions_per_inventory": 4096,
+    "inventory_bytes": 8388608,
+    "pages_per_inventory": 128,
+    "batches_per_inventory": 256,
+    "reads_per_installation": 512,
+    "write_baseline_live_records_max": 671,
+    "new_fixture_records": 8,
+    "changes_per_outgoing_operation": 16,
+    "outgoing_operation_bytes": 65536,
+    "distinct_academic_commits_p2_p3": 16,
+    "commit_attempts_p2_p3": 32,
+    "decision_rows_max": 3,
+    "convergence_seconds": 180,
+    "proof_after_login_seconds": 300
+  },
+  "blockers": [
+    "current Supabase eligibility not checked and cannot be inferred from historical results",
+    "new parallel APK for approved features not published",
+    "H05 current runner manually activates/runs engine and disables automatic recovery; cannot prove new startup",
+    "hosted normal-UI adapter and two-AVD admission missing",
+    "P2/P3 key/decision guards and budgets not implemented",
+    "each hosted phase requires its independent authorization"
+  ],
+  "do_not_run": [
+    "scripts/audit-sync-hosted.py: legacy hosted probes with production reference",
+    "LOCAL administrative SQL or synthetic JWT fixtures against Supabase",
+    "old H05/H12 HOSTED modes as substitutes for automatic/popup tests"
+  ],
+  "changes_in_this_preparation": [
+    "docs/HOMOLOGACAO_AUTOMATICA_NOTAS_0220.md",
+    "docs/evidence/PREPARACAO_AUTOMATICA_HOSPEDADA_0220.json"
+  ],
+  "current_hosted_capacity": "NOT_QUERIED; no paid plan or timeout changes authorized"
+}
