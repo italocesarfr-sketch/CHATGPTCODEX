@@ -1,0 +1,30 @@
+{
+  "run_id": 43632816764,
+  "run_number": 208,
+  "source_sha": "6f3ae05f8ccdd918600f99c2ef5b6c6ee6d15474",
+  "application_id": "br.com.diariodeclasse.homologacao",
+  "version_code": 45,
+  "version_name": "0.22.0-dev-e2-homologacao",
+  "apk_sha256": "3aa87abdc60f2f42184ca9a9a90a5783d3c09e97d60ab8a9954cea191252bc35",
+  "bytes": 13020238,
+  "certificate_sha256": "8e9b7b97b14914182d42a6be2e1ed0f32a92a48926cbc94288a983ae9e2676a5",
+  "apk_signature_verified": true,
+  "apk_artifact_id": 14128872479,
+  "apk_artifact_sha256": "dc521a96f9a5c33142146d8a00ff747f2daecfa787d8c260591785c131f11c15",
+  "unit_results": {
+    "homologacao": {
+      "passed": 313,
+      "skipped": 5,
+      "failed": 0
+    },
+    "debug": {
+      "passed": 313,
+      "skipped": 5,
+      "failed": 0
+    }
+  },
+  "features_present": true,
+  "installed": false,
+  "hosted_requests": false,
+  "compatible_with_206": false
+}
