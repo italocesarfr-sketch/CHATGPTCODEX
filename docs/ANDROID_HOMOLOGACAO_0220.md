@@ -1,5 +1,7 @@
 # 0.22.0 — Variante Android paralela de homologação
 
+> **14/11/2026 — nova compilação funcional:** o APK do commit `4346d55` foi gerado na [execução #206](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43614108749). Consulte [identidade, hashes, assinatura e instalação segura](APK_HOMOLOGACAO_FUNCIONAL_206.md). O APK e os hashes da execução `42438137774`, citados abaixo, são a referência histórica; o certificado novo é diferente e não permite atualizar esse APK antigo.
+
 > **Atualização registrada em 09/11/2026 (America/Sao_Paulo):** o APK e os hashes
 > desta página continuam os mesmos; não foi gerado novo APK paralelo de
 > homologação. Builds DEBUG da regressão são restritos à CI. O proprietário

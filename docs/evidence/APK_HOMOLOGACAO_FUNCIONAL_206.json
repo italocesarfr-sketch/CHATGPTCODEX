@@ -1,0 +1,55 @@
+{
+  "workflow_number": 206,
+  "workflow_id": 43614108749,
+  "source_commit": "4346d55c192e85b64e2c9322b683339a1601ae86",
+  "artifact_id": 14121343254,
+  "artifact_name": "noctua-homologacao-paralela-debug",
+  "artifact_zip_sha256": "1e580f74e212b9ef72126b9095d5be2755643252c9741d6aac63715246d05ae1",
+  "apk_file": "app-homologacao.apk",
+  "apk_bytes": 12987470,
+  "apk_sha256": "513a6a93bdb08599f95491b9eb397ad1588ac59c511e7945d099ff1bc1929580",
+  "application_id": "br.com.diariodeclasse.homologacao",
+  "application_label": "NOcTuA Homologação",
+  "version_code": 45,
+  "version_name": "0.22.0-dev-e2-homologacao",
+  "certificate_sha256": "9864b5240c60d2557b77d86d8a429358d32c06c0a5d77de16915ced67dc1b21a",
+  "signature_verified": true,
+  "baseline": {
+    "workflow_id": 42438137774,
+    "artifact_id": 13599694535,
+    "apk_sha256": "d1f57c8dbf43387aa82232d59bb1ced0c7ca56bcbdf738d3b8bf622b9941f87b",
+    "certificate_sha256": "b6dd351f4e3e1e633c7447e02f449316779e8ff0b14707f9981c80e363d92189"
+  },
+  "certificate_matches_baseline": false,
+  "update_install_executed": false,
+  "hosted_requests_executed": false,
+  "device_install_executed": false,
+  "ci_identity": {
+    "application_id": "br.com.diariodeclasse.homologacao",
+    "project_ref": "sscexzxtqdcsqdlcytum",
+    "callback": "br.com.diariodeclasse.homologacao://auth/callback",
+    "public_key_configured": true,
+    "production_fallback": false,
+    "shared_user_id": false,
+    "allow_backup": false,
+    "cleartext": false,
+    "local_storage": "Android application UID sandbox + existing per-account workspaces",
+    "apk_verified": true,
+    "hosted_tests_executed": false,
+    "apk_sha256": "513a6a93bdb08599f95491b9eb397ad1588ac59c511e7945d099ff1bc1929580"
+  },
+  "unit_tests": {
+    "testDebugUnitTest": {
+      "total": 309,
+      "passed": 304,
+      "failed": 0,
+      "skipped": 5
+    },
+    "testHomologacaoUnitTest": {
+      "total": 309,
+      "passed": 304,
+      "failed": 0,
+      "skipped": 5
+    }
+  }
+}
