@@ -88,11 +88,18 @@ class PromptTwoUiInstrumentedTest {
         compose.onNode(hasText(h.name,substring=true) and hasAnyAncestor(hasTestTag("report-row-${b.id}-name")),useUnmergedTree=true).assertExists()
         shot("02-busca-global")
         tag("reports-list").performScrollToIndex(0);tag("report-search-clear").performClick()
-        hideKeyboard()
-        compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
-        tag("reports-list").performScrollToIndex(0)
-        tag("report-heading").performScrollTo()
-        waitText("Boletim 3º Bim");assertGrade(a,"0,00")
+        try {
+            hideKeyboard()
+            compose.waitUntil(10000){androidx.core.view.ViewCompat.getRootWindowInsets(compose.activity.window.decorView)?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime())!=true}
+            tag("reports-list").performScrollToIndex(0)
+            tag("report-heading").performScrollTo()
+            waitText("Boletim 3º Bim");assertGrade(a,"0,00")
+        } catch(failure:Throwable) {
+            shot("falha-apos-limpar-busca")
+            println(tag("report-search").printToString());println(tag("report-heading").printToString())
+            println("Report fixture selection="+app.selectionStore.read())
+            throw failure
+        }
         compose.onAllNodesWithTag("report-row-${b.id}").assertCountEquals(0)
         assertEquals(before,runBlocking{app.backupManager.snapshot()})
     }
