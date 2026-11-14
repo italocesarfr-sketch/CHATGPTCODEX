@@ -24,7 +24,9 @@ import urllib.request,urllib.error,time
 for _ in range(30):
     try:
         urllib.request.urlopen('http://127.0.0.1:3000',timeout=1);break
-    except urllib.error.HTTPError:break
+    except urllib.error.HTTPError as error:
+        if error.code!=503:raise
+        time.sleep(1) # PostgREST schema cache is not ready; this is not a successful health check.
     except OSError:time.sleep(1)
 else:raise SystemExit('Disposable PostgREST failed to start')
 PY
