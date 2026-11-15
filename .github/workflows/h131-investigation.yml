@@ -22,6 +22,9 @@ permissions:
   contents: read
 jobs:
   official-upgrade-local:
+    permissions:
+      contents: read
+      actions: read
     if: github.event_name == 'workflow_dispatch' && inputs.suite == 'OFFICIAL_UPGRADE_LOCAL' && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/official-upgrade.yml
   b-transition-local:

@@ -5,6 +5,10 @@ import yaml
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('upgrade',ROOT/'scripts/official-upgrade-local.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 class Safety(unittest.TestCase):
+ def test_original_artifact_read_permission_is_limited_to_upgrade_job(self):
+  w=yaml.safe_load((ROOT/'.github/workflows/h131-investigation.yml').read_text())
+  self.assertEqual(w['jobs']['official-upgrade-local']['permissions'],{'contents':'read','actions':'read'})
+  self.assertEqual(w['permissions'],{'contents':'read'})
  def test_original_is_c40_and_not_c39(self):
   self.assertEqual(m.PIN['versionCode'],40);self.assertEqual(m.PIN['artifactId'],13053517551);self.assertEqual(m.PIN['runId'],41228898103)
  def test_original_zip_entries_must_remain_identical_when_resigned(self):
