@@ -118,3 +118,65 @@ as exclusões de `academicTestEligible` para contornar.
 - Não executados aqui: testes Android instrumentados, suítes PostgreSQL/HTTP,
   compilação release (exige a chave) e qualquer verificação hospedada. Devem rodar
   na CI depois que a branch for levada para `sync/academic-complete-0220`.
+
+
+## Registro da implantação assistida — pré-execução
+
+Registrado em `2026-11-15T16:01:50-03:00`. Referência de código/SQL:
+`ac56867ef3c6093670fafd91ddd4f591bc589f8a`.
+
+O proprietário delimitou esta nova tarefa ao SQL Editor de **produção**, referência
+`mpsgdchpgyxoqowfjoqm`, com confirmação do projeto antes de cada execução e
+aprovações separadas para o pacote e para uma única conta fictícia. O texto
+histórico de homologação foi lido integralmente para ordem, riscos e recuperação;
+não autoriza tocar `sscexzxtqdcsqdlcytum` nesta tarefa.
+
+### Conferências locais efetivamente realizadas
+
+- Branch remota e referência conferidas; worktree separado para
+  `temp/academic-production-phase1`, preservando a árvore e o histórico de
+  `sync/academic-complete-0220` e main.
+- Leitura integral deste documento e de `HOMOLOGACAO_SUPABASE_0220.md`, inclusive
+  pacote transacional, timeouts, contingência e manifesto.
+- Gerador e os dois SQLs de inventário revisados por leitura. O inventário usa
+  catálogo/configurações/tamanhos; não consulta linhas acadêmicas ou de Auth.
+- Hashes dos **sete** fontes A–E comparados ao manifesto: **7/7 coincidem**.
+  A lista do gerador exclui `202611130001_h13_registry_cache.sql` e
+  `202611150002_scope_conflict_http.sql`.
+- Não se executou o gerador ainda: a ordem exige inventário elegível antes da
+  geração. `build/producao-0220.sql` não existe neste worktree.
+
+### Estado hospedado: não executado, sem aprovação implícita
+
+| Etapa | Estado |
+| --- | --- |
+| Backup administrativo pelo painel | Confirmação do proprietário pendente |
+| Projeto atualmente aberto no SQL Editor | Confirmação pendente |
+| Inventário anterior | Não executado; baseline atual desconhecido |
+| Pacote de produção / SHA aplicado | Não gerado / não aplicado |
+| Autorização específica do pacote | Não recebida |
+| Inventário posterior / conferência E | Não executados |
+| UUID da conta fictícia / autorização | Não informados / não recebida |
+| Linha da allowlist afetada | Nenhuma operação executada; resultado não verificado |
+
+Nesta sessão não há ferramentas de navegador/desktop expostas para controlar ou
+inspecionar o SQL Editor. A consulta de disponibilidade do ambiente retornou
+`capabilities=[]`, embora o ambiente esteja em execução. Identificador do ambiente:
+`ccarenv_b64_Y2NhcmVudl80YWQ4ZGU1OTQwZTQ4MTkxOGFiZWIwZTlmMTNlYTY2OQ`.
+Nenhuma conexão alternativa ao banco foi tentada e nenhuma credencial foi solicitada.
+
+Para retomar sem controle de navegador: depois das confirmações de backup/projeto,
+o proprietário poderá executar o inventário original no próprio SQL Editor e
+fornecer somente os resultados de catálogo para conferência. Isso deve ser registrado
+como execução pelo administrador, não execução direta pelo Codex. Não encaminhar
+backup, conteúdo acadêmico/Auth, e-mails, tokens ou credenciais.
+
+**Ponto de parada:** antes do passo 1.2 (inventário). Não há conclusão sobre o estado
+da produção nem autorização de DDL. Preservar a sequência original: backup/projeto,
+inventário elegível, geração/revisão local, autorização específica e execução única
+do pacote inteiro. Se surgir divergência ou objeto parcial, parar sem corrigir;
+se houver erro/timeout/resposta incerta, não repetir e conferir novamente o catálogo,
+confirmando o projeto aberto antes da nova leitura.
+
+Não houve SQL hospedado, allowlist, fixture, carga, APK, workflow, acesso à chave,
+modificação de Secrets ou alteração de aplicativo. A produção **não está declarada pronta**.
