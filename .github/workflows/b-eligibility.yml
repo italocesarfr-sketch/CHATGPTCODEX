@@ -1,0 +1,56 @@
+name: NOcTuA — diagnóstico pontual B, sem APK
+on:
+  workflow_call:
+    inputs:
+      mode:
+        type: string
+        default: PREFLIGHT
+      authorized:
+        type: boolean
+        default: false
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
+        required: false
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON:
+        required: false
+permissions:
+  contents: read
+jobs:
+  local-guards:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    name: B — guardas sintéticas, sem Secrets ou rede
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Testar os bloqueios antes de qualquer sessão hospedada
+        run: |
+          python3 scripts/test-hosted-auth-checks.py
+          python3 scripts/test-b-eligibility.py
+  diagnostic:
+    needs: local-guards
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    name: B — ${{ inputs.mode == 'HOSTED' && 'uma consulta autorizada' || 'pré-verificação offline' }}
+    environment: noctua-homologacao-h01-h04
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verificação isolada, sem APK/AVD, sem pull ou escrita acadêmica
+        env:
+          NOCTUA_B_ELIGIBILITY_MODE: ${{ inputs.mode }}
+          NOCTUA_B_ELIGIBILITY_AUTHORIZED: ${{ inputs.authorized && 'YES' || '' }}
+          NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
+          NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
+        run: python3 scripts/b-eligibility.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b-elegibilidade-sanitizado
+          path: build/b-eligibility/result.json
+          if-no-files-found: error
+          retention-days: 14
