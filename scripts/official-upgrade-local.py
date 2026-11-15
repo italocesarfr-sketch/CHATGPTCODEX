@@ -51,7 +51,7 @@ def prepare():
  print('C40_LOCAL_PREPARED_NO_PERMANENT_KEY')
 def execute(signing="DISPOSABLE_ONLY"):
  need(signing in ("DISPOSABLE_ONLY","PERMANENT"),"SIGNING_MODE")
- scope();private,tools=paths();out=ROOT/'build/official-upgrade';device='emulator-5554'
+ scope();private,tools=paths();out=ROOT/'build/official-upgrade';out.mkdir(parents=True,exist_ok=True);device='emulator-5554'
  def state(value):
   global STEP
   STEP=value
