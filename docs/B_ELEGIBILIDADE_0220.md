@@ -76,9 +76,79 @@ gh workflow run h131-investigation.yml --ref sync/academic-complete-0220 \
   -f authorize_hosted_p1=false
 ```
 
-Resultado hospedado ainda pendente; consolidar somente após leitura do artefato.
-O comando acima documenta esta autorização específica, não uma permissão de
-repetição nem um convite para executá-lo novamente.
+Execução única concluída: [#27 / 43662904726](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43662904726),
+fonte `52084d81f0274b2de25b42b86eee2f706b1e9e9d`, tentativa 1, CI `success`.
+O comando acima documenta a autorização já utilizada; não é permissão de
+repetição nem convite para executá-lo novamente.
+
+## Resultado hospedado efetivamente observado
+
+**DIAGNOSED_NOT_ELIGIBLE.** O diagnóstico foi concluído; isso não aprova P1 nem
+habilita sincronização E. Os dois jobs da CI passaram: 26 testes sintéticos novos
++ 16 guardas compartilhadas (42 casos, zero falhas/ignorados) e o diagnóstico
+hospedado protegido. P1/P2/P3 e os laboratórios anteriores não foram executados.
+
+| Predicado de B | Resultado |
+| --- | --- |
+| Protocolo | **V2** |
+| Escopo | **B** (academicScope=2) |
+| testAllowed | **true** |
+| Elegibilidade para E | **false** |
+| Identidade confirmada/não anônima esperada | Conferida |
+
+A condição impeditiva atual está identificada: falta ampliar o escopo B até E.
+Não é necessário migrar v1→v2 nem alterar a allowlist, pois esses dois requisitos
+já estão satisfeitos. Não foi demonstrado problema de login ou falha da
+sincronização automática de A. Este status novo é compatível com a recusa SCOPE
+da #25, mas não preenche retroativamente os campos que aquele ensaio não coletou.
+
+| Operação | Requisições | HTTP | Tempo |
+| --- | ---: | ---: | ---: |
+| Login B | 1 | 200 | 1.195 ms |
+| Status acadêmico B | 1 | 200 | 767 ms |
+| Logout da sessão criada | 1 | 204 | 383 ms |
+| Total da verificação | 3 | — | 2.346 ms |
+
+Sessão criada observada e encerramento da própria sessão confirmados. Não houve
+refresh, login de A, pull, staging, decisão, exclusão, auditoria de decisão ou
+alteração acadêmica. Zero solicitações bloqueadas e zero solicitações de mutação
+acadêmica. Efeitos Auth normais de login/logout e seus logs internos são distintos
+de alterações administrativas nas contas e de auditorias acadêmicas.
+Nenhuma configuração hospedada, RLS, allowlist ou escopo foi alterada.
+
+- [Relatório sanitizado original](evidence/B_ELIGIBILIDADE_27.json).
+- [Artefato](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43662904726/artifacts/14140134322),
+  `b-elegibilidade-sanitizado`, ZIP 562 bytes.
+- ZIP SHA-256 `c0584a6eedd451a595dc77e0643e57cc5ad9c1784cb71e663f9e146ae872eb2b`.
+
+Digest comparado à API GitHub; JSON examinado para ausência de e-mails, UUIDs,
+tokens, chaves e dados acadêmicos. Nenhum APK foi gerado ou instalado. Produto,
+Room, contratos e SQL permanecem idênticos ao estado anterior.
+
+## Caminho mínimo específico para B — ainda não autorizado
+
+1. Preparar ampliação **B → C → D → E**, com a mesma conta B e o mecanismo já
+   existente de consentimentos/transições. Não alterar protocolo ou allowlist,
+   não reaplicar migrações e não executar UPDATE direto em academic_scope.
+2. Antes de cada transição, conferir titularidade, backup fictício verificável,
+   revisões/cursores, filas e conflitos do workspace. Receber as mudanças pendentes
+   e usar a sequência atual validada; não presumir sequência zero. As rotinas
+   `prepareC/prepareD/prepareE` e os RPCs correspondentes exigem estado compatível,
+   ausência de bloqueios e sequência conhecida. Se divergirem, parar preservando
+   os dados. A UI experimental já encadeia os consentimentos C/D/E.
+3. Os consentimentos locais existentes chamam `seed()` e podem enfileirar dados
+   locais das entidades recém-habilitadas. Por isso, a futura autorização deve
+   delimitar o workspace e eventuais envios acadêmicos; não prometer uma mudança
+   apenas de metadados usando automaticamente um workspace não conferido. Uma
+   alteração isolada no servidor sem preparar os clientes pode deixá-los com
+   estado local incompatível. Nenhum aparelho existente será tocado sem autorização.
+4. Após aprovação e transição efetiva, solicitar **nova autorização para P1**.
+   A autorização desta consulta pontual já foi consumida. A P1 completa continua
+   não aprovada; o resultado verde deste diagnóstico não autoriza distribuição
+   ou atualização do aplicativo oficial.
+
+Commits: `52084d8` implementou/testou o executor e o workflow; commit documental
+posterior preserva o resultado e o plano mínimo acima.
 
 ## Procedimento legítimo se B não estiver pronta
 

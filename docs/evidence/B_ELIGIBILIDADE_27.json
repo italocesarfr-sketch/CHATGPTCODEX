@@ -1,0 +1,39 @@
+{
+  "case": "B_ELIGIBILITY",
+  "project_ref": "sscexzxtqdcsqdlcytum",
+  "account": "B",
+  "mode": "HOSTED",
+  "source_sha": "52084d81f0274b2de25b42b86eee2f706b1e9e9d",
+  "credentials_redacted": true,
+  "hosted_requests": true,
+  "overall": "DIAGNOSED_NOT_ELIGIBLE",
+  "stage": "DONE",
+  "blocking_code": null,
+  "eligibility": {
+    "protocol": "V2",
+    "scope": "B",
+    "test_allowed": true,
+    "ready": false
+  },
+  "authenticated": true,
+  "session_created_observed": true,
+  "own_session_logout_confirmed": true,
+  "requests": {
+    "LOGIN_B": 1,
+    "STATUS_B": 1,
+    "LOGOUT": 1
+  },
+  "http_status": {
+    "LOGIN_B": 200,
+    "STATUS_B": 200,
+    "LOGOUT": 204
+  },
+  "blocked_requests": 0,
+  "academic_mutation_requests": 0,
+  "total_ms": 2346,
+  "timings_ms": {
+    "LOGIN_B": 1195,
+    "STATUS_B": 767,
+    "LOGOUT": 383
+  }
+}

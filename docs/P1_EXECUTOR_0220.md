@@ -3,7 +3,9 @@
 **Atualização da execução hospedada:** a P1 #25 foi autorizada e executada uma
 vez; parou em `RECOVER_B / SCOPE`, após recuperar automaticamente A. A prova
 completa permanece reprovada, sem repetição autorizada. Ver
-[diagnóstico e evidência original](P1_HOSTED_25_0220.md). O complemento de diagnóstico `03b11e2` passou na CI local #26, sem nova consulta
+[diagnóstico e evidência original](P1_HOSTED_25_0220.md). A consulta pontual posterior #27 identificou B em V2/escopo B/allowed=true;
+[resultado e transição pendente](B_ELEGIBILIDADE_0220.md). Nenhum escopo foi alterado.
+O complemento de diagnóstico `03b11e2` passou na CI local #26, sem nova consulta
 hospedada. As seções de preparação abaixo registram o estado anterior ao ensaio
 e não representam aprovação hospedada.
 
