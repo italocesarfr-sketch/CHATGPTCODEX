@@ -19,6 +19,7 @@ def main():
  raw=adb('-s',device,'shell','am','instrument','-w','-e','timeout_msec','240000','-e','h05Mode','LOCAL','-e','bTransitionLocal','YES','-e','class',','.join('br.com.diariodeclasse.'+name for name in classes),'br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner',timeout=300,check=False)
  (private/'native.log').write_bytes(raw);diag=h.native_diagnostics(raw,expected)
  codes={'OWNER','CONSENT','ORDER','ELIGIBILITY','LOCAL_STAGE','REMOTE_SCOPE','CONFLICT_OR_RESTORE','QUEUES','V1','CURSOR','UNACKNOWLEDGED','UNSYNCED_LOCAL','LIMIT','RECEIPTS','REVISION','REFERENCES','STALE','REPEAT','CONFIRMATION','WRITE_BLOCKED','DECISION_BLOCKED'}
+ diag['source_locations']=sorted(set(re.findall(r'(?:BTransitionNetworkTest|BTransitionPreparation|AcademicStore|PhaseDRoomTest|BackupCodec)\.kt:[0-9]+',raw.decode(errors='ignore'))))
  diag['guard_codes']=sorted(set(re.findall(r'BT_([A-Z_]+)',raw.decode(errors='ignore')))&codes)
  report=adb('-s',device,'exec-out','run-as','br.com.diariodeclasse','cat','files/b-transition-result.json',check=False)
  proof=None
@@ -28,7 +29,7 @@ def main():
    assert isinstance(j,dict)and not set(j)-known and j.get('case')=='B_TRANSITION_LOCAL'
    for k,v in j.items():
     if k=='case':continue
-    if k=='stage':assert v in {'START','DIRTY','PENDING','GUARDS','CAS','LOST_REPLY','RESUME','FINAL_VERIFY'}
+    if k=='stage':assert v in {'START','DIRTY','PENDING','OUTBOX','GUARDS','CAS','LOST_REPLY','RESUME','FINAL_VERIFY'}
     elif k=='hash':assert isinstance(v,str)and re.fullmatch('[0-9a-f]{64}',v)
     elif k=='scopes':assert v==[3,4,5]
     elif k in ('records','sequence','negative_checks','academic_writes'):assert type(v)is int and 0<=v<=1000

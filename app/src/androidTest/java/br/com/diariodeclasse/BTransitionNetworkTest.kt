@@ -43,14 +43,19 @@ class BTransitionNetworkTest {
         }
         // Dirty, stale, conflicted and legacy clients must be rejected without changing their rows.
         stage="DIRTY"
-        val dirty=open();val dirtyGate=bootstrap(dirty);val dirtyStore=AcademicStore(dirty,b)
+        val dirty=open();val dirtyGate=bootstrap(dirty)
         dirty.dao().insertRecord(LessonRecord("bt-local-journal","b-transition-class","2026-08-10","Local","Conteúdo fictício ainda não enviado"))
         val before=snapshot(dirty)
         blocked("UNSYNCED_LOCAL"){dirtyGate.arm(dirty,b,b,3,true)};assertEquals(before,snapshot(dirty));assertEquals(2,raw.status(token).academicScope)
         stage="PENDING"
-        PhaseDFixture.insert(dirty,PhaseDFixture.read());val allBefore=snapshot(dirty);val pending=dirtyStore.prepare()!!
-        blocked("QUEUES"){dirtyGate.arm(dirty,b,b,3,true)};assertEquals(allBefore,snapshot(dirty));assertEquals(pending,dirtyStore.pending())
+        PhaseDFixture.insert(dirty,PhaseDFixture.read());val allBefore=snapshot(dirty);BackupCodec.validate(allBefore)
+        blocked("UNACKNOWLEDGED"){dirtyGate.arm(dirty,b,b,3,true)};assertEquals(allBefore,snapshot(dirty))
         assertEquals(15,rows(dirty).map{it.kind}.toSet().size)
+        stage="OUTBOX"
+        val queued=open();val queuedGate=bootstrap(queued);val queuedStore=AcademicStore(queued,b)
+        val student=queued.dao().student("bt-s1")!!;queued.dao().save(student.copy(name="Nome fictício editado offline"))
+        val queuedBefore=snapshot(queued);val pending=queuedStore.prepare()!!
+        blocked("QUEUES"){queuedGate.arm(queued,b,b,3,true)};assertEquals(queuedBefore,snapshot(queued));assertEquals(pending,queuedStore.pending())
         stage="GUARDS"
         val dbName="bt-clean-${newId()}.db";var db=open(dbName);var gate=bootstrap(db)
         val baseline=rows(db);val oldClient=open();val oldGate=bootstrap(oldClient);val oldSnapshot=snapshot(oldClient)
