@@ -55,13 +55,13 @@ jobs:
           p=Path('build/b-transition');p.mkdir(parents=True,exist_ok=True)
           (p/'jvm.json').write_text(json.dumps(dict(tests=len(cases),passed=len(cases)-skipped,skipped=skipped,failed=failed,hosted_requests=False)))
           PYCOUNT
-      - name: Regressão PostgreSQL C/D/E com a guarda candidata
+      - name: Regressão PostgreSQL C/D/E com a definição final existente
         run: |
           for phase in c d e; do
             createdb "noctua_phase_${phase}_test"
             PGDATABASE="noctua_phase_${phase}_test" python3 scripts/b-transition-regression.py "$phase" > "$RUNNER_TEMP/noctua-b-transition-private/pg-$phase.log" 2>&1
           done
-      - name: PostgREST real descartável, reprodução e validação da guarda
+      - name: PostgREST real descartável, validação das guardas existentes
         run: |
           ./scripts/ci/start-phase-b-postgrest.sh > "$RUNNER_TEMP/noctua-b-transition-private/backend.log" 2>&1
           python3 scripts/b-transition-local.py prepare >> "$RUNNER_TEMP/noctua-b-transition-private/backend.log" 2>&1

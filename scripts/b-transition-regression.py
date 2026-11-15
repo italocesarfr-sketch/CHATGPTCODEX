@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run existing PostgreSQL C/D/E suites with the candidate installed AFTER imports."""
+"""Run existing PostgreSQL C/D/E suites with the effective C guard from the existing D migration."""
 import os,sys,importlib.util,io,json,unittest
 from pathlib import Path
 root=Path(__file__).resolve().parents[1]
@@ -7,7 +7,9 @@ assert os.environ.get('GITHUB_ACTIONS')=='true'and os.environ.get('CI')=='true'a
 assert len(sys.argv)==2 and sys.argv[1]in ('c','d','e');phase=sys.argv[1]
 assert os.environ.get('PGDATABASE')=='noctua_phase_'+phase+'_test'
 spec=importlib.util.spec_from_file_location('previous_phase',root/f'scripts/test-phase-{phase}-postgres.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-m.execute((root/'supabase/migrations/202611150001_scope_transition_guard.sql').read_text())
+definition=(root/'supabase/migrations/202611020003_phase_d_scope.sql').read_text()
+start=definition.index('CREATE OR REPLACE FUNCTION public.noctua_enable_academic_c(');end=definition.index('-- Private projection',start)
+effective_c=definition[start:end].strip();m.execute(effective_c)
 suite=unittest.defaultTestLoader.loadTestsFromModule(m)
 def install_before_case(suite):
  for case in suite:
@@ -15,7 +17,7 @@ def install_before_case(suite):
   else:
    original=case.setUp
    def setup(original=original):
-    original();m.execute((root/'supabase/migrations/202611150001_scope_transition_guard.sql').read_text())
+    original();m.execute(effective_c)
    case.setUp=setup
 install_before_case(suite) # The original C reapplication test deliberately reinstalls the older function.
 stream=io.StringIO();result=unittest.TextTestRunner(stream=stream).run(suite)

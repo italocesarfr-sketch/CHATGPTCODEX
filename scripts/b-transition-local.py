@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""LOCAL ONLY: reproduce C downgrade, test candidate, seed B and verify no data writes."""
+"""LOCAL ONLY: verify existing monotonic C/D/E guards, seed B and verify no data writes."""
 import os,importlib.util,json,hashlib,runpy,subprocess
 from pathlib import Path
 assert os.environ.get('GITHUB_ACTIONS')=='true'and os.environ.get('CI')=='true'
@@ -23,19 +23,18 @@ def digest(owner,exclude_scope=False):
 def security():
  return hashlib.sha256(sql("SELECT jsonb_agg(to_jsonb(r) ORDER BY r.tablename) FROM (SELECT tablename,policyname,roles,cmd,qual,with_check FROM pg_policies WHERE schemaname='public' ORDER BY tablename,policyname) r").encode()+sql("SELECT jsonb_agg(to_jsonb(r) ORDER BY r.oid) FROM (SELECT c.oid,c.relrowsecurity,c.relacl FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname LIKE 'noctua_%') r").encode()+sql("SELECT jsonb_build_array(proacl,prosecdef,proconfig,pg_get_function_identity_arguments(oid)) FROM pg_proc WHERE oid='public.noctua_enable_academic_c(bigint)'::regprocedure").encode()).hexdigest()
 def prepare():
- # Third disposable identity demonstrates the old race; never a hosted account.
+ # The effective A-E definition is the C function replaced by D, not the earlier C-only body.
+ before=security()
  q=f.token('44444444-4444-4444-8444-444444444444','dddddddd-dddd-4ddd-8ddd-dddddddddddd')
  s=rpc('noctua_academic_status_c',token=q);rpc('noctua_activate_academic',dict(p_expected_sequence=s['v1Sequence'],p_expected_v1=s['v1']),q)
- for stage in ('c','d','e'):rpc('noctua_enable_academic_'+stage,dict(p_expected_sequence=0),q)
- assert rpc('noctua_academic_status_c',token=q)['academicScope']==5
- assert rpc('noctua_enable_academic_c',dict(p_expected_sequence=0),q)['academicScope']==3
- before=security()
- sql((ROOT/'supabase/migrations/202611150001_scope_transition_guard.sql').read_text())
- assert security()==before # ACL, RLS, policies, SECURITY DEFINER/search_path preserved.
+ rpc('noctua_enable_academic_c',dict(p_expected_sequence=0),q)
  for scope,stage in ((4,'d'),(5,'e')):
   rpc('noctua_enable_academic_'+stage,dict(p_expected_sequence=0),q)
-  rpc('noctua_enable_academic_c',dict(p_expected_sequence=0),q,expected=403)
+  denied=rpc('noctua_enable_academic_c',dict(p_expected_sequence=0),q,expected=403);assert denied['code']=='42501'
   assert rpc('noctua_academic_status_c',token=q)['academicScope']==scope
+ denied=rpc('noctua_enable_academic_d',dict(p_expected_sequence=0),q,expected=403);assert denied['code']=='42501'
+ assert rpc('noctua_academic_status_c',token=q)['academicScope']==5
+ assert security()==before
  runpy.run_path(str(ROOT/'scripts/h05-local-fixture.py')) # A=171 records / 15 types, unchanged reference tenant.
  s=rpc('noctua_academic_status_c');rpc('noctua_activate_academic',dict(p_expected_sequence=s['v1Sequence'],p_expected_v1=s['v1']))
  school=dict(id='b-transition-class',name='B fictícia',stage='Médio',subject='História',year=2026,shift='Matutino',schedule='0,0,0,0,0,0,0',duration=50,scale=10.0,low=5.0,high=7.0,countJustified=True,startPresent=False)
@@ -52,7 +51,7 @@ def prepare():
  for name in ('d','e'):rpc('noctua_enable_academic_'+name,dict(p_expected_sequence=1),expected=403)
  error=rpc('noctua_enable_academic_c',dict(p_expected_sequence=2),expected=500);assert error['code']=='40001'
  assert rpc('noctua_academic_status_c')['academicScope']==2
- result=dict(old_downgrade_reproduced=True,candidate_prevents_downgrade=True,security_metadata_unchanged=True,skipped_stages_rejected=True,stale_sequence_rejected=True,a_hash=digest(A),b_data_hash=digest(B,True),b_records=41,b_sequence=1,hosted_requests=False)
+ result=dict(effective_d_guard_blocks_downgrade=True,no_new_migration_required=True,security_metadata_unchanged=True,skipped_stages_rejected=True,stale_sequence_rejected=True,a_hash=digest(A),b_data_hash=digest(B,True),b_records=41,b_sequence=1,hosted_requests=False)
  (OUT/'postgres.json').write_text(json.dumps(result,indent=2)+'\n')
 def verify():
  result=json.loads((OUT/'postgres.json').read_text());assert digest(A)==result['a_hash'];assert digest(B,True)==result['b_data_hash']

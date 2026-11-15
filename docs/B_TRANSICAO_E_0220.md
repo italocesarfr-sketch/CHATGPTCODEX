@@ -31,25 +31,25 @@ A titularidade de B não autoriza reassociar ou ler os arquivos de A. A prévia 
 workspaces/clientes B, sua compatibilidade e suas pendências são requisitos reais
 antes de qualquer execução hospedada. Não se considera essa parte verificada.
 
-## Risco identificado no RPC C
+## Auditoria da definição efetiva C/D/E
 
-A função original `noctua_enable_academic_c` só exige escopo não nulo e sequência
-acadêmica igual. C/D/E não incrementam a sequência acadêmica. Assim, uma chamada
-C atrasada pode ser recebida após D/E e recuar o escopo para C, mesmo mantendo a
-mesma sequência. Esse cenário será reproduzido no PostgreSQL descartável.
+A revisão inicial isolou a definição anterior de C e suspeitou de recuo de escopo.
+A leitura da ordem completa corrigiu essa hipótese: a migração D,
+`202611020003_phase_d_scope.sql`, **já substitui** o RPC C e exige escopo 2 ou 3.
+Os RPCs D e E também restringem seus predecessores. A sequência acadêmica não
+muda com a ampliação, portanto é essa guarda final do servidor que precisa ser
+verificada, não apenas o check de sequência.
 
-Candidata aditiva para revisão separada:
-`supabase/migrations/202611150001_scope_transition_guard.sql`.
-Ela altera somente a guarda de predecessor de C, exigindo escopo 2 ou 3, como os
-RPCs D/E já fazem para seus predecessores. Mantém assinatura, parâmetros, ACL,
-SECURITY DEFINER, search_path e todas as demais validações. Não altera tabelas,
-RLS, titularidade, recibos ou dados. Não modifica scripts antigos nem o pacote
-A–E publicado. **Não foi aplicada no Supabase hospedado.**
+A candidata `202611150001_scope_transition_guard.sql` criada na preparação inicial
+foi retirada antes de qualquer uso hospedado: era desnecessária. Não existe nova
+migração SQL a implantar. Os scripts A–E originais e o pacote publicado não foram
+alterados. O teste descartável confere recuos E→C, E→D e D→C recusados e preserva
+ACL/RLS/SECURITY DEFINER/search_path. A definição hospedada não foi consultada nesta
+tarefa; uma futura conferência administrativa deve avaliar a definição final D,
+sem reaplicar o script C antigo isoladamente.
 
-O procedimento hospedado permanece bloqueado até comprovar localmente a correção,
-obter revisão/aprovação administrativa da candidata e verificar sua aplicação no
-projeto de homologação. Não usar um lock apenas no cliente como substituto da
-guarda atômica do servidor. Não reaplicar o script C antigo depois da correção.
+Não afirmar que houve vulnerabilidade no protocolo final A–E com base na definição
+intermediária de C. O histórico dos commits conserva a hipótese e sua retirada.
 
 ## Executor de preparação — exclusivamente LOCAL
 
@@ -98,7 +98,7 @@ Room selecionadas serão executadas junto da nova prova HTTP/Room.
    cliente incompatível ou titularidade divergente, interromper. Não enviar os dados
    para “limpar” a fila sob uma autorização apenas de metadados. Preparar outra
    autorização delimitada se algum envio acadêmico for necessário.
-4. Após a candidata C aprovada/aplicada separadamente, gerar prévia B→C, verificar
+4. Conferir que o ambiente utiliza as definições finais A–E já instaladas. Gerar prévia B→C, verificar
    filas/revisões/head e consentir C. Usar `p_expected_sequence` observado, nunca zero
    inventado. Conferir resposta C e invariância dos dados antes de prosseguir.
 5. Repetir a conferência e o consentimento próprios de C→D e D→E, com os RPCs
@@ -119,15 +119,9 @@ para usar atualização SQL direta.
 
 ## Textos de autorização para revisão posterior
 
-**1. Guarda administrativa (se a prova local confirmar o defeito):**
-
-> Autorizo preparar/aplicar exclusivamente a migração aditiva
-> 202611150001_scope_transition_guard.sql no projeto de homologação
-> sscexzxtqdcsqdlcytum, após backup administrativo e revisão de identidade,
-> privilégios e função atual. Não autorizo dados acadêmicos, allowlist, RLS,
-> produção ou transição de B nesta autorização. Interromper se o preflight divergir.
-
-**2. Transição, somente depois de satisfazer os requisitos acima:**
+Não é necessária autorização para instalar nova migração: a candidata foi retirada.
+Após revisar os inventários B e o ambiente/workspace seguro, o texto de autorização
+proposto é:
 
 > Autorizo a transição controlada da conta fictícia B, de V2/B para C, depois D
 > e depois E, exclusivamente em sscexzxtqdcsqdlcytum, com consentimentos existentes,
@@ -141,5 +135,20 @@ para usar atualização SQL direta.
 > tudo e não repetir automaticamente. Não tocar instalações existentes fora do
 > workspace/ambiente expressamente identificado para esta operação.
 
-Esses textos são propostas revisáveis, não autorizações recebidas. Ainda faltam
-revisão da candidata, inventários locais e definição do workspace seguro a operar.
+Esse texto é uma proposta revisável, não autorizações recebidas. Ainda faltam
+inventários locais, definição do workspace seguro e revisão da binding autenticada
+e da barreira de comandos para operá-lo. Isso não é substituído por uma instalação
+vazia na CI.
+
+
+## Execuções intermediárias
+
+- #28 / `43665602114`, fonte `bee1de3`: C 20/20; D 26/27, uma falha porque a fixture
+  de exclusão com histórico ainda não havia sido gerada pela suíte JVM. Não se
+  removeu essa asserção. [Evidência parcial](evidence/B_TRANSICAO_28.json).
+- `c652992` corrigiu a ordem: JVM/fixture antes de PostgreSQL. Cada caso recebe a
+  definição C efetiva de D; o teste legado que reaplica C continua com suas
+  asserções originais, sem contaminar os casos seguintes.
+- #29 / `43665975764` foi cancelada ao perceber que D já continha a guarda. Não
+  contar a execução cancelada como aprovação. A candidata não será implantada.
+- A nova rodada usará apenas as definições existentes, sem alteração remota.
