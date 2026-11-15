@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Original c40 bytecode + disposable signing ONLY. No official APK artifact or hosted HTTP."""
+"""Shared c40 update probes. Disposable preparation is isolated; permanent execution
+requires independent original/candidate certificate checks and the protected controller.
+"""
 import hashlib,importlib.util,json,os,re,subprocess,sys,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
@@ -47,7 +49,8 @@ def prepare():
  out=ROOT/'build/official-upgrade';out.mkdir(parents=True,exist_ok=True)
  (out/'identity.json').write_text(json.dumps(dict(source_sha=os.environ['GITHUB_SHA'],original=old,original_version_code=40,candidate=new,candidate_version_code=version,signing='DISPOSABLE_ONLY',original_payloads_unchanged=True,official_signature_tested=False,hosted_requests=False),indent=2)+'\n')
  print('C40_LOCAL_PREPARED_NO_PERMANENT_KEY')
-def execute():
+def execute(signing="DISPOSABLE_ONLY"):
+ need(signing in ("DISPOSABLE_ONLY","PERMANENT"),"SIGNING_MODE")
  scope();private,tools=paths();out=ROOT/'build/official-upgrade';device='emulator-5554'
  def state(value):
   global STEP
@@ -59,6 +62,12 @@ def execute():
    ADB_ERRORS.extend(s for s in ('SecurityException','Permission Denial','INSTALL_FAILED_UPDATE_INCOMPATIBLE','INSTALL_FAILED_VERSION_DOWNGRADE','INSTALL_FAILED_INVALID_APK','INSTALL_FAILED_TEST_ONLY','device offline')if s.encode()in r.stdout+r.stderr)
    raise RuntimeError('ADB')
   return r.stdout
+ if signing=='PERMANENT':
+  original(private/'old.apk',tools)
+  candidate=ROOT/'app/build/outputs/apk/release/app-release.apk';run([tools/'apksigner','verify',candidate])
+  need(identity(candidate)['certificateSha256']==PIN['certificateSha256'],'PERMANENT_CERT_REQUIRED')
+  badging=run([tools/'aapt','dump','badging',candidate]).decode()
+  need("name='br.com.diariodeclasse' versionCode='45' versionName='0.22.0'"in badging and 'application-debuggable'not in badging,'CANDIDATE_IDENTITY')
  state('DISPOSABLE_GUARD');h.disposable(os.environ,device,adb)
  state('CHECK_EMPTY_INSTALLATION')
  for pkg in ('br.com.diariodeclasse','br.com.diariodeclasse.test','br.com.diariodeclasse.homologacao'):
@@ -75,7 +84,7 @@ def execute():
   diag['source_locations']=sorted(set(re.findall(r'(?:C40BoundUpgradeProbeTest|StableUpgradeProbeTest|BackupManager|AccountWorkspace|DiaryRepository|AuthTestRunner)\.kt:[0-9]+',raw.decode(errors='ignore'))))
   ok=diag['ok_marker']and not any(diag[k]for k in ('process_crashed','instrumentation_failed','failures','exception_types'))and b'Assumption'not in raw
   stages.append(dict(stage=stage,passed=ok,native=diag))
-  (out/'android.json').write_text(json.dumps(dict(source_sha=os.environ['GITHUB_SHA'],signing='DISPOSABLE_ONLY',hosted_requests=False,stages=stages,passed=False),indent=2)+'\n')
+  (out/'android.json').write_text(json.dumps(dict(source_sha=os.environ['GITHUB_SHA'],signing=signing,hosted_requests=False,stages=stages,passed=False),indent=2)+'\n')
   need(ok,'PROBE_'+stage)
  def stable(stage,phase):probe(stage,'stableUpgradePhase',phase,'StableUpgradeProbeTest')
  probe('OFFLINE_GUARD','c40BoundPhase','offline','C40BoundUpgradeProbeTest')
@@ -86,8 +95,8 @@ def execute():
  for stage,phase in [('RESTORE','restore'),('REOPEN','check'),('DELETE_HISTORY','delete-history'),('REOPEN_HISTORY','reopen-history'),('DELETE_STUDENT','delete-student'),('REOPEN_STUDENT','reopen-student')]:
   adb('-s',device,'shell','am','force-stop','br.com.diariodeclasse');stable(stage,phase)
  need(len(stages)==11,'COUNT')
- result=json.loads((out/'android.json').read_text());result.update(passed=True,phases_passed=11,official_signature_tested=False,original_re_signed_copy=True)
- (out/'android.json').write_text(json.dumps(result,indent=2)+'\n');print('C40_DISPOSABLE_UPDATE_PASSED_NOT_PERMANENT_SIGNATURE')
+ result=json.loads((out/'android.json').read_text());result.update(passed=True,phases_passed=11,official_signature_tested=signing=='PERMANENT',original_re_signed_copy=signing!='PERMANENT')
+ (out/'android.json').write_text(json.dumps(result,indent=2)+'\n');print('C40_PERMANENT_UPDATE_PASSED_CANDIDATE_ONLY'if signing=='PERMANENT'else'C40_DISPOSABLE_UPDATE_PASSED_NOT_PERMANENT_SIGNATURE')
 if __name__=='__main__':
  try:
   need(len(sys.argv)==2 and sys.argv[1]in ('prepare','execute'),'MODE');globals()[sys.argv[1]]()

@@ -9,6 +9,8 @@ plugins {
     id("com.google.devtools.ksp")
 }
 // Public client configuration. Never read administrative/session credentials here.
+// Explicit candidate build only; default development and experimental eligibility stay unchanged.
+val officialCandidate = providers.gradleProperty("noctuaOfficialCandidate").orNull == "true"
 val productionProject = "mpsgdchpgyxoqowfjoqm"
 val productionPublishable = "sb_publishable_61hfac3DL6eLG2gRBpEIeg_zBd1d_mZ"
 val homologacaoProject = "sscexzxtqdcsqdlcytum"
@@ -27,7 +29,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 45
-        versionName = "0.22.0-dev-e2"
+        versionName = if (officialCandidate) "0.22.0" else "0.22.0-dev-e2"
         testInstrumentationRunner = "br.com.diariodeclasse.AuthTestRunner"
         manifestPlaceholders["authCallbackScheme"] = "br.com.diariodeclasse"
         buildConfigField("boolean", "HOMOLOGACAO", "false")
