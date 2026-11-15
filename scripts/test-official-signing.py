@@ -120,7 +120,13 @@ class Safety(unittest.TestCase):
  def test_default_application_and_experimental_eligibility_remain(self):
   g=(ROOT/'app/build.gradle.kts').read_text();self.assertIn('versionName = if (officialCandidate) "0.22.0" else "0.22.0-dev-e2"',g)
   self.assertIn('versionCode = 45',g)
-  a=(ROOT/'app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt').read_text();self.assertIn('=BuildConfig.DEBUG &&',a)
+  a=(ROOT/'app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt').read_text()
+  self.assertIn('=(BuildConfig.DEBUG || BuildConfig.ACADEMIC_PRODUCTION) && !workspace.legacy && workspace.user.id!=AuthConfig.LEGACY_OWNER_ID',a)
+  # Release eligibility is an explicit build opt-in, off by default and never passed by the signing path.
+  self.assertIn('val academicProduction = providers.gradleProperty("noctuaAcademicProduction").orNull == "true"',g)
+  self.assertIn('buildConfigField("boolean", "ACADEMIC_PRODUCTION", academicProduction.toString())',g)
+  for f in [ROOT/'scripts/official-signing.py',ROOT/'scripts/official-upgrade-local.py',*sorted((ROOT/'.github/workflows').glob('*.yml'))]:
+   self.assertNotIn('noctuaAcademicProduction',f.read_text(encoding='utf-8'),f.name)
  def test_missing_secrets_never_invoke_java_build_or_fallback(self):
   with tempfile.TemporaryDirectory()as d,patch.dict(os.environ,dict(env(),RUNNER_TEMP=d),clear=True),patch.object(m,'protect'),patch.object(m,'run')as called:
    with self.assertRaisesRegex(m.Blocked,'SIGNING_SECRETS_UNAVAILABLE'):m.preflight()

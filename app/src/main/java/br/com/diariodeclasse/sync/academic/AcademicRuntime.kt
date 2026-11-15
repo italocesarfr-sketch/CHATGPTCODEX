@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.withLock
 
-fun academicTestEligible(workspace:AccountWorkspace)=BuildConfig.DEBUG && !workspace.legacy && workspace.user.id!=AuthConfig.LEGACY_OWNER_ID
+/** Release needs the explicit ACADEMIC_PRODUCTION build opt-in; the legacy owner workspace stays excluded. */
+fun academicTestEligible(workspace:AccountWorkspace)=(BuildConfig.DEBUG || BuildConfig.ACADEMIC_PRODUCTION) && !workspace.legacy && workspace.user.id!=AuthConfig.LEGACY_OWNER_ID
 
 /** Foreground/connection/local changes converge on one mutex; JobScheduler is the durable fallback. */
 class AcademicCoordinator(private val base:Context,private val workspace:AccountWorkspace,private val scope:CoroutineScope) {

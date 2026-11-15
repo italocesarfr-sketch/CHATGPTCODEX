@@ -11,6 +11,9 @@ plugins {
 // Public client configuration. Never read administrative/session credentials here.
 // Explicit candidate build only; default development and experimental eligibility stay unchanged.
 val officialCandidate = providers.gradleProperty("noctuaOfficialCandidate").orNull == "true"
+// Explicit opt-in for the academic protocol in a release build; without it the protocol stays DEBUG-only.
+// The server allowlist and the legacy-owner exclusion still decide which accounts synchronize.
+val academicProduction = providers.gradleProperty("noctuaAcademicProduction").orNull == "true"
 val productionProject = "mpsgdchpgyxoqowfjoqm"
 val productionPublishable = "sb_publishable_61hfac3DL6eLG2gRBpEIeg_zBd1d_mZ"
 val homologacaoProject = "sscexzxtqdcsqdlcytum"
@@ -33,6 +36,7 @@ android {
         testInstrumentationRunner = "br.com.diariodeclasse.AuthTestRunner"
         manifestPlaceholders["authCallbackScheme"] = "br.com.diariodeclasse"
         buildConfigField("boolean", "HOMOLOGACAO", "false")
+        buildConfigField("boolean", "ACADEMIC_PRODUCTION", academicProduction.toString())
         buildConfigField("String", "SUPABASE_PROJECT_REF", "\"$productionProject\"")
         buildConfigField("String", "SUPABASE_URL", "\"https://$productionProject.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"$productionPublishable\"")
