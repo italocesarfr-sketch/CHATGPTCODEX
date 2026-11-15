@@ -144,6 +144,14 @@ Resultados e limites efetivamente observados ficam na consolidação abaixo.
 7. Conferir E e a invariância dos registros, revisões, hashes, recibos e auditorias.
    Encerrar somente a sessão criada. Só depois solicitar nova autorização da P1.
 
+Os diálogos atuais de `SyncPanel` são “Ampliar o teste?” (C), “Incluir diário e
+históricos?” (D) e “Ampliar a recuperação do teste?” (E). São referências dos
+consentimentos reutilizados, **não instrução para clicar agora**: a UI normal chama
+`academicCoordinator.request()` após cada aceite e pode iniciar envios. Uma
+operação autorizada apenas para metadados precisa da barreira de transporte em
+todos os caminhos, mutex do workspace e coordenação dos workers/comandos. Não
+considerar que fechar o painel, usar um AVD novo ou fazer backup pausa outros clientes.
+
 Não se garante congelamento dos editores/clientes existentes a partir da CI. A
 preparação não habilita transição hospedada enquanto a origem local de B não tiver
 sido conferida e a binding autenticada/mutex/barreira de comandos do workspace
@@ -305,3 +313,68 @@ permanecem temporários privados e são removidos antes de subir artefatos. A
 conferência de invariância de A/B também será executada se a prova principal tiver
 concluído, mesmo que outra regressão falhe; isso não altera o resultado da CI.
 Não foi presumido ou corrigido um defeito de produto sem evidência.
+
+
+## Consolidação definitiva da CI #33
+
+[Execução #33 / 43670606388](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43670606388),
+fonte **`cfa9ef3a5f969209220b0425cda4fe194a167f8b`**, terminou com **success**.
+O artefato foi baixado e examinado, sem repetir a execução.
+
+| Prova executada | Aprovados | Ignorados | Falhas |
+| --- | ---: | ---: | ---: |
+| Guardas estáticas novas | 5 | 0 | 0 |
+| JVM | 313 | 5 | 0 |
+| PostgreSQL C | 20 | 0 | 0 |
+| PostgreSQL D | 27 | 0 | 0 |
+| PostgreSQL E | 16 | 0 | 0 |
+| Android nativo | 34 | 0 | 0 |
+
+Os cinco condicionais JVM não contataram serviços hospedados e não são aprovações
+Auth. O artefato Android enumera os **34 casos concluídos**, com OK nativo e sem
+crash: uma prova HTTP/Room da transição e 33 regressões Room. A preparação HTTP
+anterior também executou a suíte existente de nove guardas HTTP; ela não é nova
+homologação Auth hospedada. P1, P2/P3, diagnóstico hospedado B e demais suítes do
+dispatcher foram corretamente pulados, não aprovados nesta rodada.
+
+- B: 41 registros (uma turma, quatro bimestres, 36 matrículas), head **1** antes e
+  depois, escopos **3 → 4 → 5**, **21 verificações negativas**, zero escritas acadêmicas.
+- Filas/dados locais não reconhecidos nos 15 tipos preservados e ampliação bloqueada;
+  conflito, restauração, dono, revisão, recibo e cursor incorretos recusados.
+- Backup lógico criptografado conferido, leitura por outra conta recusada,
+  resposta C perdida após commit e reabertura Room com consentimento durável
+  comprovadas. Não houve reenvio cego do C já confirmado.
+- Hash lógico dos 41 registros recuperados:
+  `056a71e52b1f3fa3a9c49fd12ca57593bc8e89b4573e5361d68a6043ffe27258`.
+- Fingerprint de A antes/depois: invariável
+  `6ccc0d0fc72b20367d7e7efe5ff0277da5351a543f6a172c62992a3499e21a30`.
+- Fingerprint de dados, recibos e históricos de B antes/depois, excluindo somente
+  academic_scope: invariável
+  `e3e5d01f5113d5177bb70f37ae7cb3b5b352742a7cf33079c5eef5e5b7affd8e`.
+- ACL/RLS/configurações das funções preservadas; conflito de sequência retornou
+  **409/PT409 em 3 ms** no PostgREST descartável. Isso não é benchmark hospedado.
+
+[Relatório integral sanitizado](evidence/B_TRANSICAO_33.json).
+[Artefato original](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43670606388/artifacts/14144291676),
+`b-transicao-local-sanitizado`, ZIP 3.015 bytes,
+SHA-256 `7527f31b15b86524e0ed0bb5f98d7c825bbc9dc1e0f84692a1ce60994381775b`,
+conferido com o digest da API GitHub.
+
+### Comparação #32 / #33 e limites
+
+A #32 comprovou a prova principal, mas não concluiu a instrumentação nem a
+conferência final remota local; permaneceu reprovada. A #33 concluiu ambas e todos
+os 34 testes. Entre elas não houve mudança no produto, Room, protocolo ou
+asserções acadêmicas: foram acrescentados status nativos por caso, diagnósticos
+sanitizados e conferência pós-prova mesmo após falha de outra regressão. A causa
+exata do crash anterior não foi recuperada; uma execução posterior bem-sucedida
+não permite inventar uma causa ou afirmar correção de um defeito de produto.
+Não houve bloqueio acadêmico inesperado na #33. As recusas intencionais são parte
+dos 21 controles negativos.
+
+**Preparação local validada, transição hospedada não realizada e ainda bloqueada**
+pelos inventários dos workspaces B e pela binding/coordenação hospedada segura.
+A candidata 002 é recomendada para evitar a repetição comprovada de erro 40001,
+mas não é requisito lógico de uma ampliação com head estável. Sua necessidade
+operacional e compatibilidade no hospedado exigem revisão administrativa própria;
+esta aprovação local não autoriza aplicá-la, ampliar B ou repetir P1.
