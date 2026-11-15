@@ -120,7 +120,11 @@ as exclusões de `academicTestEligible` para contornar.
   na CI depois que a branch for levada para `sync/academic-complete-0220`.
 
 
-## Registro da implantação assistida — pré-execução
+## Registro histórico da implantação assistida — pré-execução
+
+O registro abaixo descreve a sessão anterior. O relato posterior do administrador
+e a preparação local estão consolidados na seção seguinte; os estados de espera
+deste registro não representam as informações mais recentes.
 
 Registrado em `2026-11-15T16:01:50-03:00`. Referência de código/SQL:
 `ac56867ef3c6093670fafd91ddd4f591bc589f8a`.
@@ -180,3 +184,39 @@ confirmando o projeto aberto antes da nova leitura.
 
 Não houve SQL hospedado, allowlist, fixture, carga, APK, workflow, acesso à chave,
 modificação de Secrets ou alteração de aplicativo. A produção **não está declarada pronta**.
+
+## Continuação — inventário relatado e pacote local revisado (15/11/2026)
+
+O proprietário informou execução manual do inventário em `noctua-auth`, produção
+`mpsgdchpgyxoqowfjoqm`: quatro tabelas v1 com RLS, doze A–E ausentes, guarda de
+sessão presente, ativação/wrapper v2 ausentes, quatro políticas de proprietário e
+três funções SECURITY DEFINER com search_path seguro e ACL informada como restrita.
+Esses resultados são **relato do administrador**, não consulta independente nesta
+sessão. São compatíveis com o baseline nos itens descritos; privilégios efetivos,
+helper de validação, definições completas e demais objetos ainda exigem conferência.
+
+Backup atualizado relatado: **pg_dump 17, 426.467 bytes**, catálogo legível por
+`pg_restore --list`, incluindo v1/Auth. Não houve acesso ao arquivo nesta sessão.
+Checksum do backup não informado e **restauração integral ainda não comprovada**.
+
+A pedido do proprietário, o gerador oficial foi executado **somente localmente**:
+
+- `build/producao-0220.sql`: **120.010 bytes**, 1.504 linhas.
+- SHA-256: `7fd28b6dbce5f72724abc1a2644041f19f373fc7675eb37a24bd17fa9a46659b`.
+- Sete hashes coincidentes com o manifesto histórico; corpos preservados;
+  transação externa única, preflight e `lock_timeout=5s` conferidos.
+- 18 verificações estáticas aprovadas; sem H13, PT409 ou reaplicação v1/guarda.
+  Não houve nova execução de SQL, parser SQL, benchmark ou suíte Android.
+- Cópia byte a byte idêntica ao SQL A–E já versionado para revisão; gerados SQL e
+  manifesto em `build/`, sem sobrescrever artefato anterior.
+
+Detalhes, sete hashes, limitações, riscos de timeout e checklist de restauração:
+[REVISAO_PACOTE_PRODUCAO_0220.md](REVISAO_PACOTE_PRODUCAO_0220.md).
+Evidências locais: [evidence/PRODUCAO_PACOTE_0220.json](evidence/PRODUCAO_PACOTE_0220.json).
+
+**Ponto de parada atual:** pacote preparado para revisão. DDL de produção, conta de
+teste, verificação posterior e assinatura/APK não executados nem autorizados por
+esta continuação. Antes de uma autorização futura, completar a conferência de
+catálogo e a avaliação de recuperabilidade do backup. Nenhum acesso hospedado,
+modificação de contas/allowlist, dados reais, aplicação, assinatura, main ou branch
+de sincronização foi realizado.

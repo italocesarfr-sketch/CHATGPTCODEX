@@ -1,0 +1,122 @@
+{
+  "repository": "italocesarfr-sketch/CHATGPTCODEX",
+  "branch": "temp/academic-production-phase1",
+  "reviewed_at": "2026-11-15T16:59:39-03:00",
+  "source_reference": "ac56867ef3c6093670fafd91ddd4f591bc589f8a",
+  "review_base_head": "ac9d8ba226f1063fcbf5e0742198b9df01eaecfd",
+  "purpose": "Local production-package review only; not deployment authorization",
+  "intended_project_for_future_authorized_execution": "mpsgdchpgyxoqowfjoqm",
+  "package": {
+    "file": "build/producao-0220.sql",
+    "bytes": 120010,
+    "lines": 1504,
+    "sha256": "7fd28b6dbce5f72724abc1a2644041f19f373fc7675eb37a24bd17fa9a46659b"
+  },
+  "source_order": [
+    {
+      "order": 1,
+      "file": "202611010001_academic_protocol.sql",
+      "source_bytes": 25141,
+      "sha256": "32e3e7f43e4c8e999c900bf9b4ae8307170cae42228261d0c4d461fcf3755120",
+      "source_body_exact_except_transaction_envelope": true
+    },
+    {
+      "order": 2,
+      "file": "202611020001_phase_b_fence.sql",
+      "source_bytes": 11087,
+      "sha256": "680bbf805f30b4c15ebb3b8cda1ff286183083e2fe7437e4c8f625ffa4c4031a",
+      "source_body_exact_except_transaction_envelope": true
+    },
+    {
+      "order": 3,
+      "file": "202611020002_phase_c_scope.sql",
+      "source_bytes": 9923,
+      "sha256": "8d6df95a1c1eb57e8603790fa6f93c8867f00ab3f1e4cf3e4d811c09a1b34d06",
+      "source_body_exact_except_transaction_envelope": true
+    },
+    {
+      "order": 4,
+      "file": "202611020003_phase_d_scope.sql",
+      "source_bytes": 26227,
+      "sha256": "7e51af0f29843f02c93a34b1be8c005f96e5d27c70045c2b28fc40d9ba07f3df",
+      "source_body_exact_except_transaction_envelope": true
+    },
+    {
+      "order": 5,
+      "file": "202611030001_phase_e_paging.sql",
+      "source_bytes": 20241,
+      "sha256": "0eb5a4bad62743a28c1cd42e28e70711fd197a1b317804cbcd64e7beb1eb9813",
+      "source_body_exact_except_transaction_envelope": true
+    },
+    {
+      "order": 6,
+      "file": "202611030002_phase_e_decisions.sql",
+      "source_bytes": 8530,
+      "sha256": "f7785853b4438e72aea24a17b8b91812c4a250efd0a5e6ab8d61c8c3e44b54bf",
+      "source_body_exact_except_transaction_envelope": true
+    },
+    {
+      "order": 7,
+      "file": "202611030003_phase_e_indexed_graph.sql",
+      "source_bytes": 16719,
+      "sha256": "9ecd918240458a9367f3acba286a79445999b1b7058ac0e48fe3eab8ccc6f918",
+      "source_body_exact_except_transaction_envelope": true
+    }
+  ],
+  "new_tables": [
+    "noctua_academic_heads",
+    "noctua_academic_batches",
+    "noctua_academic_records",
+    "noctua_academic_versions",
+    "noctua_academic_receipts",
+    "noctua_academic_links",
+    "noctua_academic_uniques",
+    "noctua_academic_test_accounts",
+    "noctua_sync_protocols",
+    "noctua_e_transfers",
+    "noctua_e_parts",
+    "noctua_e_decisions"
+  ],
+  "local_static_checks": {
+    "seven_ordered_sources_match_documented_hashes": true,
+    "seven_source_bodies_preserved_exactly": true,
+    "package_hash_matches_historical_manifest": true,
+    "byte_identical_to_published_review_sql": true,
+    "one_standalone_outer_begin": true,
+    "one_standalone_outer_commit_at_end": true,
+    "preflight_precedes_sources": true,
+    "preflight_checks_guard_and_absent_v2": true,
+    "local_lock_timeout_5s": true,
+    "no_statement_timeout_override": true,
+    "no_role_or_database_configuration_changes": true,
+    "schema_reload_before_outer_commit": true,
+    "twelve_new_table_definitions": true,
+    "original_principal_not_redefined": true,
+    "v1_and_guard_not_reapplied": true,
+    "no_h13_registry_cache": true,
+    "no_pt409_candidate": true,
+    "no_drop_table_or_truncate": true
+  },
+  "verification_limits": "Source/header/byte/transaction-envelope checks and manual review; no new SQL parse, database execution, hosted query or restore test",
+  "administrator_report_not_independently_queried": {
+    "v1_tables": 4,
+    "v1_rls_enabled": true,
+    "academic_tables_absent": 12,
+    "session_guard_present": true,
+    "owner_select_policies": 4,
+    "security_definer_functions": 3,
+    "safe_search_path_and_anon_denied_authenticated_allowed": true,
+    "backup": {
+      "tool": "pg_dump 17",
+      "bytes": 426467,
+      "catalog_readable_by_pg_restore_list": true,
+      "v1_and_auth_in_catalog": true,
+      "checksum_provided": false,
+      "full_restore_proven": false
+    }
+  },
+  "supabase_connections_this_review": 0,
+  "sql_executions_this_review": 0,
+  "restore_executions_this_review": 0,
+  "deployment_authorized": false
+}
