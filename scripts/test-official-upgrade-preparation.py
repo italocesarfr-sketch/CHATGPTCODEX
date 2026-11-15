@@ -27,13 +27,16 @@ class Safety(unittest.TestCase):
   self.assertIn('h.disposable(os.environ,device,adb)',s);self.assertIn('EXISTING_APP_STOP',s)
   self.assertNotIn("'uninstall'",s);self.assertNotIn("'clear'",s);self.assertNotIn("'install','-r','-d'",s)
  def test_native_approval_requires_success_without_skips(self):
-  s=(ROOT/'scripts/official-upgrade-local.py').read_text();self.assertIn("b'Assumption'not in raw",s);self.assertIn("need(len(stages)==10",s)
+  s=(ROOT/'scripts/official-upgrade-local.py').read_text();self.assertIn("b'Assumption'not in raw",s);self.assertIn("need(len(stages)==11",s)
  def test_release_eligibility_and_legacy_conflict_remain_protected(self):
   s=(ROOT/'app/src/androidTest/java/br/com/diariodeclasse/C40BoundUpgradeProbeTest.kt').read_text()
   for check in ('assertFalse(br.com.diariodeclasse.sync.academic.academicTestEligible(w))','assertNull(w.database.academicDao().control())','frozen-synthetic-payload','KeystoreAuthVault','manager.needsClaim','NET_CAPABILITY_INTERNET'):self.assertIn(check,s)
  def test_resigning_preserves_original_v2_only_format_without_filtering_zip_entries(self):
   t=(ROOT/'scripts/official-upgrade-local.py').read_text();self.assertIn("'--v1-signing-enabled','false'",t);self.assertIn("'--v2-signing-enabled','true'",t)
   self.assertIn('for n in z.namelist()',t);self.assertNotIn("startswith('META-INF')",t)
+ def test_offline_probe_precedes_academic_seed_without_protected_broadcast(self):
+  t=(ROOT/'scripts/official-upgrade-local.py').read_text()
+  self.assertLess(t.index("probe('OFFLINE_GUARD'"),t.index("stable('SEED_C40'"));self.assertNotIn('AIRPLANE_MODE',t)
  def test_preparation_never_uses_permanent_key_environment(self):
   s=(ROOT/'scripts/official-upgrade-local.py').read_text();self.assertNotIn('DIARY_KEYSTORE_BASE64',s);self.assertIn("fingerprint!=PIN['certificateSha256']",s)
 if __name__=='__main__':unittest.main()

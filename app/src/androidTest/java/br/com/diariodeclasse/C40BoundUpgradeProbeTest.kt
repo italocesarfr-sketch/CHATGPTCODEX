@@ -16,12 +16,13 @@ import java.io.File
 class C40BoundUpgradeProbeTest {
     @Test fun boundOwnerAndFrozenV1ConflictSurviveUpdate():Unit=runBlocking {
         val phase=InstrumentationRegistry.getArguments().getString("c40BoundPhase")
-        assumeTrue(phase in listOf("seed","check"))
+        assumeTrue(phase in listOf("offline","seed","check"))
         check(Build.HARDWARE in setOf("ranchu","goldfish"))
         val app=ApplicationProvider.getApplicationContext<DiaryApplication>()
         val connectivity=app.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
         assertTrue(connectivity.allNetworks.none{connectivity.getNetworkCapabilities(it)?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)==true})
 
+        if(phase=="offline")return@runBlocking
         val owner=AuthUser(AuthConfig.LEGACY_OWNER_ID,"owner@example.invalid",true,"Proprietário fictício")
         val auth=AuthController(PrincipalTestClient(owner),KeystoreAuthVault(app));auth.restore()
         val manager=AccountWorkspaces(app,auth)

@@ -7,6 +7,8 @@ sys.path.insert(0,str(ROOT/'scripts'))
 from apk_identity import identity
 spec=importlib.util.spec_from_file_location('h05',ROOT/'scripts/h05-recovery.py');h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
 PIN=json.loads((ROOT/'docs/baseline/noctua-release-0.21.0.json').read_text())
+STEP='INPUT'
+ADB_ERRORS=[]
 PASSWORD='discardable-c40-ci-only-not-a-permanent-secret'
 def need(ok,code):
  if not ok:raise RuntimeError(code)
@@ -47,32 +49,44 @@ def prepare():
  print('C40_LOCAL_PREPARED_NO_PERMANENT_KEY')
 def execute():
  scope();private,tools=paths();out=ROOT/'build/official-upgrade';device='emulator-5554'
+ def state(value):
+  global STEP
+  STEP=value
  def adb(*args,check=True):
-  r=subprocess.run(['adb',*args],capture_output=True,timeout=180);need(not check or r.returncode==0,'ADB');return r.stdout
- h.disposable(os.environ,device,adb)
+  r=subprocess.run(['adb',*args],capture_output=True,timeout=180)
+  if check and r.returncode!=0:
+   (private/'adb-failure.log').write_bytes(r.stdout+r.stderr)
+   ADB_ERRORS.extend(s for s in ('SecurityException','Permission Denial','INSTALL_FAILED_UPDATE_INCOMPATIBLE','INSTALL_FAILED_VERSION_DOWNGRADE','INSTALL_FAILED_INVALID_APK','INSTALL_FAILED_TEST_ONLY','device offline')if s.encode()in r.stdout+r.stderr)
+   raise RuntimeError('ADB')
+  return r.stdout
+ state('DISPOSABLE_GUARD');h.disposable(os.environ,device,adb)
+ state('CHECK_EMPTY_INSTALLATION')
  for pkg in ('br.com.diariodeclasse','br.com.diariodeclasse.test','br.com.diariodeclasse.homologacao'):
   need(b'package:'not in adb('-s',device,'shell','pm','path',pkg,check=False),'EXISTING_APP_STOP')
- adb('-s',device,'shell','svc','wifi','disable');adb('-s',device,'shell','svc','data','disable')
- adb('-s',device,'shell','settings','put','global','airplane_mode_on','1')
- adb('-s',device,'shell','am','broadcast','-a','android.intent.action.AIRPLANE_MODE','--ez','state','true')
- adb('-s',device,'install',str(private/'old.apk'));adb('-s',device,'install','-t',str(private/'tests.apk'))
+ state('WIFI_OFF');adb('-s',device,'shell','svc','wifi','disable')
+ state('DATA_OFF');adb('-s',device,'shell','svc','data','disable')
+ state('INSTALL_ORIGINAL');adb('-s',device,'install',str(private/'old.apk'))
+ state('INSTALL_TESTS');adb('-s',device,'install','-t',str(private/'tests.apk'))
  stages=[]
  def probe(stage,argument,phase,klass):
+  state(stage)
   raw=adb('-s',device,'shell','am','instrument','-w','-r','-e',argument,phase,'-e','class','br.com.diariodeclasse.'+klass,'br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner',check=False)
   (private/(stage+'.log')).write_bytes(raw);diag=h.native_diagnostics(raw,1)
+  diag['source_locations']=sorted(set(re.findall(r'(?:C40BoundUpgradeProbeTest|StableUpgradeProbeTest|BackupManager|AccountWorkspace|DiaryRepository|AuthTestRunner)\.kt:[0-9]+',raw.decode(errors='ignore'))))
   ok=diag['ok_marker']and not any(diag[k]for k in ('process_crashed','instrumentation_failed','failures','exception_types'))and b'Assumption'not in raw
   stages.append(dict(stage=stage,passed=ok,native=diag))
   (out/'android.json').write_text(json.dumps(dict(source_sha=os.environ['GITHUB_SHA'],signing='DISPOSABLE_ONLY',hosted_requests=False,stages=stages,passed=False),indent=2)+'\n')
   need(ok,'PROBE_'+stage)
  def stable(stage,phase):probe(stage,'stableUpgradePhase',phase,'StableUpgradeProbeTest')
+ probe('OFFLINE_GUARD','c40BoundPhase','offline','C40BoundUpgradeProbeTest')
  stable('SEED_C40','seed');probe('BOUND_C40','c40BoundPhase','seed','C40BoundUpgradeProbeTest')
  adb('-s',device,'shell','am','force-stop','br.com.diariodeclasse')
- adb('-s',device,'install','-r',str(ROOT/'app/build/outputs/apk/release/app-release.apk'))
+ state('INSTALL_CANDIDATE');adb('-s',device,'install','-r',str(ROOT/'app/build/outputs/apk/release/app-release.apk'))
  stable('CHECK_MIGRATED','check');probe('CHECK_BOUND_CONFLICT','c40BoundPhase','check','C40BoundUpgradeProbeTest')
  for stage,phase in [('RESTORE','restore'),('REOPEN','check'),('DELETE_HISTORY','delete-history'),('REOPEN_HISTORY','reopen-history'),('DELETE_STUDENT','delete-student'),('REOPEN_STUDENT','reopen-student')]:
   adb('-s',device,'shell','am','force-stop','br.com.diariodeclasse');stable(stage,phase)
- need(len(stages)==10,'COUNT')
- result=json.loads((out/'android.json').read_text());result.update(passed=True,phases_passed=10,official_signature_tested=False,original_re_signed_copy=True)
+ need(len(stages)==11,'COUNT')
+ result=json.loads((out/'android.json').read_text());result.update(passed=True,phases_passed=11,official_signature_tested=False,original_re_signed_copy=True)
  (out/'android.json').write_text(json.dumps(result,indent=2)+'\n');print('C40_DISPOSABLE_UPDATE_PASSED_NOT_PERMANENT_SIGNATURE')
 if __name__=='__main__':
  try:
@@ -80,5 +94,5 @@ if __name__=='__main__':
  except Exception as e:
   code=str(e)if type(e)is RuntimeError and re.fullmatch('[A-Z0-9_]+',str(e))else 'UNEXPECTED'
   out=ROOT/'build/official-upgrade';out.mkdir(parents=True,exist_ok=True)
-  (out/'failure.json').write_text(json.dumps(dict(source_sha=os.environ.get('GITHUB_SHA')if re.fullmatch('[0-9a-f]{40}',os.environ.get('GITHUB_SHA',''))else None,stage=sys.argv[1]if len(sys.argv)==2 and sys.argv[1]in ('prepare','execute')else 'INPUT',blocking_code=code,signing='DISPOSABLE_ONLY',hosted_requests=False,passed=False),indent=2)+'\n')
+  (out/'failure.json').write_text(json.dumps(dict(source_sha=os.environ.get('GITHUB_SHA')if re.fullmatch('[0-9a-f]{40}',os.environ.get('GITHUB_SHA',''))else None,stage=sys.argv[1]if len(sys.argv)==2 and sys.argv[1]in ('prepare','execute')else 'INPUT',blocking_code=code,operation=STEP,adb_error_types=sorted(set(ADB_ERRORS)),signing='DISPOSABLE_ONLY',hosted_requests=False,passed=False),indent=2)+'\n')
   print('C40_LOCAL_BLOCKED_'+code);raise SystemExit(1)from None

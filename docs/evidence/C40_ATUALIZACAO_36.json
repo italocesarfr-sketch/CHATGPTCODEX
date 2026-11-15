@@ -1,0 +1,35 @@
+{
+  "run_id": 43715998137,
+  "run_number": 36,
+  "source_sha": "bd5efb6a0d2d1d2df567f048d76aafea5aa15173",
+  "conclusion": "failure",
+  "artifact_id": 14162498200,
+  "artifact_sha256": "8bf1884b7514c84bfd6991ee03f02772387f135e8f5ff63af394c68310b86294",
+  "reports": {
+    "failure.json": {
+      "source_sha": "bd5efb6a0d2d1d2df567f048d76aafea5aa15173",
+      "stage": "execute",
+      "blocking_code": "ADB",
+      "signing": "DISPOSABLE_ONLY",
+      "hosted_requests": false,
+      "passed": false
+    },
+    "identity.json": {
+      "source_sha": "bd5efb6a0d2d1d2df567f048d76aafea5aa15173",
+      "original": {
+        "apkSha256": "18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73",
+        "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae"
+      },
+      "original_version_code": 40,
+      "candidate": {
+        "apkSha256": "f700259cbc14d979dd8f24229a3e09c8b3a3bbd5926b8d85446b20f4d860cb6d",
+        "certificateSha256": "540cb8f1f1e73e70315a2214e2c7e247f105c04a98a7adfb9043fac1e5be5745"
+      },
+      "candidate_version_code": 45,
+      "signing": "DISPOSABLE_ONLY",
+      "original_payloads_unchanged": true,
+      "official_signature_tested": false,
+      "hosted_requests": false
+    }
+  }
+}
