@@ -31,6 +31,9 @@ class Safety(unittest.TestCase):
  def test_release_eligibility_and_legacy_conflict_remain_protected(self):
   s=(ROOT/'app/src/androidTest/java/br/com/diariodeclasse/C40BoundUpgradeProbeTest.kt').read_text()
   for check in ('assertFalse(br.com.diariodeclasse.sync.academic.academicTestEligible(w))','assertNull(w.database.academicDao().control())','frozen-synthetic-payload','KeystoreAuthVault','manager.needsClaim','NET_CAPABILITY_INTERNET'):self.assertIn(check,s)
+ def test_resigning_preserves_original_v2_only_format_without_filtering_zip_entries(self):
+  t=(ROOT/'scripts/official-upgrade-local.py').read_text();self.assertIn("'--v1-signing-enabled','false'",t);self.assertIn("'--v2-signing-enabled','true'",t)
+  self.assertIn('for n in z.namelist()',t);self.assertNotIn("startswith('META-INF')",t)
  def test_preparation_never_uses_permanent_key_environment(self):
   s=(ROOT/'scripts/official-upgrade-local.py').read_text();self.assertNotIn('DIARY_KEYSTORE_BASE64',s);self.assertIn("fingerprint!=PIN['certificateSha256']",s)
 if __name__=='__main__':unittest.main()

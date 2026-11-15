@@ -35,7 +35,7 @@ def prepare():
   result=subprocess.run([str(ROOT/'gradlew'),'--no-daemon','assembleRelease','assembleDebugAndroidTest'],cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
  need(result.returncode==0,'LOCAL_BUILD_FAILED')
  def sign(source,target):
-  run([tools/'apksigner','sign','--ks',private/'disposable.p12','--ks-type','PKCS12','--ks-key-alias','disposable','--ks-pass','env:NOCTUA_C40_PASSWORD','--key-pass','env:NOCTUA_C40_PASSWORD','--out',target,source],env=env);run([tools/'apksigner','verify',target])
+  run([tools/'apksigner','sign','--v1-signing-enabled','false','--v2-signing-enabled','true','--v3-signing-enabled','false','--v4-signing-enabled','false','--ks',private/'disposable.p12','--ks-type','PKCS12','--ks-key-alias','disposable','--ks-pass','env:NOCTUA_C40_PASSWORD','--key-pass','env:NOCTUA_C40_PASSWORD','--out',target,source],env=env);run([tools/'apksigner','verify',target])
  sign(source,private/'old.apk');need(payloads(source)==payloads(private/'old.apk'),'ORIGINAL_PAYLOAD_CHANGED')
  sign(ROOT/'app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk',private/'tests.apk')
  candidate=ROOT/'app/build/outputs/apk/release/app-release.apk';new=identity(candidate);need(new['certificateSha256']==fingerprint,'LOCAL_CERT')
@@ -79,4 +79,6 @@ if __name__=='__main__':
   need(len(sys.argv)==2 and sys.argv[1]in ('prepare','execute'),'MODE');globals()[sys.argv[1]]()
  except Exception as e:
   code=str(e)if type(e)is RuntimeError and re.fullmatch('[A-Z0-9_]+',str(e))else 'UNEXPECTED'
+  out=ROOT/'build/official-upgrade';out.mkdir(parents=True,exist_ok=True)
+  (out/'failure.json').write_text(json.dumps(dict(source_sha=os.environ.get('GITHUB_SHA')if re.fullmatch('[0-9a-f]{40}',os.environ.get('GITHUB_SHA',''))else None,stage=sys.argv[1]if len(sys.argv)==2 and sys.argv[1]in ('prepare','execute')else 'INPUT',blocking_code=code,signing='DISPOSABLE_ONLY',hosted_requests=False,passed=False),indent=2)+'\n')
   print('C40_LOCAL_BLOCKED_'+code);raise SystemExit(1)from None
