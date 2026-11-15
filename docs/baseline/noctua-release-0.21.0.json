@@ -1,0 +1,13 @@
+{
+  "applicationId": "br.com.diariodeclasse",
+  "versionName": "0.21.0",
+  "versionCode": 40,
+  "roomVersion": 11,
+  "apkSha256": "18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73",
+  "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "runId": 41228898103,
+  "artifactId": 13053517551,
+  "artifactName": "noctua-sync-foundation-homologacao",
+  "sourceSha": "36f58a239318c42f8293c6d0a4c7fa28747d865b",
+  "artifactSha256": "5b430a7d9b9d7f2d36c8f72ae02282d99c778d2da8273eb9e6bc29c6b8645bc9"
+}
