@@ -1,0 +1,98 @@
+{
+  "run_id": 43669731962,
+  "run_number": 32,
+  "source_sha": "e2cb6cd5240c7e197efb59f024bc2ea2b6bd778e",
+  "conclusion": "failure",
+  "artifact_id": 14143344216,
+  "artifact_sha256": "973fac9488363189fb7f118f42baecf7a5e5396f9809bddcb328a897b32f3f5b",
+  "hosted_requests": false,
+  "reports": {
+    "android.json": {
+      "source_sha": "e2cb6cd5240c7e197efb59f024bc2ea2b6bd778e",
+      "passed": false,
+      "hosted_requests": false,
+      "native": {
+        "expected_tests": 34,
+        "ok_marker": false,
+        "process_crashed": true,
+        "instrumentation_failed": false,
+        "failures": false,
+        "exception_types": [],
+        "source_locations": [],
+        "guard_codes": []
+      },
+      "proof": {
+        "case": "B_TRANSITION_LOCAL",
+        "passed": true,
+        "hosted_requests": false,
+        "records": 41,
+        "sequence": 1,
+        "hash": "056a71e52b1f3fa3a9c49fd12ca57593bc8e89b4573e5361d68a6043ffe27258",
+        "scopes": [
+          3,
+          4,
+          5
+        ],
+        "negative_checks": 21,
+        "academic_writes": 0,
+        "pending_preserved": true,
+        "all_15_dirty_types_preserved": true,
+        "conflict_restore_owner_blocked": true,
+        "backup_verified": true,
+        "receipts_revisions_equal": true,
+        "lost_reply_reopen_verified": true,
+        "old_client_preserved_blocked": true
+      }
+    },
+    "c-regression.json": {
+      "phase": "c",
+      "failed_cases": [],
+      "tests": 20,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 20,
+      "hosted_requests": false
+    },
+    "d-regression.json": {
+      "phase": "d",
+      "failed_cases": [],
+      "tests": 27,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 27,
+      "hosted_requests": false
+    },
+    "e-regression.json": {
+      "phase": "e",
+      "failed_cases": [],
+      "tests": 16,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 16,
+      "hosted_requests": false
+    },
+    "jvm.json": {
+      "tests": 318,
+      "passed": 313,
+      "skipped": 5,
+      "failed": 0,
+      "hosted_requests": false
+    },
+    "postgres.json": {
+      "effective_d_guard_blocks_downgrade": true,
+      "existing_monotonic_guard_preserved": true,
+      "security_metadata_unchanged": true,
+      "skipped_stages_rejected": true,
+      "stale_sequence_rejected": true,
+      "old_serialization_state_confirmed": true,
+      "http_conflict_409_without_retry": true,
+      "http_conflict_ms": 2,
+      "http_conflict_requests": 1,
+      "a_hash": "c225adbda0fb75aac40dcd7fed52ee2114d4bbbf414ac130fb1e1fcb3f99ff1f",
+      "b_data_hash": "15499dbd450a97bc445f3841657e94667f6c1ed225bfbb902f48a030d83be94f",
+      "b_records": 41,
+      "b_sequence": 1,
+      "hosted_requests": false
+    }
+  }
+}

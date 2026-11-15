@@ -80,7 +80,14 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
           script: python3 scripts/b-transition-android.py
       - name: Conferir titularidade, dados, recibos e histórico dos dois proprietários
-        run: python3 scripts/b-transition-local.py verify
+        if: always() && hashFiles('build/b-transition/android.json') != ''
+        run: |
+          python3 - <<'PYPROOF'
+          import json
+          from pathlib import Path
+          assert json.loads(Path('build/b-transition/android.json').read_text()).get('proof',{}).get('passed') is True
+          PYPROOF
+          python3 scripts/b-transition-local.py verify
       - name: Limpar apenas logs temporários desta prova
         if: always()
         run: rm -rf "$RUNNER_TEMP/noctua-b-transition-private"

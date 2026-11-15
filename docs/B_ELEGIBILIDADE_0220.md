@@ -172,3 +172,13 @@ posterior preserva o resultado e o plano mínimo acima.
 Nenhuma dessas alterações está autorizada neste diagnóstico. Após conhecer o
 estado real, preparar somente o passo necessário e pedir autorização separada
 para ele, antes de qualquer alteração ou nova P1.
+
+
+## Preparação posterior, sem nova execução hospedada
+
+A sequência consentida, os bloqueios de dados locais e os resultados descartáveis
+estão em [B_TRANSICAO_E_0220.md](B_TRANSICAO_E_0220.md). Foi identificado um risco
+local de repetição HTTP com SQLSTATE 40001 e preparada uma candidata 002, ainda
+não aplicada hospedada. Sua revisão administrativa é separada da autorização
+B→C→D→E. O resultado hospedado #27 acima permanece inalterado; não foi repetido
+nem usado para habilitar escopo ou executar P1.
