@@ -1,0 +1,182 @@
+{
+  "run_id": 43716726140,
+  "run_number": 37,
+  "source_sha": "eae5972908bebb8c96b8da576ae389a8f85fe66d",
+  "conclusion": "success",
+  "artifact_id": 14163145815,
+  "artifact_sha256": "ccb4af92cb5f4251d776bd59a5a34a2cb4c4edae2dbe2e4f7a87f9dc8a965c2c",
+  "hosted_requests": false,
+  "reports": {
+    "android.json": {
+      "source_sha": "eae5972908bebb8c96b8da576ae389a8f85fe66d",
+      "signing": "DISPOSABLE_ONLY",
+      "hosted_requests": false,
+      "stages": [
+        {
+          "stage": "OFFLINE_GUARD",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "SEED_C40",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "BOUND_C40",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "CHECK_MIGRATED",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "CHECK_BOUND_CONFLICT",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "RESTORE",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "REOPEN",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "DELETE_HISTORY",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "REOPEN_HISTORY",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "DELETE_STUDENT",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        },
+        {
+          "stage": "REOPEN_STUDENT",
+          "passed": true,
+          "native": {
+            "expected_tests": 1,
+            "ok_marker": true,
+            "process_crashed": false,
+            "instrumentation_failed": false,
+            "failures": false,
+            "exception_types": [],
+            "source_locations": []
+          }
+        }
+      ],
+      "passed": true,
+      "phases_passed": 11,
+      "official_signature_tested": false,
+      "original_re_signed_copy": true
+    },
+    "identity.json": {
+      "source_sha": "eae5972908bebb8c96b8da576ae389a8f85fe66d",
+      "original": {
+        "apkSha256": "18335b1e7a640d733e9975d88d3f51a8cea4f73bd9e3bf536f32e90a40495a73",
+        "certificateSha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae"
+      },
+      "original_version_code": 40,
+      "candidate": {
+        "apkSha256": "d0d0a05627f9985ad6d6a9468730127bea800e265ecc911d3618577318196e40",
+        "certificateSha256": "c8b4862c7af6ab5a2dd1347b8c1712ae887ed13ef7df4b0e101d5c282081dd55"
+      },
+      "candidate_version_code": 45,
+      "signing": "DISPOSABLE_ONLY",
+      "original_payloads_unchanged": true,
+      "official_signature_tested": false,
+      "hosted_requests": false
+    }
+  }
+}

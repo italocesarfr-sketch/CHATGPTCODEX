@@ -1,0 +1,29 @@
+{
+  "original_apk_verified": true,
+  "original_version_code": 40,
+  "original_room": 11,
+  "candidate_room": 14,
+  "signature_v2_verified": true,
+  "permanent_certificate_sha256": "6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae",
+  "permanent_private_key_available": "UNVERIFIED",
+  "release_environment_exists": true,
+  "release_environment_protection_rules_count": 0,
+  "release_environment_branch_policy": null,
+  "release_secrets_metadata_http": 403,
+  "release_variables_metadata_http": 403,
+  "old_tables": 18,
+  "new_tables": 25,
+  "unchanged_old_entities": 18,
+  "removed_entities": [],
+  "new_entities": [
+    "sync_academic_applied",
+    "sync_academic_control",
+    "sync_academic_decisions",
+    "sync_academic_inbox",
+    "sync_academic_outbox",
+    "sync_academic_parts",
+    "sync_academic_records"
+  ],
+  "owner_devices_touched": false,
+  "hosted_requests": false
+}

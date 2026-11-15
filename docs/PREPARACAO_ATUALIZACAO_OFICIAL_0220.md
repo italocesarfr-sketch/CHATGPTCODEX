@@ -172,8 +172,66 @@ autorização para enviar o acervo real do proprietário.
   elimina o broadcast protegido opcional de modo avião e exige um probe nativo
   de ausência de internet antes de qualquer semeadura. Não atribuir a falha da #36
   a esse broadcast sem evidência: o comando exato não foi preservado.
-- Resultado da rodada seguinte será registrado após exame do artefato.
+- **#37 / `43716726140`, fonte `eae5972908bebb8c96b8da576ae389a8f85fe66d`: SUCCESS.**
+  Os dez testes Python de guardas passaram. A instrumentação concluiu **11 fases**
+  com OK nativo, zero falhas/condicionais/crashes. São invocações parametrizadas das
+  duas sondas, não 11 métodos novos de teste. Nenhum job hospedado foi executado.
 
 Esta preparação não autoriza liberação para segunda-feira por calendário. A meta
 depende dos bloqueios acima; teste ignorado/condicional ou assinatura descartável
 não será apresentado como prova da atualização permanente.
+
+
+## Resultado definitivo do ensaio #37
+
+[Workflow](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43716726140)
+e [artefato sanitizado](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/43716726140/artifacts/14163145815).
+Artefato `c40-atualizacao-descartavel-sanitizada`, ZIP 1.076 bytes,
+SHA-256 `ccb4af92cb5f4251d776bd59a5a34a2cb4c4edae2dbe2e4f7a87f9dc8a965c2c`,
+comparado com a API GitHub e conteúdo examinado.
+[Relatório](evidence/C40_ATUALIZACAO_37.json),
+[identidade/limites de acesso/esquemas](evidence/C40_PREPARACAO_IDENTIDADE.json).
+
+| Fase | Resultado |
+| --- | --- |
+| OFFLINE_GUARD | Aprovada antes da semeadura |
+| SEED_C40 | Dados sintéticos criados no bytecode original c40 |
+| BOUND_C40 | Vinculação/Keystore/backup e isolamento sintéticos aprovados antes da atualização |
+| CHECK_MIGRATED | Snapshot/preferências/regras/exportações antigos preservados após install -r |
+| CHECK_BOUND_CONFLICT | Proprietário já vinculado, conflito v1 pausado/operação congelada e gate release preservados |
+| RESTORE | Backup lógico/restauração/históricos/horários/exportações aprovados na fixture |
+| REOPEN | Snapshot e contexto preservados após force-stop |
+| DELETE_HISTORY / REOPEN_HISTORY | Exclusão/histórico preservado e reabertura aprovados |
+| DELETE_STUDENT / REOPEN_STUDENT | Exclusão individual e preservação das demais matrículas aprovadas |
+
+A cópia original manteve todas as **125 entradas ZIP idênticas**, incluindo DEX,
+manifesto e recursos; somente o bloco de assinatura é descartável. O candidato
+release **não depurável c45** foi instalado por cima dessa cópia com o mesmo
+certificado descartável. Dados não foram semeados via restauração no aplicativo
+real do proprietário. Nenhum APK foi exportado pelo workflow.
+
+A sonda de proprietário vinculado valida esse estado **antes de** a sonda de
+restauração legada mudar sua fixture. O ensaio de restauração existente usa seu
+próprio contexto acadêmico sintético; não equivale à homologação física de restauração
+do proprietário nem a um novo H12 hospedado. As provas protegidas H12 anteriores
+permanecem separadas. O estado original do celular não foi examinado.
+
+Não foi recuperada a causa exata do ADB da #36; a #37 removeu o broadcast opcional,
+instrumentou a operação e concluiu tudo sem erro. Não apresentar a hipótese anterior
+como causa retroativamente confirmada. Não houve correção do código acadêmico.
+
+## Commits e escopo desta continuação
+
+- `722f7d5`: consolidação documental independente da #33.
+- `1b8a375`: referência c40 fixada e preparação do ensaio descartável/sonda de proprietário.
+- `c97ac0d`: permissão mínima de leitura de artefato no job chamador.
+- `c9250f5`: controle hospedado fail-closed, 15 testes sintéticos; binding ainda ausente.
+- `bd5efb6`: cópias v2-only mantendo comparação integral do conteúdo do original.
+- `eae5972`: prova nativa offline anterior à semeadura e diagnóstico ADB sanitizado.
+- A consolidação documental posterior inclui os JSONs #33/#36/#37 e não muda código.
+
+Não há diferença em `app/src/main`, Gradle, SQL ou contratos acadêmicos nesta
+continuação em relação a `cfa9ef3`. Nenhuma integração H13.1/H13.2, versão estável,
+merge na main, consulta Supabase ou uso de assinatura permanente ocorreu.
+**Ensaio descartável aprovado; atualização com certificado permanente e instalação
+física ainda pendentes. Nenhum APK oficial está liberado.**

@@ -433,3 +433,12 @@ sob autorização de teste específica que a rejeição equivalente do ambiente 
 é limitada e segura. Não aumentar timeouts nem pressupor que a ausência de
 concorrência elimine a necessidade de tratar falhas. Nenhuma alternativa foi
 executada. Não aplicar a candidata apenas porque o escopo B ainda não é E.
+
+
+## Frente oficial independente
+
+A [preparação da atualização oficial](PREPARACAO_ATUALIZACAO_OFICIAL_0220.md)
+concluiu o ensaio descartável #37 sobre cópia do bytecode original c40. Essa prova
+não amplia B, não desbloqueia a binding hospedada e não substitui o teste de
+assinatura permanente. A preparação de melhorias locais do oficial não depende
+de repetir P1 ou de implantar A–E na produção.
