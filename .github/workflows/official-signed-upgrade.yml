@@ -14,6 +14,18 @@ on:
       authorize_signed_candidate:
         type: boolean
         default: false
+      repository_certificate_sha256:
+        type: string
+        default: ''
+    secrets:
+      REPO_DIARY_KEYSTORE_BASE64:
+        required: false
+      REPO_DIARY_STORE_PASSWORD:
+        required: false
+      REPO_DIARY_KEY_ALIAS:
+        required: false
+      REPO_DIARY_KEY_PASSWORD:
+        required: false
 permissions:
   contents: read
 concurrency:
@@ -63,7 +75,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Revalidar proteções após aprovação e antes de mapear Secrets
+      - name: Revalidar branch e política antes de mapear Secrets
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 scripts/official-signing.py policy
@@ -92,11 +104,11 @@ jobs:
       - name: Verificar somente a assinatura existente, ou preparar candidato autorizado
         env:
           GH_TOKEN: ${{ github.token }}
-          STORE_B64: ${{ secrets.DIARY_KEYSTORE_BASE64 }}
-          STORE_PASS: ${{ secrets.DIARY_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.DIARY_KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.DIARY_KEY_PASSWORD }}
-          CERT_SHA: ${{ vars.DIARY_CERT_SHA256 }}
+          STORE_B64: ${{ secrets.REPO_DIARY_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.REPO_DIARY_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REPO_DIARY_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.REPO_DIARY_KEY_PASSWORD }}
+          CERT_SHA: ${{ inputs.repository_certificate_sha256 }}
         run: |
           case "$NOCTUA_SIGNING_MODE" in
             PREFLIGHT) python3 scripts/official-signing.py preflight ;;

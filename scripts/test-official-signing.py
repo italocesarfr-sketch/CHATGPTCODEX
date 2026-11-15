@@ -15,7 +15,8 @@ def proof():
  names=['OFFLINE_GUARD','SEED_C40','BOUND_C40','CHECK_MIGRATED','CHECK_BOUND_CONFLICT','RESTORE','REOPEN','DELETE_HISTORY','REOPEN_HISTORY','DELETE_STUDENT','REOPEN_STUDENT']
  return dict(source_sha='a'*40,signing='PERMANENT',passed=True,phases_passed=11,official_signature_tested=True,original_re_signed_copy=False,stages=[dict(stage=n,passed=True,native=dict(expected_tests=1,ok_marker=True,process_crashed=False,instrumentation_failed=False,failures=False,exception_types=[]))for n in names])
 class Safety(unittest.TestCase):
- def test_ready_policy_requires_all_independent_controls(self):self.assertTrue(m.policy(environment(),branches())['independent_review_required'])
+ def test_ready_policy_requires_manual_owner_authorization_not_a_second_reviewer(self):
+  r=m.policy(environment(),branches());self.assertTrue(r['manual_authorization_required']);self.assertFalse(r['independent_review_required_by_workflow'])
  def test_current_unprotected_environment_is_blocked(self):
   with self.assertRaisesRegex(m.Blocked,'ADMIN_BYPASS'):m.policy(dict(name='release',can_admins_bypass=True,protection_rules=[],deployment_branch_policy=None),{})
  def test_missing_bypass_metadata_is_not_assumed_safe(self):
@@ -31,17 +32,17 @@ class Safety(unittest.TestCase):
  def test_truncated_branch_policy_page_is_blocked(self):
   b=branches();b['total_count']=101
   with self.assertRaises(m.Blocked):m.policy(environment(),b)
- def test_self_review_or_absent_reviewers_is_blocked(self):
-  for change in (dict(prevent_self_review=False),dict(reviewers=[])):
-   e=environment();e['protection_rules'][0].update(change)
-   with self.assertRaises(m.Blocked):m.policy(e,branches())
+ def test_absent_reviewers_and_self_review_settings_do_not_block_owner(self):
+  for rules in ([],[dict(type='required_reviewers',prevent_self_review=False,reviewers=[])],[dict(type='required_reviewers')]):
+   e=environment();e['protection_rules']=rules
+   self.assertTrue(m.policy(e,branches())['manual_authorization_required'])
  def test_distinct_preflight_and_candidate_authorizations(self):
   self.assertEqual('PREFLIGHT',m.context(env()));self.assertEqual('CANDIDATE',m.context(env('CANDIDATE')))
   for mode,field,value in [('PREFLIGHT','NOCTUA_AUTHORIZE_CANDIDATE','true'),('CANDIDATE','NOCTUA_AUTHORIZE_CANDIDATE','false'),('PREFLIGHT','NOCTUA_AUTHORIZE_PREFLIGHT','false')]:
    e=env(mode);e[field]=value
    with self.assertRaises(m.Blocked):m.context(e)
  def test_context_blocks_fork_main_push_selfhost_and_rerun(self):
-  for k,v in [('GITHUB_REPOSITORY','other/repo'),('GITHUB_REF','refs/heads/main'),('GITHUB_EVENT_NAME','push'),('RUNNER_ENVIRONMENT','self-hosted'),('GITHUB_RUN_ATTEMPT','2'),('GITHUB_WORKFLOW_REF','other')]:
+  for k,v in [('GITHUB_REPOSITORY','other/repo'),('GITHUB_REF','refs/heads/main'),('GITHUB_EVENT_NAME','push'),('GITHUB_EVENT_NAME','pull_request'),('GITHUB_REF','refs/tags/v0.22.0'),('RUNNER_ENVIRONMENT','self-hosted'),('GITHUB_RUN_ATTEMPT','2'),('GITHUB_WORKFLOW_REF','other')]:
    e=env();e[k]=v
    with self.subTest(k=k),self.assertRaises(m.Blocked):m.context(e)
  def test_reviewed_sha_cannot_follow_a_moving_branch(self):
@@ -84,11 +85,21 @@ class Safety(unittest.TestCase):
   w=yaml.safe_load((ROOT/'.github/workflows/official-signed-upgrade.yml').read_text())
   self.assertNotIn('environment',w['jobs']['policy']);self.assertEqual('policy',w['jobs']['protected']['needs']);self.assertEqual('release',w['jobs']['protected']['environment'])
   self.assertFalse(w['concurrency']['cancel-in-progress'])
- def test_signing_secrets_are_not_forwarded_to_unprotected_caller_or_policy(self):
+ def test_repository_secrets_are_forwarded_explicitly_without_inherit(self):
   c=yaml.safe_load((ROOT/'.github/workflows/h131-investigation.yml').read_text())['jobs']['official-signed']
-  self.assertNotIn('secrets',c)
+  self.assertEqual({('REPO_DIARY_'+name):'${{ secrets.DIARY_'+name+' }}'for name in ('KEYSTORE_BASE64','STORE_PASSWORD','KEY_ALIAS','KEY_PASSWORD')},c['secrets'])
+  self.assertEqual('${{ vars.DIARY_CERT_SHA256 }}',c['with']['repository_certificate_sha256'])
   w=yaml.safe_load((ROOT/'.github/workflows/official-signed-upgrade.yml').read_text());steps=w['jobs']['protected']['steps']
   self.assertEqual(1,sum('secrets.'in str(s)for s in steps));self.assertNotIn('secrets.',str(w.get('env')));self.assertNotIn('secrets: inherit',str(c));self.assertNotIn('secrets.',str(w['jobs']['policy']))
+ def test_repository_aliases_do_not_read_same_named_environment_secrets_or_variable(self):
+  w=yaml.safe_load((ROOT/'.github/workflows/official-signed-upgrade.yml').read_text())
+  s=next(s for s in w['jobs']['protected']['steps']if 'secrets.'in str(s))
+  self.assertEqual('${{ secrets.REPO_DIARY_KEYSTORE_BASE64 }}',s['env']['STORE_B64'])
+  self.assertEqual('${{ inputs.repository_certificate_sha256 }}',s['env']['CERT_SHA'])
+  self.assertNotIn('secrets.DIARY_',str(w));self.assertNotIn('vars.DIARY_CERT_SHA256',str(w))
+ def test_workflow_validator_does_not_require_reviewer_or_self_review_predicates(self):
+  text=(ROOT/'scripts/official-signing.py').read_text()
+  for removed in ('INDEPENDENT_REVIEW_REQUIRED','REVIEWER_CONFIGURATION',"get('protection_rules'","get('prevent_self_review'"):self.assertNotIn(removed,text)
  def test_action_references_are_pinned(self):
   w=yaml.safe_load((ROOT/'.github/workflows/official-signed-upgrade.yml').read_text())
   for j in w['jobs'].values():

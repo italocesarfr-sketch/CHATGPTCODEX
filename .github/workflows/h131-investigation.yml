@@ -44,6 +44,12 @@ jobs:
       reviewed_sha: ${{ inputs.signing_reviewed_sha }}
       authorize_signing_preflight: ${{ inputs.authorize_signing_preflight }}
       authorize_signed_candidate: ${{ inputs.authorize_signed_candidate }}
+      repository_certificate_sha256: ${{ vars.DIARY_CERT_SHA256 }}
+    secrets:
+      REPO_DIARY_KEYSTORE_BASE64: ${{ secrets.DIARY_KEYSTORE_BASE64 }}
+      REPO_DIARY_STORE_PASSWORD: ${{ secrets.DIARY_STORE_PASSWORD }}
+      REPO_DIARY_KEY_ALIAS: ${{ secrets.DIARY_KEY_ALIAS }}
+      REPO_DIARY_KEY_PASSWORD: ${{ secrets.DIARY_KEY_PASSWORD }}
   official-upgrade-local:
     permissions:
       contents: read

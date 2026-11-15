@@ -31,10 +31,9 @@ def policy(environment,branches):
  need(isinstance(branches,dict)and type(branches.get('total_count'))is int and isinstance(branches.get('branch_policies'),list),'BRANCH_POLICY_UNVERIFIED')
  rules=branches['branch_policies'];need(branches['total_count']==len(rules),'BRANCH_POLICY_PAGINATION')
  need(bool(rules)and all(r.get('type')=='branch'and r.get('name')in ('main',BRANCH)for r in rules)and any(r.get('name')==BRANCH for r in rules),'EXACT_BRANCH_POLICIES_REQUIRED')
- reviewers=[r for r in environment.get('protection_rules',[])if r.get('type')=='required_reviewers']
- need(len(reviewers)==1 and reviewers[0].get('prevent_self_review')is True and bool(reviewers[0].get('reviewers')),'INDEPENDENT_REVIEW_REQUIRED')
- need(all(r.get('type')in ('User','Team')and isinstance(r.get('reviewer'),dict)and type(r['reviewer'].get('id'))is int for r in reviewers[0]['reviewers']),'REVIEWER_CONFIGURATION')
- return dict(environment='release',selected_branch_verified=True,independent_review_required=True,self_review_prevented=True,admin_bypass_disabled=True)
+ # Owner decision: no Required reviewers / Prevent self-review predicate here.
+ # Manual event, reviewed SHA and separate authorizations remain mandatory in context().
+ return dict(environment='release',selected_branch_verified=True,manual_authorization_required=True,independent_review_required_by_workflow=False,admin_bypass_disabled=True)
 def child_env(extra=None,github_token=False):
  env={k:v for k,v in os.environ.items()if k not in ('STORE_B64','STORE_PASS','KEY_ALIAS','KEY_PASS','CERT_SHA','GH_TOKEN','GITHUB_TOKEN')and not k.startswith('DIARY_RELEASE_')}
  if github_token and os.environ.get('GH_TOKEN'):env['GH_TOKEN']=os.environ['GH_TOKEN']
