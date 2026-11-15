@@ -1,0 +1,84 @@
+name: NOcTuA — preparação LOCAL da transição B
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  local-only:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_b_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_b_test
+      NOCTUA_H05_AVD_NAME: noctua_h05_local_${{ github.run_id }}_${{ github.run_attempt }}
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Guardas estáticas, sem acesso hospedado
+        run: python3 scripts/test-b-transition-preparation.py
+      - name: Somente arquivos temporários próprios
+        run: mkdir -m 700 "$RUNNER_TEMP/noctua-b-transition-private"
+      - name: Regressão PostgreSQL C/D/E com a guarda candidata
+        run: |
+          for phase in c d e; do
+            createdb "noctua_phase_${phase}_test"
+            PGDATABASE="noctua_phase_${phase}_test" python3 scripts/b-transition-regression.py "$phase" > "$RUNNER_TEMP/noctua-b-transition-private/pg-$phase.log" 2>&1
+          done
+      - name: PostgREST real descartável, reprodução e validação da guarda
+        run: |
+          ./scripts/ci/start-phase-b-postgrest.sh > "$RUNNER_TEMP/noctua-b-transition-private/backend.log" 2>&1
+          python3 scripts/b-transition-local.py prepare >> "$RUNNER_TEMP/noctua-b-transition-private/backend.log" 2>&1
+      - name: Compilar somente testes descartáveis
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon assembleDebug assembleDebugAndroidTest > "$RUNNER_TEMP/noctua-b-transition-private/build.log" 2>&1
+      - name: Aceleração do novo AVD
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: ${{ env.NOCTUA_H05_AVD_NAME }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan
+          script: python3 scripts/b-transition-android.py
+      - name: Conferir titularidade, dados, recibos e histórico dos dois proprietários
+        run: python3 scripts/b-transition-local.py verify
+      - name: Limpar apenas logs temporários desta prova
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/noctua-b-transition-private"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: b-transicao-local-sanitizado
+          path: build/b-transition/*.json
+          if-no-files-found: error
+          retention-days: 14

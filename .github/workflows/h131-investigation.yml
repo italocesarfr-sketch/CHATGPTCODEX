@@ -8,7 +8,7 @@ on:
       suite:
         description: 'Selecionar prova local, pré-verificação P1 ou P1 hospedada com autorização independente'
         type: choice
-        options: [H131, H132, FUNCTIONAL, P1_LOCAL, P1_PREFLIGHT, P1_HOSTED, B_ELIGIBILITY_PREFLIGHT, B_ELIGIBILITY_HOSTED]
+        options: [H131, H132, FUNCTIONAL, P1_LOCAL, P1_PREFLIGHT, P1_HOSTED, B_ELIGIBILITY_PREFLIGHT, B_ELIGIBILITY_HOSTED, B_TRANSITION_LOCAL]
         default: H131
       authorize_hosted_p1:
         description: "Autoriza exclusivamente P1 hospedada: login, SELECT/status/pull e logout das próprias sessões"
@@ -21,6 +21,9 @@ on:
 permissions:
   contents: read
 jobs:
+  b-transition-local:
+    if: github.event_name == 'workflow_dispatch' && inputs.suite == 'B_TRANSITION_LOCAL' && github.ref == 'refs/heads/sync/academic-complete-0220'
+    uses: ./.github/workflows/b-transition.yml
   b-eligibility:
     if: github.event_name == 'workflow_dispatch' && (inputs.suite == 'B_ELIGIBILITY_PREFLIGHT' || inputs.suite == 'B_ELIGIBILITY_HOSTED') && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/b-eligibility.yml
@@ -52,7 +55,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && inputs.suite == 'H132' && github.ref == 'refs/heads/sync/academic-complete-0220'
     uses: ./.github/workflows/h132-performance.yml
   investigation:
-    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132' && inputs.suite != 'FUNCTIONAL' && !startsWith(inputs.suite, 'P1_') && !startsWith(inputs.suite, 'B_ELIGIBILITY_')
+    if: github.ref == 'refs/heads/sync/academic-complete-0220' && inputs.suite != 'H132' && inputs.suite != 'FUNCTIONAL' && !startsWith(inputs.suite, 'P1_') && !startsWith(inputs.suite, 'B_ELIGIBILITY_') && inputs.suite != 'B_TRANSITION_LOCAL'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
