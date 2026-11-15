@@ -378,3 +378,58 @@ A candidata 002 é recomendada para evitar a repetição comprovada de erro 4000
 mas não é requisito lógico de uma ampliação com head estável. Sua necessidade
 operacional e compatibilidade no hospedado exigem revisão administrativa própria;
 esta aprovação local não autoriza aplicá-la, ampliar B ou repetir P1.
+
+
+## Executor hospedado: preparação adicional após #33
+
+`scripts/b-transition-hosted-executor.py` prepara a orquestração de controle, sem
+criar fila ou engine alternativa. O bridge deverá delegar aos métodos Room/engine
+já provados na #33 e ao transporte restrito. **Não há binding hospedada implementada:**
+`hosted_binding()` recusa com `WORKSPACE_BINDING_UNAVAILABLE`; o comando do arquivo
+é offline e termina bloqueado. Não carrega Secrets, não importa biblioteca HTTP,
+não oferece modo HOSTED e não pode ampliar escopo no estado publicado.
+
+O controle exige identidade B esperada imutável da configuração protegida (não
+aceita A se autodenominando B), projeto exato, sessão confirmada/V2/allowed, de um
+a oito workspaces relevantes auditados ao vivo, barreira de comandos/workers e
+transporte que impeça escrita acadêmica antes de HTTP. Em cada estágio confere
+filas, conflitos, restauração, os 15 tipos, FKs, revisões, recibos e cursor/head.
+Cada consentimento é independente; todos os clientes auditados devem concluir o
+estágio anterior antes de avançar. Hash/head remoto não podem variar e somente
+três RPCs de ampliação são admitidos. Erro, resposta perdida ou terceira revisão
+interrompem sem rollback de escopo, descarte ou repetição automática.
+
+15 testes sintéticos passaram (nenhum ignorado/falho), incluindo dois workspaces,
+sequência completa, isolamento de A, três autorizações, pendências/diário ainda
+local, versões, receipts, cursor, perda de resposta, alteração de head/hash e
+limite de chamadas. **Estes testes validam a política de controle com um bridge
+sintético; não comprovam integração hospedada desse bridge.** O transporte e os
+consentimentos reais continuam cobertos separadamente pela #33.
+
+```sh
+python3 scripts/test-b-transition-hosted-executor.py
+```
+
+Não aceitar relatório JSON do operador, simples booleano ou instalação vazia como
+prova sobre workspaces antigos. Falta integrar/revisar o provider Room autenticado,
+a lista autoritativa de clientes B e a coordenação efetiva das barreiras em cada
+instalação autorizada. Enquanto faltar qualquer um desses elementos, uma nova
+autorização textual, sozinha, **não desbloqueia** o executor. Não será usado UPDATE
+direto, modo administrativo ou alteração de allowlist como alternativa.
+
+### Decisão sobre a candidata 002
+
+Não é uma pré-condição lógica do caminho feliz: os RPCs originais já ampliam B→C→D→E.
+A #33 comprovou a compatibilidade local da candidata com definições finais,
+clientes existentes (SyncFailure + PREPARED preservado), ACL/RLS/search_path,
+locks, atomicidade, revisões e recibos. A comparação estática assegura que os três
+corpos diferem somente em `40001`→`PT409`. Não substitui validação do hospedado.
+
+A motivação é tolerância segura a concorrência/head antigo. A reprodução local
+PostgREST 12.2.3 repetiu 40001; a versão/comportamento hospedado continuam sem
+verificação nesta tarefa. Há duas alternativas administrativas, ambas separadas:
+revisar/adotar a candidata após backup e conferência de versões/ACL, ou demonstrar
+sob autorização de teste específica que a rejeição equivalente do ambiente atual
+é limitada e segura. Não aumentar timeouts nem pressupor que a ausência de
+concorrência elimine a necessidade de tratar falhas. Nenhuma alternativa foi
+executada. Não aplicar a candidata apenas porque o escopo B ainda não é E.
