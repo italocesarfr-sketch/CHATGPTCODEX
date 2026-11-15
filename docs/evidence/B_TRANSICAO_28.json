@@ -1,0 +1,27 @@
+{
+  "source_sha": "bee1de3c1036015476ef1c34d6467ee23d2b53a5",
+  "hosted_requests": false,
+  "outcome": "DOMAIN_FIXTURE_MISSING",
+  "reports": {
+    "c-regression.json": {
+      "phase": "c",
+      "failed_cases": [],
+      "tests": 20,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 20,
+      "hosted_requests": false
+    },
+    "d-regression.json": {
+      "phase": "d",
+      "failed_cases": [
+        "test_23_source_deletion_moves_links_and_audits_into_history_atomically"
+      ],
+      "tests": 27,
+      "failed": 1,
+      "skipped": 0,
+      "passed": 26,
+      "hosted_requests": false
+    }
+  }
+}

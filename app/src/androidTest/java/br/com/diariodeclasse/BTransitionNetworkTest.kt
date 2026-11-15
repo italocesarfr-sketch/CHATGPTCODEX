@@ -79,11 +79,11 @@ class BTransitionNetworkTest {
         assertEquals(0,staleGate.academicWrites)
         // Verify a safety copy BEFORE the first remote expansion; never restore over another workspace.
         suspend fun backup() {
-            val encoded=BackupCodec.encode(snapshot(db),BuildConfig.VERSION_CODE,"fixture-signature")
+            val encoded=BackupCodec.encode(snapshot(db),BuildConfig.VERSION_CODE,"0".repeat(64))
             val password="Fictitious-B-Transition-2026".toCharArray();val output=java.io.ByteArrayOutputStream()
             try {
                 AccountBackup.write(output,encoded,b,password);val envelope=AccountBackup.read(output.toByteArray().inputStream())
-                assertArrayEquals(encoded,AccountBackup.open(envelope,b,password))
+                val decoded=AccountBackup.open(envelope,b,password);assertArrayEquals(encoded,decoded);assertEquals(snapshot(db),BackupCodec.decode(decoded).snapshot.canonical())
                 try{AccountBackup.open(envelope,a,password);fail()}catch(_:Exception){checks++}
             }finally{password.fill('\u0000')}
         }
