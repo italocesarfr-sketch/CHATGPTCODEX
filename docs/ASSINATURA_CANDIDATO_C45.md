@@ -1,7 +1,9 @@
 # Candidato oficial 0.22.0/c45 — preflight e atualização protegida
 
 15/11/2026, America/Sao_Paulo. Branch `sync/academic-complete-0220`.
-**Preparação concluída; nenhum job com chave permanente executado.** A meta de
+**Política simplificada por decisão do proprietário:** autorização manual sem segundo
+revisor, usando os Repository Secrets/Variables existentes. Nenhum job com chave
+permanente foi executado. As exigências anteriores de branch e bypass permanecem. A meta de
 16/11 depende das configurações e autorizações abaixo, não autoriza pular etapas.
 Referência anterior: [preparação e ensaio descartável #37](PREPARACAO_ATUALIZACAO_OFICIAL_0220.md).
 Não repetir #37 por rotina. Não houve nova chave, instalação real, SQL ou acesso Supabase.
@@ -15,9 +17,9 @@ Não repetir #37 por rotina. Não houve nova chave, instalação real, SQL ou ac
 | `protection_rules` | `[]`: sem aprovação configurada |
 | `deployment_branch_policy` | `null`: sem restrição configurada |
 | `can_admins_bypass` | `true` |
-| Listagem somente dos nomes de Secrets | HTTP 403, `Resource not accessible by integration` |
-| Listagem somente dos nomes de Variables | HTTP 403, mesma limitação |
-| Presença/consistência atual da chave permanente | **Não verificada**; 403 não significa ausência |
+| Quatro Repository Secrets e Repository Variable | Confirmados visualmente pelo proprietário; relato, não leitura de valores pelo executor |
+| Leitura anterior de nomes no Environment | HTTP 403; não foi usada para desconsiderar a confirmação do proprietário |
+| Consistência criptográfica atual da chave permanente | **Ainda não verificada**; depende do preflight autorizado |
 | Certificado público original c40 | Identificado/verificado nas evidências anteriores; fingerprint fixado abaixo |
 | Ensaio descartável #37 | 11 fases aprovadas; preservado, não repetido |
 | Ensaio com assinatura permanente | **Não executado** |
@@ -34,25 +36,31 @@ Em **Settings → Environments → release**:
    Pode manter `main` se necessária aos fluxos existentes. O verificador aceita
    somente essas duas branches literais; não aceita tags, curingas ou nomes extras.
    Não usar a opção Protected branches como substituto dessa lista explícita.
-2. Ativar **Required reviewers**, com pelo menos um revisor confiável, e
-   **Prevent self-review**. O autor da execução não poderá aprovar o próprio acesso.
-   Se não houver revisor independente disponível, a automação permanece bloqueada;
-   não desabilitar a proteção para cumprir a data.
+2. **Não é necessário Required reviewers ou Prevent self-review.** O workflow não
+   exige nem valida essas regras. Se alguma regra estiver configurada no painel,
+   o GitHub poderá continuar aplicando-a; o proprietário poderá removê-la pessoalmente.
+   A leitura desta tarefa retornou `protection_rules=[]`, portanto não há revisor
+   configurado atualmente. Não é necessário cadastrar um segundo usuário.
 3. Desabilitar **Allow administrators to bypass configured protection rules**.
-4. Conferir a existência, **somente nos Environment Secrets de `release`**, dos nomes:
-   `DIARY_KEYSTORE_BASE64`, `DIARY_STORE_PASSWORD`, `DIARY_KEY_ALIAS`,
-   `DIARY_KEY_PASSWORD`. Não enviar nem copiar valores para chat, Git, relatórios,
-   Repository Secrets, Organization Secrets ou outro Environment para contornar o bloqueio.
-   Se houver cópias em escopos mais amplos, o administrador deverá revisar sua
-   exposição separadamente; esta tarefa não autoriza removê-las automaticamente.
-5. Conferir a Environment Variable pública `DIARY_CERT_SHA256`:
+   Essa verificação já existia e foi preservada conforme o pedido de remover
+   exclusivamente a exigência de revisão independente.
+4. Usar os **Repository Secrets já confirmados**, sem copiar/mover valores para
+   `release`: `DIARY_KEYSTORE_BASE64`, `DIARY_STORE_PASSWORD`, `DIARY_KEY_ALIAS`,
+   `DIARY_KEY_PASSWORD`. O chamador repassa apenas esses quatro nomes por aliases
+   internos; não usa `secrets: inherit`. Não compartilhar os conteúdos pelo chat.
+5. Usar a **Repository Variable** `DIARY_CERT_SHA256`, já confirmada pelo proprietário.
+   O valor esperado permanece:
 
    `6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae`.
 
+O Environment permanece apenas para as barreiras anteriores de branch/bypass;
+não precisa receber Secrets/Variables de assinatura. Na leitura atual, ainda falta
+configurar a lista de branches e desabilitar bypass. Essas duas condições continuam
+bloqueando o preflight; não foram modificadas pelo Codex. Não são exigências novas.
+
 As opções dependem da disponibilidade real no painel. Não contratar recursos.
 Se alguma não estiver disponível, informar o impedimento e manter o job bloqueado.
-Essas mudanças podem exigir aprovação também nos fluxos antigos de main e impedir
-execução de branches históricas de auth/foundation. Rever esse efeito antes de salvar;
+Essas mudanças podem impedir execução de branches históricas de auth/foundation. Rever esse efeito antes de salvar;
 não alargar a lista automaticamente.
 
 ## Caminho preparado
@@ -66,10 +74,26 @@ não alargar a lista automaticamente.
 
 O dispatcher evita depender do registro de um workflow novo na main. Não há
 workflow_dispatch direto no arquivo reutilizável, evento push, release/tag ou
-chamada a P1/P2/P3/B. Não há `secrets: inherit` nem encaminhamento das chaves pelo
-chamador. Os Secrets são resolvidos diretamente no job com `environment: release`;
-o job de política não os recebe. A resolução real ainda precisa do preflight autorizado.
-Não criar Repository Secrets como alternativa se algum nome estiver indisponível.
+chamada a P1/P2/P3/B. O chamador repassa explicitamente os quatro Repository Secrets, com aliases
+`REPO_DIARY_*`, e a Repository Variable por input `repository_certificate_sha256`.
+São nomes internos, sem novo cadastro no GitHub. Assim o workflow reutilizável não
+consulta os nomes `DIARY_*` ou a variável homônima do Environment. Não há fallback
+nem `secrets: inherit`. O job de política não mapeia nem lê os Secrets; somente
+uma etapa do job de assinatura os coloca no ambiente do processo. A resolução
+real dos valores ainda depende do preflight autorizado, não destes testes locais.
+
+**Repository Secrets não passam a ser protegidos automaticamente pelo Environment.**
+Seu escopo continua sendo o do repositório. O encaminhamento explícito limita esta
+chamada aos quatro valores necessários; o código não os mapeia no job de política.
+As barreiras de execução manual, branch, SHA revisado e flags são verificadas antes
+da etapa que os utiliza.
+Os aliases `REPO_DIARY_*` são parâmetros internos, não novos Secrets a cadastrar.
+Um Secret de Environment com o mesmo alias poderia prevalecer por regra do GitHub;
+não criar esses aliases no Environment. O certificado fixado continua obrigatório,
+independentemente da origem de um valor resolvido pelo runner.
+ Nenhum valor é lido pela API, impresso ou exportado para
+logs/artefatos. O Environment não é apresentado como isolamento desses Repository Secrets.
+
 
 ### Barreiras anteriores à chave
 
@@ -77,10 +101,11 @@ Não criar Repository Secrets como alternativa se algum nome estiver indisponív
   tentativa 1 e **SHA completo revisado igual ao SHA executado**.
 - Flags independentes de preflight e candidato, ambas falsas por padrão.
   PREFLIGHT recusa a flag de candidato ligada; CANDIDATE exige as duas.
-- Job `policy`, sem Environment e sem Secrets, verifica via API GitHub as regras
+- Job `policy`, sem Environment e sem mapear ou ler os Secrets, verifica via API GitHub as regras
   reais acima. Falha ou metadata incompleta bloqueia o job protegido.
-- Job `protected` depende do sucesso de `policy` e da aprovação nativa do
-  Environment. Revalida a política antes de mapear Secrets e durante a execução.
+- Job `protected` depende do sucesso de `policy`, com Environment usado apenas
+  para branch/bypass. Não há validação de revisor independente ou autoaprovação.
+  Revalida a política antes de mapear Secrets e durante a execução.
 - Somente leitura de contents/actions; sem id-token, deploy ou escrita no repositório.
   Concurrency exclusiva, sem cancelamento automático de um ensaio em andamento.
 - Actions externas fixadas em SHAs de commit, resolvidos dos tags públicos
@@ -165,10 +190,11 @@ gh workflow run h131-investigation.yml \
 O usuário autorizou **apenas a preparação**, portanto nenhum desses comandos foi executado.
 Não usar Rerun para repetir uma falha; diagnosticar e obter autorização para uma nova execução.
 
-Texto proposto para autorização inicial, após o administrador conferir proteções:
+Texto proposto para autorização inicial, após conferir branch/bypass:
 
 > Autorizo somente OFFICIAL_SIGNING_PREFLIGHT no SHA [SHA completo revisado],
-> usando os Secrets existentes do Environment release após aprovação independente.
+> usando os quatro Repository Secrets e a Repository Variable existentes,
+> por autorização manual do proprietário, sem segundo revisor.
 > Pode verificar a disponibilidade/consistência da chave e seu certificado c40,
 > sem compilar/assinar APK, publicar candidato, consultar Supabase ou instalar aplicativo.
 
@@ -182,9 +208,10 @@ Texto separado para o ensaio, depois do resultado inicial:
 
 ## Testes desta preparação e limites
 
-- 29 testes Python novos de autorização, política, sanitização, cleanup e bloqueio
+- 31 testes Python atualizados de autorização, política, sanitização, cleanup e bloqueio
   de artefato sem prova aprovada: passaram, zero falhas/ignorados.
-- Sete provas Java reais: passaram, zero falhas/ignorados. Usaram uma cópia temporária
+- Sete provas Java reais da preparação anterior: aprovadas, zero falhas/ignorados.
+  O verificador Java não mudou e não foi repetido neste ajuste. Usaram uma cópia temporária
   PKCS12 da chave Debug **preexistente**, sem gerar chave, sem assinar APK e sem
   alterar a fixture original. Provaram leitura/senha/assinatura em memória e recusas
   de certificado permanente incompatível, senhas/alias ausentes/errados e corrupção.
@@ -198,8 +225,9 @@ Texto separado para o ensaio, depois do resultado inicial:
 - CI #37 não repetida; nenhuma nova execução GitHub Actions, key access protegido,
   assinatura permanente ou instalação Android realizada nesta tarefa.
 
-Pendências reais: administrador configurar políticas e conferir os nomes, leitura da
-política pelo token do runner e resolução de Environment Secrets no reusable,
+Pendências reais: configurar somente as barreiras mantidas de branch/bypass;
+conferência da política pelo token do runner e resolução dos Repository Secrets
+encaminhados no reusable;
 preflight com chave real, ensaio permanente, revisão física e aprovação do proprietário.
 Falha de qualquer requisito mantém o caminho bloqueado. Não declarar APK pronto pela data.
 
@@ -224,8 +252,10 @@ Nenhum desses itens foi abandonado ou implementado implicitamente para viabiliza
 
 ## Publicação e ponto de retomada
 
-Código preparado e publicado em
-`de3a73c8789c03e98afad0e4203eb3cf551bf67f`.
+Base anterior de preparação: `de3a73c8789c03e98afad0e4203eb3cf551bf67f`,
+com documentação `e2ea17e9e0142df2cf93101bb7fbedda9ef13cb6`.
+A simplificação posterior preserva essa implementação e modifica somente a política
+de revisores, o encaminhamento dos Secrets e seus testes/documentos.
 [Evidência local e metadata pública](evidence/C45_ASSINATURA_PREPARACAO.json).
 A publicação documental posterior não muda a implementação. Nenhuma execução
 protegida nova consta desta preparação; o último ensaio Android continua sendo #37.
@@ -234,8 +264,32 @@ O SHA usado nos comandos deve corresponder ao **HEAD efetivamente revisado e exe
 Se um commit documental posterior avançar a branch, usar o SHA completo desse HEAD
 após revisão; o SHA de código acima não autoriza executar silenciosamente outro HEAD.
 
-Próxima ação do administrador: configurar as proteções e conferir os nomes no painel,
-sem transmitir seus conteúdos. Depois informar somente que configurou e autorizar
+Próxima ação do proprietário: configurar a lista de branches e desabilitar bypass,
+sem mover os Secrets. Sua confirmação visual dos nomes já foi registrada. Depois
+informar somente que configurou essas duas barreiras e autorizar
 **apenas o preflight** no SHA revisado. A autorização do candidato fica para depois
 do relatório real de preflight. Até lá, a presença da chave permanece desconhecida,
 o caminho protegido permanece bloqueado e não existe APK oficial novo aprovado.
+
+
+## Consolidação da retomada — autorização pelo proprietário
+
+- Trabalho não commitado recuperado sem reset/limpeza; nenhuma funcionalidade foi refeita.
+- `6e44c54002e472987cb05ac6940768e81b23856c`: remoção somente das validações de
+  Required reviewers/Prevent self-review, encaminhamento nominal dos Repository
+  Secrets/Variable e regressões de autorização/sanitização.
+- [Evidência sanitizada desta execução](evidence/C45_ASSINATURA_MANUAL.json):
+  31 testes de assinatura + dez guardas de atualização + cinco guardas B passaram;
+  zero falhas/ignorados. Actionlint e py_compile passaram. Não se repetiu a CI #37,
+  o validador Java ou o ensaio Android sem necessidade: esses componentes não mudaram.
+- Os nomes existentes foram confirmados pelo proprietário. Não foram solicitados,
+  lidos pela API, publicados ou copiados para código os valores dos Secrets.
+- Não houve preflight com chave permanente, CANDIDATE, Supabase, P1/P2/P3/B,
+  alteração de main, instalação em dispositivo existente ou publicação de APK.
+- A leitura atual de `release` ainda mostra branch policy ausente e bypass ligado.
+  **Ajuste mínimo restante:** Selected branches para a branch exata e bypass
+  administrativo desabilitado. Não há exigência de outro aprovador ou migração.
+
+Depois desses dois ajustes e de nova autorização específica, usar o comando de
+PREFLIGHT acima com o SHA completo do HEAD revisado publicado. A compilação
+assinada continua exigindo outra autorização posterior ao resultado real.

@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-11-15T11:33:53.353707-03:00",
+  "source_commit": "6e44c54002e472987cb05ac6940768e81b23856c",
+  "scope": "LOCAL_SYNTHETIC_PREPARATION_ONLY",
+  "repository_secret_names": {
+    "status": "OWNER_VISUALLY_CONFIRMED",
+    "values_read": false,
+    "variable_name": "DIARY_CERT_SHA256"
+  },
+  "runtime_secret_resolution": "NOT_EXECUTED",
+  "real_certificate_consistency": "PENDING_AUTHORIZED_PREFLIGHT",
+  "environment": {
+    "name": "release",
+    "can_admins_bypass": true,
+    "deployment_branch_policy": null,
+    "required_review_rules_count": 0
+  },
+  "review_requirement_removed": true,
+  "environment_automatically_protects_repository_secrets": false,
+  "remaining_configuration": [
+    "selected branches must include exact sync/academic-complete-0220; main optional",
+    "disable administrative bypass"
+  ],
+  "tests": {
+    "signing_synthetic_passed": 31,
+    "upgrade_guards_passed": 10,
+    "b_transition_guards_passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "actionlint_version": "1.7.7",
+    "actionlint_errors": 0,
+    "python_compile_passed": true
+  },
+  "protected_jobs_executed": false,
+  "permanent_key_used": false,
+  "new_key_generated": false,
+  "apk_generated": false,
+  "ci_37_repeated": false,
+  "supabase_requests": false,
+  "owner_devices_touched": false
+}

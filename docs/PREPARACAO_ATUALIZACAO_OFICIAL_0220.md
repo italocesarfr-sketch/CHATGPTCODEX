@@ -1,3 +1,9 @@
+> **Decisão posterior do proprietário — aprovação manual simplificada:** o fluxo
+> não exige segundo revisor nem migração dos Repository Secrets/Variables para
+> Environment. Mantém branch/SHA, flags separadas e verificações da chave/dados.
+> Consulte a situação atual em [ASSINATURA_CANDIDATO_C45.md](ASSINATURA_CANDIDATO_C45.md);
+> os requisitos de revisão independente abaixo são o registro histórico anterior.
+
 > **15/11/2026 — caminho permanente preparado, ainda não executado:**
 > [ASSINATURA_CANDIDATO_C45.md](ASSINATURA_CANDIDATO_C45.md) contém os bloqueios
 > atuais do Environment release, as duas autorizações futuras e os parâmetros
