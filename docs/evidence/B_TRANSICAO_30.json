@@ -1,0 +1,41 @@
+{
+  "source_sha": "3431f2d5cefd72363f7e643b225f756a8cc3db9e",
+  "hosted_requests": false,
+  "outcome": "HTTP_SERIALIZATION_RETRY_TIMEOUT",
+  "reports": {
+    "c-regression.json": {
+      "phase": "c",
+      "failed_cases": [],
+      "tests": 20,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 20,
+      "hosted_requests": false
+    },
+    "d-regression.json": {
+      "phase": "d",
+      "failed_cases": [],
+      "tests": 27,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 27,
+      "hosted_requests": false
+    },
+    "e-regression.json": {
+      "phase": "e",
+      "failed_cases": [],
+      "tests": 16,
+      "failed": 0,
+      "skipped": 0,
+      "passed": 16,
+      "hosted_requests": false
+    },
+    "jvm.json": {
+      "tests": 318,
+      "passed": 313,
+      "skipped": 5,
+      "failed": 0,
+      "hosted_requests": false
+    }
+  }
+}

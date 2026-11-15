@@ -9,6 +9,15 @@ class Safety(unittest.TestCase):
   start=text.index('CREATE OR REPLACE FUNCTION public.noctua_enable_academic_c(');end=text.index('-- Private projection',start)
   self.assertIn('IF scope NOT IN(2,3)',text[start:end])
   self.assertFalse((ROOT/'supabase/migrations/202611150001_scope_transition_guard.sql').exists())
+ def test_http_candidate_changes_only_three_conflict_codes(self):
+  import re
+  text=(ROOT/'supabase/migrations/202611150002_scope_conflict_http.sql').read_text()
+  actual=re.findall(r'CREATE OR REPLACE FUNCTION public.noctua_enable_academic_[cde]\(.*?\$\$;',text,re.S)
+  self.assertEqual(len(actual),3)
+  for body,(name,file)in zip(actual,[('c','202611020003_phase_d_scope.sql'),('d','202611020003_phase_d_scope.sql'),('e','202611030001_phase_e_paging.sql')]):
+   old=(ROOT/'supabase/migrations'/file).read_text();start=old.index('CREATE OR REPLACE FUNCTION public.noctua_enable_academic_'+name+'(');end=old.index('$$;',start)+3
+   self.assertEqual(body,old[start:end].replace("ERRCODE='40001'","ERRCODE='PT409'"))
+  self.assertNotIn('GRANT ',text);self.assertNotIn('ALTER TABLE',text)
  def test_workflow_has_no_environment_secrets_or_hosted_mode(self):
   w=yaml.safe_load((ROOT/'.github/workflows/b-transition.yml').read_text());job=w['jobs']['local-only']
   self.assertNotIn('environment',job);self.assertNotIn('secrets.',str(w));self.assertEqual(job['env']['PGHOST'],'127.0.0.1')

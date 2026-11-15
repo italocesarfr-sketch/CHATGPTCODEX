@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """LOCAL ONLY: verify existing monotonic C/D/E guards, seed B and verify no data writes."""
-import os,importlib.util,json,hashlib,runpy,subprocess
+import os,importlib.util,json,hashlib,runpy,subprocess,time
 from pathlib import Path
 assert os.environ.get('GITHUB_ACTIONS')=='true'and os.environ.get('CI')=='true'
 assert os.environ.get('PGHOST')=='127.0.0.1'and os.environ.get('PGDATABASE')=='noctua_phase_b_test'
@@ -21,7 +21,7 @@ def digest(owner,exclude_scope=False):
   key='id'if name=='users'else'user_id';parts.append(name+sql(f"SELECT coalesce(jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text),'[]') FROM auth.{name} r WHERE {key}='{owner}'"))
  return hashlib.sha256('\n'.join(parts).encode()).hexdigest()
 def security():
- return hashlib.sha256(sql("SELECT jsonb_agg(to_jsonb(r) ORDER BY r.tablename) FROM (SELECT tablename,policyname,roles,cmd,qual,with_check FROM pg_policies WHERE schemaname='public' ORDER BY tablename,policyname) r").encode()+sql("SELECT jsonb_agg(to_jsonb(r) ORDER BY r.oid) FROM (SELECT c.oid,c.relrowsecurity,c.relacl FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname LIKE 'noctua_%') r").encode()+sql("SELECT jsonb_build_array(proacl,prosecdef,proconfig,pg_get_function_identity_arguments(oid)) FROM pg_proc WHERE oid='public.noctua_enable_academic_c(bigint)'::regprocedure").encode()).hexdigest()
+ return hashlib.sha256(sql("SELECT jsonb_agg(to_jsonb(r) ORDER BY r.tablename) FROM (SELECT tablename,policyname,roles,cmd,qual,with_check FROM pg_policies WHERE schemaname='public' ORDER BY tablename,policyname) r").encode()+sql("SELECT jsonb_agg(to_jsonb(r) ORDER BY r.oid) FROM (SELECT c.oid,c.relrowsecurity,c.relacl FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relname LIKE 'noctua_%') r").encode()+sql("SELECT jsonb_agg(jsonb_build_array(proname,proacl,prosecdef,proconfig,pg_get_function_identity_arguments(oid)) ORDER BY proname) FROM pg_proc WHERE oid IN ('public.noctua_enable_academic_c(bigint)'::regprocedure,'public.noctua_enable_academic_d(bigint)'::regprocedure,'public.noctua_enable_academic_e(bigint)'::regprocedure)").encode()).hexdigest()
 def prepare():
  # The effective A-E definition is the C function replaced by D, not the earlier C-only body.
  before=security()
@@ -49,9 +49,16 @@ def prepare():
  reply=rpc('noctua_push_academic',dict(p_operation=str(uuid.uuid4()),p_changes=rows));assert reply['accepted']
  assert rpc('noctua_academic_status_c')['academicSequence']==1
  for name in ('d','e'):rpc('noctua_enable_academic_'+name,dict(p_expected_sequence=1),expected=403)
- error=rpc('noctua_enable_academic_c',dict(p_expected_sequence=2),expected=500);assert error['code']=='40001'
+ # Validate the old SQL rejection directly; do not induce unbounded PostgREST retry again.
+ claims=json.dumps(dict(sub=B,role='authenticated',session_id='93939393-9393-4393-8393-939393939393',exp=int(time.time())+3600))
+ old=subprocess.run(['psql','-X','-A','-t','-v','ON_ERROR_STOP=1','-v','VERBOSITY=sqlstate','-c',"SET ROLE authenticated;SET request.jwt.claim.sub='"+B+"';SET request.jwt.claims='"+claims+"';SELECT public.noctua_enable_academic_c(2);"],capture_output=True,text=True)
+ assert old.returncode!=0 and '40001'in old.stderr
+ security_before=security()
+ sql((ROOT/'supabase/migrations/202611150002_scope_conflict_http.sql').read_text())
+ assert security()==security_before
+ started=time.monotonic();error=rpc('noctua_enable_academic_c',dict(p_expected_sequence=2),expected=409);elapsed=round((time.monotonic()-started)*1000);assert error['code']=='PT409'
  assert rpc('noctua_academic_status_c')['academicScope']==2
- result=dict(effective_d_guard_blocks_downgrade=True,no_new_migration_required=True,security_metadata_unchanged=True,skipped_stages_rejected=True,stale_sequence_rejected=True,a_hash=digest(A),b_data_hash=digest(B,True),b_records=41,b_sequence=1,hosted_requests=False)
+ result=dict(effective_d_guard_blocks_downgrade=True,existing_monotonic_guard_preserved=True,security_metadata_unchanged=True,skipped_stages_rejected=True,stale_sequence_rejected=True,old_serialization_state_confirmed=True,http_conflict_409_without_retry=True,http_conflict_ms=elapsed,http_conflict_requests=1,a_hash=digest(A),b_data_hash=digest(B,True),b_records=41,b_sequence=1,hosted_requests=False)
  (OUT/'postgres.json').write_text(json.dumps(result,indent=2)+'\n')
 def verify():
  result=json.loads((OUT/'postgres.json').read_text());assert digest(A)==result['a_hash'];assert digest(B,True)==result['b_data_hash']

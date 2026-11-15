@@ -1,0 +1,11 @@
+{
+  "case": "LOCAL_SERIALIZATION_RETRY",
+  "postgres": "17.11",
+  "postgrest": "12.2.3",
+  "client_requests": 1,
+  "client_timeout_seconds": 20,
+  "observed_serialization_errors": 251137,
+  "outcome": "LOCAL_STATUS_TIMEOUT",
+  "hosted_requests": false,
+  "measurement_window_seconds": null
+}

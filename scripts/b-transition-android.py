@@ -18,6 +18,8 @@ def main():
  expected=sum(len(re.findall(r'@Test\b',(ROOT/f'app/src/androidTest/java/br/com/diariodeclasse/{name}.kt').read_text()))for name in classes)
  raw=adb('-s',device,'shell','am','instrument','-w','-e','timeout_msec','240000','-e','h05Mode','LOCAL','-e','bTransitionLocal','YES','-e','class',','.join('br.com.diariodeclasse.'+name for name in classes),'br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner',timeout=300,check=False)
  (private/'native.log').write_bytes(raw);diag=h.native_diagnostics(raw,expected)
+ codes={'OWNER','CONSENT','ORDER','ELIGIBILITY','LOCAL_STAGE','REMOTE_SCOPE','CONFLICT_OR_RESTORE','QUEUES','V1','CURSOR','UNACKNOWLEDGED','UNSYNCED_LOCAL','LIMIT','RECEIPTS','REVISION','REFERENCES','STALE','REPEAT','CONFIRMATION','WRITE_BLOCKED','DECISION_BLOCKED'}
+ diag['guard_codes']=sorted(set(re.findall(r'BT_([A-Z_]+)',raw.decode(errors='ignore')))&codes)
  report=adb('-s',device,'exec-out','run-as','br.com.diariodeclasse','cat','files/b-transition-result.json',check=False)
  proof=None
  if len(report)<=4096:

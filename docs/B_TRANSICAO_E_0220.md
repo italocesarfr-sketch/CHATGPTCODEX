@@ -51,6 +51,39 @@ sem reaplicar o script C antigo isoladamente.
 Não afirmar que houve vulnerabilidade no protocolo final A–E com base na definição
 intermediária de C. O histórico dos commits conserva a hipótese e sua retirada.
 
+## Bloqueador HTTP comprovado em cluster descartável
+
+Na preparação #30, as 63 regressões PostgreSQL C/D/E passaram, mas o teste HTTP
+com sequência antiga expirou antes de chegar ao Android. A reprodução em um novo
+cluster próprio PostgreSQL 17.11 / PostgREST 12.2.3 confirmou a causa: os RPCs de
+ampliação lançam `40001` para um head incompatível. O PostgREST/Hasql repetiu
+transações de serialização até o cliente expirar (20 s), mantendo atividade no
+servidor até o processo descartável ser encerrado.
+
+Foram observadas 251.137 mensagens desse erro no log local. O intervalo completo
+não foi medido, portanto isso não é benchmark nem contagem de requisições HTTP:
+o cliente fez uma única requisição. [Métricas sanitizadas](evidence/B_TRANSICAO_RETRY_LOCAL.json).
+O cenário não foi repetido no hospedado e a versão/comportamento do PostgREST
+hospedado não foi consultada nesta tarefa. Não se pode extrapolar a contagem local.
+
+Candidata real e distinta da hipótese anterior retirada:
+`supabase/migrations/202611150002_scope_conflict_http.sql`.
+Ela preserva as definições finais de C/D/E e altera **somente** o SQLSTATE do
+head desatualizado, de `40001` para `PT409`. Isso sinaliza conflito de domínio
+HTTP 409 sem induzir a repetição de uma transação que não pode convergir usando
+a mesma sequência fixa. Não muda validações, locks, predecessores, identidades,
+parâmetros, dados, ACL ou RLS. Não aumenta timeouts. Não trata conflitos de notas
+ou decisões; somente os três RPCs de ampliação de escopo.
+
+A preparação local confirmou a rejeição original 40001 por SQL direto (sem
+reproduzir de novo o loop HTTP) e, depois da candidata, HTTP 409/PT409 imediato,
+com escopo e sequência intactos. A regressão completa com a candidata ainda será
+consolidada. A candidata **não foi aplicada hospedada**; requer revisão e autorização
+administrativa separadas. O formato de erro é uma mudança de compatibilidade:
+os clientes atuais tratam falha não-2xx como `SyncFailure` e preservam PREPARED,
+mas a validação hospedada de erro 409 ainda é pendente. Não aplicá-la automaticamente.
+A guarda monotônica correta de D permanece intacta.
+
 ## Executor de preparação — exclusivamente LOCAL
 
 - Workflow `b-transition.yml`, via dispatcher existente, opção `B_TRANSITION_LOCAL`.
@@ -98,7 +131,7 @@ Room selecionadas serão executadas junto da nova prova HTTP/Room.
    cliente incompatível ou titularidade divergente, interromper. Não enviar os dados
    para “limpar” a fila sob uma autorização apenas de metadados. Preparar outra
    autorização delimitada se algum envio acadêmico for necessário.
-4. Conferir que o ambiente utiliza as definições finais A–E já instaladas. Gerar prévia B→C, verificar
+4. Após revisão/aplicação separada da candidata 002 e conferência das definições finais A–E, gerar prévia B→C, verificar
    filas/revisões/head e consentir C. Usar `p_expected_sequence` observado, nunca zero
    inventado. Conferir resposta C e invariância dos dados antes de prosseguir.
 5. Repetir a conferência e o consentimento próprios de C→D e D→E, com os RPCs
@@ -119,9 +152,18 @@ para usar atualização SQL direta.
 
 ## Textos de autorização para revisão posterior
 
-Não é necessária autorização para instalar nova migração: a candidata foi retirada.
-Após revisar os inventários B e o ambiente/workspace seguro, o texto de autorização
-proposto é:
+A candidata 001 foi retirada. A candidata **002**, que trata o conflito HTTP,
+precisa de autorização administrativa própria, após revisão da prova local:
+
+> Autorizo aplicar exclusivamente 202611150002_scope_conflict_http.sql em
+> sscexzxtqdcsqdlcytum, após backup administrativo e conferência das três definições
+> e privilégios atuais. Autorizo somente a alteração de sinalização do conflito de
+> sequência para HTTP 409 nos RPCs C/D/E. Não autorizo transição de B, dados
+> acadêmicos, RLS, allowlist, produção, P1/P2/P3 ou reinstalação de aplicativos.
+> Interromper se o preflight ou a compatibilidade divergir.
+
+Após revisar os inventários B, a candidata e o ambiente/workspace seguro, a
+transição também exige sua própria autorização:
 
 > Autorizo a transição controlada da conta fictícia B, de V2/B para C, depois D
 > e depois E, exclusivamente em sscexzxtqdcsqdlcytum, com consentimentos existentes,
@@ -135,9 +177,10 @@ proposto é:
 > tudo e não repetir automaticamente. Não tocar instalações existentes fora do
 > workspace/ambiente expressamente identificado para esta operação.
 
-Esse texto é uma proposta revisável, não autorizações recebidas. Ainda faltam
-inventários locais, definição do workspace seguro e revisão da binding autenticada
-e da barreira de comandos para operá-lo. Isso não é substituído por uma instalação
+Esses textos são propostas revisáveis, não autorizações recebidas. Ainda faltam
+inventários locais, definição do workspace seguro e revisão da binding autenticada,
+da barreira de comandos e da coordenação/pausa de tentativas automáticas durante
+a janela. A engine normal não pode ficar fora do gate de transporte restrito. Isso não é substituído por uma instalação
 vazia na CI.
 
 
@@ -152,3 +195,9 @@ vazia na CI.
 - #29 / `43665975764` foi cancelada ao perceber que D já continha a guarda. Não
   contar a execução cancelada como aprovação. A candidata não será implantada.
 - A nova rodada usará apenas as definições existentes, sem alteração remota.
+
+- #30 / `43666296847`, fonte `3431f2d`: JVM 313 aprovados/cinco condicionais
+  ignorados; C20/D27/E16 aprovados. HTTP de sequência antiga expirou; a etapa
+  Android não executou. Diagnóstico local acima, sem repetir esse loop em nuvem.
+- A próxima rodada manterá todos os testes e instalará a candidata 002 somente no
+  PostgreSQL descartável antes da prova Android. A migração 001 continua retirada.
