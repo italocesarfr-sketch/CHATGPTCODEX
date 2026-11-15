@@ -1,3 +1,8 @@
+> **15/11/2026 — caminho permanente preparado, ainda não executado:**
+> [ASSINATURA_CANDIDATO_C45.md](ASSINATURA_CANDIDATO_C45.md) contém os bloqueios
+> atuais do Environment release, as duas autorizações futuras e os parâmetros
+> do preflight/candidato. A #37 abaixo continua sendo somente ensaio descartável.
+
 # Preparação da atualização oficial 0.21.0/c40 → 0.22.0
 
 15/11/2026, America/Sao_Paulo. Meta solicitada: segunda-feira, 16/11/2026.

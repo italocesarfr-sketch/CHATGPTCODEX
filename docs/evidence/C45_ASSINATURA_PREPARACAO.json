@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-11-15T11:07:36.160756-03:00",
+  "source_sha": "de3a73c8789c03e98afad0e4203eb3cf551bf67f",
+  "environment": {
+    "name": "release",
+    "can_admins_bypass": true,
+    "required_review_rule_count": 0,
+    "deployment_branch_policy": null
+  },
+  "secret_names_query_http": 403,
+  "variable_names_query_http": 403,
+  "permanent_key_available": "UNVERIFIED",
+  "protected_workflow_executed": false,
+  "permanent_key_used": false,
+  "apk_generated": false,
+  "new_key_generated": false,
+  "supabase_requests": false,
+  "owner_devices_touched": false,
+  "local_tests": {
+    "signing_policy_passed": 29,
+    "java_existing_fixture_passed": 7,
+    "upgrade_guards_passed": 10,
+    "b_transition_guards_passed": 5,
+    "failed": 0,
+    "skipped": 0
+  },
+  "static_validation": {
+    "actionlint_version": "1.7.7",
+    "actionlint_errors": 0,
+    "shellcheck_executed": false,
+    "pyflakes_executed": false,
+    "python_compile_passed": true,
+    "gradle_configuration_passed": true,
+    "missing_signing_material_blocks_release": true,
+    "candidate_metadata_verified": "0.22.0/c45",
+    "default_metadata_restored": "0.22.0-dev-e2/c45"
+  },
+  "prior_android_evidence": {
+    "run_id": 43716726140,
+    "phases_passed": 11,
+    "repeated": false
+  }
+}
