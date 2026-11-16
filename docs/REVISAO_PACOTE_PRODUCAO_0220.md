@@ -3,6 +3,12 @@
 Data: 15/11/2026, horário de Brasília. Branch: `temp/academic-production-phase1`.
 Referência de código e SQL: `ac56867ef3c6093670fafd91ddd4f591bc589f8a`.
 
+**Registro histórico da revisão inicial.** O proprietário informou depois o hash
+do backup, ensaio de restauração dos dados e conclusão das verificações v1. O
+[encerramento da Fase 1](PRODUCAO_FASE1_0220.md#encerramento-da-fase-1--evidências-consolidadas)
+substitui os estados pendentes abaixo. O limite de `--no-owner --no-acl` permanece
+explícito; procedimento futuro em [PRODUCAO_FASE2_0220.md](PRODUCAO_FASE2_0220.md).
+
 **Resultado: pacote preparado para revisão; implantação não autorizada nem executada.**
 O inventário e o backup abaixo foram relatados pelo proprietário. Nesta revisão não
 houve conexão ao Supabase, SQL executado, acesso a credenciais ou leitura do backup.

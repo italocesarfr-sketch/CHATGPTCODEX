@@ -1,8 +1,12 @@
-# Sincronização acadêmica em produção — fase 1 (somente aplicativo)
+# Sincronização acadêmica em produção — Fase 1: preparação e evidências
 
 Base: `59cb7a1c3da1d2416fc0546fe230a1aa2bba5137` (`sync/academic-complete-0220`).
 Branch temporária: `temp/academic-production-phase1`. **Nenhuma alteração em produção, Supabase,
 main, workflows ou no caminho de assinatura.** Não há APK novo nem execução protegida.
+
+**Estado consolidado da preparação:** ver [Encerramento da Fase 1](#encerramento-da-fase-1--evidências-consolidadas).
+Os registros intermediários abaixo são históricos. A implantação ainda depende de
+autorização específica; procedimento em [PRODUCAO_FASE2_0220.md](PRODUCAO_FASE2_0220.md).
 
 ## O que muda
 
@@ -214,9 +218,73 @@ Detalhes, sete hashes, limitações, riscos de timeout e checklist de restauraç
 [REVISAO_PACOTE_PRODUCAO_0220.md](REVISAO_PACOTE_PRODUCAO_0220.md).
 Evidências locais: [evidence/PRODUCAO_PACOTE_0220.json](evidence/PRODUCAO_PACOTE_0220.json).
 
-**Ponto de parada atual:** pacote preparado para revisão. DDL de produção, conta de
+**Ponto de parada daquela revisão:** pacote preparado para revisão. DDL de produção, conta de
 teste, verificação posterior e assinatura/APK não executados nem autorizados por
 esta continuação. Antes de uma autorização futura, completar a conferência de
 catálogo e a avaliação de recuperabilidade do backup. Nenhum acesso hospedado,
 modificação de contas/allowlist, dados reais, aplicação, assinatura, main ou branch
 de sincronização foi realizado.
+
+## Encerramento da Fase 1 — evidências consolidadas
+
+Consolidação de 15/11/2026, após o commit documental
+`cd5add84c29ee82adecb75369cbadcbb8dff4929`. As verificações administrativas a seguir
+foram **informadas pelo proprietário**; não foram executadas nem observadas
+diretamente pelo Codex. Não houve conexão ao banco ou acesso ao backup nesta sessão.
+
+| Item do checklist | Resultado atual | Alcance da evidência |
+| --- | --- | --- |
+| Backup administrativo de produção | Criado em 15/11/2026; 426.467 bytes; pg_dump 17 | Informado pelo proprietário |
+| SHA-256 do backup | `20f89b35813718d9a732cbc73c29767da74aef80cae4c54610a90c93a6784877` | Hash informado; formato conferido localmente, sem recalcular sobre o backup |
+| Ensaio de restauração | Sucesso em PostgreSQL/Supabase local isolado, usando `supabase_admin` | Restauração de dados relatada; não constitui teste Codex/CI |
+| Conferência dos dados restaurados | Seis contagens iguais à produção: **1, 3, 1, 3, 2 e 4** | Correspondência entre contagens e tabelas não fornecida; não inferida nem solicitada informação pessoal |
+| Ownership e ACL no ensaio | Usados `--no-owner --no-acl` | Reprodução de proprietários/permissões **não comprovada**; não declarar recuperação integral |
+| Cópia externa | Arquivo 7z com AES-256, testado e copiado para armazenamento externo seguro | Informado pelo proprietário; configurações externas não recuperadas por esse ensaio |
+| Baseline de produção | Quatro tabelas v1 com RLS; doze A–E ausentes | Inventário administrativo informado |
+| Segurança v1 | Políticas `own_rows`, permissões principais, guarda de sessão e `noctua_validate_class` com resultados esperados | Pendências correspondentes da revisão anterior consideradas atendidas conforme confirmação do proprietário |
+| Pacote A–E | Sete hashes e 18 verificações estáticas aprovados; SQL inalterado | Evidência local, novamente conferida; transação única; sem H13/PT409 |
+
+### Decisão sobre pendências
+
+**Fase 1 encerrada como preparação documental e local.** Não se identificou novo
+bloqueador técnico no pacote. Não se exige repetir o ensaio de dados, inventar
+novos testes ou reabrir verificações já confirmadas para concluir esta preparação.
+As ressalvas de ownership/ACL e configurações externas permanecem registradas;
+não equivalem a corrupção dos dados restaurados, nem a recuperação integral aprovada.
+
+Antes de **executar** a implantação, ainda é indispensável:
+
+1. Confirmar com o proprietário o projeto aberto `mpsgdchpgyxoqowfjoqm` e receber
+   autorização explícita vinculada ao SHA-256 do pacote. Esta tarefa não a concede.
+2. Confirmar que o backup cobre o estado anterior à janela de implantação e segue
+   acessível, com os registros privados de catálogo/definições/ACL já verificados.
+   Se houve gravações após o backup, avaliar a diferença e atualizar a cópia quando
+   necessário; não aceitar restauração automática que perderia essas gravações.
+   Se não houver material para recuperar proprietários/permissões, isso bloqueia
+   uma restauração integral; deve ser resolvido antes de depender dela na janela.
+3. Conferir que o baseline continua v1 + guarda, sem objetos v2 ou divergências,
+   e que o pacote continua com o hash revisado. Reutilizar o inventário existente
+   se ainda atual; em caso de mudança/dúvida, usar o SQL somente leitura já existente.
+
+Não é necessário um novo SQL: o inventário original contempla os metadados exigidos.
+Timeout de RPC autenticada, carga institucional, testes da conta fictícia e APK
+não são pré-requisitos adicionais para revisar este DDL; continuam condicionantes
+das etapas de utilização e não estão aprovados por esta consolidação.
+
+### Próximo passo exato
+
+O proprietário confirma projeto, validade do backup e autoriza **somente** a
+execução integral de `build/producao-0220.sql`, SHA-256
+`7fd28b6dbce5f72724abc1a2644041f19f373fc7675eb37a24bd17fa9a46659b`, em uma sessão
+do SQL Editor, conforme [procedimento da Fase 2](PRODUCAO_FASE2_0220.md).
+Até essa autorização, permanecer sem executar SQL de alteração.
+
+Evidência consolidada: [PRODUCAO_FASE1_ENCERRAMENTO_0220.json](evidence/PRODUCAO_FASE1_ENCERRAMENTO_0220.json).
+O pacote continua com **120.010 bytes**; seu hash é diferente do hash do backup.
+Não houve alteração de SQL fonte, aplicação, assinatura, main, allowlist ou Supabase.
+
+A preparação do APK oficial com sincronização é uma etapa posterior separada.
+O release continua com `ACADEMIC_PRODUCTION=false` por padrão e o proprietário
+legado continua excluído. Implantar o banco não habilita a conta do proprietário
+nem resolve o conflito v1, e não torna a sincronização automaticamente disponível
+na instalação oficial atual.

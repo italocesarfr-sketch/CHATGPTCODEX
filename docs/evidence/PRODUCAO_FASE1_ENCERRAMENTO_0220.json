@@ -1,0 +1,88 @@
+{
+  "branch": "temp/academic-production-phase1",
+  "evidence_kind": "Administrator report plus local package integrity review; no independent hosted execution",
+  "reviewed_at": "2026-11-15T21:07:58-03:00",
+  "review_base_head": "cd5add84c29ee82adecb75369cbadcbb8dff4929",
+  "source_reference": "ac56867ef3c6093670fafd91ddd4f591bc589f8a",
+  "package": {
+    "file": "build/producao-0220.sql",
+    "bytes": 120010,
+    "lines": 1504,
+    "sha256": "7fd28b6dbce5f72724abc1a2644041f19f373fc7675eb37a24bd17fa9a46659b"
+  },
+  "local_rechecks": {
+    "seven_ordered_sources_match_documented_hashes": true,
+    "seven_source_bodies_preserved_exactly": true,
+    "package_hash_matches_historical_manifest": true,
+    "byte_identical_to_published_review_sql": true,
+    "one_standalone_outer_begin": true,
+    "one_standalone_outer_commit_at_end": true,
+    "preflight_precedes_sources": true,
+    "preflight_checks_guard_and_absent_v2": true,
+    "local_lock_timeout_5s": true,
+    "no_statement_timeout_override": true,
+    "no_role_or_database_configuration_changes": true,
+    "schema_reload_before_outer_commit": true,
+    "twelve_new_table_definitions": true,
+    "original_principal_not_redefined": true,
+    "v1_and_guard_not_reapplied": true,
+    "no_h13_registry_cache": true,
+    "no_pt409_candidate": true,
+    "no_drop_table_or_truncate": true
+  },
+  "official_generator_output_matches_existing_package": true,
+  "administrator_report": {
+    "project_reference": "mpsgdchpgyxoqowfjoqm",
+    "backup": {
+      "created_on": "2026-11-15",
+      "bytes": 426467,
+      "sha256": "20f89b35813718d9a732cbc73c29767da74aef80cae4c54610a90c93a6784877",
+      "sha256_recomputed_by_codex": false,
+      "tool": "pg_dump 17",
+      "restore_environment": "Private isolated local PostgreSQL/Supabase",
+      "restore_role": "supabase_admin",
+      "restore_succeeded_reported": true,
+      "restore_options": [
+        "--no-owner",
+        "--no-acl"
+      ],
+      "six_counts_equal_to_production": [
+        1,
+        3,
+        1,
+        3,
+        2,
+        4
+      ],
+      "count_to_table_mapping_provided": false,
+      "owner_acl_restore_proven": false,
+      "external_settings_restore_proven": false,
+      "archive": "7z AES-256, tested and copied to secure external storage"
+    },
+    "baseline": {
+      "v1_tables_present": 4,
+      "v1_rls_enabled": true,
+      "academic_tables_absent": 12,
+      "owner_policies_and_main_permissions_verified_as_expected": true,
+      "session_guard_verified_as_expected": true,
+      "validate_class_helper_verified_as_expected": true
+    }
+  },
+  "phase_1_preparation_consolidated": true,
+  "additional_sql_needed": false,
+  "remaining_execution_gates": [
+    "Explicit later deployment authorization and correct project confirmation",
+    "Backup currency/access and private recovery metadata for owner/ACL",
+    "Baseline still current and reviewed package hash unchanged before deployment"
+  ],
+  "not_proven": [
+    "Full owner/ACL or external-settings recovery",
+    "Production deployment or post-deployment catalog",
+    "Production capacity or account/application eligibility"
+  ],
+  "supabase_connections_this_task": 0,
+  "sql_executions_this_task": 0,
+  "backup_reads_this_task": 0,
+  "deployment_authorized": false,
+  "apk_generated": false
+}
