@@ -5,8 +5,15 @@ Branch temporária: `temp/academic-production-phase1`. **Nenhuma alteração em 
 main, workflows ou no caminho de assinatura.** Não há APK novo nem execução protegida.
 
 **Estado consolidado da preparação:** ver [Encerramento da Fase 1](#encerramento-da-fase-1--evidências-consolidadas).
-Os registros intermediários abaixo são históricos. A implantação ainda depende de
-autorização específica; procedimento em [PRODUCAO_FASE2_0220.md](PRODUCAO_FASE2_0220.md).
+Os registros intermediários abaixo e a preparação para autorização da implantação
+são históricos; procedimento em [PRODUCAO_FASE2_0220.md](PRODUCAO_FASE2_0220.md).
+
+**Estado posterior informado em 17/11/2026:** o proprietário confirmou implantação
+A–E e auditorias de produção, com uma conta fictícia individualmente autorizada.
+Os estados de espera abaixo são históricos. **Não reaplicar o pacote.** A tarefa
+atual prepara somente o debug para AVDs novos, conforme
+[PRODUCAO_FASE3_DEBUG_0220.md](PRODUCAO_FASE3_DEBUG_0220.md); nenhuma operação
+hospedada foi executada pelo Codex nesta preparação.
 
 ## O que muda
 

@@ -1,0 +1,517 @@
+{
+  "repository": "italocesarfr-sketch/CHATGPTCODEX",
+  "branch": "temp/academic-production-phase1",
+  "compiled_reference": "5a3ca2cf1ca89bac0d3dc8120595a6599ffccc94",
+  "application_code_reference": "ac56867ef3c6093670fafd91ddd4f591bc589f8a",
+  "prepared_at": "2026-11-17T07:59:05-03:00",
+  "scope": "Existing debug build for future controlled tests in two newly created disposable AVDs; no hosted execution",
+  "apk": {
+    "file": "noctua-debug-producao-c45-somente-avd.apk",
+    "local_path": "build/phase3/entrega/noctua-debug-producao-c45-somente-avd.apk",
+    "bytes": 13020722,
+    "sha256": "aba6c3b2d66b942253a4fa75ce3ebe800e29d4b7ac6c4e406f8a58c2452c4da2",
+    "certificate_sha256": "2f0af2d3f03c506bd3e9b17de97290a0c102b48fe09dce6349c7fd88506c154b",
+    "signature_verified": true,
+    "signature_scheme_v2": true,
+    "signer": "Android Debug, disposable build-local certificate",
+    "matches_permanent_certificate": false,
+    "permanent_key_used": false,
+    "application_id": "br.com.diariodeclasse",
+    "version_code": 45,
+    "version_name": "0.22.0-dev-e2",
+    "debuggable": true,
+    "min_sdk": 26,
+    "target_sdk": 35,
+    "native_abis": [
+      "arm64-v8a",
+      "armeabi-v7a",
+      "x86",
+      "x86_64"
+    ]
+  },
+  "build_config": {
+    "DEBUG": true,
+    "HOMOLOGACAO": false,
+    "ACADEMIC_PRODUCTION": false,
+    "SUPABASE_PROJECT_REF": "mpsgdchpgyxoqowfjoqm",
+    "SUPABASE_URL": "https://mpsgdchpgyxoqowfjoqm.supabase.co",
+    "AUTH_CALLBACK_SCHEME": "br.com.diariodeclasse",
+    "callback": "br.com.diariodeclasse://auth/callback"
+  },
+  "verified": {
+    "apksigner_verification": true,
+    "expected_production_endpoint_in_dex": true,
+    "homologation_endpoint_absent_from_dex": true,
+    "only_expected_publishable_key_value_in_dex": true,
+    "prohibited_test_demo_admin_and_private_key_markers_absent": true,
+    "generated_debug_build_config_matches_manifest": true,
+    "allow_backup_false": true,
+    "cleartext_default_false": true,
+    "existing_cleartext_exception_only_local_gateway": "10.0.2.2",
+    "eligibility_excludes_legacy_workspace_and_owner_in_source": true,
+    "automatic_recovery_requires_previously_authorized_V2_E_in_source": true,
+    "automatic_recovery_does_not_call_remote_activation_in_source": true,
+    "manual_B_C_D_E_consents_and_transition_guards_preserved_in_source": true,
+    "v1_seed_keeps_original_ids_and_v1_history_in_reviewed_SQL": true,
+    "application_sql_workflows_and_signing_scripts_unchanged": true
+  },
+  "tests": {
+    "jvm": {
+      "tests": 318,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 7.7170000000000005,
+      "passed": 313,
+      "suites": 44
+    },
+    "jvm_suites": [
+      {
+        "suite": "br.com.diariodeclasse.AbsenceJustificationsTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.051,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.AcademicNumericGradeTest",
+        "tests": 9,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.768,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.AcademicPagingTest",
+        "tests": 7,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.236,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.AcademicProtocolTest",
+        "tests": 24,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.122,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.AcademicResolutionTest",
+        "tests": 7,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.451,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.AccountViewModelsTest",
+        "tests": 3,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.003,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ActivityCopiesTest",
+        "tests": 11,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.01,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.AuthSecurityTest",
+        "tests": 14,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.997,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.BackupCodecTest",
+        "tests": 8,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.072,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ClassSyncPauseTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.007,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ClassSyncTest",
+        "tests": 10,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.011,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ClassificationsTest",
+        "tests": 7,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.02,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.CorrectionRefinementTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.008,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.CsvRosterTest",
+        "tests": 6,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.006,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.DomainTest",
+        "tests": 1,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.039,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.EnrollmentDefaultsTest",
+        "tests": 2,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.005,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.EnrollmentReactivationTest",
+        "tests": 7,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.002,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ExportLayoutTest",
+        "tests": 10,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.012,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ExportPresentationTest",
+        "tests": 11,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.235,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.FunctionalFifteenTest",
+        "tests": 12,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.021,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.GradeScalingTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.077,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.HistoryDeletionTest",
+        "tests": 9,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.09,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.HomologationConfigTest",
+        "tests": 8,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.008,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.HomologationHostedAuthTest",
+        "tests": 4,
+        "skipped": 4,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.005,
+        "skipped_cases": [
+          "h04AnonymousInvalidBearerAndRevokedSessionCannotInvokeAcademicRpc",
+          "h02RealOrdinaryAccountCannotReadTheOtherOwnersKnownFixture",
+          "h03PrivateHelpersAndExplicitlyAuthorizedZeroRowPatchAreDenied",
+          "h01ConfirmedLoginIdentityRefreshAndWrongPassword"
+        ]
+      },
+      {
+        "suite": "br.com.diariodeclasse.HostedHttpsTransportTest",
+        "tests": 10,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 4.051,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.LessonRecordsTest",
+        "tests": 6,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.016,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.NoctuaContrastTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.047,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.PhaseBStatusTest",
+        "tests": 2,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.004,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.PhaseCStatusTest",
+        "tests": 5,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.009,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.PhaseDGuardTest",
+        "tests": 12,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.031,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.PromptTwoProjectionTest",
+        "tests": 5,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.009,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.RecompositionBackupTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.012,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.RecompositionRulesTest",
+        "tests": 4,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.001,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.RelocationConversionTest",
+        "tests": 10,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.074,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.RelocationRulesTest",
+        "tests": 10,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.016,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ReportDisplayTest",
+        "tests": 3,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.004,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ReportRefinementsTest",
+        "tests": 6,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.033,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.ReportsConsolidationTest",
+        "tests": 6,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.003,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.SchoolReportsTest",
+        "tests": 7,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.002,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.SelectionTest",
+        "tests": 3,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.001,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.SpreadsheetExportTest",
+        "tests": 11,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.111,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.StudentDeletionTest",
+        "tests": 8,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.005,
+        "skipped_cases": []
+      },
+      {
+        "suite": "br.com.diariodeclasse.SupabaseLiveAuthTest",
+        "tests": 1,
+        "skipped": 1,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.003,
+        "skipped_cases": [
+          "confirmedLoginRefreshLogoutAndRevokedRefreshUseTheRealKotlinClient"
+        ]
+      },
+      {
+        "suite": "br.com.diariodeclasse.TimetablesTest",
+        "tests": 15,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "seconds": 0.029,
+        "skipped_cases": []
+      }
+    ],
+    "android_instrumented": "NOT EXECUTED: emulator/system image and /dev/kvm unavailable",
+    "hosted": "NOT EXECUTED: not authorized by this preparation",
+    "conditional_skipped_are_not_passes": true
+  },
+  "build": {
+    "gradle": "8.9",
+    "android_sdk_compile": 35,
+    "jdk": "Temurin 17.0.21+9",
+    "offline_gradle": true,
+    "gradle_tasks": [
+      ":app:assembleDebug",
+      ":app:testDebugUnitTest"
+    ],
+    "successful_gradle_wall_time_seconds": 115,
+    "release_and_live_probe_environment_variables_removed_from_process": true,
+    "initial_environment_failure": "Incomplete preinstalled Java runtime lacked jlink; resolved with complete user-local JDK",
+    "initial_socket_restriction": "Gradle daemon required local socket access; offline build retried with network permission",
+    "no_application_fix_required": true
+  },
+  "administrator_report_not_independently_queried": {
+    "production_A_E_deployed": true,
+    "tables_with_RLS": 16,
+    "security_audits_approved": true,
+    "fictitious_account_confirmed_and_allowlisted": true,
+    "fictitious_account_v1_classes": 1,
+    "fictitious_account_v2_records": 0,
+    "prior_academic_activation": false
+  },
+  "supabase_connections_this_task": 0,
+  "logins_this_task": 0,
+  "remote_activations_this_task": 0,
+  "remote_academic_writes_this_task": 0,
+  "sql_executions_this_task": 0,
+  "existing_device_or_emulator_modifications": 0,
+  "apk_installations_this_task": 0,
+  "automatic_remote_activation_authorized": false,
+  "official_release_generated": false,
+  "pending": [
+    "Create two new empty AVDs and verify absence of existing packages",
+    "Authorize login/read-only v1 recovery for the fictitious account",
+    "Verify original class/terms/IDs and check other fictitious workspaces before transition",
+    "Authorize each legitimate B/C/D/E consent/transition before any academic remote write",
+    "After E in A, separately authorize automatic recovery in fresh B"
+  ]
+}

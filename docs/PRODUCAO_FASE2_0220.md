@@ -1,8 +1,14 @@
 # Produção 0.22.0 — Fase 2: implantação transacional A–E
 
-**Procedimento preparado; execução não autorizada nem realizada.**
+**Registro histórico do procedimento preparado; execução não realizada pelo Codex.**
 Branch: `temp/academic-production-phase1`. Código/SQL de referência:
 `ac56867ef3c6093670fafd91ddd4f591bc589f8a`.
+
+**Atualização informada pelo proprietário em 17/11/2026:** pacote A–E implantado
+em `mpsgdchpgyxoqowfjoqm`, 16 tabelas com RLS e auditorias aprovadas; conta fictícia
+individual confirmada e autorizada. Não se executou consulta independente nesta
+preparação. **Não executar novamente o roteiro SQL abaixo.** Continuidade:
+[Fase 3 — debug em AVDs novos](PRODUCAO_FASE3_DEBUG_0220.md).
 
 Nesta continuação, Fase 2 significa implantação do pacote SQL. Não confundir com o
 item 2 antigo de `PRODUCAO_FASE1_0220.md`, que descreve liberar uma conta fictícia.
