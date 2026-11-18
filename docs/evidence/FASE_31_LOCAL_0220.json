@@ -1,0 +1,99 @@
+{
+  "branch": "sync/academic-commercial-auto-031",
+  "base": "9ede184a035dceb8e240e6a56dcb4c649aa68149",
+  "code_commits": [
+    "a1c97044a601d6743b32eff9280e446981bee1c8",
+    "ed550105301832f76780186e1740df9bd989dbb4"
+  ],
+  "recorded_at": "2026-11-18T00:18:38-03:00",
+  "local": {
+    "postgres_commercial": {
+      "passed": 20,
+      "failed": 0
+    },
+    "postgres_original_D_after_commercial_migration": {
+      "passed": 27,
+      "failed": 0
+    },
+    "http": {
+      "H13_or_PT409_applied": false,
+      "checks_passed": 35,
+      "hosted_auth": false,
+      "production_access": false,
+      "records": 171,
+      "transport": "local PostgREST",
+      "types": 15
+    },
+    "jvm_default": {
+      "tests": 322,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "passed": 317
+    },
+    "jvm_opt_in": {
+      "tests": 322,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "passed": 317
+    },
+    "android_instrumentation_apk_compiles": true,
+    "local_android_execution": false,
+    "no_local_kvm_or_emulator": true
+  },
+  "migration": {
+    "file": "supabase/migrations/202611170001_commercial_bootstrap.sql",
+    "sha256": "1d5c48c0b55a24edbae948407a8775030490338c8a3b0c6a64b2a98e5bf051e2",
+    "hosted_applied": false,
+    "commercial_rollout_default": false,
+    "migration_grants_any_account": false,
+    "H13_or_PT409_applied": false,
+    "original_E_writer_changed_only_authorization_predicate": true,
+    "new_Room_migration": false,
+    "Room_version": 14
+  },
+  "ci": {
+    "run": 44228928532,
+    "sha": "ed550105301832f76780186e1740df9bd989dbb4",
+    "status": "ANDROID_IN_PROGRESS_NOT_APPROVED"
+  },
+  "modified_files": [
+    ".github/workflows/commercial-auto-local.yml",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/CommercialAutomaticNetworkProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/CommercialBootstrapRoomTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/CommercialSyncPanelTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/SyncJobs.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/SyncPanel.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicAutomaticStatus.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicDatabase.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicEngine.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeDialog.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicPanel.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReconciliation.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicStore.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicTransport.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/test/java/br/com/diariodeclasse/CommercialAdmissionTest.kt",
+    "scripts/ci/start-commercial-postgrest.sh",
+    "scripts/ci/test-commercial-network.sh",
+    "scripts/test-commercial-bootstrap.py",
+    "scripts/test-commercial-http.py",
+    "scripts/test-commercial-regression.py",
+    "supabase/migrations/202611170001_commercial_bootstrap.sql"
+  ],
+  "hosted_supabase_requests": 0,
+  "real_accounts_created_or_modified": 0,
+  "Aron_account_modified": false,
+  "official_APK_or_permanent_signing": false,
+  "main_modified": false,
+  "limits": [
+    "Synthetic SQL/JWT Auth; no hosted Auth validation",
+    "Hosted new-account entitlement and gradual rollout need separate approval",
+    "No institutional capacity claim",
+    "No automatic commercial provisioning service for all Auth signups"
+  ]
+}
