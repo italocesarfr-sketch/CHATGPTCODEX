@@ -1,0 +1,173 @@
+{
+  "recorded_at": "2026-11-18T00:23:56-03:00",
+  "branch": "sync/academic-commercial-auto-031",
+  "validated_code": "ed550105301832f76780186e1740df9bd989dbb4",
+  "workflow_run": 44228928532,
+  "workflow_url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/44228928532",
+  "job": 134548903329,
+  "conclusion": "SUCCESS",
+  "artifact_id": 14393738292,
+  "artifact_bytes": 124462,
+  "jvm_default": {
+    "tests": 322,
+    "skipped": 5,
+    "failures": 0,
+    "errors": 0,
+    "passed": 317,
+    "suites": 45
+  },
+  "jvm_commercial_opt_in": {
+    "tests": 322,
+    "skipped": 5,
+    "failures": 0,
+    "errors": 0,
+    "passed": 317,
+    "suites": 45
+  },
+  "postgres_commercial": {
+    "passed": 20,
+    "failed": 0
+  },
+  "postgres_D_regression_after_migration": {
+    "passed": 27,
+    "failed": 0
+  },
+  "http": {
+    "H13_or_PT409_applied": false,
+    "checks_passed": 35,
+    "hosted_auth": false,
+    "production_access": false,
+    "records": 171,
+    "transport": "local PostgREST",
+    "types": 15
+  },
+  "android": {
+    "passed": 60,
+    "ignored": 0,
+    "failed": 0,
+    "native_statuses_verified": true,
+    "runs": [
+      {
+        "file": "e-auto-commercial-init-lost.txt",
+        "passed": 1,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 1.595
+      },
+      {
+        "file": "e-auto-commercial-observe-final.txt",
+        "passed": 1,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 1.345
+      },
+      {
+        "file": "e-auto-commercial-observe-offline.txt",
+        "passed": 1,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 1.436
+      },
+      {
+        "file": "e-auto-commercial-reconnect.txt",
+        "passed": 1,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 1.675
+      },
+      {
+        "file": "e-auto-commercial-recover.txt",
+        "passed": 1,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 2.231
+      },
+      {
+        "file": "e-auto-commercial-seed.txt",
+        "passed": 1,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 1.84
+      },
+      {
+        "file": "font16.txt",
+        "passed": 2,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 1.39
+      },
+      {
+        "file": "room.txt",
+        "passed": 52,
+        "ignored": 0,
+        "failed": 0,
+        "seconds": 10.497
+      }
+    ],
+    "two_independent_AVDs": true,
+    "startup_and_lifecycle_not_manual_engine": true,
+    "fixture_rows": 171,
+    "types": 15,
+    "final_canonical_hash_A": "f6aa05dca254ece8d0060d16692c817d03d21645269f125e215a947626a3a004",
+    "final_canonical_hash_B": "f6aa05dca254ece8d0060d16692c817d03d21645269f125e215a947626a3a004",
+    "final_grade_revision": 2,
+    "final_cursor": 3,
+    "lost_initialization_response_preserved": true,
+    "offline_process_restart_preserved": true,
+    "bidirectional_updates_preserved": true,
+    "font_scale": 1.6,
+    "screenshot": "docs/evidence/FASE_31_FONT16.png"
+  },
+  "migration": {
+    "path": "supabase/migrations/202611170001_commercial_bootstrap.sql",
+    "sha256": "1d5c48c0b55a24edbae948407a8775030490338c8a3b0c6a64b2a98e5bf051e2",
+    "hosted_applied": false,
+    "grant_any_account_by_default": false,
+    "rollout_default": false,
+    "Room_schema_changed": false,
+    "Room_version": 14
+  },
+  "modified_implementation_files": [
+    ".github/workflows/commercial-auto-local.yml",
+    "app/build.gradle.kts",
+    "app/src/androidTest/java/br/com/diariodeclasse/CommercialAutomaticNetworkProbeTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/CommercialBootstrapRoomTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/CommercialSyncPanelTest.kt",
+    "app/src/androidTest/java/br/com/diariodeclasse/PhaseBNetworkHarness.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/SyncJobs.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/SyncPanel.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicAutomaticStatus.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicDatabase.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicEngine.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicGradeDialog.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicPanel.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicReconciliation.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicRuntime.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicStore.kt",
+    "app/src/main/java/br/com/diariodeclasse/sync/academic/AcademicTransport.kt",
+    "app/src/main/java/br/com/diariodeclasse/ui/DiaryApp.kt",
+    "app/src/test/java/br/com/diariodeclasse/CommercialAdmissionTest.kt",
+    "scripts/ci/start-commercial-postgrest.sh",
+    "scripts/ci/test-commercial-network.sh",
+    "scripts/test-commercial-bootstrap.py",
+    "scripts/test-commercial-http.py",
+    "scripts/test-commercial-regression.py",
+    "supabase/migrations/202611170001_commercial_bootstrap.sql"
+  ],
+  "limits": {
+    "Auth": "Local simulated Auth client and signed synthetic JWTs; NOT hosted Supabase Auth",
+    "concurrent_initialization": "Two PostgreSQL session fixtures; not simultaneous hosted Auth logins",
+    "commercial_provisioner_for_all_signups": false,
+    "hosted_homologation": false,
+    "physical_homologation": false,
+    "official_signed_upgrade": false,
+    "institutional_capacity_claim": false
+  },
+  "production_requests": 0,
+  "Aron_modified": false,
+  "owner_data_accessed": false,
+  "permanent_signing_used": false,
+  "official_APK_published": false,
+  "main_modified": false,
+  "H13_or_PT409_applied": false
+}

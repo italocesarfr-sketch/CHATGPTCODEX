@@ -96,7 +96,7 @@ fictícia nova; as contas atuais não ganham direitos por esta migração.
 | JVM, configuração padrão desligada | **322 casos: 317 aprovados, 5 ignorados, zero falhas/erros** |
 | APK de instrumentação, configuração padrão | Compilado; testes Room e testes existentes compilados; não executados neste host |
 | JVM/build com opt-in comercial | **322 casos: 317 aprovados, 5 ignorados, zero falhas/erros**; APKs debug/aplicação e instrumentação compilados; scanner de credenciais/demo aprovado |
-| Android real em dois AVDs | Executor preparado; evidência ainda pendente da CI |
+| Android real em dois AVDs descartáveis na CI | **60 aprovações, zero falhas/ignorados**: seis fases HTTP/startup, 52 testes Room/UI/regressão e dois de UI com fonte 1,6 |
 
 Os cinco ignorados são quatro provas hospedadas H01–H04 e uma sonda Auth legada;
 não contam como aprovados. O primeiro reset SQL falhou pela FK nova e foi corrigido
@@ -106,11 +106,34 @@ Uma chamada de fixture foi corrigida para usar a revisão corrente antes de E,
 preservando o bloqueio de cursor antigo. Não se alteraram regras para aprovar testes.
 
 Commits de implementação: `a1c97044a601d6743b32eff9280e446981bee1c8` (servidor)
-e `ed550105301832f76780186e1740df9bd989dbb4` (Android/CI). Execução inicial:
+e `ed550105301832f76780186e1740df9bd989dbb4` (Android/CI). Checkpoint documental:
+`4695463`. Execução aprovada:
 [44228928532](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/44228928532),
-SHA `ed550105301832f76780186e1740df9bd989dbb4`. No momento deste registro inicial,
-JVM/SQL/HTTP/build passaram e os emuladores estavam em execução; não é aprovação
-antecipada da prova Android. A consolidação final deve substituir esse estado.
+SHA **`ed550105301832f76780186e1740df9bd989dbb4`**, job `134548903329`, **SUCCESS**.
+Artefato [commercial-auto-local-evidence](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/44228928532/artifacts/14393738292),
+ID `14393738292`, 124.462 bytes. A cópia foi baixada e inspecionada; os códigos
+nativos confirmam 60 conclusões de sucesso e zero casos ignorados/assumidos/falhos.
+Os dois relatórios JVM confirmam 317 aprovados e cinco ignorados **em cada configuração**;
+não somar as repetições como cobertura única.
+
+Hash canônico final, **idêntico** nos dois bancos Room:
+`f6aa05dca254ece8d0060d16692c817d03d21645269f125e215a947626a3a004`.
+Foram preservados os IDs dos 171 registros dos quinze tipos, inclusive movimentação,
+FJ/motivos e históricos; a edição no AVD B apareceu em A, e a nota zero feita offline
+em A sobreviveu ao reinício e apareceu em B após reconexão, na revisão 2/cursor 3.
+A fase de resposta de inicialização perdida conservou `BOOTSTRAP_E` e os dados locais;
+o processo seguinte retomou sem criar outro protocolo ou duplicar registros.
+
+Captura real de AVD com fonte 1,6, inspecionada sem sobreposição e sem controles A–E:
+[FASE_31_FONT16.png](evidence/FASE_31_FONT16.png).
+Consolidação sanitizada: [FASE_31_CI_0220.json](evidence/FASE_31_CI_0220.json).
+O [registro local inicial](evidence/FASE_31_LOCAL_0220.json) permanece histórico;
+seu estado `ANDROID_IN_PROGRESS_NOT_APPROVED` foi superado por esta execução concluída.
+
+**Resultado: fluxo de inicialização/recuperação comercial validado no ambiente
+automatizado descartável. Não é homologação hospedada, Auth real, instalação física
+ou liberação do aplicativo oficial.** A concorrência de duas sessões foi comprovada
+em PostgreSQL; não se afirma cadastro/login simultâneo de contas Auth reais.
 
 ## Executor CI, somente infraestrutura descartável
 
@@ -138,6 +161,12 @@ PostgREST e dois AVDs próprios com nomes vinculados à execução. Não há op�
 2. Depois de CI aprovada, pedir autorização para aplicar **somente a migração nova**
    em `noctua-homologacao`, nunca produção nesta rodada. Confirmar A–E/guardas/ACL e
    zero efeito sobre a conta de teste antiga. A migração não concede direito a ninguém.
+   Conferência de catálogo preparada: `supabase/checks/commercial_031_readonly.sql`.
+   Após essa migração, são 16 tabelas A–E/v1 anteriores mais duas administrativas:
+   **18 tabelas**. As duas novas devem ter RLS, sem acesso direto anon/authenticated;
+   somente as duas RPCs comerciais públicas permitem EXECUTE authenticated. Helpers
+   continuam privados. Não confundir ausência de política nessas duas tabelas
+   deny-all com as políticas de proprietário das dezesseis anteriores.
 3. Mediante autorização administrativa separada, conceder direito comercial a
    **uma conta fictícia nova**, confirmada, sem histórico v1/v2 e fora da allowlist
    temporária. Habilitar o rollout no projeto de teste. Não usar Aron Danone ou
