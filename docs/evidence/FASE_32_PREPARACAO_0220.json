@@ -1,0 +1,112 @@
+{
+  "recorded_at": "2026-11-18T09:04:57.522226-03:00",
+  "branch": "sync/academic-commercial-auto-031",
+  "initial_head": "aa32046307bcef93ad0c674e6ba1464aaab5cccd",
+  "validated_build_commit": "013448fc11fe38be1bf44c5e7516ba1e88133ac3",
+  "unchanged_application_code": "ed550105301832f76780186e1740df9bd989dbb4",
+  "workflow_run": 44299568876,
+  "workflow_number": 209,
+  "conclusion": "success",
+  "workflow_url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/44299568876",
+  "parameters": {
+    "homologacao_only": true
+  },
+  "apk_artifact": {
+    "id": 14425576261,
+    "name": "noctua-homologacao-comercial-debug",
+    "zip_bytes": 12419598,
+    "url": "https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/44299568876/artifacts/14425576261"
+  },
+  "unit_test_artifact": {
+    "id": 14424149608,
+    "name": "homologacao-testes-locais",
+    "zip_bytes": 97023
+  },
+  "apk_identity": {
+    "application_id": "br.com.diariodeclasse.homologacao",
+    "project_ref": "sscexzxtqdcsqdlcytum",
+    "callback": "br.com.diariodeclasse.homologacao://auth/callback",
+    "public_key_configured": true,
+    "production_fallback": false,
+    "shared_user_id": false,
+    "allow_backup": false,
+    "cleartext": false,
+    "local_storage": "Android application UID sandbox + existing per-account workspaces",
+    "commercial_auto": true,
+    "apk_verified": true,
+    "hosted_tests_executed": false,
+    "apk_sha256": "6cf5a8295d41bcb0ba801a11e7505bee0d5d6983e81b21c8bec9b93b7790b6d8",
+    "apk_bytes": 13036622,
+    "certificate_sha256": "14c8104440337ade51f9fc15d95419160222e23cc4d24f0b6015c3d7527470b8",
+    "version_code": 45,
+    "version_name": "0.22.0-dev-e2-homologacao"
+  },
+  "independent_download_verification": {
+    "sha256_matches": true,
+    "certificate_matches": true,
+    "size_matches": true,
+    "debuggable": true,
+    "application_label": "NOcTuA Homologação",
+    "production_project_absent_from_DEX": true,
+    "test_demo_and_admin_markers_scan_passed": true,
+    "same_certificate_as_homologacao_206": false,
+    "installed": false
+  },
+  "local_static_tests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "missing_key_gate": "BLOCKED_WITHOUT_PRODUCTION_FALLBACK",
+  "reviewed_catalog_body_hashes_match_local_source": true,
+  "jvm": {
+    "testDebugUnitTest": {
+      "tests": 322,
+      "passed": 317,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "suites": 45
+    },
+    "testHomologacaoUnitTest": {
+      "tests": 322,
+      "passed": 317,
+      "skipped": 5,
+      "failures": 0,
+      "errors": 0,
+      "suites": 45
+    }
+  },
+  "migration": {
+    "path": "supabase/migrations/202611170001_commercial_bootstrap.sql",
+    "bytes": 7450,
+    "sha256": "1d5c48c0b55a24edbae948407a8775030490338c8a3b0c6a64b2a98e5bf051e2",
+    "modified": false,
+    "hosted_applied_in_this_task": false,
+    "default_rollout": false,
+    "accounts_granted": 0
+  },
+  "preflight_sql": "supabase/checks/commercial_032_preflight_readonly.sql",
+  "new_SQL_executions": 0,
+  "hosted_requests": 0,
+  "account_or_rollout_changes": 0,
+  "official_signing_used": false,
+  "main_modified": false,
+  "Aron_modified": false,
+  "prior_local_proof": "docs/evidence/FASE_31_CI_0220.json",
+  "pending": [
+    "Current hosted catalog and backup verification",
+    "Administrative migration authorization",
+    "Separate single new commercial entitlement and rollout authorization",
+    "Confirmed real Auth and callback delivery",
+    "Two new AVD hosted academic tests with separately authorized write limits",
+    "Institutional performance and physical homologation"
+  ],
+  "commands_executed": [
+    "python3 scripts/test-commercial-homologation-preparation.py",
+    "python3 -m py_compile scripts/validate-homologacao.py",
+    "./gradlew --offline :app:validateHomologacaoConfiguration (public key removed; expected blocked result)",
+    "gh workflow run android.yml --repo italocesarfr-sketch/CHATGPTCODEX --ref sync/academic-commercial-auto-031 -f homologacao_only=true",
+    "python3 scripts/validate-auth-apk.py <downloaded APK>",
+    "Offline SHA-256, apksigner certificate, aapt identity, DEX marker and JUnit XML checks"
+  ]
+}
