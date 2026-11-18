@@ -32,7 +32,7 @@ on:
         type: boolean
         default: false
       homologacao_only:
-        description: 'Gerar somente a variante paralela de homologação (branch sync/academic-complete-0220)'
+        description: 'Gerar somente a variante paralela de homologação, sem sessões ou SQL hospedados'
         type: boolean
         default: false
       hosted_auth_only:
@@ -86,9 +86,12 @@ jobs:
       NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
   homologacao:
     name: Homologação — variante paralela
-    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true && github.ref == 'refs/heads/sync/academic-complete-0220'
+    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true && (github.ref == 'refs/heads/sync/academic-complete-0220' || github.ref == 'refs/heads/sync/academic-commercial-auto-031')
     uses: ./.github/workflows/homologacao.yml
-    secrets: inherit
+    with:
+      commercial_auto: ${{ github.ref == 'refs/heads/sync/academic-commercial-auto-031' }}
+    secrets:
+      NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
   h13-performance:
     name: H13 — benchmark SQL/HTTP/Room descartável
     if: github.event_name != 'workflow_dispatch' || (inputs.homologacao_only != true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true)

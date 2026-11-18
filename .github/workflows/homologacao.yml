@@ -1,7 +1,16 @@
 name: NOcTuA Homologação — APK paralelo
 on:
   workflow_dispatch:
+    inputs:
+      commercial_auto:
+        description: 'Opt-in comercial no APK paralelo, sem autorização de operações hospedadas'
+        type: boolean
+        default: false
   workflow_call:
+    inputs:
+      commercial_auto:
+        type: boolean
+        default: false
     secrets:
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY:
         required: false
@@ -9,7 +18,7 @@ permissions:
   contents: read
 jobs:
   homologacao:
-    if: github.ref == 'refs/heads/sync/academic-complete-0220'
+    if: github.ref == 'refs/heads/sync/academic-complete-0220' || (github.ref == 'refs/heads/sync/academic-commercial-auto-031' && inputs.commercial_auto == true)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -20,6 +29,8 @@ jobs:
       NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -32,15 +43,24 @@ jobs:
       - name: Validar configuração sem fallback
         run: ./gradlew --no-daemon :app:validateHomologacaoConfiguration
       - name: Testes locais e APK DEBUG de homologação
-        run: ./gradlew --no-daemon testDebugUnitTest testHomologacaoUnitTest assembleHomologacao
+        env:
+          COMMERCIAL_AUTO: ${{ inputs.commercial_auto == true && 'true' || 'false' }}
+        run: ./gradlew --no-daemon -PnoctuaAcademicCommercial="$COMMERCIAL_AUTO" testDebugUnitTest testHomologacaoUnitTest assembleHomologacao
       - name: Conferir identidade, origem e isolamento
+        env:
+          COMMERCIAL_AUTO: ${{ inputs.commercial_auto == true && 'true' || 'false' }}
         run: |
           mkdir -p build
-          python3 scripts/validate-homologacao.py --apk app/build/outputs/apk/homologacao/app-homologacao.apk --build-tools "$ANDROID_HOME/build-tools/35.0.0" > build/homologacao-identity.json
+          if [[ "$COMMERCIAL_AUTO" == true ]]; then
+            python3 scripts/validate-homologacao.py --expect-commercial --apk app/build/outputs/apk/homologacao/app-homologacao.apk --build-tools "$ANDROID_HOME/build-tools/35.0.0" > build/homologacao-identity.json
+          else
+            python3 scripts/validate-homologacao.py --apk app/build/outputs/apk/homologacao/app-homologacao.apk --build-tools "$ANDROID_HOME/build-tools/35.0.0" > build/homologacao-identity.json
+          fi
+          python3 scripts/validate-auth-apk.py app/build/outputs/apk/homologacao/app-homologacao.apk
           sha256sum app/build/outputs/apk/homologacao/app-homologacao.apk > build/homologacao-apk.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: noctua-homologacao-paralela-debug
+          name: ${{ inputs.commercial_auto == true && 'noctua-homologacao-comercial-debug' || 'noctua-homologacao-paralela-debug' }}
           path: |
             app/build/outputs/apk/homologacao/app-homologacao.apk
             build/homologacao-identity.json

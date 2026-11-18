@@ -9,6 +9,7 @@ p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--apk',type=Path)
 p.add_argument('--build-tools',type=Path)
 p.add_argument('--allow-missing-key',action='store_true',help='Static source/manifest only, never an APK admission')
+p.add_argument('--expect-commercial',action='store_true',help='Require the commercial deployment flag; does not authorize remote operations')
 a=p.parse_args()
 app=ROOT/'app';identity='br.com.diariodeclasse.homologacao';project='sscexzxtqdcsqdlcytum'
 source=(app/'build/generated/source/buildConfig/homologacao/br/com/diariodeclasse/BuildConfig.java').read_text()
@@ -22,6 +23,8 @@ assert field('SUPABASE_URL')=='https://'+project+'.supabase.co'
 assert field('AUTH_CALLBACK_SCHEME')==identity
 assert re.search(r'\bHOMOLOGACAO\s*=\s*true',source)
 assert re.search(r'\bDEBUG\s*=\s*Boolean.parseBoolean\("true"\)',source)
+commercial=bool(re.search(r'\bACADEMIC_COMMERCIAL\s*=\s*true',source))
+if a.expect_commercial:assert commercial,'Commercial opt-in missing from generated build'
 key=field('SUPABASE_PUBLISHABLE_KEY')
 key_valid=bool(re.fullmatch(r'sb_publishable_[A-Za-z0-9_-]{16,200}',key)) and hashlib.sha256(key.encode()).hexdigest()!=field('PRODUCTION_KEY_FINGERPRINT')
 assert key_valid or (a.allow_missing_key and not key)
@@ -39,7 +42,7 @@ assert len(callback)==1 and callback[0].get(ns+'scheme')==identity and callback[
 result=dict(application_id=identity,project_ref=project,callback=identity+'://auth/callback',public_key_configured=key_valid,
             production_fallback=False,shared_user_id=False,allow_backup=False,cleartext=False,
             local_storage='Android application UID sandbox + existing per-account workspaces',
-            apk_verified=False,hosted_tests_executed=False)
+            commercial_auto=commercial,apk_verified=False,hosted_tests_executed=False)
 if a.apk:
  assert key_valid and a.build_tools and a.apk.is_file()
  badging=subprocess.check_output([str(a.build_tools/'aapt'),'dump','badging',str(a.apk)],text=True)
@@ -53,5 +56,11 @@ if a.apk:
   assert project.encode()in dex and b'mpsgdchpgyxoqowfjoqm'not in dex and old_key not in dex
   for marker in [b'sb_secret_',b'BEGIN PRIVATE KEY',b'PrincipalTestClient',b'AcademicTestApplication',b'fixture-access-not-real']:
    assert marker not in dex,'Prohibited marker detected'
- result.update(apk_verified=True,apk_sha256=hashlib.sha256(a.apk.read_bytes()).hexdigest())
+ from apk_identity import identity as certificate_identity
+ signature=certificate_identity(a.apk)
+ assert signature['certificateSha256']!='6dbbba2d930eb7f7fbeff1ee82512f656251bbec9f4b31b6c5614528d29f1aae','Homologation must not use permanent signing'
+ metadata=re.search(r"package: name='[^']+' versionCode='(\d+)' versionName='([^']+)'",badging)
+ assert metadata
+ result.update(apk_verified=True,apk_sha256=signature['apkSha256'],apk_bytes=a.apk.stat().st_size,
+               certificate_sha256=signature['certificateSha256'],version_code=int(metadata[1]),version_name=metadata[2])
 print(json.dumps(result,ensure_ascii=False,indent=2))
