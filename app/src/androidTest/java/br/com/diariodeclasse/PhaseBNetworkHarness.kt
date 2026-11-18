@@ -45,6 +45,12 @@ object PhaseBNetworkHarness {
     fun remote():AcademicRemote {
         val delegate=raw()
         return object:AcademicRemote by delegate {
+            override suspend fun ensureE(token:String):AcademicEnrollment {
+                if(phase=="e-auto-commercial-init-lost" && committed)throw SyncFailure("NETWORK")
+                val result=delegate.ensureE(token)
+                if(phase=="e-auto-commercial-init-lost"){committed=true;throw SyncFailure("NETWORK")}
+                return result
+            }
             override suspend fun pull(token:String,after:Long):List<AcademicPage> {
                 if(phase=="retry"&&!released || phase=="lost"&&committed)throw SyncFailure("NETWORK")
                 return delegate.pull(token,after)

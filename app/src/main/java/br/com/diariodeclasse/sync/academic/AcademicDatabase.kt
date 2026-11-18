@@ -49,6 +49,7 @@ data class AcademicDecision(@PrimaryKey val id:String,val owner:String,val body:
     @Query("SELECT sequence,owner,'' AS body,reason FROM sync_academic_inbox ORDER BY sequence") fun watchIncoming():Flow<List<AcademicIncoming>>
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicIncoming)
     @Query("SELECT * FROM sync_academic_applied WHERE sequence=:sequence") suspend fun applied(sequence:Long):AcademicApplied?
+    @Query("SELECT count(*) FROM sync_academic_applied") suspend fun appliedCount():Int
     @Insert(onConflict=OnConflictStrategy.ABORT) suspend fun insert(value:AcademicApplied)
     @Query("SELECT * FROM sync_academic_parts ORDER BY sequence,offset") suspend fun parts():List<AcademicPart>
     @Query("SELECT * FROM sync_academic_parts WHERE body<>'' ORDER BY sequence,offset") suspend fun stagedParts():List<AcademicPart>
@@ -84,7 +85,7 @@ fun installAcademicTriggers(db:SupportSQLiteDatabase) {
     for(table in AcademicKind.entries.map{it.wire}) for((event,ref) in listOf("INSERT" to "NEW","UPDATE" to "NEW","DELETE" to "OLD")) {
         val key1=when(table){"terms","class_archives","preserved_histories"->"$ref.classId";"relocations"->"$ref.sourceStudentId";"grades"->"$ref.activityId";"marks"->"$ref.lessonId";"recompositions"->"$ref.studentId";else->"$ref.id"}
         val key2=when(table){"terms"->"CAST($ref.number AS TEXT)";"grades","marks"->"$ref.studentId";"recompositions"->"CAST($ref.term AS TEXT)";else->"''"}
-        val stages=when(table){in phaseBKinds->"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'";in phaseCKinds->"'PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'";else->"'PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'"}
+        val stages="'BOOTSTRAP_E',"+when(table){in phaseBKinds->"'PREPARED','ACTIVE','PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'";in phaseCKinds->"'PREPARED_C','ACTIVE_C','PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'";else->"'PREPARED_D','ACTIVE_D','PREPARED_E','ACTIVE_E'"}
         // Do not rely on OR IGNORE inside a trigger: an outer INSERT/UPDATE OR ABORT
         // overrides it in SQLite. Guard the insert instead; the same transaction's UPDATE
         // increments both new and existing counters, retaining every PK/unique constraint.

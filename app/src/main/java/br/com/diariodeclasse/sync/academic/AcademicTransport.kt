@@ -22,7 +22,16 @@ import java.net.URL
 }
 @Serializable data class AcademicPushReply(val operation:String,val accepted:Boolean,val sequence:Long?,val conflicts:JsonArray)
 @Serializable data class AcademicProtocolStatus(val protocol:Int,val v1Sequence:Long,val v1:JsonArray,val testAllowed:Boolean=false,val academicScope:Int=2,val academicSequence:Long=0)
+/** Commercial admission is deliberately separate from testAllowed and its old wire contract. */
+@Serializable data class AcademicEnrollment(val eligible:Boolean,val initialized:Boolean,val reason:String,val academicSequence:Long=0) {
+    fun validate() {
+        require(reason in setOf("NEW","READY","INELIGIBLE","REVIEW") && academicSequence>=0)
+        require(eligible==(reason in setOf("NEW","READY")) && initialized==(reason=="READY"))
+    }
+}
 interface AcademicRemote {
+    suspend fun commercialStatus(token:String):AcademicEnrollment=throw SyncFailure("SETUP")
+    suspend fun ensureE(token:String):AcademicEnrollment=throw SyncFailure("SETUP")
     suspend fun stageE(token:String,batch:AcademicBatch,admitted:()->Boolean):Unit=throw SyncFailure("SETUP")
     suspend fun resolveE(token:String,operation:String,request:JsonObject,cancel:Boolean=false):AcademicPushReply=throw SyncFailure("SETUP")
     suspend fun decisionE(token:String,operation:String):AcademicPushReply?=throw SyncFailure("SETUP")
@@ -65,6 +74,8 @@ class SupabaseAcademicSync internal constructor(private val endpoint:String,priv
         }catch(_:IOException){throw SyncFailure("NETWORK")}finally{connection.disconnect()}
     }
     override suspend fun status(token:String)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_academic_status_c",token,buildJsonObject{}))
+    override suspend fun commercialStatus(token:String)=AcademicRecords.json.decodeFromString<AcademicEnrollment>(rpc("noctua_commercial_status",token,buildJsonObject{})).also{it.validate()}
+    override suspend fun ensureE(token:String)=AcademicRecords.json.decodeFromString<AcademicEnrollment>(rpc("noctua_ensure_academic_e",token,buildJsonObject{})).also{it.validate()}
     override suspend fun enableE(token:String,expectedSequence:Long)=AcademicRecords.json.decodeFromString<AcademicProtocolStatus>(rpc("noctua_enable_academic_e",token,buildJsonObject{put("p_expected_sequence",expectedSequence)}))
     override suspend fun stageE(token:String,batch:AcademicBatch,admitted:()->Boolean) {
         fun guard(){if(!admitted())throw kotlinx.coroutines.CancellationException("Account admission changed")}

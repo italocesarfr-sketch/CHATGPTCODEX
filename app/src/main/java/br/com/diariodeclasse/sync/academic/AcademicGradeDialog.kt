@@ -54,7 +54,7 @@ private data class GradeConflictRead(val control:AcademicControl?,val pending:Li
  * Dismissal changes only UI state; decisions and variants remain in this account's Room. */
 @Composable fun AcademicGradeConflictHost(workspace:AccountWorkspace,enabled:Boolean) {
     val app=workspace.context.applicationContext as DiaryApplication
-    if(!academicTestEligible(workspace)||!app.automaticAcademicRecovery())return
+    if(!academicSyncEligible(workspace)||!app.automaticAcademicRecovery())return
     val dao=remember(workspace){workspace.database.academicDao()}
     val flow=remember(dao){combine(dao.watchControl(),dao.watchPending(),dao.watchIncoming(),dao.watchDecisions(),dao.watchStates(),::GradeConflictRead)}
     val read by flow.collectAsState(initial=null)

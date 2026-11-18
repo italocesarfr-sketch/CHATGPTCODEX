@@ -152,7 +152,7 @@ private val pages = listOf(
                 IconButton(onClick={accountMenu=true},modifier=Modifier.size(48.dp).testTag("auth-account")){Icon(painterResource(R.drawable.ic_more_vert),"Conta")}
                 DropdownMenu(accountMenu,{accountMenu=false}) {
                     DropdownMenuItem(text={Text((vm.getApplication<android.app.Application>() as br.com.diariodeclasse.DiaryApplication).auth.state.value.user?.email.orEmpty())},onClick={},enabled=false)
-                    DropdownMenuItem(text={Text("Sincronização de turmas • teste")},onClick={accountMenu=false;showSync=true},modifier=Modifier.testTag("open-sync"))
+                    DropdownMenuItem(text={Text(if(br.com.diariodeclasse.BuildConfig.ACADEMIC_COMMERCIAL)"Sincronização"else"Sincronização de turmas • teste")},onClick={accountMenu=false;showSync=true},modifier=Modifier.testTag("open-sync"))
                     DropdownMenuItem(text={Text("Sair da conta")},onClick={accountMenu=false;navigate {vm.logout()}},modifier=Modifier.testTag("auth-logout"))
                 }
             }

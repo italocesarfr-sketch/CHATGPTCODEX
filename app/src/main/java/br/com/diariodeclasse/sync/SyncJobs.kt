@@ -38,7 +38,7 @@ class ClassSyncJob:JobService() {
                 if(state.recovery || app.workspaces.needsClaim(user) || !app.auth.canUse(user.id))return@launch
                 val workspace=app.workspaces.activate(user)
                 if(workspace.database.academicDao().control()!=null ||
-                    br.com.diariodeclasse.sync.academic.academicTestEligible(workspace) && app.automaticAcademicRecovery() && workspace.database.syncDao().control()==null) {
+                    br.com.diariodeclasse.sync.academic.academicSyncEligible(workspace) && app.automaticAcademicRecovery() && workspace.database.syncDao().control()==null) {
                     br.com.diariodeclasse.sync.academic.AcademicCoordinator.run(app,workspace)
                     return@launch
                 }

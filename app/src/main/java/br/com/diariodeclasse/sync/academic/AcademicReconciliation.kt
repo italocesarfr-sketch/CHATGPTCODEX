@@ -54,7 +54,9 @@ class AcademicReconciliation(private val store:AcademicStore,private val remote:
         check(admitted());val c=requireNotNull(dao.control());check(c.owner==store.owner && c.stage in setOf("ACTIVE_E","RESTORE"))
         check(dao.decisions().none{it.phase in setOf("PENDING","CONFIRMED")})
         val token=session();check(admitted());val status=remote.status(token)
-        if(status.protocol!=2||status.academicScope!=5||!status.testAllowed)throw SyncFailure("SETUP")
+        val authorized=status.testAllowed || br.com.diariodeclasse.BuildConfig.ACADEMIC_COMMERCIAL &&
+            remote.commercialStatus(token).let{it.validate();it.eligible&&it.initialized}
+        if(status.protocol!=2||status.academicScope!=5||!authorized)throw SyncFailure("SETUP")
         val original=context();val local=AcademicRecords.rows(store.snapshot());val states=dao.states()
         val base=states.mapNotNull{s->s.base?.let{AcademicRow(s.kind,s.identity().key,AcademicRecords.json.parseToJsonElement(it).jsonObject)}}
         val restore=c.stage=="RESTORE";var after=if(restore)0 else c.cursor

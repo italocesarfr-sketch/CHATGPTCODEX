@@ -16,7 +16,7 @@ private data class AutomaticRead(val control:AcademicControl?,val states:List<Ac
 
 /** Same Room-backed status as the detailed panel, no optimistic success indicator. */
 @Composable fun AcademicAutomaticStatus(workspace:AccountWorkspace,onDetails:()->Unit) {
-    if(!academicTestEligible(workspace))return
+    if(!academicSyncEligible(workspace))return
     val dao=remember(workspace){workspace.database.academicDao()}
     val flow=remember(dao){combine(dao.watchControl(),dao.watchStates(),dao.watchPending(),dao.watchIncoming(),::AutomaticRead)}
     val read by flow.collectAsState(initial=null)
@@ -25,7 +25,8 @@ private data class AutomaticRead(val control:AcademicControl?,val states:List<Ac
         if(r.control==null)when(startup) {
             "SYNCING","PENDING"->"Verificando recuperação"
             "OFFLINE","NETWORK"->"Aguardando internet"
-            "SETUP"->"Ativação inicial necessária"
+            "SETUP","INELIGIBLE"->if(br.com.diariodeclasse.BuildConfig.ACADEMIC_COMMERCIAL)"Sincronização indisponível para esta conta"else"Ativação inicial necessária"
+            "REVIEW"->"Dados preservados • revisão necessária"
             else->"Falha temporária"
         } else academicLabel(r.control,r.states,r.pending,r.incoming)+
             if(r.control.stage !in setOf("ACTIVE_E","PREPARED_E","RESTORE"))" • escopo parcial"else""

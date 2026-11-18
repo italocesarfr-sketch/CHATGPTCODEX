@@ -17,6 +17,8 @@ import kotlinx.coroutines.sync.withLock
 
 /** Release needs the explicit ACADEMIC_PRODUCTION build opt-in; the legacy owner workspace stays excluded. */
 fun academicTestEligible(workspace:AccountWorkspace)=(BuildConfig.DEBUG || BuildConfig.ACADEMIC_PRODUCTION) && !workspace.legacy && workspace.user.id!=AuthConfig.LEGACY_OWNER_ID
+fun academicSyncEligible(workspace:AccountWorkspace)=academicTestEligible(workspace) ||
+    BuildConfig.ACADEMIC_COMMERCIAL && !workspace.legacy && workspace.user.id!=AuthConfig.LEGACY_OWNER_ID
 
 /** Foreground/connection/local changes converge on one mutex; JobScheduler is the durable fallback. */
 class AcademicCoordinator(private val base:Context,private val workspace:AccountWorkspace,private val scope:CoroutineScope) {
@@ -32,7 +34,7 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
     private val startup=MutableStateFlow("PENDING")
     val startupState=startup.asStateFlow()
     init {
-        if(academicTestEligible(workspace)) {
+        if(academicSyncEligible(workspace)) {
             network.registerDefaultNetworkCallback(callback)
             scope.launch {
                 var failures=0
@@ -40,19 +42,25 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
                     delay(250) // Coalesce a burst of table invalidations, never delay persistence.
                     val application=app ?: continue
                     var c=workspace.database.academicDao().control()
-                    if(c==null && application.automaticAcademicRecovery()) {
+                    if((c==null || BuildConfig.ACADEMIC_COMMERCIAL && c.stage=="BOOTSTRAP_E") && application.automaticAcademicRecovery()) {
                         startup.value="SYNCING"
                         try {
                             val recovered=workspace.syncMutex.withLock {
                                 if(!admitted(application,workspace))false
-                                else if(!online(base))throw br.com.diariodeclasse.sync.SyncFailure("OFFLINE")
-                                else engine(application,workspace).recoverAuthorizedE()
+                                else {
+                                    if(BuildConfig.ACADEMIC_COMMERCIAL && !AcademicStore(workspace.database,workspace.user.id).prepareCommercialBootstrap())
+                                        throw br.com.diariodeclasse.sync.SyncFailure("REVIEW")
+                                    if(!online(base))throw br.com.diariodeclasse.sync.SyncFailure("OFFLINE")
+                                    if(BuildConfig.ACADEMIC_COMMERCIAL)engine(application,workspace).initializeCommercialE()
+                                    else engine(application,workspace).recoverAuthorizedE()
+                                }
                             }
                             startup.value=if(recovered)"" else "SETUP"
                         } catch(e:CancellationException){throw e}
                         catch(e:Exception){startup.value=(e as? br.com.diariodeclasse.sync.SyncFailure)?.code ?: "RETRY"}
                         c=workspace.database.academicDao().control()
-                        if(c==null) {
+                        if(c==null || c.stage=="BOOTSTRAP_E") {
+                            c?.let{AcademicStore(workspace.database,workspace.user.id).message(startup.value)}
                             if(startup.value in setOf("NETWORK","RETRY","REMOTE","OFFLINE")) {
                                 failures=(failures+1).coerceAtMost(6)
                                 retry?.cancel();retry=scope.launch{delay((1000L shl failures).coerceAtMost(60_000));request()}
@@ -77,9 +85,9 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
         }
     }
     fun request(){signals.trySend(Unit)}
-    fun close(){if(academicTestEligible(workspace))runCatching{network.unregisterNetworkCallback(callback)};signals.close()}
+    fun close(){if(academicSyncEligible(workspace))runCatching{network.unregisterNetworkCallback(callback)};signals.close()}
     companion object {
-        fun admitted(app:DiaryApplication,w:AccountWorkspace)=academicTestEligible(w)&&app.auth.canUse(w.user.id)&&
+        fun admitted(app:DiaryApplication,w:AccountWorkspace)=academicSyncEligible(w)&&app.auth.canUse(w.user.id)&&
             runCatching{app.workspaces.current()===w}.getOrDefault(false)
         private fun online(context:Context):Boolean {
             val c=context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -90,12 +98,22 @@ class AcademicCoordinator(private val base:Context,private val workspace:Account
         suspend fun run(app:DiaryApplication,w:AccountWorkspace)=w.syncMutex.withLock {
             if(!admitted(app,w))return@withLock
             val store=AcademicStore(w.database,w.user.id)
+            if(BuildConfig.ACADEMIC_COMMERCIAL) {
+                if(store.stage() in listOf("PREPARED","PREPARED_C","PREPARED_D","PREPARED_E")) {
+                    store.message("REVIEW");return@withLock // Old experimental consent is not commercial enrollment.
+                }
+                if(store.stage() in listOf(null,"BOOTSTRAP_E")) {
+                    if(!app.automaticAcademicRecovery())return@withLock
+                    if(!store.prepareCommercialBootstrap()){store.message("REVIEW");return@withLock}
+                }
+            }
             if(!online(w.context)){store.message("OFFLINE");return@withLock}
-            if(store.stage()==null) {
+            if(store.stage()==null || BuildConfig.ACADEMIC_COMMERCIAL && store.stage()=="BOOTSTRAP_E") {
                 if(!app.automaticAcademicRecovery())return@withLock
-                try{if(!engine(app,w).recoverAuthorizedE())return@withLock}
+                try{if(BuildConfig.ACADEMIC_COMMERCIAL)engine(app,w).initializeCommercialE()
+                    else if(!engine(app,w).recoverAuthorizedE())return@withLock}
                 catch(e:CancellationException){throw e}
-                catch(_:Exception){return@withLock} // A later job/network signal retries; no v1 fallback.
+                catch(e:Exception){store.message((e as? br.com.diariodeclasse.sync.SyncFailure)?.code ?: "RETRY");return@withLock} // No v1 fallback.
             }
             if(store.stage() in listOf("PREPARED","PREPARED_C","PREPARED_D","PREPARED_E")) {
                 try{if(store.stage()=="PREPARED_E")engine(app,w).activateE()else if(store.stage()=="PREPARED_D")engine(app,w).activateD()else if(store.stage()=="PREPARED_C")engine(app,w).activateC()else engine(app,w).activate()}catch(e:CancellationException){throw e}

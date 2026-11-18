@@ -5,6 +5,16 @@ import kotlinx.coroutines.CancellationException
 
 class AcademicEngine(private val store:AcademicStore,private val remote:AcademicRemote,
     private val session:suspend()->String,private val admitted:()->Boolean) {
+    /** New commercial accounts only. No v1 fallback, test consent, or client-selected owner. */
+    suspend fun initializeCommercialE():Boolean {
+        check(admitted())
+        if(!store.prepareCommercialBootstrap())throw SyncFailure("REVIEW")
+        val token=session();check(admitted())
+        val enrollment=remote.ensureE(token);enrollment.validate();check(admitted())
+        if(!enrollment.initialized)throw SyncFailure(if(enrollment.reason=="REVIEW")"REVIEW" else "INELIGIBLE")
+        store.completeCommercialBootstrap(enrollment)
+        return true
+    }
     /** Recover a scope already authorized on the server: no remote activation, no
      * implicit upgrade of v1, no adoption of unbound data. Caller holds workspace mutex. */
     suspend fun recoverAuthorizedE():Boolean {

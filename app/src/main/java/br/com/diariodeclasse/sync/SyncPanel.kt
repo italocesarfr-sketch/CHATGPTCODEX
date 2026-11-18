@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.withLock
 import br.com.diariodeclasse.sync.academic.*
 import br.com.diariodeclasse.DiaryApplication
+import br.com.diariodeclasse.BuildConfig
 
 private data class LegacyPanelRead(val control:SyncControl?,val states:List<SyncClassState>)
 private data class AcademicPanelRead(val control:AcademicControl?,val states:List<AcademicState>,
@@ -53,6 +54,7 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
     val incoming=academicRead?.incoming.orEmpty()
     val decisionPending=academicRead?.decisions.orEmpty().any{it.phase in setOf("PENDING","CONFIRMED")}
     val ready=academicRead!=null && (academic!=null || legacyRead!=null)
+    val commercial=BuildConfig.ACADEMIC_COMMERCIAL
     val scope=rememberCoroutineScope()
     val store=remember(workspace){ClassSyncStore(workspace.database,workspace.user.id)}
     var enrolling by remember{mutableStateOf<SchoolClass?>(null)}
@@ -83,7 +85,7 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
         };error=reviewError}
         finally{busy=false}
     }}
-    AlertDialog(onDismissRequest=close,title={Text(if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D") || academic!!.stage.endsWith("_E"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
+    AlertDialog(onDismissRequest=close,title={Text(if(commercial)"Sincronização"else if(!ready)"Sincronização • teste"else if(academic==null)"Sincronização de turmas • teste"else if(academic!!.stage.endsWith("_D") || academic!!.stage.endsWith("_E"))"Cadeia acadêmica • teste"else if(academic!!.stage.endsWith("_C"))"Avaliações e frequência • teste"else"Turmas e alunos • teste")},text={
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             if(!ready)Text("Carregando estado da sincronização…",Modifier.testTag("sync-loading"))
             else if(academic!=null) {
@@ -93,25 +95,28 @@ fun syncLabel(control:SyncControl?,states:List<SyncClassState>):String=when {
                     pause={act{academicStore.pause()}},resume={act{
                         if(academic!!.stage in listOf("ACTIVE","ACTIVE_C","ACTIVE_D","ACTIVE_E"))academicStore.resume()
                         workspace.academicCoordinator.request()
-                    }})
+                    }},commercial=commercial)
                 if(decisionPending) {
                     Text("Decisão confirmada • aguardando conclusão. As versões continuam preservadas.")
                     OutlinedButton(onClick={workspace.academicCoordinator.request();SyncJobs.soon(workspace.context)},enabled=!busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-decision-retry")){Text("Tentar enviar decisão")}
-                }else if(academic!!.stage in setOf("ACTIVE_E","RESTORE") && academicTestEligible(workspace) && (incoming.isNotEmpty()||pending.any{it.conflict!=null}||academic!!.stage=="RESTORE")) {
+                }else if(academic!!.stage in setOf("ACTIVE_E","RESTORE") && academicSyncEligible(workspace) && (incoming.isNotEmpty()||pending.any{it.conflict!=null}||academic!!.stage=="RESTORE")) {
                     OutlinedButton(onClick={review()},enabled=!busy,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-review")){Text("Conferir versões")}
                 }
-                if(academic!!.stage=="ACTIVE_D" && academicTestEligible(workspace))OutlinedButton(onClick={consentE=true},
+                if(!commercial && academic!!.stage=="ACTIVE_D" && academicTestEligible(workspace))OutlinedButton(onClick={consentE=true},
                     enabled=!busy&&pending.isEmpty()&&incoming.isEmpty(),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-enable-e")) {
                     Text("Testar recuperação de acervos maiores")
                 }
-                if(academic!!.stage=="ACTIVE_C" && academicTestEligible(workspace))OutlinedButton(onClick={consentD=true},
+                if(!commercial && academic!!.stage=="ACTIVE_C" && academicTestEligible(workspace))OutlinedButton(onClick={consentD=true},
                     enabled=!busy&&pending.isEmpty()&&incoming.isEmpty(),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-enable-d")) {
                     Text("Incluir diário e históricos no teste")
                 }
-                if(academic!!.stage=="ACTIVE" && academicTestEligible(workspace))OutlinedButton(onClick={consentC=true},
+                if(!commercial && academic!!.stage=="ACTIVE" && academicTestEligible(workspace))OutlinedButton(onClick={consentC=true},
                     enabled=!busy&&pending.isEmpty()&&incoming.isEmpty(),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("academic-enable-c")) {
                     Text("Incluir notas e chamadas no teste")
                 }
+            } else if(commercial) {
+                Text("A sincronização é iniciada automaticamente para contas autorizadas. Contas anteriores exigem revisão própria; seus dados são preservados.")
+                if(error.isNotEmpty())Text(error,color=MaterialTheme.colorScheme.error)
             } else {
             Text(syncLabel(control,states),Modifier.testTag("sync-status"))
             Text("Somente configurações da turma e bimestres. Alunos, notas, chamadas e diário continuam neste aparelho. Mantenha seus backups.")

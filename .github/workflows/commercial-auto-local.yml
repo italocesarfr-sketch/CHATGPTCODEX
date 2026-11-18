@@ -1,0 +1,103 @@
+name: NOcTuA — inicialização comercial, somente ambiente descartável
+on:
+  push:
+    branches: [sync/academic-commercial-auto-031]
+    paths: ['app/**', 'scripts/**commercial**', 'scripts/ci/**commercial**', 'supabase/migrations/202611170001_commercial_bootstrap.sql', '.github/workflows/commercial-auto-local.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-proof:
+    if: github.ref == 'refs/heads/sync/academic-commercial-auto-031'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-fixture-only
+          POSTGRES_DB: noctua_phase_e_test
+        ports: ['55431:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '55431'
+      PGUSER: postgres
+      PGPASSWORD: local-fixture-only
+      PGDATABASE: noctua_phase_e_test
+      NOCTUA_COMMERCIAL_DISPOSABLE: 'YES'
+      NOCTUA_AUTH_LIVE_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
+      NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+      - name: JVM com configuração padrão desligada
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          ./gradlew --no-daemon testDebugUnitTest
+          mkdir -p build/commercial-tests/default-jvm
+          cp app/build/test-results/testDebugUnitTest/TEST-*.xml build/commercial-tests/default-jvm/
+      - name: PostgreSQL real — autorização, concorrência e predicados originais
+        run: |
+          python3 scripts/test-commercial-bootstrap.py > build/commercial-tests/postgres-results.txt 2>&1
+          tail -5 build/commercial-tests/postgres-results.txt
+          createdb noctua_phase_d_test
+          PGDATABASE=noctua_phase_d_test python3 scripts/test-commercial-regression.py > build/commercial-tests/regression-d.txt 2>&1
+          tail -5 build/commercial-tests/regression-d.txt
+      - name: HTTP real descartável e fixture Android sem allowlist de testes
+        run: bash scripts/ci/start-commercial-postgrest.sh
+      - name: Opt-in somente neste build debug; nenhuma assinatura oficial
+        run: |
+          ./gradlew --no-daemon -PnoctuaAcademicCommercial=true testDebugUnitTest assembleDebug assembleDebugAndroidTest
+          python3 scripts/validate-auth-apk.py app/build/outputs/apk/debug/app-debug.apk
+      - name: KVM do runner descartável
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: noctua_commercial_auto_${{ github.run_id }}_${{ github.run_attempt }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan -memory 2048 -cores 2
+          script: |
+            adb install app/build/outputs/apk/debug/app-debug.apk
+            adb install -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            bash scripts/ci/test-commercial-network.sh
+            adb shell am instrument -w -r -e class br.com.diariodeclasse.CommercialBootstrapRoomTest,br.com.diariodeclasse.CommercialSyncPanelTest,br.com.diariodeclasse.AcademicAutomaticRoomTest,br.com.diariodeclasse.PhaseBRoomTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.PhaseDRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/room.txt
+            python3 -c "from pathlib import Path; t=Path('build/commercial-tests/android/room.txt').read_text(); assert 'OK (' in t and all(x not in t for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed','FAILURE')),t"
+            adb shell settings put system font_scale 1.6
+            adb shell am instrument -w -r -e expectedSystemFontScale 1.6 -e class br.com.diariodeclasse.CommercialSyncPanelTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/font16.txt
+            python3 -c "from pathlib import Path; t=Path('build/commercial-tests/android/font16.txt').read_text(); assert 'OK (2 tests)' in t and 'FAILURES' not in t,t"
+            adb exec-out run-as br.com.diariodeclasse cat files/commercial-ui.png > build/commercial-tests/android/commercial-ui-font16.png
+            adb shell settings put system font_scale 1.0
+      - name: Parar somente servidor descartável deste job
+        if: always()
+        run: |
+          if [[ -f build/commercial-tests/postgrest.pid ]]; then kill "$(cat build/commercial-tests/postgrest.pid)" || true; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commercial-auto-local-evidence
+          path: |
+            build/commercial-tests/default-jvm/
+            build/commercial-tests/postgres-results.txt
+            build/commercial-tests/regression-d.txt
+            build/commercial-tests/http-results.json
+            build/commercial-tests/android/
+            app/build/test-results/testDebugUnitTest/
+          retention-days: 14

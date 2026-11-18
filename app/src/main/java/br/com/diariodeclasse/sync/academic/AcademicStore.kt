@@ -154,6 +154,31 @@ class AcademicStore(val db:DiaryDatabase,val owner:String,private val now:()->Lo
             dao.incomingHeaders().isEmpty() && dao.parts().isEmpty() && dao.decisionHeaders().isEmpty() &&
             db.syncDao().control()==null && db.syncDao().states().isEmpty() && db.syncDao().operations().isEmpty()
     }
+    /** Durable capture before the first network attempt. Existing control/queues are never adopted. */
+    suspend fun prepareCommercialBootstrap():Boolean=db.withTransaction {
+        val c=control()
+        if(c==null) {
+            if(!canRecoverAuthorizedE() || dao.appliedCount()!=0)return@withTransaction false
+        } else if(c.stage!="BOOTSTRAP_E" || c.enabled || c.applying || c.cursor!=0L ||
+            dao.pendingHeaders().isNotEmpty() || dao.incomingHeaders().isNotEmpty() ||
+            dao.parts().isNotEmpty() || dao.decisionHeaders().isNotEmpty() || dao.appliedCount()!=0 ||
+            db.syncDao().control()!=null || db.syncDao().states().isNotEmpty() || db.syncDao().operations().isNotEmpty())return@withTransaction false
+        val local=snapshot();val rows=AcademicRecords.rows(local)
+        try{PhaseBGuard.validate(local,local,rows.map{AcademicChange(it.kind,it.key,0,it.payload)},phaseDKinds)}
+        catch(_:IllegalArgumentException){return@withTransaction false}
+        catch(_:IllegalStateException){return@withTransaction false}
+        if(dao.states().any{it.owner!=owner || it.revision!=0L || it.acknowledged!=0L || it.base!=null})return@withTransaction false
+        if(c==null)dao.save(AcademicControl(owner=owner,stage="BOOTSTRAP_E",message="PENDING"))
+        seed()
+        true
+    }
+    suspend fun completeCommercialBootstrap(remote:AcademicEnrollment)=db.withTransaction {
+        remote.validate();require(remote.eligible && remote.initialized)
+        check(prepareCommercialBootstrap()) // Revalidate after network/restore/account interruption.
+        val c=requireNotNull(control())
+        dao.save(c.copy(stage="ACTIVE_E",enabled=true,message="PENDING",checked=false))
+        seed() // Initial/offline changes remain dirty; run() must pull before preparing an upload.
+    }
     suspend fun recoverAuthorizedE(remote:AcademicProtocolStatus)=db.withTransaction {
         require(remote.protocol==2 && remote.academicScope==5 && remote.testAllowed)
         check(canRecoverAuthorizedE())
