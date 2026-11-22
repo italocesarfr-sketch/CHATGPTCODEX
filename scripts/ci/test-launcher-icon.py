@@ -39,14 +39,18 @@ try:
  stage='HOME'
  adb('shell','input','keyevent','KEYCODE_HOME')
  root=wait_for(lambda r:r if any('launcher' in n.get('package','').lower()for n in r.iter('node'))else None)
+ (out/'launcher-home.xml').write_bytes(ET.tostring(root,encoding='utf-8'))
  icon=find_icon(root)
  if icon is None:
   stage='DRAWER'
-  apps=next((n for n in root.iter('node')if n.get('resource-id','').endswith((':id/all_apps_button',':id/apps_button'))or n.get('content-desc')in ('Apps','All apps','Apps list')),None)
+  # API 30 AOSP images may use the classic Launcher with a bottom drawer handle,
+  # rather than the swipe-up Launcher. Match its actual semantic control.
+  apps=next((n for n in root.iter('node')if n.get('resource-id','').endswith((':id/all_apps_button',':id/apps_button',':id/all_apps_handle',':id/all_apps'))or
+    re.sub(r'\s+','',n.get('content-desc','')).lower() in ('apps','allapps','appslist','allapplications')),None)
   if apps is not None:adb('shell','input','tap',*center(apps))
   else:
-   wm=adb('shell','wm','size').decode();width,height=map(int,re.findall(r'(\d+)x(\d+)',wm)[-1])
-   adb('shell','input','swipe',str(width//2),str(height*85//100),str(width//2),str(height*20//100),'400')
+   # Public Android all-apps key opens the drawer; it does not launch our Activity.
+   adb('shell','input','keyevent','KEYCODE_ALL_APPS')
   icon=wait_for(find_icon)
  # The launch itself is an icon tap. No monkey, hardcoded component or am start.
  stage='ICON_TAP'
@@ -58,6 +62,8 @@ try:
  (out/'launcher-proof.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))
 except Exception as failure:
  try:(out/'launcher-failed.png').write_bytes(adb('exec-out','screencap','-p'))
+ except Exception:pass
+ try:(out/'launcher-failed.xml').write_bytes(ET.tostring(dump(),encoding='utf-8'))
  except Exception:pass
  (out/'launcher-failure.json').write_text(json.dumps(dict(passed=False,stage=stage,error=type(failure).__name__,application_id=a.package,hosted_auth_executed=False))+'\n')
  raise
