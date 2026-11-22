@@ -60,6 +60,11 @@ jobs:
       - name: Provisionamento institucional — somente banco descartável
         if: github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
         run: |
+          # The previous battery ends at E; this battery tests migrations from an empty fixture.
+          # This database exists only inside this job's disposable PostgreSQL service.
+          [[ "$GITHUB_ACTIONS" == true && "$CI" == true && "$PGHOST" == 127.0.0.1 && "$PGPORT" == 55431 && "$PGDATABASE" == noctua_phase_e_test && "$NOCTUA_COMMERCIAL_DISPOSABLE" == YES ]]
+          dropdb noctua_phase_e_test
+          createdb noctua_phase_e_test
           python3 scripts/test-commercial-provisioning.py > build/commercial-tests/provisioning.txt 2>&1
           tail -5 build/commercial-tests/provisioning.txt
       - name: HTTP real descartável e fixture Android sem allowlist de testes
