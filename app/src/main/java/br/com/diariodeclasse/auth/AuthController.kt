@@ -7,7 +7,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 data class AuthState(val loading:Boolean=true,val user:AuthUser?=null,val message:String="",val recovery:Boolean=false,
-    val storageFailure:Boolean=false,val offline:Boolean=false,val initializing:Boolean=false)
+    val storageFailure:Boolean=false,val offline:Boolean=false,val initializing:Boolean=false,
+    val confirmationEmail:String?=null,val resendAfter:Long=0,val verifyAfter:Long=0,val needsConfirmation:Boolean=false)
 
 /** Owns admission only. Workspaces are closed by the app before a different principal is admitted. */
 open class AuthController(private val client:AuthClient,private val vault:AuthVault,private val now:()->Long=System::currentTimeMillis) {
@@ -24,10 +25,19 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
     private var recoverySession:AuthSession?=null
     private fun publish(value:AuthState){mutate{mutable.value=value}}
     private fun secrets()=vault.read()
+    private fun requireConfirmationSignedOut() {
+        if(mutable.value.user!=null || mutable.value.recovery || secrets().session!=null)
+            throw AuthFailure(AuthFailure.Kind.SESSION,"Revalide e encerre a sessão anterior antes de confirmar outro cadastro.")
+    }
+    private fun signedOut(message:String="") {
+        val pending=secrets().signup
+        publish(AuthState(false,message=message,confirmationEmail=pending?.email,
+            resendAfter=pending?.resendAfter ?: 0,verifyAfter=pending?.verifyAfter ?: 0))
+    }
     suspend fun restore()=serialized {
         try {
             val saved=secrets().session
-            if(saved==null){publish(AuthState(false));return@serialized}
+            if(saved==null){signedOut();return@serialized}
             revalidate(saved)
         } catch(e:CancellationException){throw e}
         catch(_:Exception){publish(AuthState(false,message="Não foi possível abrir a proteção local. Os registros foram preservados.",storageFailure=true))}
@@ -60,7 +70,7 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
     private suspend fun action(requested:Long=epoch.get(),block:suspend()->Unit)=serialized(requested) {
         publish(mutable.value.copy(loading=true,message=""))
         try {block()} catch(e:CancellationException){throw e}
-        catch(e:Exception){publish(mutable.value.copy(loading=false,message=when(e){is AuthFailure->e.message.orEmpty();else->"Não foi possível concluir. Os dados foram preservados."}))}
+        catch(e:Exception){publish(mutable.value.copy(loading=false,message=when(e){is AuthFailure->e.message.orEmpty();else->"Não foi possível concluir. Os dados foram preservados."},needsConfirmation=(e as? AuthFailure)?.kind==AuthFailure.Kind.UNCONFIRMED))}
     }
     suspend fun login(email:String,password:String) {
         val requested=synchronized(epoch) {
@@ -76,14 +86,54 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
         }
     }
     suspend fun signup(name:String,email:String,password:String,confirmation:String)=action {
+        requireConfirmationSignedOut()
         AuthPolicy.signup(name,email.trim(),password,confirmation)
-        val link=PendingLink.create("signup",now());store(secrets().copy(pending=link))
+        secrets().signup?.let{if(now()<it.resendAfter)throw AuthFailure(AuthFailure.Kind.RATE_LIMIT,"Aguarde um minuto antes de solicitar outro código.")}
+        val link=PendingLink.create("signup",now());store(secrets().copy(pending=link,signup=PendingSignup(email.trim(),now(),now())))
+        signedOut();publish(mutable.value.copy(loading=true))
         client.signUp(name.trim(),email.trim(),password,link)
-        publish(AuthState(false,message="Confira seu e-mail para confirmar o cadastro. Depois, entre com sua senha."))
+        store(secrets().copy(signup=PendingSignup(email.trim(),now(),now())))
+        signedOut("Verifique seu e-mail e digite o código aqui. Você pode abrir a mensagem em outro aparelho.")
+    }
+    suspend fun beginSignupConfirmation(email:String)=action {
+        requireConfirmationSignedOut();AuthPolicy.email(email.trim())
+        if(secrets().signup?.email!=email.trim())store(secrets().copy(signup=PendingSignup(email.trim(),now(),0)))
+        signedOut("Digite o código recebido por e-mail ou solicite um novo.")
+    }
+    suspend fun cancelSignupConfirmation()=serialized {
+        requireConfirmationSignedOut()
+        store(secrets().copy(signup=null,pending=secrets().pending?.takeUnless{it.purpose=="signup"}));signedOut()
+    }
+    suspend fun resendSignup()=action {
+        requireConfirmationSignedOut()
+        val old=secrets().signup ?: throw AuthFailure(AuthFailure.Kind.INVALID,"Informe seu e-mail para solicitar a confirmação.")
+        if(now()<old.resendAfter)throw AuthFailure(AuthFailure.Kind.RATE_LIMIT,"Aguarde um minuto antes de solicitar outro código.")
+        val link=PendingLink.create("signup",now())
+        // Reserve the cooldown before network I/O; process restart cannot flood resend.
+        store(secrets().copy(pending=link,signup=PendingSignup(old.email,now(),now())))
+        try{client.resendSignup(old.email,link)}finally{signedOut()}
+        signedOut("Solicitação recebida. Verifique seu e-mail e use o código mais recente.")
+    }
+    suspend fun confirmSignup(code:String)=action {
+        requireConfirmationSignedOut()
+        val old=secrets().signup ?: throw AuthFailure(AuthFailure.Kind.LINK,"Solicite um código de confirmação.")
+        AuthPolicy.confirmationCode(code.trim())
+        if(!old.validAt(now()))throw AuthFailure(AuthFailure.Kind.LINK,"Código inválido ou expirado. Solicite um novo código.")
+        if(now()<old.verifyAfter)throw AuthFailure(AuthFailure.Kind.RATE_LIMIT,"Aguarde antes de tentar outro código.")
+        val attempts=if(old.attempts>=5)1 else old.attempts+1
+        val next=old.copy(attempts=attempts,verifyAfter=now()+if(attempts>=5)60_000L else 2_000L)
+        store(secrets().copy(signup=next));signedOut();publish(mutable.value.copy(loading=true))
+        val verified=client.confirmSignup(old.email,code.trim())
+        try {
+            verified.user.validate()
+            if(!verified.user.email.equals(old.email,true))throw AuthFailure(AuthFailure.Kind.SESSION,"A confirmação não corresponde ao e-mail informado.")
+        }finally{runCatching{client.logout(verified)}} // Only the ephemeral verification session; never store it.
+        store(secrets().copy(signup=null,pending=null,session=null))
+        signedOut("E-mail confirmado. Entre com sua senha.")
     }
     suspend fun recover(email:String)=action {
         AuthPolicy.email(email.trim())
-        val link=PendingLink.create("recovery",now());store(secrets().copy(pending=link))
+        val link=PendingLink.create("recovery",now());store(secrets().copy(pending=link,signup=null))
         client.recover(email.trim(),link)
         publish(AuthState(false,message="Solicitação recebida. Verifique seu e-mail."))
     }
@@ -91,7 +141,7 @@ open class AuthController(private val client:AuthClient,private val vault:AuthVa
         val pending=secrets().pending ?: throw AuthFailure(AuthFailure.Kind.LINK,"Solicite um novo link neste aparelho.")
         val code=pending.codeFrom(raw,now())
         val returned=client.exchange(code,pending);returned.user.validate()
-        store(secrets().copy(session=null,pending=null))
+        store(secrets().copy(session=null,pending=null,signup=null))
         if(pending.purpose=="recovery") {
             mutate{recoverySession=returned};publish(AuthState(false,message="Defina sua nova senha.",recovery=true))
         } else {

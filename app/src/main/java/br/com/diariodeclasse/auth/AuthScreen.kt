@@ -32,6 +32,7 @@ import br.com.diariodeclasse.BuildConfig
 import br.com.diariodeclasse.ui.DiaryApp
 import br.com.diariodeclasse.ui.DiaryViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable fun AuthRoot(app:DiaryApplication) {
     if(BuildConfig.HOMOLOGACAO)HomologationFrame{AuthRootContent(app)} else AuthRootContent(app)
@@ -92,30 +93,51 @@ import kotlinx.coroutines.launch
     var password by remember{mutableStateOf("")};var confirmation by remember{mutableStateOf("")}
     var visible by remember{mutableStateOf(false)}
     var confirmationVisible by remember{mutableStateOf(false)}
+    var code by remember{mutableStateOf("")}
+    var clock by remember{mutableLongStateOf(System.currentTimeMillis())}
     val localScope=rememberCoroutineScope()
     val scope=(LocalContext.current.applicationContext as? DiaryApplication)?.authScope ?: localScope
     LaunchedEffect(state.recovery){if(state.recovery)mode="login"}
-    val current=if(state.recovery)"reset"else mode
-    fun back(){password="";confirmation="";visible=false;confirmationVisible=false;mode="login";if(state.recovery)scope.launch{auth.logout()}}
+    LaunchedEffect(state.confirmationEmail){code="";if(state.confirmationEmail!=null)mode="login"}
+    val current=if(state.recovery)"reset"else if(state.confirmationEmail!=null)"confirm"else mode
+    LaunchedEffect(state.resendAfter,state.verifyAfter,current) {
+        clock=System.currentTimeMillis()
+        while(current=="confirm"&&clock<maxOf(state.resendAfter,state.verifyAfter)){delay(1000);clock=System.currentTimeMillis()}
+    }
+    fun back(){password="";confirmation="";code="";visible=false;confirmationVisible=false;mode="login";if(state.recovery)scope.launch{auth.logout()}else if(current=="confirm")scope.launch{auth.cancelSignupConfirmation()}}
     androidx.activity.compose.BackHandler(current!="login"&&!state.loading){back()}
-    fun submit() { val p=password;val c=confirmation;password="";confirmation="";scope.launch{
-        when(current){"signup"->auth.signup(name,email,p,c);"forgot"->auth.recover(email);"reset"->auth.newPassword(p,c);else->auth.login(email,p)}
+    fun submit() { val p=password;val c=confirmation;val token=code;password="";confirmation="";code="";scope.launch{
+        when(current){"signup"->auth.signup(name,email,p,c);"confirm"->auth.confirmSignup(token);"forgot"->auth.recover(email);"reset"->auth.newPassword(p,c);else->auth.login(email,p)}
     } }
-    AuthPanel(when(current){"signup"->"Criar conta";"forgot"->"Recuperar senha";"reset"->"Nova senha";else->"Noctua"}) {
+    AuthPanel(when(current){"signup"->"Criar conta";"confirm"->"Confirmar e-mail";"forgot"->"Recuperar senha";"reset"->"Nova senha";else->"Noctua"}) {
         if(state.message.isNotBlank())Text(state.message,Modifier.testTag("auth-message"),color=MaterialTheme.colorScheme.onSurfaceVariant)
         if(current=="signup")OutlinedTextField(name,{name=it},label={Text("Nome completo")},modifier=Modifier.fillMaxWidth().testTag("auth-name"),enabled=!state.loading)
-        if(current!="reset")OutlinedTextField(email,{email=it},label={Text("E-mail")},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Email),modifier=Modifier.fillMaxWidth().testTag("entry-email"),enabled=!state.loading)
-        if(current!="forgot") {
+        if(current=="confirm") {
+            Text(state.confirmationEmail.orEmpty(),style=MaterialTheme.typography.bodyLarge)
+            Text("Abra seu e-mail em qualquer aparelho e digite o código aqui.")
+            OutlinedTextField(code,{code=it.filter{c->c in '0'..'9'}.take(10)},label={Text("Código de confirmação")},
+                singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number),
+                modifier=Modifier.fillMaxWidth().testTag("auth-confirm-code"),enabled=!state.loading)
+        }
+        if(current !in listOf("reset","confirm"))OutlinedTextField(email,{email=it},label={Text("E-mail")},singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Email),modifier=Modifier.fillMaxWidth().testTag("entry-email"),enabled=!state.loading)
+        if(current !in listOf("forgot","confirm")) {
             OutlinedTextField(password,{password=it},label={Text("Senha")},singleLine=true,visualTransformation=if(visible)VisualTransformation.None else PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),
                 trailingIcon={TextButton(onClick={visible=!visible},Modifier.heightIn(min=48.dp).testTag("entry-show-password")){Text(if(visible)"Ocultar"else"Mostrar")}},modifier=Modifier.fillMaxWidth().testTag("entry-password"),enabled=!state.loading)
             if(current in listOf("signup","reset"))OutlinedTextField(confirmation,{confirmation=it},label={Text("Confirmar senha")},singleLine=true,visualTransformation=if(confirmationVisible)VisualTransformation.None else PasswordVisualTransformation(),keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Password),
                 trailingIcon={TextButton(onClick={confirmationVisible=!confirmationVisible},Modifier.heightIn(min=48.dp).testTag("auth-show-confirmation")){Text(if(confirmationVisible)"Ocultar"else"Mostrar")}},modifier=Modifier.fillMaxWidth().testTag("auth-confirm-password"),enabled=!state.loading)
         }
         if(state.loading)LinearProgressIndicator(Modifier.fillMaxWidth())
-        Button(onClick=::submit,enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-enter")) {Text(when(current){"signup"->"Criar conta";"forgot"->"Enviar recuperação";"reset"->"Salvar nova senha";else->"Entrar"})}
+        Button(onClick=::submit,enabled=!state.loading&&(current!="confirm"||clock>=state.verifyAfter),modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-enter")) {Text(when(current){"signup"->"Criar conta";"confirm"->"Confirmar e-mail";"forgot"->"Enviar recuperação";"reset"->"Salvar nova senha";else->"Entrar"})}
+        if(current=="confirm")TextButton(onClick={code="";scope.launch{auth.resendSignup()}},
+            enabled=!state.loading&&clock>=state.resendAfter,
+            modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("auth-resend-code")) {
+            Text(if(clock<state.resendAfter)"Reenviar código (${(state.resendAfter-clock+999)/1000}s)"else"Reenviar código")
+        }
         if(current=="login") {
             OutlinedButton(onClick={password="";confirmation="";visible=false;mode="signup"},enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-create")){Text("Criar conta")}
             TextButton(onClick={password="";confirmation="";visible=false;mode="forgot"},enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("entry-forgot")){Text("Esqueci minha senha")}
+            if(state.needsConfirmation)TextButton(onClick={password="";scope.launch{auth.beginSignupConfirmation(email)}},enabled=!state.loading,
+                modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag("auth-open-confirmation")){Text("Confirmar meu e-mail")}
         } else TextButton(onClick=::back,enabled=!state.loading,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("Voltar para entrar")}
     }
 }

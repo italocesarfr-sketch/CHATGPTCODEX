@@ -15,13 +15,14 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-@Serializable data class AuthSecrets(val session:AuthSession?=null,val pending:PendingLink?=null,val legacyOwner:String?=null) {
+@Serializable data class AuthSecrets(val session:AuthSession?=null,val pending:PendingLink?=null,val legacyOwner:String?=null,
+    val signup:PendingSignup?=null) {
     override fun toString()="AuthSecrets(redacted)"
 }
 interface AuthVault {
     fun read():AuthSecrets
     fun write(value:AuthSecrets)
-    fun clearSession(){write(read().copy(session=null,pending=null))}
+    fun clearSession(){write(read().copy(session=null,pending=null,signup=null))}
     fun bindOwner(owner:String){write(read().copy(legacyOwner=owner))}
 }
 /** No-backup + Android Keystore. Corruption is a lock, never a fresh unowned installation. */

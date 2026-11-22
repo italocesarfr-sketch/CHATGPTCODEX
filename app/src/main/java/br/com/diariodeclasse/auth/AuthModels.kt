@@ -22,6 +22,13 @@ object AuthConfig {
 class AuthFailure(val kind: Kind, message: String) : Exception(message) {
     enum class Kind { INVALID, UNCONFIRMED, NETWORK, RATE_LIMIT, SERVER, SESSION, LINK }
 }
+/** Only the target and throttling metadata persist, never a password or OTP. */
+@Serializable data class PendingSignup(val email:String,val createdAt:Long,val lastSentAt:Long,
+    val attempts:Int=0,val verifyAfter:Long=0) {
+    override fun toString()="PendingSignup(redacted)"
+    fun validAt(now:Long)=now>=createdAt&&now-createdAt<=60*60_000L
+    val resendAfter get()=lastSentAt+60_000L
+}
 @Serializable data class AuthUser(val id: String, val email: String, val confirmed: Boolean, val name: String = "") {
     fun validate() { require(UUID.fromString(id).toString() == id); require(confirmed && email.isNotBlank()) }
 }
@@ -50,7 +57,7 @@ class AuthFailure(val kind: Kind, message: String) : Exception(message) {
             val map=pairs.toMap()
             require(MessageDigest.isEqual(state.toByteArray(),map["state"].orEmpty().toByteArray()))
             return map["code"].orEmpty().also { require(it.length in 8..1024 && it.none(Char::isWhitespace)) }
-        } catch (_: Exception) { throw AuthFailure(AuthFailure.Kind.LINK,"Link inválido ou vencido. Solicite outro neste aparelho.") }
+        } catch (_: Exception) { throw AuthFailure(AuthFailure.Kind.LINK,if(purpose=="signup")"Não foi possível concluir pelo link. Use o código do e-mail no aplicativo."else"Link inválido ou vencido. Solicite outro neste aparelho.") }
     }
 }
 object AuthPolicy {
@@ -68,6 +75,10 @@ object AuthPolicy {
         if(name.trim().length !in 2..200)throw AuthFailure(AuthFailure.Kind.INVALID,"Informe seu nome completo.")
         credentials(email,password); if(password!=confirmation)throw AuthFailure(AuthFailure.Kind.INVALID,"As senhas não coincidem.")
     }
+    fun confirmationCode(code:String) {
+        if(code.length !in 6..10 || code.any{it !in '0'..'9'})
+            throw AuthFailure(AuthFailure.Kind.INVALID,"Digite o código numérico recebido por e-mail.")
+    }
 }
 interface AuthClient {
     suspend fun signUp(name: String, email: String, password: String, link: PendingLink)
@@ -78,4 +89,6 @@ interface AuthClient {
     suspend fun exchange(code: String, link: PendingLink): AuthSession
     suspend fun password(session: AuthSession, password: String)
     suspend fun logout(session: AuthSession)
+    suspend fun confirmSignup(email:String,code:String):AuthSession = throw AuthFailure(AuthFailure.Kind.SERVER,"Confirmação indisponível.")
+    suspend fun resendSignup(email:String,link:PendingLink):Unit = throw AuthFailure(AuthFailure.Kind.SERVER,"Reenvio indisponível.")
 }
