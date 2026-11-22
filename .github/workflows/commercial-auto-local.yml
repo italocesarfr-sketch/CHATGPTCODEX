@@ -1,14 +1,14 @@
 name: NOcTuA — inicialização comercial, somente ambiente descartável
 on:
   push:
-    branches: [sync/academic-commercial-auto-031]
+    branches: [sync/academic-commercial-auto-031, sync/academic-commercial-final-033]
     paths: ['app/**', 'scripts/**commercial**', 'scripts/ci/**commercial**', 'supabase/migrations/202611170001_commercial_bootstrap.sql', '.github/workflows/commercial-auto-local.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   local-proof:
-    if: github.ref == 'refs/heads/sync/academic-commercial-auto-031'
+    if: github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-final-033'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -27,6 +27,7 @@ jobs:
       PGPASSWORD: local-fixture-only
       PGDATABASE: noctua_phase_e_test
       NOCTUA_COMMERCIAL_DISPOSABLE: 'YES'
+      NOCTUA_COMMERCIAL_FINAL: ${{ github.ref == 'refs/heads/sync/academic-commercial-final-033' && 'YES' || 'NO' }}
       NOCTUA_AUTH_LIVE_FILE: ''
       NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
       NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
@@ -78,7 +79,7 @@ jobs:
             adb install app/build/outputs/apk/debug/app-debug.apk
             adb install -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             bash scripts/ci/test-commercial-network.sh
-            adb shell am instrument -w -r -e class br.com.diariodeclasse.CommercialBootstrapRoomTest,br.com.diariodeclasse.CommercialSyncPanelTest,br.com.diariodeclasse.AcademicAutomaticRoomTest,br.com.diariodeclasse.PhaseBRoomTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.PhaseDRoomTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/room.txt
+            adb shell am instrument -w -r -e class br.com.diariodeclasse.CommercialBootstrapRoomTest,br.com.diariodeclasse.CommercialSyncPanelTest,br.com.diariodeclasse.AcademicAutomaticRoomTest,br.com.diariodeclasse.PhaseBRoomTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.PhaseDRoomTest,br.com.diariodeclasse.PhaseEReconciliationTest,br.com.diariodeclasse.AuthIsolationInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/room.txt
             python3 -c "from pathlib import Path; t=Path('build/commercial-tests/android/room.txt').read_text(); assert 'OK (' in t and all(x not in t for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed','FAILURE')),t"
             adb shell settings put system font_scale 1.6
             adb shell am instrument -w -r -e expectedSystemFontScale 1.6 -e class br.com.diariodeclasse.CommercialSyncPanelTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/font16.txt

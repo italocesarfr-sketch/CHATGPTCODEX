@@ -119,10 +119,13 @@ class AcademicTestApplication:DiaryApplication() {
     override val auth get()=p1Support?.auth ?: h05Support?.auth ?: networkAuth ?: ordinaryAuth
     fun configurePhaseB(phase:String,secondary:Boolean){
         PhaseBNetworkHarness.phase=phase;PhaseBNetworkHarness.secondary=secondary
-        networkAuth=AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(session=fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token()),legacyOwner=null)}).also{runBlocking{it.restore()}}
+        networkAuth=if(phase.startsWith("e-auto-final-"))
+            AuthController(CommercialFinalAuthClient(this),KeystoreAuthVault(this)).also{runBlocking{it.restore()}}
+        else AuthController(PhaseBNetworkHarness.Client(),AcademicTestVault().apply{value=value.copy(session=fixtureSession().copy(user=PhaseBNetworkHarness.user(),access=PhaseBNetworkHarness.token()),legacyOwner=null)}).also{runBlocking{it.restore()}}
     }
     fun verifyPhaseBStartup(){
-        check(auth.state.value.user?.id==PhaseBNetworkHarness.user().id)
+        if(PhaseBNetworkHarness.phase?.startsWith("e-auto-final-")!=true)
+            check(auth.state.value.user?.id==PhaseBNetworkHarness.user().id)
         // Exercise eager startup (as a restored JobService can) before runner.onStart.
         // The same controller must still own this manager when the Activity opens.
         workspaces

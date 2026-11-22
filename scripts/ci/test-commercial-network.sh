@@ -4,26 +4,40 @@ set -euo pipefail
 [[ "${GITHUB_ACTIONS:-}" == true && "${CI:-}" == true && "${NOCTUA_COMMERCIAL_DISPOSABLE:-}" == YES ]] || exit 1
 primary="$(adb get-serialno)"
 [[ "$primary" == emulator-* && "$(adb -s "$primary" shell getprop ro.kernel.qemu | tr -d '\r')" == 1 ]] || exit 1
-[[ "$(adb -s "$primary" emu avd name | head -1 | tr -d '\r')" == noctua_commercial_auto_* ]] || exit 1
+[[ "$(adb -s "$primary" emu avd name | head -1 | tr -d '\r')" == "noctua_commercial_auto_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}" ]] || exit 1
 secondary=emulator-5556
 [[ "$(adb devices | awk '$1=="emulator-5556" {print $1}')" == '' ]] || exit 1
 name="noctua_commercial_auto_second_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
 mkdir -p build/commercial-tests/android
 spawned=false
-cleanup(){ if [[ "$spawned" == true ]]; then adb -s "$secondary" emu kill >/dev/null 2>&1 || true; fi; }
+collect_final_evidence(){
+    [[ "${NOCTUA_COMMERCIAL_FINAL:-}" == YES ]] || return 0
+    for side in primary secondary; do
+        device="$primary"; [[ "$side" != secondary ]] || { [[ "$spawned" == true ]] || continue; device="$secondary"; }
+        mapfile -t evidence_files < <(adb -s "$device" shell run-as br.com.diariodeclasse ls files | tr -d '\r' | grep -E '^commercial-final-(e-auto-final-[a-z-]+\.json|screenshots)$')
+        if [[ "${#evidence_files[@]}" -gt 0 ]]; then
+            adb -s "$device" exec-out run-as br.com.diariodeclasse tar cf - -C files "${evidence_files[@]}" > "build/commercial-tests/android/final-$side.tar"
+        fi
+        adb -s "$device" exec-out run-as br.com.diariodeclasse cat files/phasee-http-timings.jsonl > "build/commercial-tests/android/final-http-$side.jsonl" || true
+    done
+}
+cleanup(){ collect_final_evidence || true; if [[ "$spawned" == true ]]; then adb -s "$secondary" emu kill >/dev/null 2>&1 || true; fi; }
 trap cleanup EXIT
 probe(){
     local device="$1" phase="$2" side="$3"
+    local class=CommercialAutomaticNetworkProbeTest
+    local log="$phase"
+    if [[ "$phase" == e-auto-final-* ]]; then class=CommercialFinalNetworkProbeTest; log="$phase-$side"; fi
     adb -s "$device" shell am force-stop br.com.diariodeclasse
     timeout --signal=INT --kill-after=10s 3m adb -s "$device" shell am instrument -w -r \
       -e timeout_msec 120000 -e phaseBNetworkPhase "$phase" -e phaseBDevice "$side" \
-      -e class br.com.diariodeclasse.CommercialAutomaticNetworkProbeTest \
-      br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/commercial-tests/android/$phase.txt"
-    python3 - "$phase" <<'PY'
+      -e class "br.com.diariodeclasse.$class" \
+      br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > "build/commercial-tests/android/$log.txt"
+    python3 - "$log" <<'PY'
 from pathlib import Path
 import sys
 t=Path('build/commercial-tests/android/'+sys.argv[1]+'.txt').read_text()
-assert 'OK (1 test)' in t and all(x not in t for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed')),t
+assert 'OK (1 test)' in t and all(x not in t for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed','INSTRUMENTATION_STATUS_CODE: -3','INSTRUMENTATION_STATUS_CODE: -4')),t
 print(sys.argv[1]+': passed')
 PY
 }
@@ -64,3 +78,6 @@ adb -s "$primary" exec-out run-as br.com.diariodeclasse cat files/commercial-fin
 adb -s "$secondary" exec-out run-as br.com.diariodeclasse cat files/commercial-final.sha256 > build/commercial-tests/android/secondary.sha256
 cmp build/commercial-tests/android/primary.sha256 build/commercial-tests/android/secondary.sha256
 printf '%s\n' '6 phases passed; two independent CI AVDs, actual local HTTP/Room/startup; identical final canonical hashes. Synthetic Auth, not hosted.' > build/commercial-tests/android/summary.txt
+if [[ "${NOCTUA_COMMERCIAL_FINAL:-}" == YES ]]; then
+    source scripts/ci/test-commercial-final-phases.sh
+fi

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Actual disposable PostgREST HTTP; signed synthetic identities, NOT hosted Supabase Auth."""
 import importlib.util
+import base64
+import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 import uuid
 
 if (os.environ.get('NOCTUA_COMMERCIAL_DISPOSABLE') != 'YES' or
@@ -85,6 +89,23 @@ while True:
 assert len(received)==len(rows) and len({r['kind'] for r in received})==15
 assert {(r['kind'],json.dumps(r['key'],sort_keys=True)) for r in received}=={(r['kind'],json.dumps(r['key'],sort_keys=True)) for r in rows}
 
+# Phase 3.3: an unentitled ordinary owner stays unentitled even knowing A's keys.
+# All failures are real local PostgREST/SQL permission checks, not Android guards.
+before=sql("SELECT md5(jsonb_agg(to_jsonb(r) ORDER BY owner_id,kind,key)::text) FROM public.noctua_academic_records r;")
+assert call('/rpc/noctua_commercial_status',token=b)['reason']=='INELIGIBLE'
+call('/rpc/noctua_pull_academic_e',dict(p_after=0,p_offset=0),b,expected=403)
+call('/rpc/noctua_begin_academic_e',dict(p_operation=str(uuid.uuid4()),p_total=1,p_parts=1),b,expected=403)
+call('/rpc/noctua_resolve_academic_e',dict(p_resolution=str(uuid.uuid4()),p_request={},p_cancel=False),b,expected=403)
+call('/noctua_academic_records',dict(owner_id=A,kind='grades',key=rows[0]['key'],revision=1),b,expected=403)
+assert call('/noctua_academic_records?owner_id=eq.'+A,token=b,method='GET')==[]
+def signed_expired():
+    encode=lambda value:base64.urlsafe_b64encode(json.dumps(value).encode()).decode().rstrip('=')
+    raw=encode(dict(alg='HS256',typ='JWT'))+'.'+encode(dict(sub=A,role='authenticated',session_id=SA,exp=int(time.time())-3600))
+    return raw+'.'+base64.urlsafe_b64encode(hmac.new(f.SECRET.encode(),raw.encode(),hashlib.sha256).digest()).decode().rstrip('=')
+call('/rpc/noctua_pull_academic_e',dict(p_after=0,p_offset=0),signed_expired(),expected=401)
+call('/rpc/noctua_pull_academic_e',dict(p_after=0,p_offset=0),f.token(A,SB),expected=403)
+assert before==sql("SELECT md5(jsonb_agg(to_jsonb(r) ORDER BY owner_id,kind,key)::text) FROM public.noctua_academic_records r;")
+
 sql(f"UPDATE public.noctua_commercial_accounts SET enabled=true WHERE owner_id='{B}';")
 assert call('/rpc/noctua_ensure_academic_e',token=b)['initialized']
 assert call('/rpc/noctua_pull_academic_e',dict(p_after=0,p_offset=0),b)==[]
@@ -94,5 +115,6 @@ for table in ('noctua_academic_records','noctua_academic_versions','noctua_acade
 sql(f"DELETE FROM auth.sessions WHERE id='{SA}';")
 call('/rpc/noctua_pull_academic_e',dict(p_after=0,p_offset=0),a,expected=403)
 result=dict(checks_passed=checks,records=len(received),types=15,transport='local PostgREST',
+    unentitled_cross_account_checks=True,expired_invalid_revoked_sessions_checked=True,
     hosted_auth=False,production_access=False,H13_or_PT409_applied=False)
 print(json.dumps(result,sort_keys=True))
