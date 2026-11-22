@@ -309,3 +309,41 @@ nesta tarefa; não foram executadas nem aprovadas novamente.
 
 Os testes locais não autorizam produção ou concessão comercial. Migração, template,
 roster/rollout e uso de conta hospedada continuam pendentes de autorização própria.
+
+## Continuidade após diagnóstico isolado — 22/11/2026
+
+Os 122 testes instrumentados acima foram aprovados na execução 45069656089; essa
+prova permanece válida para o código nela executado. **Não transferir a aprovação
+para uma execução posterior que falhou.**
+
+- `4c2df5f`: tentativa de gesto a partir do indicador medido. A CI 45071107166
+  continuou falhando na gaveta e interrompeu a bateria em
+  `e-auto-commercial-reconnect` com CalledFromWrongThreadException. O stack está no
+  TestMonotonicFrameClock/ApplyingContinuationInterceptor do Compose e termina na
+  emissão de um flow do Room em ThreadPoolExecutor; não há evidência de perda ou
+  mudança de regra acadêmica. As fases posteriores não foram executadas nessa rodada.
+- `ecdf378`: os dois probes comerciais passam StandardTestDispatcher ao effectContext
+  da regra Compose. O Compose 1.7.6 usava UnconfinedTestDispatcher por padrão, que
+  pode retomar recomposição inline na thread do banco. O scheduler explícito enfileira
+  essa retomada para o relógio de UI do teste. Compilação instrumentada local aprovada
+  em 34s; **a validação Android dessa correção ainda está pendente**. Código do app,
+  engine, transporte e regras acadêmicas não foram alterados nessa correção.
+- `b22489f`: adiciona `launcher_only` ao workflow comercial existente para investigar
+  a UI do AVD sem repetir SQL/HTTP/JVM/rede. Job/artefato são explicitamente marcados
+  como diagnóstico; ele não substitui nem aprova a bateria completa. O commit foi
+  enviado com skip ci para evitar duplicar a regressão durante a investigação;
+  a execução completa será exigida depois do diagnóstico. Nenhum teste foi removido.
+- Diagnóstico 45072504281: ainda falhou em DRAWER, API 30, tela 320×640, foco na
+  QuickstepLauncher. Não houve abertura do NOcTuA, instrumentação ou autenticação.
+- `df381c4`: a próxima prova usa o mecanismo normal de busca local do launcher AOSP
+  e toca o ícone encontrado; a consulta contém apenas a marca pública Noctua. Não
+  envia Enter, Intent ou componente para abrir o aplicativo. O diagnóstico inclui
+  um toque de controle na Gallery vazia do próprio AVD e coleta erros de sistema,
+  diferenciando falha geral de entrada de defeito do APK. Todos os ensaios permanecem
+  em AVDs novos, sem sessão, com rede desabilitada antes da instalação.
+
+Diagnóstico em andamento: [45073148659](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45073148659),
+SHA `df381c45461c2324ce002167570293186d2fc171`. Não presumir sucesso. Depois de passar,
+executar o workflow comercial completo (launcher_only=false), conferir os 122 casos,
+hashes, claims, filas e revisões e somente então despachar homologacao_only.
+O bloqueio automático do build paralelo não será contornado.
