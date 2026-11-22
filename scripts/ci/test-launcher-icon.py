@@ -43,10 +43,16 @@ try:
  icon=find_icon(root)
  if icon is None:
   stage='DRAWER'
-  # Android 11 PhoneWindowManager handles this public key and Launcher3 opens
-  # ACTION_ALL_APPS. Its 6px "Apps list" gesture indicator is not a tap button.
-  # This opens only the system drawer; opening our app still requires its icon.
-  adb('shell','input','keyevent','KEYCODE_ALL_APPS')
+  # This AOSP image exposes a narrow gesture affordance, not a tap button.
+  # Start the gesture at its measured bounds, above the hotseat app shortcuts.
+  handle=next((n for n in root.iter('node')if n.get('content-desc')=='Apps list'),None)
+  if handle is not None:
+   x,y=center(handle)
+   workspace=next(n for n in root.iter('node')if n.get('resource-id','').endswith(':id/workspace'))
+   bounds=list(map(int,re.findall(r'\d+',workspace.get('bounds'))))
+   adb('shell','input','swipe',x,y,x,str(bounds[1]+(bounds[3]-bounds[1])//4),'200')
+  else:
+   adb('shell','input','keyevent','KEYCODE_ALL_APPS')
   icon=wait_for(find_icon)
  # The launch itself is an icon tap. No monkey, hardcoded component or am start.
  stage='ICON_TAP'
