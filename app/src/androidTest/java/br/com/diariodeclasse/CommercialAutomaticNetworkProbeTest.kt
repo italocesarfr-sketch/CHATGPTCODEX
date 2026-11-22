@@ -2,24 +2,19 @@ package br.com.diariodeclasse
 
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.backup.*
 import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.sync.SyncFailure
 import br.com.diariodeclasse.sync.academic.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.*
 import org.junit.Assert.*
 import java.io.File
 
 /** Actual startup/Room/HTTP. No activate/run/request/send button in this proof. Synthetic Auth only. */
-@OptIn(ExperimentalTestApi::class)
 class CommercialAutomaticNetworkProbeTest {
-    // Queue Room resumptions on the Compose clock; Unconfined can recompose on a DB thread.
-    @get:Rule(order=0) val compose=createAndroidComposeRule<MainActivity>(StandardTestDispatcher())
+    @get:Rule(order=0) val compose=commercialRuntimeComposeRule()
     @get:Rule(order=1) val entry=enterNoctuaRule(compose)
     private val app get()=compose.activity.application as AcademicTestApplication
     private val w get()=app.workspaces.current()

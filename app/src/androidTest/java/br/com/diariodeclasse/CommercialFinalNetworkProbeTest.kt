@@ -3,7 +3,6 @@ package br.com.diariodeclasse
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.auth.*
 import br.com.diariodeclasse.backup.*
@@ -11,7 +10,6 @@ import br.com.diariodeclasse.data.*
 import br.com.diariodeclasse.sync.SyncFailure
 import br.com.diariodeclasse.sync.academic.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.*
 import org.junit.*
@@ -19,10 +17,8 @@ import org.junit.Assert.*
 import java.io.File
 
 /** Real local HTTP/Room/Keystore/lifecycle, two CI AVDs; synthetic Auth, never hosted. */
-@OptIn(ExperimentalTestApi::class)
 class CommercialFinalNetworkProbeTest {
-    // Drive the recomposer through its test scheduler, never inline on Room's executor.
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>(StandardTestDispatcher())
+    @get:Rule val compose=commercialRuntimeComposeRule()
     private val app get()=compose.activity.application as AcademicTestApplication
     private val w get()=app.workspaces.current()
     private val store get()=AcademicStore(w.database,w.user.id)
