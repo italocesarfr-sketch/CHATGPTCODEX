@@ -406,3 +406,35 @@ O template preparado passou a manter também o ConfirmationURL oficial como
 fallback de versões antigas. O código continua primário para leitura do e-mail em
 outro dispositivo. Isso preserva o link PKCE existente sem desabilitar confirmação
 ou emitir tokens localmente. Nenhum template hospedado foi alterado.
+
+## Ponto atual da instrumentação — adapters anteriores substituídos
+
+A CI 45076131787 passou os seis cenários de rede iniciais, mas a tentativa de
+combinar o recomposer de produção com o leitor de semântica Compose falhou numa
+consulta de login (SnapshotStateObserver, acesso concorrente de threads). Não foi
+aprovada e o adapter interno de 7847dcb foi **removido**, sem mudar o código do app.
+
+`1e10cf5` mantém ActivityScenario/lifecycle normais e usa ações nativas de
+acessibilidade apenas nos dois probes comerciais de HTTP/Room. Os identificadores
+existentes são lidos pela extra-data oficial `androidx.compose.ui.semantics.testTag`;
+não se habilita testTagsAsResourceId no app, não se substitui conteúdo, não se chama
+login/engine diretamente e não se muda a thread do Room. Permanecem os mesmos
+valores esperados, escolhas explícitas, botões desabilitados, rejeição de terceira
+revisão, IDs, hashes, recibos, conflitos, pausa/restauração e contas isoladas.
+As ações exigem controle único, habilitado e visível; a restauração de sessão é
+aguardada antes de decidir que é necessário entrar. A rolagem tem deadline e exige
+o controle realmente alcançado. Não se afrouxa nenhuma guarda do banco.
+
+A primeira CI do driver, 45077628272, parou antes do primeiro cenário por uso de
+Bundle.EMPTY na API refreshWithExtraData. Android modifica o Bundle de argumentos;
+o executor foi corrigido em `eff20b1` para Bundle mutável e descarta nós obsoletos.
+Compilação instrumentada local aprovada (28s). **Ainda não é aprovação Android.**
+
+Execução completa atual: [45078704183](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45078704183),
+SHA `eff20b174151e989f82a4ee76b30fcc1ed2d7818`. Aguardar e inspecionar o artefato
+commercial-auto-local-evidence. Não repetir uma execução em andamento.
+O último conjunto de 122 casos aprovados integralmente continua sendo 45069656089,
+cujo job falhava só no launcher; a prova isolada de launcher já passou em 45074383960.
+A aprovação conjunta e o APK paralelo continuam pendentes. Não contornar o bloqueio
+automático do despacho de homologacao_only nem apresentar os jobs condicionais ou
+as fases não executadas das rodadas com falha como aprovados.
