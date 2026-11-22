@@ -40,23 +40,29 @@ try:
  adb('shell','input','keyevent','KEYCODE_HOME')
  root=wait_for(lambda r:r if any('launcher' in n.get('package','').lower()for n in r.iter('node'))else None)
  (out/'launcher-home.xml').write_bytes(ET.tostring(root,encoding='utf-8'))
+ # Capture fixed, non-sensitive device/input facts on this empty CI-only AVD.
+ (out/'device-input.json').write_text(json.dumps(dict(sdk=adb('shell','getprop','ro.build.version.sdk').decode().strip(),display=adb('shell','wm','size').decode().strip(),serial=serial,avd=name))+'\n')
  icon=find_icon(root)
  if icon is None:
   stage='DRAWER'
-  # This AOSP image exposes a narrow gesture affordance, not a tap button.
-  # Start the gesture at its measured bounds, above the hotseat app shortcuts.
-  handle=next((n for n in root.iter('node')if n.get('content-desc')=='Apps list'),None)
-  if handle is not None:
-   x,y=center(handle)
+  hotseat=next((n for n in root.iter('node')if n.get('resource-id','').endswith(':id/hotseat')),None)
+  if hotseat is not None:
+   # Start in the hotseat's empty bottom padding, outside the narrow scrim
+   # education handle and app shortcuts. All positions come from current bounds.
+   bounds=list(map(int,re.findall(r'\d+',hotseat.get('bounds'))))
+   children=[list(map(int,re.findall(r'\d+',n.get('bounds'))))for n in hotseat.iter('node')if n is not hotseat and n.get('bounds')]
+   bottom=max(b[3]for b in children)
+   x=str((bounds[0]+bounds[2])//2);y=str(bottom+max(1,(bounds[3]-bottom)//8))
    workspace=next(n for n in root.iter('node')if n.get('resource-id','').endswith(':id/workspace'))
    bounds=list(map(int,re.findall(r'\d+',workspace.get('bounds'))))
-   adb('shell','input','swipe',x,y,x,str(bounds[1]+(bounds[3]-bounds[1])//4),'200')
+   adb('shell','input','touchscreen','-d','0','swipe',x,y,x,str(bounds[1]+(bounds[3]-bounds[1])//4),'150')
   else:
    adb('shell','input','keyevent','KEYCODE_ALL_APPS')
+  (out/'drawer-after-input.png').write_bytes(adb('exec-out','screencap','-p'))
   icon=wait_for(find_icon)
  # The launch itself is an icon tap. No monkey, hardcoded component or am start.
  stage='ICON_TAP'
- adb('shell','input','tap',*center(icon))
+ adb('shell','input','touchscreen','-d','0','tap',*center(icon))
  stage='LOGIN_SCREEN'
  root=wait_for(lambda r:r if any(n.get('package')==a.package for n in r.iter('node'))and any(n.get('text')=='Entrar'for n in r.iter('node'))and any(n.get('text')=='E-mail'for n in r.iter('node'))else None)
  (out/'login-from-launcher.png').write_bytes(adb('exec-out','screencap','-p'))
@@ -66,6 +72,10 @@ except Exception as failure:
  try:(out/'launcher-failed.png').write_bytes(adb('exec-out','screencap','-p'))
  except Exception:pass
  try:(out/'launcher-failed.xml').write_bytes(ET.tostring(dump(),encoding='utf-8'))
+ except Exception:pass
+ try:
+  focus=adb('shell','dumpsys','window').decode()
+  (out/'window-focus.txt').write_text('\n'.join(l for l in focus.splitlines()if 'mCurrentFocus=' in l or 'mFocusedApp=' in l)+'\n')
  except Exception:pass
  (out/'launcher-failure.json').write_text(json.dumps(dict(passed=False,stage=stage,error=type(failure).__name__,application_id=a.package,hosted_auth_executed=False))+'\n')
  raise
