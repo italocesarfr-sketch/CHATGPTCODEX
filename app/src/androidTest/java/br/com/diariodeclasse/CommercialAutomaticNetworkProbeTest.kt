@@ -14,13 +14,13 @@ import java.io.File
 
 /** Actual startup/Room/HTTP. No activate/run/request/send button in this proof. Synthetic Auth only. */
 class CommercialAutomaticNetworkProbeTest {
-    @get:Rule(order=0) val compose=commercialRuntimeComposeRule()
-    @get:Rule(order=1) val entry=enterNoctuaRule(compose)
-    private val app get()=compose.activity.application as AcademicTestApplication
+    @get:Rule(order=0) val ui=CommercialNativeUiRule()
+    @get:Rule(order=1) val entry=object:org.junit.rules.ExternalResource(){override fun before(){ui.waitUntil(10000){ui.exists("nav-0")}}}
+    private val app get()=ui.activity.application as AcademicTestApplication
     private val w get()=app.workspaces.current()
     private val store get()=AcademicStore(w.database,w.user.id)
     private suspend fun snapshot()=ClassLifecycle.snapshot(w.repository.readSnapshot()).canonical()
-    private fun waitFor(condition:suspend()->Boolean){compose.waitUntil(60000){runBlocking{condition()}}}
+    private fun waitFor(condition:suspend()->Boolean){ui.waitUntil(60000){runBlocking{condition()}}}
     private fun synced(){waitFor{store.dao.control()?.let{it.stage=="ACTIVE_E"&&it.checked&&it.message.isEmpty()}==true &&
         store.dao.pendingHeaders().isEmpty()&&store.dao.incomingHeaders().isEmpty()&&store.dao.states().all{it.localVersion==it.acknowledged}}}
     private fun shell(command:String){ParcelFileDescriptor.AutoCloseInputStream(InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(command)).use{it.readBytes()}}

@@ -2,7 +2,6 @@ package br.com.diariodeclasse
 
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import androidx.compose.ui.test.*
 import androidx.test.platform.app.InstrumentationRegistry
 import br.com.diariodeclasse.auth.*
 import br.com.diariodeclasse.backup.*
@@ -18,8 +17,8 @@ import java.io.File
 
 /** Real local HTTP/Room/Keystore/lifecycle, two CI AVDs; synthetic Auth, never hosted. */
 class CommercialFinalNetworkProbeTest {
-    @get:Rule val compose=commercialRuntimeComposeRule()
-    private val app get()=compose.activity.application as AcademicTestApplication
+    @get:Rule val ui=CommercialNativeUiRule()
+    private val app get()=ui.activity.application as AcademicTestApplication
     private val w get()=app.workspaces.current()
     private val store get()=AcademicStore(w.database,w.user.id)
     private val phase get()=requireNotNull(PhaseBNetworkHarness.phase)
@@ -27,7 +26,7 @@ class CommercialFinalNetworkProbeTest {
     private suspend fun grade()=w.repository.dao.activityGrades("d-a1").single{it.studentId=="ds2"}.value
     private fun file(name:String)=File(app.filesDir,"commercial-final-$name")
     private fun waitFor(check:suspend()->Boolean) {
-        try{compose.waitUntil(60000){runBlocking{check()}}}catch(e:Throwable){
+        try{ui.waitUntil(60000){runBlocking{check()}}}catch(e:Throwable){
             val diagnostic=runBlocking{runCatching{val c=store.dao.control();"stage=${c?.stage} message=${c?.message} cursor=${c?.cursor} pending=${store.dao.pendingHeaders().size} inbox=${store.dao.incomingHeaders().size}"}.getOrDefault("WORKSPACE_LOCKED")}
             throw AssertionError("$phase $diagnostic",e)
         }
@@ -39,34 +38,34 @@ class CommercialFinalNetworkProbeTest {
     private fun offline(){shell("svc wifi disable");shell("svc data disable");waitFor{(w.context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetwork==null}}
     private fun online(){shell("svc wifi enable");shell("svc data enable");waitFor{(app.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetwork!=null}}
     private fun login(other:Boolean=false) {
-        compose.waitUntil(15000){compose.onAllNodesWithTag("entry-email").fetchSemanticsNodes().isNotEmpty()}
-        compose.onNodeWithTag("entry-email").performTextClearance();compose.onNodeWithTag("entry-email").performTextInput(if(other)CommercialFinalAuthClient.OTHER_EMAIL else fixtureUser.email)
-        compose.onNodeWithTag("entry-password").performTextClearance();compose.onNodeWithTag("entry-password").performTextInput(CommercialFinalAuthClient.PASSWORD)
-        compose.onNodeWithTag("entry-enter").performScrollTo().performClick()
+        ui.waitUntil(15000){ui.exists("entry-email")&&ui.enabled("entry-email")}
+        ui.replaceText("entry-email",if(other)CommercialFinalAuthClient.OTHER_EMAIL else fixtureUser.email)
+        ui.replaceText("entry-password",CommercialFinalAuthClient.PASSWORD)
+        ui.scrollTo("entry-enter");ui.click("entry-enter")
         waitFor{runCatching{w.user.id==if(other)CommercialFinalAuthClient.OTHER_ID else PhaseBNetworkHarness.user().id}.getOrDefault(false)}
     }
     private fun popup(local:Double,remote:Double) {
-        compose.waitUntil(30000){compose.onAllNodesWithTag("grade-conflict-dialog").fetchSemanticsNodes().isNotEmpty()&&
-            compose.onAllNodesWithText("Neste aparelho: ${conflictGradeNumber(local)}").fetchSemanticsNodes().isNotEmpty()&&
-            compose.onAllNodesWithText("Na nuvem: ${conflictGradeNumber(remote)}").fetchSemanticsNodes().isNotEmpty()}
+        ui.waitUntil(30000){ui.exists("grade-conflict-dialog")&&
+            ui.textExists("Neste aparelho: ${conflictGradeNumber(local)}")&&ui.textExists("Na nuvem: ${conflictGradeNumber(remote)}")}
     }
     private fun openReview() {
-        compose.onNodeWithTag("automatic-sync-status").performClick()
-        compose.waitUntil(15000){compose.onAllNodesWithTag("academic-review").fetchSemanticsNodes().singleOrNull()?.let{isEnabled().matches(it)&&hasClickAction().matches(it)}==true}
-        compose.onNodeWithTag("academic-review").performScrollTo().performClick()
+        ui.click("automatic-sync-status")
+        ui.scrollTo("academic-review")
+        ui.waitUntil(15000){ui.exists("academic-review")&&ui.enabled("academic-review")&&ui.clickable("academic-review")}
+        ui.click("academic-review")
     }
     private fun choose(choice:AcademicChoice) {
-        compose.waitUntil(30000){compose.onAllNodesWithTag("grade-keep-${choice.name}").fetchSemanticsNodes().isNotEmpty()||compose.onAllNodesWithTag("academic-choice-${choice.name}").fetchSemanticsNodes().isNotEmpty()}
-        if(compose.onAllNodesWithTag("grade-keep-${choice.name}").fetchSemanticsNodes().isNotEmpty())
-            compose.onNodeWithTag("grade-keep-${choice.name}").assertIsDisplayed().assertIsEnabled().performClick()
+        val grade="grade-keep-${choice.name}";val generic="academic-choice-${choice.name}"
+        ui.waitUntil(30000){ui.exists(grade)||ui.exists("academic-confirm-decision")}
+        if(ui.exists(grade)) {ui.assertEnabled(grade);ui.click(grade)}
         else {
-            compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled()
-            compose.onNodeWithTag("academic-choice-${choice.name}").performScrollTo().performClick()
-            compose.onNodeWithTag("academic-confirm-decision").assertIsDisplayed().assertIsEnabled().performClick()
+            ui.assertDisabled("academic-confirm-decision")
+            ui.scrollTo(generic,30000);ui.click(generic)
+            ui.assertEnabled("academic-confirm-decision");ui.click("academic-confirm-decision")
         }
     }
     private fun shot(name:String) {
-        compose.waitForIdle();val folder=file("screenshots").apply{mkdirs()}
+        ui.waitForIdle();val folder=file("screenshots").apply{mkdirs()}
         requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()).let{b->File(folder,"$name.png").outputStream().use{b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)};b.recycle()}
     }
     private suspend fun evidence()=w.syncMutex.withLock {
@@ -105,6 +104,7 @@ class CommercialFinalNetworkProbeTest {
             file("$phase.json").writeText("""{"phase":"$phase","logged_out":true,"workspace_locked":true,"pending_preserved":true}""")
             return@runBlocking
         }
+        waitFor{!app.auth.state.value.initializing}
         if(phase=="e-auto-final-push-lost"&&app.auth.state.value.user==null)online()
         if(app.auth.state.value.user==null)login()
         waitFor{runCatching{w.user.id==PhaseBNetworkHarness.user().id}.getOrDefault(false)}
@@ -129,7 +129,7 @@ class CommercialFinalNetworkProbeTest {
             "e-auto-final-resolve-local"->{
                 online();popup(4.0,9.0);val before=store.dao.decisions().size;val cursor=store.cursor()
                 InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
-                compose.waitUntil(10000){compose.onAllNodesWithTag("grade-conflict-dialog").fetchSemanticsNodes().isEmpty()}
+                ui.waitUntil(10000){!ui.exists("grade-conflict-dialog")}
                 assertTrue(store.blocked());assertEquals(4.0,grade()!!,0.0);assertEquals(before,store.dao.decisions().size);assertEquals(cursor,store.cursor())
                 openReview();popup(4.0,9.0);shot("explicit-four-or-nine");choose(AcademicChoice.KEEP_LOCAL);synced();assertEquals(4.0,grade()!!,0.0)
                 val frozen=AcademicRecords.json.decodeFromString<AcademicFrozenDecision>(store.dao.decisions().last().body)
@@ -144,10 +144,10 @@ class CommercialFinalNetworkProbeTest {
                 val payload=buildJsonObject{put("activityId","d-a1");put("studentId","ds2");put("value",9.5)}
                 assertTrue(PhaseBNetworkHarness.raw().pushE(PhaseBNetworkHarness.token(fromSecondary=true),AcademicBatch(newId(),listOf(AcademicChange("grades",key,preview.latest.getValue(AcademicKey("grades",key)),payload)))){true}.accepted)
                 choose(AcademicChoice.KEEP_REMOTE)
-                compose.waitUntil(15000){compose.onAllNodesWithTag("grade-conflict-error").fetchSemanticsNodes().isNotEmpty()}
+                ui.waitUntil(15000){ui.exists("grade-conflict-error")}
                 assertEquals(count,store.dao.decisions().size);assertEquals(cursor,store.cursor());assertEquals(5.0,grade()!!,0.0)
-                compose.onNodeWithTag("grade-keep-KEEP_LOCAL").assertIsNotEnabled();compose.onNodeWithTag("grade-keep-KEEP_REMOTE").assertIsNotEnabled();shot("stale-rejected")
-                compose.onNodeWithTag("grade-conflict-refresh").performScrollTo().performClick();popup(5.0,9.5);choose(AcademicChoice.KEEP_REMOTE)
+                ui.assertDisabled("grade-keep-KEEP_LOCAL");ui.assertDisabled("grade-keep-KEEP_REMOTE");shot("stale-rejected")
+                ui.scrollTo("grade-conflict-refresh");ui.click("grade-conflict-refresh");popup(5.0,9.5);choose(AcademicChoice.KEEP_REMOTE)
                 waitFor{PhaseBNetworkHarness.droppedCommittedReply()&&store.dao.decisions().last().phase=="PENDING"}
                 file("decision-id").writeText(store.dao.decisions().last().id)
                 assertEquals(cursor,store.cursor());assertEquals(5.0,grade()!!,0.0)
@@ -197,7 +197,7 @@ class CommercialFinalNetworkProbeTest {
                 assertEquals("RESTORE",store.stage());assertFalse(store.active());assertEquals(pending,store.pending()!!.body)
                 assertEquals(file("backup-hash").readText(),BackupCodec.fingerprint(snapshot()));assertNull(w.repository.dao.student("commercial-remote-only"))
                 online();val cursor=store.cursor();openReview()
-                compose.waitUntil(30000){compose.onAllNodesWithTag("academic-choice-KEEP_REMOTE").fetchSemanticsNodes().isNotEmpty()}
+                ui.scrollTo("academic-choice-KEEP_REMOTE",30000)
                 assertEquals("RESTORE",store.stage());assertEquals(cursor,store.cursor());assertEquals(pending,store.pending()!!.body)
                 shot("restore-explicit-remote");choose(AcademicChoice.KEEP_REMOTE);synced()
                 assertEquals(8.5,grade()!!,0.0);assertNotNull(w.repository.dao.student("commercial-remote-only"))
