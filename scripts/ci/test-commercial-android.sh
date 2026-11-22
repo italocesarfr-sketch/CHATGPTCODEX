@@ -3,8 +3,9 @@
 set -euo pipefail
 [[ "${GITHUB_ACTIONS:-}" == true && "${NOCTUA_COMMERCIAL_DISPOSABLE:-}" == YES ]] || exit 1
 mkdir -p build/commercial-tests/android
+launcher_status=0
 if [[ "${NOCTUA_ONBOARDING_LOCAL:-}" == YES ]]; then
-    python3 scripts/ci/test-launcher-icon.py --apk app/build/outputs/apk/debug/app-debug.apk --package br.com.diariodeclasse --label Noctua --output build/commercial-tests/android/launcher
+    python3 scripts/ci/test-launcher-icon.py --apk app/build/outputs/apk/debug/app-debug.apk --package br.com.diariodeclasse --label Noctua --output build/commercial-tests/android/launcher || launcher_status=$?
 else
     adb install app/build/outputs/apk/debug/app-debug.apk
 fi
@@ -32,3 +33,6 @@ if [[ "${NOCTUA_ONBOARDING_LOCAL:-}" == YES ]]; then
     adb exec-out run-as br.com.diariodeclasse cat files/signup-otp-1.6.png > build/commercial-tests/android/signup-otp-font16.png
 fi
 adb shell settings put system font_scale 1.0
+# Preserve the launcher failure while collecting the independent regression evidence.
+# A failed icon proof must still fail the job, even when every instrumented test passes.
+exit "$launcher_status"

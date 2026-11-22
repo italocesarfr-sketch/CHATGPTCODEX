@@ -43,14 +43,10 @@ try:
  icon=find_icon(root)
  if icon is None:
   stage='DRAWER'
-  # API 30 AOSP images may use the classic Launcher with a bottom drawer handle,
-  # rather than the swipe-up Launcher. Match its actual semantic control.
-  apps=next((n for n in root.iter('node')if n.get('resource-id','').endswith((':id/all_apps_button',':id/apps_button',':id/all_apps_handle',':id/all_apps'))or
-    re.sub(r'\s+','',n.get('content-desc','')).lower() in ('apps','allapps','appslist','allapplications')),None)
-  if apps is not None:adb('shell','input','tap',*center(apps))
-  else:
-   # Public Android all-apps key opens the drawer; it does not launch our Activity.
-   adb('shell','input','keyevent','KEYCODE_ALL_APPS')
+  # Android 11 PhoneWindowManager handles this public key and Launcher3 opens
+  # ACTION_ALL_APPS. Its 6px "Apps list" gesture indicator is not a tap button.
+  # This opens only the system drawer; opening our app still requires its icon.
+  adb('shell','input','keyevent','KEYCODE_ALL_APPS')
   icon=wait_for(find_icon)
  # The launch itself is an icon tap. No monkey, hardcoded component or am start.
  stage='ICON_TAP'
