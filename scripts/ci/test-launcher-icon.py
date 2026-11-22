@@ -32,8 +32,12 @@ def center(node):
 def find_icon(root):return next((n for n in root.iter('node')if n.get('class')!='android.widget.EditText'and(n.get('text')==a.label or n.get('content-desc')==a.label)),None)
 def tap(node):adb('shell','input','touchscreen','-d','0','tap',*center(node))
 start=time.monotonic();stage="INSTALL"
+animation_scale=adb('shell','settings','get','global','animator_duration_scale').decode().strip()
 adb('shell','svc','wifi','disable');adb('shell','svc','data','disable')
 try:
+ # Launcher3 drives drawer gestures with ValueAnimator. The runner disables
+ # animations for Compose, so restore normal timing only for this real UI proof.
+ adb('shell','settings','put','global','animator_duration_scale','1.0')
  adb('install',a.apk,timeout=90)
  stage='RESOLVE'
  resolved=adb('shell','cmd','package','resolve-activity','--brief','-a','android.intent.action.MAIN','-c','android.intent.category.LAUNCHER','-p',a.package).decode()
@@ -68,7 +72,7 @@ try:
  stage='LOGIN_SCREEN'
  root=wait_for(lambda r:r if any(n.get('package')==a.package for n in r.iter('node'))and all(any(n.get('text')==label or n.get('content-desc')==label for n in r.iter('node'))for label in ('Entrar','E-mail'))else None)
  (out/'login-from-launcher.png').write_bytes(adb('exec-out','screencap','-p'))
- result=dict(passed=True,application_id=a.package,launcher_surface=surface,launcher_intent_resolved=True,actual_icon_tapped=True,normal_Application=True,instrumentation=False,empty_login_screen=True,network_disabled=True,seconds=round(time.monotonic()-start,3),hosted_auth_executed=False)
+ result=dict(passed=True,application_id=a.package,launcher_surface=surface,launcher_intent_resolved=True,actual_icon_tapped=True,normal_Application=True,instrumentation=False,empty_login_screen=True,network_disabled=True,launcher_animation_scale='1.0',prior_animation_scale=animation_scale,seconds=round(time.monotonic()-start,3),hosted_auth_executed=False)
  (out/'launcher-proof.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result))
 except Exception as failure:
  try:(out/'launcher-failed.png').write_bytes(adb('exec-out','screencap','-p'))
@@ -85,4 +89,6 @@ except Exception as failure:
  raise
 finally:
  adb('shell','am','force-stop',a.package)
+ if animation_scale=='null':adb('shell','settings','delete','global','animator_duration_scale')
+ else:adb('shell','settings','put','global','animator_duration_scale',animation_scale)
  adb('shell','svc','wifi','enable');adb('shell','svc','data','enable')
