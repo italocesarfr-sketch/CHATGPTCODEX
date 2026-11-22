@@ -4,6 +4,7 @@ No hosted connection: network is disabled before install. Never targets existing
 """
 import argparse,json,os,re,subprocess,time,xml.etree.ElementTree as ET
 from pathlib import Path
+from launcher_geometry import drawer_gesture
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--apk',required=True);p.add_argument('--package',required=True,choices=['br.com.diariodeclasse','br.com.diariodeclasse.homologacao']);p.add_argument('--label',required=True,choices=['Noctua','NOcTuA Homologação']);p.add_argument('--output',required=True);p.add_argument('--input-control',action='store_true');a=p.parse_args()
 assert os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('CI')=='true'
 def adb(*args,timeout=30):return subprocess.run(['adb',*args],check=True,capture_output=True,timeout=timeout).stdout
@@ -53,31 +54,11 @@ try:
   root=wait_for(lambda r:r if any('launcher' in n.get('package','')for n in r.iter('node'))else None)
  icon=find_icon(root)
  surface='HOME'
- search=next((n for n in root.iter('node')if n.get('resource-id','')=='com.android.quicksearchbox:id/search_widget_text'),None)
- if icon is None and search is not None:
-  # AOSP's normal launcher search indexes installed apps offline. The query is
-  # public app branding; no Enter/Intent/component launches the target app.
-  stage='LAUNCHER_SEARCH';surface='LAUNCHER_SEARCH'
-  tap(search)
-  wait_for(lambda r:r if any(n.get('class')=='android.widget.EditText'for n in r.iter('node'))else None)
-  adb('shell','input','text','Noctua')
-  icon=wait_for(find_icon)
- elif icon is None:
-  stage='DRAWER'
-  surface='DRAWER'
-  hotseat=next((n for n in root.iter('node')if n.get('resource-id','').endswith(':id/hotseat')),None)
-  if hotseat is not None:
-   # Start in the hotseat's empty bottom padding, outside the narrow scrim
-   # education handle and app shortcuts. All positions come from current bounds.
-   bounds=list(map(int,re.findall(r'\d+',hotseat.get('bounds'))))
-   children=[list(map(int,re.findall(r'\d+',n.get('bounds'))))for n in hotseat.iter('node')if n is not hotseat and n.get('bounds')]
-   bottom=max(b[3]for b in children)
-   x=str((bounds[0]+bounds[2])//2);y=str(bottom+max(1,(bounds[3]-bottom)//8))
-   workspace=next(n for n in root.iter('node')if n.get('resource-id','').endswith(':id/workspace'))
-   bounds=list(map(int,re.findall(r'\d+',workspace.get('bounds'))))
-   adb('shell','input','touchscreen','-d','0','swipe',x,y,x,str(bounds[1]+(bounds[3]-bounds[1])//4),'150')
-  else:
-   adb('shell','input','keyevent','KEYCODE_ALL_APPS')
+ if icon is None:
+  stage='DRAWER';surface='DRAWER'
+  gesture=drawer_gesture(root)
+  (out/'drawer-gesture.json').write_text(json.dumps(dict(start=gesture[:2],end=gesture[2:],outside_shortcuts=True,from_measured_hotseat=True))+'\n')
+  adb('shell','input','touchscreen','-d','0','swipe',*map(str,gesture),'150')
   (out/'drawer-after-input.png').write_bytes(adb('exec-out','screencap','-p'))
   icon=wait_for(find_icon)
  # The launch itself is an icon tap. No monkey, hardcoded component or am start.

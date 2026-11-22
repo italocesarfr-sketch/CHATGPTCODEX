@@ -2,7 +2,7 @@ name: NOcTuA — inicialização comercial, somente ambiente descartável
 on:
   push:
     branches: [sync/academic-commercial-auto-031, sync/academic-commercial-final-033, sync/academic-commercial-onboarding-034]
-    paths: ['app/**', 'scripts/**commercial**', 'scripts/ci/**commercial**', 'scripts/ci/test-launcher-icon.py', 'supabase/migrations/202611220001_institutional_provisioning.sql', 'supabase/migrations/202611170001_commercial_bootstrap.sql', '.github/workflows/commercial-auto-local.yml']
+    paths: ['app/**', 'scripts/**commercial**', 'scripts/ci/**commercial**', 'scripts/ci/*launcher*', 'supabase/migrations/202611220001_institutional_provisioning.sql', 'supabase/migrations/202611170001_commercial_bootstrap.sql', '.github/workflows/commercial-auto-local.yml']
   workflow_dispatch:
     inputs:
       launcher_only:
@@ -129,6 +129,7 @@ jobs:
       - name: APK apenas para AVD vazio, sem credenciais ou assinatura oficial
         run: |
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+          python3 scripts/test-launcher-geometry.py
           ./gradlew --no-daemon assembleDebug
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
