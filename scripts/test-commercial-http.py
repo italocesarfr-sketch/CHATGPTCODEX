@@ -37,16 +37,23 @@ if sys.argv[1:]==['--prepare']:
     GRANT anon,authenticated TO postgrest_fixture;
     CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS
       'SELECT coalesce(nullif(current_setting(''request.jwt.claim.sub'',true),''''),auth.jwt()->>''sub'')::uuid';
-    INSERT INTO auth.users VALUES('{A}',now(),false),('{B}',now(),false);
+    INSERT INTO auth.users(id,email_confirmed_at,is_anonymous) VALUES('{A}',now(),false),('{B}',now(),false);
     INSERT INTO auth.sessions VALUES('{SA}','{A}',NULL),('{SB}','{B}',NULL);
     INSERT INTO public.noctua_commercial_accounts(owner_id,enabled) VALUES('{A}',true),('{B}',false);
-    INSERT INTO auth.users VALUES('88888888-8888-4888-8888-888888888888',now(),false),('99999999-9999-4999-8999-999999999999',now(),false);
+    INSERT INTO auth.users(id,email_confirmed_at,is_anonymous) VALUES('88888888-8888-4888-8888-888888888888',now(),false),('99999999-9999-4999-8999-999999999999',now(),false);
     INSERT INTO auth.sessions VALUES('81818181-8181-4181-8181-818181818181','88888888-8888-4888-8888-888888888888',NULL),
       ('82828282-8282-4282-8282-828282828282','88888888-8888-4888-8888-888888888888',NULL),
       ('93939393-9393-4393-8393-939393939393','99999999-9999-4999-8999-999999999999',NULL);
-    INSERT INTO public.noctua_commercial_accounts(owner_id,enabled) VALUES('88888888-8888-4888-8888-888888888888',true);
     UPDATE public.noctua_commercial_rollout SET enabled=true;
     """)
+    if os.environ.get('NOCTUA_ONBOARDING_LOCAL')=='YES':
+        # Trusted fixture roster only; the Android account has NO entitlement yet.
+        # Its normal ensureE request must atomically provision and initialize it.
+        sql("""UPDATE auth.users SET email='phasee@example.invalid' WHERE id='88888888-8888-4888-8888-888888888888';
+        INSERT INTO public.noctua_commercial_roster(email,institution_reference,enabled,expires_at)
+        VALUES('phasee@example.invalid','institution-android-fixture',true,now()+interval '1 day');""")
+    else:
+        sql("INSERT INTO public.noctua_commercial_accounts(owner_id,enabled) VALUES('88888888-8888-4888-8888-888888888888',true);")
     print('Disposable HTTP fixture prepared; no hosted project, users or credentials.')
     raise SystemExit(0)
 if sys.argv[1:]:raise SystemExit('Unknown option')

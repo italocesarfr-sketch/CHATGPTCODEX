@@ -18,7 +18,7 @@ permissions:
   contents: read
 jobs:
   homologacao:
-    if: github.ref == 'refs/heads/sync/academic-complete-0220' || (github.ref == 'refs/heads/sync/academic-commercial-auto-031' && inputs.commercial_auto == true)
+    if: github.ref == 'refs/heads/sync/academic-complete-0220' || ((github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034') && inputs.commercial_auto == true)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -58,6 +58,22 @@ jobs:
           fi
           python3 scripts/validate-auth-apk.py app/build/outputs/apk/homologacao/app-homologacao.apk
           sha256sum app/build/outputs/apk/homologacao/app-homologacao.apk > build/homologacao-apk.sha256
+      - name: KVM para prova do ícone no APK paralelo
+        if: github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        if: github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
+        with:
+          api-level: 30
+          arch: x86_64
+          avd-name: noctua_onboarding_launcher_${{ github.run_id }}_${{ github.run_attempt }}
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan -memory 2048 -cores 2
+          script: python3 scripts/ci/test-launcher-icon.py --apk app/build/outputs/apk/homologacao/app-homologacao.apk --package br.com.diariodeclasse.homologacao --label 'NOcTuA Homologação' --output build/homologacao-launcher
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.commercial_auto == true && 'noctua-homologacao-comercial-debug' || 'noctua-homologacao-paralela-debug' }}
@@ -65,9 +81,16 @@ jobs:
             app/build/outputs/apk/homologacao/app-homologacao.apk
             build/homologacao-identity.json
             build/homologacao-apk.sha256
+            build/homologacao-launcher/
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: homologacao-testes-locais
           path: app/build/test-results/
+      - uses: actions/upload-artifact@v4
+        if: always() && github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
+        with:
+          name: homologacao-launcher-diagnostico
+          path: build/homologacao-launcher/
+          if-no-files-found: warn

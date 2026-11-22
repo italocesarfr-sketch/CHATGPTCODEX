@@ -1,14 +1,14 @@
 name: NOcTuA — inicialização comercial, somente ambiente descartável
 on:
   push:
-    branches: [sync/academic-commercial-auto-031, sync/academic-commercial-final-033]
-    paths: ['app/**', 'scripts/**commercial**', 'scripts/ci/**commercial**', 'supabase/migrations/202611170001_commercial_bootstrap.sql', '.github/workflows/commercial-auto-local.yml']
+    branches: [sync/academic-commercial-auto-031, sync/academic-commercial-final-033, sync/academic-commercial-onboarding-034]
+    paths: ['app/**', 'scripts/**commercial**', 'scripts/ci/**commercial**', 'scripts/ci/test-launcher-icon.py', 'supabase/migrations/202611220001_institutional_provisioning.sql', 'supabase/migrations/202611170001_commercial_bootstrap.sql', '.github/workflows/commercial-auto-local.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   local-proof:
-    if: github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-final-033'
+    if: github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-final-033' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -27,7 +27,8 @@ jobs:
       PGPASSWORD: local-fixture-only
       PGDATABASE: noctua_phase_e_test
       NOCTUA_COMMERCIAL_DISPOSABLE: 'YES'
-      NOCTUA_COMMERCIAL_FINAL: ${{ github.ref == 'refs/heads/sync/academic-commercial-final-033' && 'YES' || 'NO' }}
+      NOCTUA_ONBOARDING_LOCAL: ${{ github.ref == 'refs/heads/sync/academic-commercial-onboarding-034' && 'YES' || 'NO' }}
+      NOCTUA_COMMERCIAL_FINAL: ${{ (github.ref == 'refs/heads/sync/academic-commercial-final-033' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034') && 'YES' || 'NO' }}
       NOCTUA_AUTH_LIVE_FILE: ''
       NOCTUA_HOMOLOGACAO_AUTH_TEST_FILE: ''
       NOCTUA_HOMOLOGACAO_AUTH_TEST_AUTHORIZED: ''
@@ -56,6 +57,11 @@ jobs:
           createdb noctua_phase_d_test
           PGDATABASE=noctua_phase_d_test python3 scripts/test-commercial-regression.py > build/commercial-tests/regression-d.txt 2>&1
           tail -5 build/commercial-tests/regression-d.txt
+      - name: Provisionamento institucional — somente banco descartável
+        if: github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
+        run: |
+          python3 scripts/test-commercial-provisioning.py > build/commercial-tests/provisioning.txt 2>&1
+          tail -5 build/commercial-tests/provisioning.txt
       - name: HTTP real descartável e fixture Android sem allowlist de testes
         run: bash scripts/ci/start-commercial-postgrest.sh
       - name: Opt-in somente neste build debug; nenhuma assinatura oficial
@@ -75,17 +81,7 @@ jobs:
           force-avd-creation: true
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan -memory 2048 -cores 2
-          script: |
-            adb install app/build/outputs/apk/debug/app-debug.apk
-            adb install -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-            bash scripts/ci/test-commercial-network.sh
-            adb shell am instrument -w -r -e class br.com.diariodeclasse.CommercialBootstrapRoomTest,br.com.diariodeclasse.CommercialSyncPanelTest,br.com.diariodeclasse.AcademicAutomaticRoomTest,br.com.diariodeclasse.PhaseBRoomTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.PhaseDRoomTest,br.com.diariodeclasse.PhaseEReconciliationTest,br.com.diariodeclasse.AuthIsolationInstrumentedTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/room.txt
-            python3 -c "from pathlib import Path; t=Path('build/commercial-tests/android/room.txt').read_text(); assert 'OK (' in t and all(x not in t for x in ('FAILURES','INSTRUMENTATION_FAILED','Process crashed','FAILURE')),t"
-            adb shell settings put system font_scale 1.6
-            adb shell am instrument -w -r -e expectedSystemFontScale 1.6 -e class br.com.diariodeclasse.CommercialSyncPanelTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/font16.txt
-            python3 -c "from pathlib import Path; t=Path('build/commercial-tests/android/font16.txt').read_text(); assert 'OK (2 tests)' in t and 'FAILURES' not in t,t"
-            adb exec-out run-as br.com.diariodeclasse cat files/commercial-ui.png > build/commercial-tests/android/commercial-ui-font16.png
-            adb shell settings put system font_scale 1.0
+          script: bash scripts/ci/test-commercial-android.sh
       - name: Parar somente servidor descartável deste job
         if: always()
         run: |
@@ -98,6 +94,7 @@ jobs:
             build/commercial-tests/default-jvm/
             build/commercial-tests/postgres-results.txt
             build/commercial-tests/regression-d.txt
+            build/commercial-tests/provisioning.txt
             build/commercial-tests/http-results.json
             build/commercial-tests/android/
             app/build/test-results/testDebugUnitTest/

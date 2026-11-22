@@ -23,7 +23,7 @@ class PreparationTest(unittest.TestCase):
                          'refs/heads/sync/academic-commercial-auto-031'):
             self.assertIn(required,condition)
         self.assertEqual(self.caller['jobs']['homologacao']['with']['commercial_auto'],
-            "${{ github.ref == 'refs/heads/sync/academic-commercial-auto-031' }}")
+            "${{ github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034' }}")
     def test_no_homologation_access_to_signing_or_account_credentials(self):
         text=(ROOT/'.github/workflows/homologacao.yml').read_text()
         self.assertNotIn('DIARY_',text);self.assertNotIn('AUTH_TEST_JSON',text)

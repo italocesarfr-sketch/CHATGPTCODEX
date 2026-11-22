@@ -86,10 +86,10 @@ jobs:
       NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON: ${{ secrets.NOCTUA_HOMOLOGACAO_AUTH_TEST_JSON }}
   homologacao:
     name: Homologação — variante paralela
-    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true && (github.ref == 'refs/heads/sync/academic-complete-0220' || github.ref == 'refs/heads/sync/academic-commercial-auto-031')
+    if: github.event_name == 'workflow_dispatch' && inputs.homologacao_only == true && inputs.hosted_auth_only != true && inputs.h05_only != true && inputs.h12_only != true && (github.ref == 'refs/heads/sync/academic-complete-0220' || github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034')
     uses: ./.github/workflows/homologacao.yml
     with:
-      commercial_auto: ${{ github.ref == 'refs/heads/sync/academic-commercial-auto-031' }}
+      commercial_auto: ${{ github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034' }}
     secrets:
       NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY: ${{ secrets.NOCTUA_HOMOLOGACAO_PUBLISHABLE_KEY }}
   h13-performance:

@@ -54,6 +54,14 @@ assert server['records']==172 and server['grade_revision']==10 and server['decis
 assert server['grade_versions']==[None,0,1.5,2.5,9,4,8,9.5,7.5,8.5]
 assert server['receipts']==server['unique_receipts']
 assert server['unentitled_records']==server['unentitled_protocols']==0
+provisioning=None
+if os.environ.get('NOCTUA_ONBOARDING_LOCAL')=='YES':
+    provisioning=sql(f"""SELECT jsonb_build_object(
+     'claims',(SELECT count(*) FROM public.noctua_commercial_claims WHERE owner_id='{owner}'),
+     'trusted_roster_binding',EXISTS(SELECT FROM public.noctua_commercial_claims c JOIN public.noctua_commercial_roster r ON r.id=c.roster_id
+       WHERE c.owner_id='{owner}' AND r.email='phasee@example.invalid' AND c.institution_reference='institution-android-fixture'),
+     'initialized_entitlement',EXISTS(SELECT FROM public.noctua_commercial_accounts WHERE owner_id='{owner}' AND enabled AND initialized_at IS NOT NULL));""")
+    assert provisioning==dict(claims=1,trusted_roster_binding=True,initialized_entitlement=True)
 logs=list(base.glob('e-auto-final-*.txt'))
 assert len(logs)==29, len(logs)
 for p in logs:
@@ -70,6 +78,7 @@ result=dict(android_final_phases_passed=len(logs),android_ignored=0,android_fail
     two_independent_AVDs=True,server=server,primary=final['primary'],secondary=final['secondary'],
     identical_hashes=True,exact_server_ids_and_revisions_match_both_Rooms=True,
     HTTP_roundtrips_including_Android_transport=metrics,Auth='Synthetic local client; real Keystore vault and login UI; NOT hosted GoTrue',
+    institutional_provisioning=provisioning,
     hosted_requests=0,H13_or_PT409_applied=False)
 (base/'final-evidence.json').write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
 print(json.dumps(dict(phases_passed=len(logs),hash=final['primary']['hash'],server=server)))
