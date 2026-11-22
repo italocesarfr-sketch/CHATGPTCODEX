@@ -116,3 +116,10 @@ resolução automática ou perda de variante. Corrigido apenas o gesto instrumen
 O botão de confirmação genérico também é fixo; a mesma correção se aplica a ele.
 As opções dentro do conteúdo rolável mantêm performScrollTo. Nenhuma asserção
 acadêmica/segurança foi removida. Artefato `14731669349` preserva a falha e a imagem.
+
+A coleta do primeiro artefato também mostrou um checkpoint já convergido que
+entrou legitimamente em SYNCING enquanto as consultas separadas do diagnóstico
+eram lidas (polling periódico). A coleta agora usa o syncMutex existente para
+registrar snapshot, cursor, filas e revisões de um mesmo intervalo consistente.
+Não suprime SYNCING, não força status de sucesso e não aciona a engine manualmente.
+As asserções finais de fila vazia, mensagem vazia e revisões confirmadas permanecem.

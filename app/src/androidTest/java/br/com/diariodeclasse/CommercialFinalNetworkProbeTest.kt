@@ -70,7 +70,7 @@ class CommercialFinalNetworkProbeTest {
         compose.waitForIdle();val folder=file("screenshots").apply{mkdirs()}
         requireNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()).let{b->File(folder,"$name.png").outputStream().use{b.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it)};b.recycle()}
     }
-    private suspend fun evidence() {
+    private suspend fun evidence()=w.syncMutex.withLock {
         val rows=snapshot();val c=requireNotNull(store.dao.control());val states=store.dao.states()
         w.database.openHelper.writableDatabase.query("PRAGMA foreign_key_check").use{assertFalse(it.moveToFirst())}
         assertEquals(AcademicRecords.rows(rows).size,AcademicRecords.rows(rows).map{it.identity}.toSet().size)
