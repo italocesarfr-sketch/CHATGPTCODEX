@@ -1,0 +1,80 @@
+{
+  "android_instrumented": {
+    "breakdown": {
+      "Room_UI_Auth": 84,
+      "font16": 3,
+      "original_network": 6,
+      "phase33_network": 29
+    },
+    "failed": 0,
+    "passed": 122,
+    "skipped": 0,
+    "tests": 122
+  },
+  "canonical_hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+  "ci_approved": false,
+  "code": "0ec3cbaf141eaef81d2778ec81f9d800b6dcb1b6",
+  "exact_server_ids_and_revisions_match_both_Rooms": true,
+  "hosted_requests": 0,
+  "impeccable_detect_findings": 0,
+  "institutional_provisioning": {
+    "claims": 1,
+    "initialized_entitlement": true,
+    "trusted_roster_binding": true
+  },
+  "launcher_proof": "FAILED_DRAWER",
+  "permanent_signing": false,
+  "primary": {
+    "counts": {
+      "activities": 2,
+      "class_archives": 1,
+      "classes": 2,
+      "export_rows": 3,
+      "grades": 36,
+      "import_drafts": 1,
+      "lesson_records": 2,
+      "lessons": 3,
+      "marks": 71,
+      "preserved_histories": 1,
+      "recompositions": 1,
+      "relocations": 1,
+      "students": 38,
+      "terms": 8,
+      "weekly_timetables": 2
+    },
+    "cursor": 13,
+    "inbox": 0,
+    "pending": 0,
+    "records": 172
+  },
+  "run_id": 45069656089,
+  "secondary": {
+    "cursor": 13,
+    "inbox": 0,
+    "pending": 0,
+    "records": 172
+  },
+  "server": {
+    "decisions": 3,
+    "grade_revision": 10,
+    "grade_versions": [
+      null,
+      0.0,
+      1.5,
+      2.5,
+      9.0,
+      4.0,
+      8.0,
+      9.5,
+      7.5,
+      8.5
+    ],
+    "head": 13,
+    "receipts": 13,
+    "records": 172,
+    "unentitled_protocols": 0,
+    "unentitled_records": 0,
+    "unique_receipts": 13
+  },
+  "two_independent_AVDs": true
+}

@@ -82,14 +82,19 @@ Application normal e rede bloqueada antes de instalar. Não usa instrumentação
 monkey ou componente hardcoded para produzir a abertura. Validação pendente de CI;
 nenhuma correção de manifest se justifica antes da reprodução.
 
-A CI 45067806104 parou na automação da gaveta: a captura mostrou o launcher AOSP
-clássico na Home, antes de qualquer abertura do app. O executor procurava somente
-um subconjunto dos nomes do botão e usou um gesto incompatível com esse launcher.
-A correção `54e3da2` reconhece `all_apps_handle` e variações semânticas; o fallback
-é a tecla pública Android ALL_APPS, jamais o componente do app. O toque que abre
-o NOcTuA continua sendo no ícone encontrado pela árvore real de acessibilidade.
-São preservados XML/captura do launcher vazio para diagnóstico. Isso não comprova
-um defeito no Manifest do produto e nenhuma alteração nele foi feita.
+As rodadas 45067806104 e 45068761680 pararam na automação da gaveta, antes
+de abrir o app. A captura isolada sugeriu um botão clássico, mas o XML posterior
+esclareceu a geometria real: `Apps list` é um indicador de gesto de apenas seis
+pixels, cujo toque não abriu a gaveta. Não era evidência de defeito no Manifest.
+A correção `0ec3cba` usa a tecla pública Android ALL_APPS para abrir **só** a gaveta;
+o toque que abre o NOcTuA continua sendo no ícone encontrado pela árvore real.
+O comportamento da tecla foi conferido no código oficial Android 11
+[PhoneWindowManager](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android11-release/services/core/java/com/android/server/policy/PhoneWindowManager.java)
+e [Launcher3](https://android.googlesource.com/platform/packages/apps/Launcher3/+/refs/heads/android11-release/src/com/android/launcher3/Launcher.java).
+XML/capturas do launcher vazio são preservados para diagnóstico. A regressão
+instrumentada também passa a coletar suas evidências independentes se essa prova
+falhar; **o código de falha do launcher continua reprovando o job**, mesmo que todos
+os demais testes passem. A prova do APK paralelo permanece uma barreira de upload.
 
 ## Provisionamento institucional mínimo — migração preparada
 
@@ -171,7 +176,8 @@ Commits por responsabilidade:
 - `5838b71`: captura das quatro entidades auxiliares por operações reais do repository.
 - `ab21cf7`: launcher pelo ícone e ampliação da CI comercial já existente.
 - `01acb32`: prepara fixture vazio exclusivo do job antes da bateria de migração; nenhum CHECK foi relaxado.
-- `54e3da2`: reconhece a gaveta do launcher AOSP clássico na prova real por ícone.
+- `54e3da2`: amplia diagnósticos e coleta XML do launcher; a tentativa por toque no indicador não foi suficiente.
+- `0ec3cba`: abre a gaveta com ALL_APPS e conserva falhas independentes da instrumentação.
 
 Resultados efetivamente concluídos no workspace:
 
@@ -199,9 +205,29 @@ sem executar a migração institucional. A correção 01acb32 recria apenas o ba
 serviço PostgreSQL efêmero do próprio job, com guardas CI/loopback/porta/nome; preserva
 as evidências da bateria anterior e testa a migração sobre fixture vazio.
 
-CI completa em andamento no código `54e3da222e5d78a67c4d530249866d959b3c5130`:
-[execução 45068761680](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45068761680).
-Os resultados Android/launcher ainda não estão aprovados neste checkpoint. Não
+A [CI 45069656089](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45069656089)
+executou **122 testes Android aprovados, zero ignorados/falhos**, além de 20+27+18
+casos PostgreSQL, 43 verificações HTTP e 337 casos JVM por configuração (332 aprovados,
+5 condicionais). **O job foi reprovado na prova independente da gaveta do launcher.**
+A tecla ALL_APPS tampouco abriu a gaveta nessa imagem. A correção `4c2df5f` usa um
+gesto iniciado nos bounds reais do indicador Apps list, acima dos atalhos do hotseat,
+e aguarda o ícone; não troca a prova por abertura direta da Activity.
+
+A recuperação/regressão preservou 172 registros/15 tipos, hashes iguais a 3.3,
+cursores/head 13, 13 recibos únicos, três decisões auditadas, revisão da nota 10,
+inbox/outbox pendentes zero nos dois AVDs. O Android foi provisionado pelo roster
+com **um** claim e entitlement inicializado; B permaneceu sem protocolo/dados.
+[Resumo sanitizado](evidence/phase34/local-45069656089.json) e
+[captura real OTP com fonte 1,6](evidence/phase34/signup-otp-font16.png).
+A captura foi inspecionada: campos/ações legíveis no tema escuro; conteúdo rola em
+320×560dp, todos os controles foram alcançados pelos testes. Detector Impeccable:
+zero achados mecânicos; isso não substitui a prova visual/native ou autenticação real.
+
+A [CI 45071107166](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45071107166)
+no código `4c2df5f5b84a3d10a457480b221d3d24c78fedb0` está em andamento.
+A tentativa antecipada de despachar homologacao_only foi bloqueada pela revisão
+automática porque a CI completa ainda falhava no launcher; o build paralelo não foi
+iniciado. Aguardar aprovação antes do novo despacho. Não
 confundir TLS mock/OTP simulado com cadastro/verificação real em GoTrue. As cinco
 condicionais JVM não contam como aprovadas. Nenhuma autenticação hospedada foi feita.
 
