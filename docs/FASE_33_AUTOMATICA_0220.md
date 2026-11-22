@@ -102,3 +102,17 @@ hospedada somente após autorização independente, capacidade e orçamento de o
 segundos sob carga institucional, compatibilidade assinada/física da distribuição
 oficial e política de provisionamento comercial definitivo. Não aplicar H13/PT409
 ou ampliar timeouts para transformar limitações em aprovação.
+
+## Diagnóstico da primeira execução Android
+
+Run `44967475626` (commit `8c617d97b3ce1ac8eb6c1efa680130340144d504`):
+PostgreSQL/HTTP e builds aprovados. Seis fases comerciais originais e as nove fases
+do cenário 9 passaram. O cenário 10 chegou ao diálogo com local 4/remoto 9,
+dispensou sem mutação e reabriu corretamente, mas o helper novo falhou ao tentar
+`performScrollTo()` em um botão fixo do rodapé, sem ancestral rolável.
+A captura real confirma ambos os botões inteiramente visíveis. Não foi timeout,
+resolução automática ou perda de variante. Corrigido apenas o gesto instrumental:
+`assertIsDisplayed().assertIsEnabled().performClick()`, conforme helper anterior.
+O botão de confirmação genérico também é fixo; a mesma correção se aplica a ele.
+As opções dentro do conteúdo rolável mantêm performScrollTo. Nenhuma asserção
+acadêmica/segurança foi removida. Artefato `14731669349` preserva a falha e a imagem.

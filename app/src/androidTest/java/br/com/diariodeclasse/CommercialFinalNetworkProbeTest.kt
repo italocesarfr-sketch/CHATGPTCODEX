@@ -59,11 +59,11 @@ class CommercialFinalNetworkProbeTest {
     private fun choose(choice:AcademicChoice) {
         compose.waitUntil(30000){compose.onAllNodesWithTag("grade-keep-${choice.name}").fetchSemanticsNodes().isNotEmpty()||compose.onAllNodesWithTag("academic-choice-${choice.name}").fetchSemanticsNodes().isNotEmpty()}
         if(compose.onAllNodesWithTag("grade-keep-${choice.name}").fetchSemanticsNodes().isNotEmpty())
-            compose.onNodeWithTag("grade-keep-${choice.name}").performScrollTo().assertIsEnabled().performClick()
+            compose.onNodeWithTag("grade-keep-${choice.name}").assertIsDisplayed().assertIsEnabled().performClick()
         else {
             compose.onNodeWithTag("academic-confirm-decision").assertIsNotEnabled()
             compose.onNodeWithTag("academic-choice-${choice.name}").performScrollTo().performClick()
-            compose.onNodeWithTag("academic-confirm-decision").performScrollTo().performClick()
+            compose.onNodeWithTag("academic-confirm-decision").assertIsDisplayed().assertIsEnabled().performClick()
         }
     }
     private fun shot(name:String) {
@@ -208,6 +208,12 @@ class CommercialFinalNetworkProbeTest {
             "e-auto-final-final"->{
                 synced();waitFor{grade()==8.5};assertNotNull(w.repository.dao.student("commercial-remote-only"))
                 val fixture=PhaseDFixture.read().canonical();val actual=snapshot()
+                val firstJournal=fixture.lessonRecords.first().id
+                val expected=fixture.copy(
+                    grades=fixture.grades.map{if(it.activityId=="d-a1"&&it.studentId=="ds2")it.copy(value=8.5)else it},
+                    lessonRecords=fixture.lessonRecords.map{if(it.id==firstJournal)it.copy(description="e-auto-final-peer-two")else it},
+                    students=fixture.students+Student("commercial-remote-only","commercial-new-person","d-source","Estudante Fictício Posterior",40,"2026-01-01"))
+                assertEquals(expected.canonical(),actual) // Every field of all fifteen types, not just totals.
                 assertEquals(fixture.marks,actual.marks);assertEquals(fixture.histories,actual.histories);assertEquals(fixture.relocations,actual.relocations)
                 assertEquals(172,AcademicRecords.rows(actual).size);assertEquals(15,AcademicRecords.rows(actual).map{it.kind}.toSet().size)
                 assertEquals(37,w.repository.dao.roster("d-source").size)

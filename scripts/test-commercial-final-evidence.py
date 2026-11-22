@@ -45,11 +45,13 @@ server=sql(f"""SELECT jsonb_build_object(
  'unique_receipts',(SELECT count(DISTINCT operation_id) FROM public.noctua_academic_receipts WHERE owner_id='{owner}'),
  'decisions',(SELECT count(*) FROM public.noctua_e_decisions WHERE owner_id='{owner}'),
  'grade_revision',(SELECT revision FROM public.noctua_academic_records WHERE owner_id='{owner}' AND kind='grades' AND key='{{"activityId":"d-a1","studentId":"ds2"}}'::jsonb),
+ 'grade_versions',(SELECT jsonb_agg(payload->'value' ORDER BY revision) FROM public.noctua_academic_versions WHERE owner_id='{owner}' AND kind='grades' AND key='{{"activityId":"d-a1","studentId":"ds2"}}'::jsonb),
  'unentitled_records',(SELECT count(*) FROM public.noctua_academic_records WHERE owner_id='99999999-9999-4999-8999-999999999999'),
  'unentitled_protocols',(SELECT count(*) FROM public.noctua_sync_protocols WHERE owner_id='99999999-9999-4999-8999-999999999999'));
 """)
 assert server['head']==final['primary']['cursor']==final['secondary']['cursor']
 assert server['records']==172 and server['grade_revision']==10 and server['decisions']==3
+assert server['grade_versions']==[None,0,1.5,2.5,9,4,8,9.5,7.5,8.5]
 assert server['receipts']==server['unique_receipts']
 assert server['unentitled_records']==server['unentitled_protocols']==0
 logs=list(base.glob('e-auto-final-*.txt'))
