@@ -56,7 +56,9 @@ resolver erro. Nenhum downgrade/instalação no proprietário foi executado.
 1. Confirmar no painel o projeto **noctua-homologacao / sscexzxtqdcsqdlcytum**.
 2. Revisar/copiar o template atual antes de alterar. Somente após autorização,
    Authentication → Email Templates → Confirm signup: usar o arquivo preparado
-   `supabase/templates/confirm_signup_otp.html`, com `{{ .Token }}`.
+   `supabase/templates/confirm_signup_otp.html`, com `{{ .Token }}` como caminho principal
+   e `{{ .ConfirmationURL }}` opcional para clientes antigos. Não remover esse
+   fallback numa futura implantação que ainda admita versões anteriores.
 3. Não alterar Reset password, confirmação obrigatória, CAPTCHA, limites de
    tentativas ou OTP expiry para fazer o teste passar. A recuperação permanece PKCE.
 4. Conferir a configuração real de tamanho/prazo do OTP, envio de e-mail/SMTP e
@@ -380,3 +382,27 @@ A regressão completa foi iniciada em
 mesmo SHA 64f0c61, launcher_only=false, incluindo a correção ecdf378 do scheduler
 Compose. **Ainda não aprovada neste checkpoint.** Aguardar resultados/artefatos
 antes do APK paralelo. Nenhuma execução hosted, SQL remoto ou assinatura permanente.
+
+## Atualização da instrumentação após a primeira regressão completa
+
+A execução 45074735418 comprovou novamente a abertura pelo ícone em 8,379s, sem
+controle Gallery e com a Application normal. Foi reprovada no primeiro cenário de
+rede: o StandardTestDispatcher de ecdf378 passou a executar o flow do Room durante
+avanços do relógio na main thread. **A guarda Room recusou; não foi desabilitada.**
+O APK não foi gerado por essa execução e a bateria posterior não foi executada.
+
+`7847dcb` substitui essa tentativa por um adapter **somente androidTest** que lança a
+mesma MainActivity com WindowRecomposerFactory.LifecycleAware, seu recomposer real
+ligado ao lifecycle/Choreographer. Os testes continuam usando as mesmas consultas
+semânticas, assertivas, cliques, deadlines e dados/HTTP reais locais. O contexto
+artificial de continuação do Compose 1.7.6 não se propaga mais às consultas Room.
+Não há allowMainThreadQueries, troca de DAO, conteúdo fake, admissão direta,
+activate/run/request ou remoção de asserts. Compilação instrumentada aprovada em45s.
+O adapter usa API interna **test-only da versão Compose fixada no BOM** e precisa
+ser revisado na atualização dessa dependência; não é incorporado ao APK do app.
+A prova Android dessa mudança ainda aguarda a nova CI completa.
+
+O template preparado passou a manter também o ConfirmationURL oficial como
+fallback de versões antigas. O código continua primário para leitura do e-mail em
+outro dispositivo. Isso preserva o link PKCE existente sem desabilitar confirmação
+ou emitir tokens localmente. Nenhum template hospedado foi alterado.
