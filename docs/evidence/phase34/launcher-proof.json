@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "application_id": "br.com.diariodeclasse",
+  "launcher_surface": "DRAWER",
+  "launcher_intent_resolved": true,
+  "actual_icon_tapped": true,
+  "normal_Application": true,
+  "instrumentation": false,
+  "empty_login_screen": true,
+  "network_disabled": true,
+  "launcher_animation_scale": "1.0",
+  "prior_animation_scale": "0.0",
+  "seconds": 12.706,
+  "hosted_auth_executed": false
+}

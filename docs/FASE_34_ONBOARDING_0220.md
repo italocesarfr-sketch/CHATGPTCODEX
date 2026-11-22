@@ -347,3 +347,36 @@ SHA `df381c45461c2324ce002167570293186d2fc171`. Não presumir sucesso. Depois de
 executar o workflow comercial completo (launcher_only=false), conferir os 122 casos,
 hashes, claims, filas e revisões e somente então despachar homologacao_only.
 O bloqueio automático do build paralelo não será contornado.
+
+## Launcher: prova real aprovada, causa de infraestrutura isolada
+
+[Diagnóstico 45074383960](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45074383960),
+SHA `64f0c610a955ef71e19be272c3ba63aae599a010`, aprovado. Mesma imagem API 30,
+mesma geometria medida e mesmo app, com a única mudança relevante de temporização:
+`animator_duration_scale` restaurado de 0,0 para 1,0 durante a prova. A gaveta abriu,
+o ícone Noctua foi encontrado e **tocado**, e a Application normal apresentou a tela
+de login em 12,706s, sem instrumentação, usuário/sessão ou conexão de rede.
+A escala anterior é restaurada no finally antes dos testes Compose.
+
+A causa observada na CI foi a interação do Launcher3 com animação desabilitada
+pelo runner. O Manifest, MainActivity, rótulo e ícone estavam corretos; não foram
+modificados. Isso **não prova a causa do relato original no AVD do proprietário**:
+a configuração daquele dispositivo não foi inspecionada nem alterada. A validação
+atual comprova o contrato e a abertura pelo ícone nesse AVD descartável.
+
+- [Resultado sanitizado](evidence/phase34/launcher-proof.json).
+- [Ícone na gaveta real](evidence/phase34/launcher-icon-found.png).
+- [Login aberto pelo toque](evidence/phase34/login-from-launcher.png).
+
+A busca QSB da imagem não ofereceu o app como sugestão; ela não é usada como
+substituto da prova. A abertura final veio da **gaveta**, com o ícone correto.
+Os três testes da geometria usam o XML vazio real do AVD, dobram a densidade e
+reprovam layouts sem região segura. Não substituem o teste Android. O modo
+launcher_only continua exclusivo de diagnóstico; o job completo não foi executado
+nessa rodada e seu skip não é contado como aprovação.
+
+A regressão completa foi iniciada em
+[45074735418](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45074735418),
+mesmo SHA 64f0c61, launcher_only=false, incluindo a correção ecdf378 do scheduler
+Compose. **Ainda não aprovada neste checkpoint.** Aguardar resultados/artefatos
+antes do APK paralelo. Nenhuma execução hosted, SQL remoto ou assinatura permanente.
