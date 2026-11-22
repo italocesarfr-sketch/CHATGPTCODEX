@@ -50,8 +50,9 @@ class CommercialNativeUiRule:TestRule {
     }
     private fun tags(tag:String)=nodes{n->
         val key="androidx.compose.ui.semantics.testTag"
-        if(key in n.availableExtraData)n.refreshWithExtraData(key,Bundle.EMPTY)
-        n.viewIdResourceName==tag||n.extras.getCharSequence(key)?.toString()==tag
+        // Android adds the requested-key argument; Bundle.EMPTY is immutable.
+        val current=key !in n.availableExtraData||n.refreshWithExtraData(key,Bundle())
+        current&&(n.viewIdResourceName==tag||n.extras.getCharSequence(key)?.toString()==tag)
     }
     private fun <T> inspect(tag:String,block:(AccessibilityNodeInfo)->T):T{
         val found=tags(tag)
