@@ -73,7 +73,7 @@ Referências oficiais consultadas: [Email templates](https://supabase.com/docs/g
 [código oficial GoTrue](https://github.com/supabase/auth/blob/master/internal/api/verify.go)
 e [limites configuráveis OTP](https://github.com/supabase/auth/blob/master/internal/conf/configuration.go).
 
-## Launcher — diagnóstico ainda não fechado neste checkpoint
+## Launcher — análise e prova Android
 
 Manifest declara MAIN/LAUNCHER, MainActivity exportada, singleTop, ícones normal e
 round e callback separado. Não se presume defeito só porque instruções anteriores
@@ -81,6 +81,15 @@ usaram ADB. O ensaio novo tocará o ícone real no launcher de AVD próprio, com
 Application normal e rede bloqueada antes de instalar. Não usa instrumentação,
 monkey ou componente hardcoded para produzir a abertura. Validação pendente de CI;
 nenhuma correção de manifest se justifica antes da reprodução.
+
+A CI 45067806104 parou na automação da gaveta: a captura mostrou o launcher AOSP
+clássico na Home, antes de qualquer abertura do app. O executor procurava somente
+um subconjunto dos nomes do botão e usou um gesto incompatível com esse launcher.
+A correção `54e3da2` reconhece `all_apps_handle` e variações semânticas; o fallback
+é a tecla pública Android ALL_APPS, jamais o componente do app. O toque que abre
+o NOcTuA continua sendo no ícone encontrado pela árvore real de acessibilidade.
+São preservados XML/captura do launcher vazio para diagnóstico. Isso não comprova
+um defeito no Manifest do produto e nenhuma alteração nele foi feita.
 
 ## Provisionamento institucional mínimo — migração preparada
 
@@ -161,6 +170,8 @@ Commits por responsabilidade:
 - `d4c89f7`: provisionamento institucional privado e 18 testes PostgreSQL.
 - `5838b71`: captura das quatro entidades auxiliares por operações reais do repository.
 - `ab21cf7`: launcher pelo ícone e ampliação da CI comercial já existente.
+- `01acb32`: prepara fixture vazio exclusivo do job antes da bateria de migração; nenhum CHECK foi relaxado.
+- `54e3da2`: reconhece a gaveta do launcher AOSP clássico na prova real por ícone.
 
 Resultados efetivamente concluídos no workspace:
 
@@ -181,8 +192,15 @@ alteração de timeout/retry do produto. A primeira reconstrução SQL do fixtur
 um banco descartável ainda populado também foi interrompida por CHECK de escopo;
 o banco exclusivo desta tarefa foi recriado vazio, sem qualquer banco do usuário.
 
-CI completa em andamento no código `ab21cf7d7396ba314710e470690627b5e6e4ba90`:
-[execução 45067489560](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45067489560).
+A primeira [CI 45067489560](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45067489560)
+parou antes do Android: a bateria anterior deixou seu fixture em E e a nova bateria
+de migração tentou reaplicar A–D nele. O artefato confirmou a falha no CHECK de escopo,
+sem executar a migração institucional. A correção 01acb32 recria apenas o banco do
+serviço PostgreSQL efêmero do próprio job, com guardas CI/loopback/porta/nome; preserva
+as evidências da bateria anterior e testa a migração sobre fixture vazio.
+
+CI completa em andamento no código `54e3da222e5d78a67c4d530249866d959b3c5130`:
+[execução 45068761680](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45068761680).
 Os resultados Android/launcher ainda não estão aprovados neste checkpoint. Não
 confundir TLS mock/OTP simulado com cadastro/verificação real em GoTrue. As cinco
 condicionais JVM não contam como aprovadas. Nenhuma autenticação hospedada foi feita.
@@ -221,3 +239,47 @@ condicionais JVM não contam como aprovadas. Nenhuma autenticação hospedada fo
   para direito já concedido, desabilitar o entitlement específico preservando dados,
   claim, filas e titularidade. Essas alterações exigem autorização própria. Não
   remover auditorias nem restaurar banco sobre dados ativos como rollback casual.
+
+## Arquivos e comandos de validação
+
+Auth: `AuthModels.kt`, `AuthVault.kt`, `AuthController.kt`, `SupabaseAuthClient.kt`
+e `AuthScreen.kt`. Testes: `SignupOtpTest.kt`, `SignupOtpHttpsTest.kt`,
+`SignupConfirmationUiTest.kt` e `AcademicAuxiliaryCaptureTest.kt`. Preparação do
+servidor: nova migração institucional, check somente leitura e template OTP.
+Integração CI: workflows `commercial-auto-local.yml`, `android.yml`, `homologacao.yml`,
+helpers `test-commercial-android.sh`/`test-launcher-icon.py` e os scripts de fixture,
+evidência e teste de provisionamento. Nenhuma entidade/schema Room, DAO, regra
+acadêmica ou RPC A–E foi reescrita. A migração comercial original continua com
+SHA-256 `1d5c48c0b55a24edbae948407a8775030490338c8a3b0c6a64b2a98e5bf051e2`.
+Nova migração preparada (6.729 bytes):
+`934bc08a8448cea5b6e73c4cef488472940838195420236a3aeaae283ea341aa`.
+
+Comandos locais (SDK/JDK instalados no workspace; serviços somente loopback):
+
+```sh
+./gradlew --offline --no-daemon testDebugUnitTest assembleDebug assembleDebugAndroidTest
+PGHOST=127.0.0.1 PGPORT=55431 PGDATABASE=noctua_phase_e_test NOCTUA_COMMERCIAL_DISPOSABLE=YES python3 scripts/test-commercial-provisioning.py
+PGHOST=127.0.0.1 PGPORT=55431 PGDATABASE=noctua_phase_e_test NOCTUA_COMMERCIAL_DISPOSABLE=YES NOCTUA_ONBOARDING_LOCAL=YES python3 scripts/test-commercial-http.py --prepare
+PGHOST=127.0.0.1 PGPORT=55431 PGDATABASE=noctua_phase_e_test NOCTUA_COMMERCIAL_DISPOSABLE=YES python3 scripts/test-commercial-http.py
+python3 scripts/test-commercial-homologation-preparation.py
+bash -n scripts/ci/test-commercial-android.sh
+```
+
+São fixtures SQL locais independentes de GoTrue hospedado. As cinco condicionais
+JVM são H01–H04 e SupabaseLiveAuthTest, deliberadamente sem autorização/credenciais
+nesta tarefa; não foram executadas nem aprovadas novamente.
+
+## Validação manual mínima futura (não executada)
+
+1. Após autorização e revisão do template em **homologação**, usar uma conta
+   fictícia inédita: cadastrar, consultar o e-mail em outro aparelho, tentar um
+   código inválido, confirmar com o código correto e entrar com senha. Não enviar
+   códigos, links ou senhas pelo chat. Conferir que a confirmação, sozinha, não abre
+   workspace. Expiração/uso único/entrega precisam ser comprovados no GoTrue real.
+2. Após autorização administrativa separada para a nova migração e **uma** linha
+   de roster, entrar com essa conta num AVD novo. Verificar inicialização E sem menus
+   e recuperação no segundo AVD novo. Não alterar contas comerciais já homologadas;
+   os oito cenários acadêmicos manuais das fases anteriores não precisam ser refeitos.
+
+Os testes locais não autorizam produção ou concessão comercial. Migração, template,
+roster/rollout e uso de conta hospedada continuam pendentes de autorização própria.
