@@ -207,9 +207,9 @@ class CommercialFinalNetworkProbeTest {
                     login(true)
                     waitFor{store.stage()=="BOOTSTRAP_E"&&store.dao.control()?.message=="INELIGIBLE"}
                     transitionDiagnostic(round,"B") // Written before assertions, including the old predicate.
-                    assertEquals("Session must belong to B",CommercialFinalAuthClient.OTHER_ID,app.auth.state.value.user?.id)
-                    assertEquals("Workspace must belong to B",CommercialFinalAuthClient.OTHER_ID,w.user.id)
-                    assertEquals("Control must belong to B",CommercialFinalAuthClient.OTHER_ID,store.dao.control()?.owner)
+                    assertEquals("Session must belong to B","B",ownerLabel(app.auth.state.value.user?.id))
+                    assertEquals("Workspace must belong to B","B",ownerLabel(w.user.id))
+                    assertEquals("Control must belong to B","B",ownerLabel(store.dao.control()?.owner))
                     val otherSnapshot=snapshot()
                     val otherRows=AcademicRecords.rows(otherSnapshot)
                     assertEquals("B must retain its legitimate local fixture", "other-local-only",otherSnapshot.classes.single().id)
@@ -229,8 +229,8 @@ class CommercialFinalNetworkProbeTest {
                     br.com.diariodeclasse.ui.DiaryViewModel(app).logout()
                     waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
                     login();synced();transitionDiagnostic(round,"A")
-                    assertEquals("Return session must belong to A",PhaseBNetworkHarness.user().id,app.auth.state.value.user?.id)
-                    assertEquals("Return workspace must belong to A",PhaseBNetworkHarness.user().id,w.user.id)
+                    assertEquals("Return session must belong to A","A",ownerLabel(app.auth.state.value.user?.id))
+                    assertEquals("Return workspace must belong to A","A",ownerLabel(w.user.id))
                     assertEquals(before,snapshot());assertEquals(cursor,store.cursor())
                     assertNull("B local fixture cannot leak into A",w.repository.dao.schoolClass("other-local-only"))
                     file("transition-$round.txt").writeText("round=$round A_B_A=true hash=${BackupCodec.fingerprint(before)} cursor=$cursor ${ui.diagnostic()}")

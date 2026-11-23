@@ -1,0 +1,38 @@
+{
+  "academic_final_phases_passed": 29,
+  "both_Rooms_match_server_ids_and_revisions": true,
+  "commit": "d6efa2c5bb9092bb025ba00da6b4407d0f2213df",
+  "failure": "e-auto-final-ui-transition / assertTrue(classes.isEmpty()) / line 185",
+  "hosted_requests": 0,
+  "institutional_provisioning": {
+    "claims": 1,
+    "initialized_entitlement": true,
+    "trusted_roster_binding": true
+  },
+  "primary_hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+  "run_id": 45111406970,
+  "secondary_hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+  "server": {
+    "decisions": 3,
+    "grade_revision": 10,
+    "grade_versions": [
+      null,
+      0.0,
+      1.5,
+      2.5,
+      9.0,
+      4.0,
+      8.0,
+      9.5,
+      7.5,
+      8.5
+    ],
+    "head": 13,
+    "receipts": 13,
+    "records": 172,
+    "unentitled_protocols": 0,
+    "unentitled_records": 0,
+    "unique_receipts": 13
+  },
+  "workflow_success": false
+}
