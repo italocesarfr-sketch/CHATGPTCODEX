@@ -88,6 +88,28 @@ class CommercialFinalNetworkProbeTest {
             put("decisions",buildJsonArray{store.dao.decisions().forEach{d->add(buildJsonObject{put("phase",d.phase);put("body_hash",BackupCodec.hash(d.body.toByteArray()))})}})
         }.toString())
     }
+    private fun ownerLabel(id:String?)=when(id){
+        null->"NONE";PhaseBNetworkHarness.user().id->"A";CommercialFinalAuthClient.OTHER_ID->"B";else->"OTHER"
+    }
+    private suspend fun transitionDiagnostic(round:Int,point:String) {
+        val current=w;val academic=AcademicStore(current.database,current.user.id)
+        val c=academic.dao.control();val auth=app.auth.state.value
+        val rows=AcademicRecords.rows(ClassLifecycle.snapshot(current.repository.readSnapshot()).canonical())
+        val states=academic.dao.states()
+        file("transition-$round-$point.json").writeText(buildJsonObject {
+            put("round",round);put("point",point);put("auth_owner",ownerLabel(auth.user?.id))
+            put("workspace_owner",ownerLabel(current.user.id));put("control_owner",ownerLabel(c?.owner))
+            put("authenticated",auth.user!=null);put("initializing",auth.initializing);put("loading",auth.loading)
+            put("stage",c?.stage ?: "NONE");put("active",academic.active());put("cursor",c?.cursor ?: -1L)
+            put("ineligible",c?.message=="INELIGIBLE")
+            put("counts",buildJsonObject{rows.groupBy{it.kind}.toSortedMap().forEach{(k,v)->put(k,v.size)}})
+            put("previous_empty_predicate",rows.none{it.kind=="classes"})
+            put("other_owner_states",states.any{it.owner!=current.user.id})
+            put("hash",BackupCodec.fingerprint(ClassLifecycle.snapshot(current.repository.readSnapshot()).canonical()))
+            put("pending",academic.dao.pendingHeaders().size);put("inbox",academic.dao.incomingHeaders().size)
+            put("decisions",academic.dao.decisions().size)
+        }.toString())
+    }
     @Test fun finalCommercialScenariosNineThroughThirteen():Unit=runBlocking {
         Assume.assumeTrue(PhaseBNetworkHarness.phase?.startsWith("e-auto-final-")==true)
         check(BuildConfig.DEBUG&&BuildConfig.ACADEMIC_COMMERCIAL&&Build.HARDWARE in setOf("ranchu","goldfish"))
@@ -184,17 +206,33 @@ class CommercialFinalNetworkProbeTest {
                     waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
                     login(true)
                     waitFor{store.stage()=="BOOTSTRAP_E"&&store.dao.control()?.message=="INELIGIBLE"}
+                    transitionDiagnostic(round,"B") // Written before assertions, including the old predicate.
+                    assertEquals("Session must belong to B",CommercialFinalAuthClient.OTHER_ID,app.auth.state.value.user?.id)
+                    assertEquals("Workspace must belong to B",CommercialFinalAuthClient.OTHER_ID,w.user.id)
+                    assertEquals("Control must belong to B",CommercialFinalAuthClient.OTHER_ID,store.dao.control()?.owner)
                     val otherSnapshot=snapshot()
-                    assertTrue(otherSnapshot.classes.none{c->before.classes.any{it.id==c.id}})
+                    val otherRows=AcademicRecords.rows(otherSnapshot)
+                    assertEquals("B must retain its legitimate local fixture", "other-local-only",otherSnapshot.classes.single().id)
+                    assertEquals("B retains all four local terms",setOf(1,2,3,4),otherSnapshot.terms.map{it.number}.toSet())
+                    assertTrue("B terms belong only to B's local class",otherSnapshot.terms.all{it.classId=="other-local-only"})
+                    assertEquals("No remote academic types admitted to B",setOf("classes","terms"),otherRows.map{it.kind}.toSet())
+                    assertEquals("B has exactly its five local records",5,otherRows.size)
+                    assertEquals("B first-visit contents match the earlier isolation fixture",file("other-local-hash").readText(),BackupCodec.fingerprint(otherSnapshot))
+                    assertTrue("No A identity may appear in B",otherRows.map{it.identity}.toSet().intersect(AcademicRecords.rows(before).map{it.identity}.toSet()).isEmpty())
                     val otherStates=store.dao.states()
                     assertTrue(otherStates.all{it.owner==CommercialFinalAuthClient.OTHER_ID})
                     val versions=BackupCodec.hash(otherStates.sortedWith(compareBy({it.kind},{it.key1},{it.key2})).toString().toByteArray())
                     if(otherBefore==null){otherBefore=otherSnapshot;otherVersions=versions}
                     else {assertEquals(otherBefore,otherSnapshot);assertEquals(otherVersions,versions)}
-                    assertFalse(store.active())
+                    assertEquals("B has never received a remote cursor",0L,store.cursor())
+                    assertFalse("B must not be commercially admitted",store.active())
                     br.com.diariodeclasse.ui.DiaryViewModel(app).logout()
                     waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
-                    login();synced();assertEquals(before,snapshot());assertEquals(cursor,store.cursor())
+                    login();synced();transitionDiagnostic(round,"A")
+                    assertEquals("Return session must belong to A",PhaseBNetworkHarness.user().id,app.auth.state.value.user?.id)
+                    assertEquals("Return workspace must belong to A",PhaseBNetworkHarness.user().id,w.user.id)
+                    assertEquals(before,snapshot());assertEquals(cursor,store.cursor())
+                    assertNull("B local fixture cannot leak into A",w.repository.dao.schoolClass("other-local-only"))
                     file("transition-$round.txt").writeText("round=$round A_B_A=true hash=${BackupCodec.fingerprint(before)} cursor=$cursor ${ui.diagnostic()}")
                     shot("login-transition-$round")
                 }
@@ -207,6 +245,7 @@ class CommercialFinalNetworkProbeTest {
                 login(true);waitFor{store.stage()=="BOOTSTRAP_E"&&store.dao.control()?.message=="INELIGIBLE"};assertTrue(snapshot().classes.isEmpty());assertFalse(store.active())
                 w.repository.saveClass(SchoolClass("other-local-only",name="Outra conta fictícia",subject="História",year=2026),"2026-01-01")
                 assertTrue(store.dao.states().all{it.owner==CommercialFinalAuthClient.OTHER_ID})
+                file("other-local-hash").writeText(BackupCodec.fingerprint(snapshot()))
                 br.com.diariodeclasse.ui.DiaryViewModel(app).logout();waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
                 login();synced();assertEquals(before,snapshot());assertEquals(originalCursor,store.cursor());assertNull(w.repository.dao.schoolClass("other-local-only"))
             }

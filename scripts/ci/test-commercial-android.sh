@@ -14,7 +14,15 @@ bash scripts/ci/test-commercial-network.sh
 if [[ "${NOCTUA_ONBOARDING_LOCAL:-}" == YES ]]; then
     # Keep the isolated A/B/A regression in every complete onboarding run too.
     adb shell am force-stop br.com.diariodeclasse
-    timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -r -e timeout_msec 120000 -e phaseBNetworkPhase e-auto-final-ui-transition -e phaseBDevice primary -e class br.com.diariodeclasse.CommercialFinalNetworkProbeTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/ui-transition.txt
+    transition_exit=0
+    timeout --signal=INT --kill-after=10s 3m adb shell am instrument -w -r -e timeout_msec 120000 -e phaseBNetworkPhase e-auto-final-ui-transition -e phaseBDevice primary -e class br.com.diariodeclasse.CommercialFinalNetworkProbeTest br.com.diariodeclasse.test/br.com.diariodeclasse.AuthTestRunner > build/commercial-tests/android/ui-transition.txt || transition_exit=$?
+    # Collect the checkpoint written before each assertion even if native tests fail.
+    for round in 0 1 2; do
+        for point in A B; do
+            adb exec-out run-as br.com.diariodeclasse cat "files/commercial-final-transition-$round-$point.json" > "build/commercial-tests/android/commercial-final-transition-$round-$point.json" || true
+        done
+    done
+    [[ "$transition_exit" == 0 ]] || exit "$transition_exit"
     python3 - <<'PYTEST'
 from pathlib import Path
 t=Path('build/commercial-tests/android/ui-transition.txt').read_text()
@@ -24,6 +32,7 @@ PYTEST
         adb exec-out run-as br.com.diariodeclasse cat "files/commercial-final-transition-$round.txt" > "build/commercial-tests/android/ui-transition-$round.txt"
     done
     adb exec-out run-as br.com.diariodeclasse tar cf - -C files commercial-final-screenshots > build/commercial-tests/android/ui-transition-screenshots.tar
+    python3 scripts/test-commercial-ui-evidence.py
 fi
 classes=br.com.diariodeclasse.CommercialBootstrapRoomTest,br.com.diariodeclasse.CommercialSyncPanelTest,br.com.diariodeclasse.AcademicAutomaticRoomTest,br.com.diariodeclasse.PhaseBRoomTest,br.com.diariodeclasse.PhaseCRoomTest,br.com.diariodeclasse.PhaseDRoomTest,br.com.diariodeclasse.PhaseEReconciliationTest,br.com.diariodeclasse.AuthIsolationInstrumentedTest
 if [[ "${NOCTUA_ONBOARDING_LOCAL:-}" == YES ]]; then
