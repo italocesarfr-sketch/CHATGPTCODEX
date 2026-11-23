@@ -177,12 +177,21 @@ class CommercialFinalNetworkProbeTest {
                 // Isolated regression: real password UI, normal lifecycle and Keystore;
                 // no auth shortcut, no manual engine activation or synchronization.
                 synced();val before=snapshot();val cursor=store.cursor()
+                var otherBefore:BackupSnapshot?=null
+                var otherVersions:String?=null
                 repeat(3){round->
                     br.com.diariodeclasse.ui.DiaryViewModel(app).logout()
                     waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
                     login(true)
                     waitFor{store.stage()=="BOOTSTRAP_E"&&store.dao.control()?.message=="INELIGIBLE"}
-                    assertTrue(snapshot().classes.isEmpty());assertFalse(store.active())
+                    val otherSnapshot=snapshot()
+                    assertTrue(otherSnapshot.classes.none{c->before.classes.any{it.id==c.id}})
+                    val otherStates=store.dao.states()
+                    assertTrue(otherStates.all{it.owner==CommercialFinalAuthClient.OTHER_ID})
+                    val versions=BackupCodec.hash(otherStates.sortedWith(compareBy({it.kind},{it.key1},{it.key2})).toString().toByteArray())
+                    if(otherBefore==null){otherBefore=otherSnapshot;otherVersions=versions}
+                    else {assertEquals(otherBefore,otherSnapshot);assertEquals(otherVersions,versions)}
+                    assertFalse(store.active())
                     br.com.diariodeclasse.ui.DiaryViewModel(app).logout()
                     waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
                     login();synced();assertEquals(before,snapshot());assertEquals(cursor,store.cursor())
