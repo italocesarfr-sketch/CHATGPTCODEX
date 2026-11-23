@@ -4,7 +4,7 @@ No hosted connection: network is disabled before install. Never targets existing
 """
 import argparse,json,os,re,subprocess,time,xml.etree.ElementTree as ET
 from pathlib import Path
-from launcher_geometry import drawer_gesture
+from launcher_geometry import drawer_gesture, stable_icon
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--apk',required=True);p.add_argument('--package',required=True,choices=['br.com.diariodeclasse','br.com.diariodeclasse.homologacao']);p.add_argument('--label',required=True,choices=['Noctua','NOcTuA Homologação']);p.add_argument('--output',required=True);p.add_argument('--input-control',action='store_true');a=p.parse_args()
 assert os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('CI')=='true'
 def adb(*args,timeout=30):return subprocess.run(['adb',*args],check=True,capture_output=True,timeout=timeout).stdout
@@ -14,6 +14,7 @@ assert name in [f'noctua_commercial_auto_{os.environ["GITHUB_RUN_ID"]}_{os.envir
 assert adb('shell','getprop','ro.kernel.qemu').strip()==b'1'
 out=Path(a.output);out.mkdir(parents=True,exist_ok=True)
 def dump():
+ adb('shell','rm','-f','/sdcard/noctua-launcher-proof.xml')
  adb('shell','uiautomator','dump','/sdcard/noctua-launcher-proof.xml')
  return ET.fromstring(adb('exec-out','cat','/sdcard/noctua-launcher-proof.xml'))
 def wait_for(predicate):
@@ -65,6 +66,18 @@ try:
   adb('shell','input','touchscreen','-d','0','swipe',*map(str,gesture),'150')
   (out/'drawer-after-input.png').write_bytes(adb('exec-out','screencap','-p'))
   icon=wait_for(find_icon)
+ # Package indexing and drawer animation can replace/reposition virtual nodes.
+ # Require two fresh, matching full-drawer geometries, not a label from an older frame.
+ previous=None
+ def settled_icon(root):
+  global previous
+  current=stable_icon(root,a.label,surface)
+  matched=current is not None and current==previous
+  previous=current
+  return root if matched else None
+ root=wait_for(settled_icon);icon=find_icon(root)
+ (out/'launcher-icon-found.xml').write_bytes(ET.tostring(root,encoding='utf-8'))
+ (out/'icon-tap.json').write_text(json.dumps(dict(surface=surface,bounds=icon.get('bounds'),center=center(icon),two_fresh_layouts_equal=True))+'\n')
  # The launch itself is an icon tap. No monkey, hardcoded component or am start.
  (out/'launcher-icon-found.png').write_bytes(adb('exec-out','screencap','-p'))
  stage='ICON_TAP'

@@ -4,7 +4,7 @@ import re,sys,unittest,xml.etree.ElementTree as E
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'scripts/ci'))
-from launcher_geometry import drawer_gesture,bounds
+from launcher_geometry import drawer_gesture,bounds,stable_icon
 
 class LauncherGeometryTest(unittest.TestCase):
  def tree(self):return E.parse(ROOT/'test-fixtures/launcher-api30-empty.xml').getroot()
@@ -29,5 +29,13 @@ class LauncherGeometryTest(unittest.TestCase):
   for n in list(hotseat):hotseat.remove(n)
   E.SubElement(hotseat,'node',{'bounds':hotseat.get('bounds'),'clickable':'true'})
   with self.assertRaises(ValueError):drawer_gesture(root)
+
+ def test_drawer_target_requires_unique_clickable_icon_and_fresh_layout_signature(self):
+  r=E.fromstring('<hierarchy><node resource-id="launcher:id/apps_list_view"><node text="Noctua" clickable="true" bounds="[15,323][85,438]"/><node text="Phone" clickable="true" bounds="[88,323][158,438]"/></node></hierarchy>')
+  first=stable_icon(r,'Noctua','DRAWER');self.assertIsNotNone(first)
+  target=next(n for n in r.iter('node')if n.get('text')=='Noctua')
+  target.set('bounds','[88,323][158,438]');self.assertNotEqual(first,stable_icon(r,'Noctua','DRAWER'))
+  target.set('clickable','false');self.assertIsNone(stable_icon(r,'Noctua','DRAWER'))
+  self.assertIsNone(stable_icon(r,'Noctua','HOME'))
 
 if __name__=='__main__':unittest.main(verbosity=2)
