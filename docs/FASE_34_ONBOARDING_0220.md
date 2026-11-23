@@ -1,20 +1,118 @@
-> **Retomada em 23/11/2026 — ainda não aprovada.** A execução completa
-> [45078704183](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45078704183)
-> falhou. Seu artefato `commercial-auto-local-evidence` (ZIP SHA-256
-> `94c994574f409dc7fed306a4e9ead67f6561deb9b88876982b25d7de6484d0e7`)
-> mostra o Telefone em primeiro plano após o toque destinado ao NOcTuA e a tela
-> de login visível após B → A, enquanto o executor não encontra `entry-email`.
-> Isso comprova o destino incorreto do toque e a divergência entre captura e
-> consulta de acessibilidade; ainda não comprova a causa de cache/geometria.
->
-> A retomada preservou a branch, HEAD `d4751cc` e working tree inicialmente limpa.
-> Não foram recuperadas alterações locais pendentes. O diagnóstico novo verifica
-> dois layouts frescos do launcher e atualiza os nós virtuais antes da travessia.
-> Registra apenas geometria, tags conhecidas e estados booleanos, sem valores de
-> campos. Um modo manual `ui_diagnostic_only=true` executa launcher, bootstrap
-> sintético e três trocas A → B → A em AVD novo. Não substitui a regressão completa.
-> Geometria: quatro testes locais aprovados; sintaxe Python/Bash/YAML conferida.
-> Supabase hospedado, contas, dispositivos e assinatura permanente intocados.
+# Fase 3.4 — estado consolidado da retomada final (23/11/2026)
+
+**Ainda não aprovada integralmente.** A regressão completa precisa ser conferida
+antes de gerar o APK paralelo. Nenhuma operação hospedada foi autorizada/executada.
+Os checkpoints históricos abaixo devem ser lidos com suas próprias datas e SHAs.
+
+## Evidências desta retomada
+
+- Working tree inicialmente limpa, branch `sync/academic-commercial-onboarding-034`,
+  HEAD `d4751cc`; nenhuma implementação anterior descartada/recriada.
+- Última falha completa revisada: `45078704183`, código `eff20b1`.
+  Os XMLs JVM mostram 337 casos por configuração (332 aprovados, cinco condicionais
+  não executados, zero falhas). Android: 29 etapas aprovadas, uma falha em isolamento;
+  a bateria posterior não executou. O launcher também falhou.
+- ZIP da falha: SHA-256 `94c994574f409dc7fed306a4e9ead67f6561deb9b88876982b25d7de6484d0e7`.
+- Diagnóstico isolado [45110657467](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45110657467),
+  código `8201b29b2e2785f34a2c95dd862cc13914ab17f1`: **sucesso**, 4m35s.
+  Quatro testes de geometria, 18 PostgreSQL institucionais, 43 verificações HTTP,
+  três etapas Android executadas/aprovadas, zero falhas/ignorados nessas etapas.
+  As duas primeiras etapas preparam/confirmam a fixture e a terceira testa a UI.
+  A suíte JVM e a regressão completa foram intencionalmente omitidas nesse modo;
+  não são contabilizadas como aprovação do diagnóstico.
+- Artefato do diagnóstico: `commercial-auto-local-evidence`, ID `14789522575`,
+  ZIP SHA-256 `bfff75cf9f12df75847ed9d3388bdf9efeb74e2818167f80a53cb5361a057094`.
+- Abertura real pelo ícone: 12,968s incluindo instalação, rede desligada,
+  Application normal, sem instrumentação/atalho de Activity. Dois layouts frescos
+  iguais; centro medido (269,273), bounds [233,216][306,330]. PNG e XML inspecionados.
+- Três ciclos A → B → A: login por campos/botão nativos, logout real, B inelegível
+  e vazia, retorno de A com seus 171 registros dos quinze tipos, cursor 1 e nenhuma
+  outbox/inbox pendente. Hash idêntico nas três voltas:
+  `c7e8b5f2c1f49b4be0a01b9ec029c25ba11ce1a3f0ce09adad7774c7b26f356f`.
+  A captura da terceira volta foi inspecionada. Auth é **sintético local**, HTTP e
+  Room reais em infraestrutura descartável; não comprova GoTrue/SMTP hospedado.
+
+## Duas falhas: causa observada, correção e limites do diagnóstico
+
+**Launcher:** a captura e `window-focus.txt` da falha mostram o aplicativo Telefone,
+embora a captura anterior mostre o NOcTuA no drawer. O teste utilizava a primeira
+ocorrência do rótulo e reutilizava sua geometria depois de outras operações ADB,
+sem conferir estabilidade da grade após instalação/animação. Isso permitia tocar
+um destino diferente sem verificar a geometria imediatamente precedente. O novo
+executor exige duas árvores recém-geradas com a mesma grade de ícones clicáveis,
+recusa alvo ambíguo e registra XML/bounds/centro usados. Remove o XML anterior antes
+de cada dump para impedir leitura de arquivo antigo. A janela de animação normal
+necessária ao Launcher3 continua restrita ao ensaio e restaurada no finally.
+O cenário passou sem mudar Manifest, MainActivity ou pacote. Sem o XML anterior ao
+antigo toque, a sequência exata de reposicionamento daquele frame não é comprovada.
+
+**Troca de contas:** a falha ocorreu na segunda entrada, B → A, linha 180 do código
+`eff20b1`. A captura mostra login com campos vazios; o executor não via `entry-email`.
+Não foi demonstrado defeito de logout ou persistência: o modelo já estava sem usuário
+admitido e o workspace bloqueado. A travessia nativa agora atualiza cada ancestral/
+nó antes de ler os filhos e o testTag oficial, recusando nós inválidos. Nenhum acesso
+por DAO/auth/engine substitui a interação. Diagnósticos guardam só tags conhecidas,
+booleanos e contagens, sem conteúdo de campos. As três trocas passaram. Os contadores
+do diagnóstico registraram zero mudanças na **quantidade** de filhos e zero nós
+inválidos; portanto não permitem atribuir definitivamente o evento antigo a um nó
+específico em cache. A divergência árvore/captura é comprovada, sua causa interna
+exata permanece limitada à evidência disponível. Não foi alterado código do produto.
+
+## Commits e gate atual
+
+- `18ad61e`: geometria fresca/estável e regressão estática do launcher.
+- `8201b29`: atualização dos nós, diagnóstico sanitizado e modo isolado manual.
+- `d6efa2c5bb9092bb025ba00da6b4407d0f2213df`: inclui os três ciclos A/B/A também
+  na regressão completa, preservando todos os 122 casos nativos anteriores
+  (123 execuções nativas esperadas agora, mais a prova separada de launcher).
+- `c3d29f80358af1f93a8c8dda1179755bf342bfb5`: preserva dados próprios de B
+  que o teste de isolamento completo já cria deliberadamente. O novo teste compara
+  snapshot/revisões de B entre as três visitas e impede acesso às turmas de A;
+  não exige apagar ou esvaziar B. As asserções do cenário anterior permanecem intactas.
+  **Compilado localmente em 26s, ainda não executado em Android nessa revisão.**
+- Compilação instrumentada inicial local: sucesso em 47s; Bash/Python/YAML e diff conferidos.
+- JVM focado desta retomada: `SignupOtpTest` (11) + `SignupOtpHttpsTest` (4),
+  **15 aprovados, zero falhas/erros/ignorados**, Gradle em 21s. Transporte HTTPS
+  local simulado, sem acesso a GoTrue, e-mails ou credenciais hospedadas.
+
+A credencial da CLI GitHub expirou após o diagnóstico (HTTP 401). O conector ligado
+permitiu publicar o último commit; ele conserva o gatilho existente de push.
+A execução completa desse SHA ainda precisa ser localizada e seus artefatos
+conferidos. O conector disponível só lista execuções de pull request por SHA e
+não oferece despacho manual; a ausência nessa consulta não prova ausência de CI.
+Foi solicitada renovação da conexão, sem solicitar valores de credenciais.
+Não se despachou APK, não se declarou aprovação e não se repetiu CI em paralelo.
+O commit `c3d29f8` foi publicado com `[skip ci]` enquanto não é possível verificar
+se a execução anterior terminou. Portanto, o gate final exige uma execução completa
+que inclua essa correção da precondição, após conferir que não há outra em andamento.
+Não contar como aprovada a asserção nova apenas por ter compilado.
+
+### Continuidade exata após renovar a conexão
+
+1. Conferir `git status` e preservar as três alterações locais que correspondem às
+   publicações pelo conector (o fetch da CLI também retornou falha de autenticação).
+   Local HEAD ficou em `8201b29`; a branch remota inclui os commits posteriores.
+   Reconciliar por fast-forward verificado, sem reset/clean e sem descartar arquivos.
+2. Localizar a execução por push do SHA `d6efa2c`, inspecionar seu resultado e guardar
+   o artefato; não iniciar outra enquanto ela estiver em andamento.
+3. Executar a regressão completa sobre o HEAD atualizado:
+   `gh workflow run commercial-auto-local.yml --repo italocesarfr-sketch/CHATGPTCODEX --ref sync/academic-commercial-onboarding-034 -f ui_diagnostic_only=false -f launcher_only=false`.
+4. Exigir os 123 casos nativos, launcher, JVM, PostgreSQL e HTTP; examinar as capturas
+   de fontes ampliadas e as evidências finais dos dois AVDs. Comparar hash final,
+   revisões, cursor, recibos e decisões com o baseline 3.3; os três ciclos adicionais
+   não devem criar decisões/recibos acadêmicos nem alterar o hash.
+5. Somente depois, gerar APK paralelo pelo workflow existente; não usar assinatura
+   permanente nem instalar nos AVDs existentes. Conferir URL, applicationId, SHA e
+   certificado do artefato antes de disponibilizar como candidato para teste.
+
+O template OTP e a migração `202611220001_institutional_provisioning.sql` permanecem
+preparados, sem aplicação hospedada. Hash da migração permanece
+`934bc08a8448cea5b6e73c4cef488472940838195420236a3aeaae283ea341aa`.
+Após CI completa aprovada, gerar APK exclusivamente paralelo pelo workflow existente,
+inspecionar identidade/assinatura/launcher e usar somente AVDs novos. A validação
+hospedada mínima e suas autorizações separadas estão nos procedimentos abaixo.
+
+---
 
 # Fase 3.4 — autenticação, onboarding e provisionamento comercial
 
