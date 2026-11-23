@@ -1,3 +1,223 @@
+# Fase 3.4 — regressão completa aprovada localmente (23/11/2026)
+
+**Gate automatizado local cumprido. Não é homologação hospedada de OTP nem
+liberação de produção.** Branch `sync/academic-commercial-onboarding-034`.
+Código validado `553771d04f210c8cb2f4ff27246148c727ebbc22`.
+
+- CI completa: [45274547988](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45274547988),
+  **SUCCESS**, 12m10s. Não foi substituída pelo diagnóstico isolado.
+- Diagnóstico dirigido: [45273425576](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45273425576),
+  **SUCCESS**, quatro etapas Android e launcher, em 5m43s.
+- APK paralelo: [45276808241](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45276808241),
+  **SUCCESS**, 5m42s, mesmo SHA do código validado. Identidade, hash, assinatura e
+  abertura real pelo ícone conferidos. Exclusivo para AVD novo, sem instalar sobre
+  versões existentes.
+- CLI GitHub autenticada nesta retomada. Os três arquivos locais, já publicados
+  pelo conector na sessão anterior, eram idênticos aos remotos; foram preservados
+  e incorporados por fast-forward, sem reset, clean ou descarte.
+
+## Causa comprovada da falha `45111406970`
+
+A linha 185 do SHA `d6efa2c` reunia `assertTrue(classes.isEmpty())` e
+`assertFalse(store.active())`. O stack trace contém `Assert.assertTrue:42/53`,
+**sem** as chamadas `Assert.assertFalse`: a primeira condição falhou.
+
+O cenário anterior `e-auto-final-isolation` cria deliberadamente, pelo repositório
+real, uma turma **local de B**, `other-local-only`, e seus quatro bimestres. Depois
+retorna a A, sem apagar B. O novo teste repetido tinha sido validado isoladamente
+sobre B vazia, mas a bateria completa o executava **depois** dessa preparação.
+Exigir novamente B vazia era uma expectativa incorreta da fixture. Não foi
+necessário corrigir AuthController, workspaces, Room ou sincronização do produto.
+
+A reprodução agora executa primeiro o isolamento anterior e só depois as três
+alternâncias. O checkpoint da **primeira entrada de B, rodada 0**, comprova:
+
+| Verificação | Resultado |
+| --- | --- |
+| Sessão / workspace / controle | B / B / B |
+| Estado de sessão | Autenticada, sem inicialização/carregamento pendente |
+| Registros locais | 1 turma legítima + 4 bimestres; exatamente 5 registros |
+| Predicado antigo `classes.isEmpty()` | false |
+| `store.active()` | false: a segunda condição de segurança continua satisfeita |
+| Escopo local / cursor | BOOTSTRAP_E, INELIGIBLE / 0 |
+| Registros, protocolos, claims e direitos comerciais remotos de B | 0 / 0 / 0 / 0 |
+| Dados, identidades ou estados acadêmicos de A em B | Ausentes |
+
+O log antigo não guardava um contador de rodada. A reprodução confirma a falha já
+na rodada 0 sob a mesma preparação; não se inventou um índice a partir do log.
+Nas três rodadas, o hash de B permanece
+`7efb46c55adbeb878ec2d18f47357b5fb7ee1e7c38f4979d180ddc69f30a149a`.
+
+## Correção e verificações mantidas
+
+A correção parcial `c3d29f8`, antes apenas compilada, foi reaproveitada e reforçada:
+
+- Exige a fixture local **exata**, sem limpeza: turma original e quatro bimestres,
+  hash registrado na criação anterior, snapshots e revisões preservados nas visitas.
+- Compara identidades dos **quinze tipos**, impedindo interseção de dados A/B;
+  confere titularidade de sessão, workspace, controle e estados persistentes.
+- Mantém B inelegível/inativa, cursor zero e sem decisões. Confere no PostgreSQL
+  descartável que B continua sem protocolo, registros remotos, claim ou direito.
+- Retorna a A pela interface de login real; compara snapshot completo, cursor e
+  ausência da turma própria de B. Nenhum login direto, activate/run ou botão de
+  sincronização substitui a recuperação automática.
+- Grava checkpoints antes das asserções e coleta-os mesmo quando um teste nativo
+  falha. Proprietários são rótulos A/B/OTHER/NONE; não se registram tokens ou UUIDs.
+- Nenhuma asserção do cenário original de isolamento foi removida. Sua exigência
+  de B vazia **antes da criação legítima** continua existindo.
+
+## Contagens conferidas da CI completa
+
+| Bateria | Aprovados | Falhos | Ignorados / condicionais não executados |
+| --- | ---: | ---: | ---: |
+| JVM padrão | 332 de 337 | 0 | 5 |
+| JVM comercial | 332 de 337 | 0 | 5 |
+| PostgreSQL comercial | 20 | 0 | 0 |
+| PostgreSQL regras D | 27 | 0 | 0 |
+| PostgreSQL institucional | 18 | 0 | 0 |
+| HTTP/PostgREST | 43 verificações | 0 | 0 |
+| Geometria do launcher | 4 | 0 | 0 |
+| Android instrumentado | **123** | **0** | **0** |
+| Prova real pelo ícone, Application normal | 1 | 0 | 0 |
+
+Android: 6 fases originais + 29 acadêmicas finais + 1 cenário de três ciclos
+A/B/A + 84 Room/UI/Auth + 3 execuções com fonte 1,6. Os códigos nativos de aprovação
+somam 123, sem -2/-3/-4; os scripts também verificam saída do processo/timeout.
+
+Os cinco condicionais JVM por configuração são H01–H04 hospedados e
+`SupabaseLiveAuthTest`. Não receberam credenciais nem autorização nesta execução;
+**não contam como aprovados**. O job opcional de diagnóstico separado também fica
+condicionalmente fora da execução completa; isso não é teste Android ignorado.
+Os quinze testes JVM OTP fazem parte das suítes completas, não são aprovação de
+envio de e-mail ou de GoTrue real.
+
+## Integridade e comparação com a Fase 3.3
+
+- Dois AVDs novos, 172 registros finais, quinze tipos; filas/inbox vazias ao concluir.
+- Hash canônico dos dois dispositivos:
+  `dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd`.
+- Cursor/head 13; 13 recibos distintos; três decisões APPLIED; revisão da nota 10.
+- Histórico da nota: null, 0, 1.5, 2.5, 9, 4, 8, 9.5, 7.5, 8.5.
+- IDs e revisões dos dois Rooms conferidos com o servidor e com a evidência
+  `FASE_33_CI_0220.json`. Hashes e campos agregados do servidor são idênticos à 3.3.
+  IDs aleatórios de operações/decisões de execuções diferentes não são confundidos
+  com identidades acadêmicas; a unicidade dos recibos foi verificada dentro da CI.
+- As três alternâncias adicionais mantêm o hash final, cursor, recibos e auditorias.
+  B conserva seus cinco registros locais, sem qualquer registro/protocolo remoto.
+- Provisionamento local: um claim, vínculo ao roster confiável e inicialização E.
+- Backup criptografado, bloqueio de conta diferente, restauração antiga, pausa,
+  reconciliação explícita, rejeição de decisão obsoleta, replay e offline preservados.
+- Launcher: clique real, rede desligada, 11,943s incluindo instalação; PNG/XML
+  inspecionados. Telas de OTP e painel com fonte 1,6 também inspecionadas.
+
+Evidências redigidas:
+
+- [Falha anterior](evidence/phase34/failure-45111406970.json).
+- [Diagnóstico dirigido](evidence/phase34/diagnostic-45273425576.json).
+- [CI completa e contagens nativas](evidence/phase34/full-45274547988.json).
+- [Login pelo ícone](evidence/phase34/launcher-45274547988.png).
+- [Retorno a A](evidence/phase34/accounts-return-A-45274547988.png).
+- [OTP com fonte ampliada](evidence/phase34/otp-font16-45274547988.png).
+- [Artefato completo](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45274547988/artifacts/14868410445),
+  ZIP SHA-256 `502ac5018f5810e37fc9c221b1d325b3e8dec6145ddb3e9773b6eaaa72a23d84`.
+- [Artefato dirigido](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45273425576/artifacts/14865409854),
+  ZIP SHA-256 `4705be042db579a17314667024274eee677988db99d827b8547e96301eaaf391`.
+
+## Commits e arquivos desta correção final
+
+- `1d5c6c4`: reprodução da preparação real de B, verificações fortes de isolamento,
+  checkpoints e conferência local do servidor.
+- `553771d`: mensagens de proprietário redigidas e evidência da falha anterior;
+  SHA completo aprovado indicado acima.
+- `CommercialFinalNetworkProbeTest.kt`: expectativas/diagnósticos; nenhum código
+  de produção alterado. `test-commercial-ui-diagnostic.sh`: preparação equivalente.
+  `test-commercial-android.sh`: coleta de falhas e gate da prova adicional.
+  `test-commercial-ui-evidence.py`: confere checkpoints e contagens do servidor local.
+- Documentação e evidências neste arquivo e `docs/evidence/phase34/`.
+
+## APK paralelo gerado após o gate
+
+[Baixar o artefato `noctua-homologacao-comercial-debug`](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45276808241/artifacts/14867084367).
+No GitHub autenticado, clicar no artefato para baixar o ZIP e extrair
+`app-homologacao.apk`. Não é release oficial.
+
+| Propriedade | Resultado verificado |
+| --- | --- |
+| Código do APK e da CI completa | 553771d04f210c8cb2f4ff27246148c727ebbc22 |
+| applicationId | br.com.diariodeclasse.homologacao |
+| Versão / código | 0.22.0-dev-e2-homologacao / 45 |
+| Projeto exclusivo | sscexzxtqdcsqdlcytum; sem fallback de produção |
+| Callback PKCE | br.com.diariodeclasse.homologacao://auth/callback |
+| Inicialização comercial | Habilitada no build; autorização permanece no servidor |
+| Tamanho do APK | 13.053.006 bytes |
+| SHA-256 do APK | b0eade2b913052a95410f07b8a387073acafb759e8eafe3f48c279ad2f1da757 |
+| Certificado debug SHA-256 | 64937a78fde546e5f62a10c76734f96cd04a6e8bb2ad10ab29ec4c9006d998d2 |
+| Launcher real, variante paralela | Aprovado, 12,033s incluindo instalação |
+
+O certificado é Android Debug e **não** o permanente. A compatibilidade de
+assinatura com APKs antigos de homologação não foi comprovada: instalar somente em
+AVD recém-criado, sem usar `-r`, desinstalar ou limpar aplicativos existentes.
+Não instalar no celular principal ou sobre o aplicativo oficial. A instalação de
+CI ocorreu somente em outro AVD descartável e vazio.
+
+A conferência de identidade/DEX/manifest passou no workflow, e `apksigner verify`
+foi repetido localmente sobre o APK baixado. O SHA coincide com o manifesto publicado.
+Chave pública configurada, HTTP claro proibido, sem sharedUserId, armazenamento e
+provider isolados, nenhuma credencial administrativa/fixture no app.
+O APK usa o mesmo código aprovado; os commits posteriores desta entrega são apenas
+documentais. Não houve alteração de package/assinatura do aplicativo oficial.
+
+As duas suítes JVM do workflow do APK (Debug e Homologacao) tiveram, **cada uma**,
+337 casos: 332 aprovados, cinco condicionais hospedados não executados e zero falhas.
+Não são uma nova bateria Android de recuperação; a prova nativa completa é a CI
+45274547988. Os demais jobs do caller, inclusive assinatura/atualização oficial e
+ensaios hospedados, foram corretamente não selecionados.
+
+[Identidade e resultados redigidos](evidence/phase34/apk-45276808241.json),
+[captura do launcher paralelo](evidence/phase34/homologacao-launcher-45276808241.png).
+ZIP SHA-256:
+`d43f273ec3925cab379cb4ec7ce91a63efee70f0386100093073d47de08a363a`.
+As capturas desta entrega contêm somente telas vazias ou fixtures fictícias.
+
+## OTP, provisionamento e homologação mínima pendente
+
+A implementação OTP preservada permite consultar o e-mail em qualquer aparelho e
+digitar o código no app. Após confirmar, fecha somente a sessão temporária obtida
+na verificação e exige login com senha; não admite workspace por simples confirmação.
+Cadastro, expiração/erros, reenvio controlado, PKCE e preservação de sessão/workspace
+estão cobertos localmente. Entrega real, expiração e uso único no GoTrue hospedado
+precisam de autorização e teste próprios; não foram substituídos por mocks silenciosos.
+
+A migração `202611220001_institutional_provisioning.sql` e o template
+`supabase/templates/confirm_signup_otp.html` continuam **preparados, não aplicados**.
+SHA-256 da migração:
+`934bc08a8448cea5b6e73c4cef488472940838195420236a3aeaae283ea341aa`.
+Direitos comerciais continuam distintos de Auth, confirmação e associação
+institucional. Não foi concedido direito ou rollout em ambiente hospedado.
+
+Procedimento mínimo futuro, mediante autorização administrativa separada:
+
+1. Somente em `noctua-homologacao` (`sscexzxtqdcsqdlcytum`), revisar o template
+   Confirm signup para mostrar `{{ .Token }}`; preservar confirmação obrigatória,
+   expiração, limites oficiais e o link oficial opcional para clientes antigos.
+   Usar conta fictícia inédita com caixa autorizada. Em AVD novo, cadastrar, consultar
+   o e-mail em outro aparelho, digitar o código, comprovar que a confirmação exige
+   login com senha e então entrar. Não compartilhar códigos, links ou senhas.
+   Limitações do mailer/SMTP continuam pendentes; não prometer entrega universal.
+2. Após revisão do check somente leitura e backup administrativo, autorizar
+   separadamente a migração institucional, dependente do A–E e bootstrap comercial
+   originais, e **uma** entrada de roster fictício com prazo. Não reaplicar migrações
+   anteriores ou conceder por domínio. Verificar E automático e recuperação num
+   segundo AVD novo. Não repetir os oito testes acadêmicos manuais já relatados.
+
+Produção, Supabase hospedados, contas existentes, AVDs do proprietário, main e
+assinatura permanente permaneceram intocados. Não houve H13/PT409, release oficial,
+instalação em dispositivo existente ou alteração de regras acadêmicas.
+
+---
+
+# Histórico dos checkpoints anteriores (não representam o estado atual)
+
 # Fase 3.4 — estado consolidado da retomada final (23/11/2026)
 
 **Ainda não aprovada integralmente.** A regressão completa precisa ser conferida

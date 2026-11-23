@@ -1,0 +1,483 @@
+{
+  "JVM": {
+    "commercial": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 5,
+      "tests": 337
+    },
+    "default": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 5,
+      "tests": 337
+    }
+  },
+  "account_transitions": {
+    "hosted_requests": 0,
+    "passed": true,
+    "points": [
+      {
+        "active": false,
+        "auth_owner": "B",
+        "authenticated": true,
+        "control_owner": "B",
+        "counts": {
+          "classes": 1,
+          "terms": 4
+        },
+        "cursor": 0,
+        "decisions": 0,
+        "hash": "7efb46c55adbeb878ec2d18f47357b5fb7ee1e7c38f4979d180ddc69f30a149a",
+        "inbox": 0,
+        "ineligible": true,
+        "initializing": false,
+        "loading": false,
+        "other_owner_states": false,
+        "pending": 0,
+        "point": "B",
+        "previous_empty_predicate": false,
+        "round": 0,
+        "stage": "BOOTSTRAP_E",
+        "workspace_owner": "B"
+      },
+      {
+        "active": true,
+        "auth_owner": "A",
+        "authenticated": true,
+        "control_owner": "A",
+        "counts": {
+          "activities": 2,
+          "class_archives": 1,
+          "classes": 2,
+          "export_rows": 3,
+          "grades": 36,
+          "import_drafts": 1,
+          "lesson_records": 2,
+          "lessons": 3,
+          "marks": 71,
+          "preserved_histories": 1,
+          "recompositions": 1,
+          "relocations": 1,
+          "students": 38,
+          "terms": 8,
+          "weekly_timetables": 2
+        },
+        "cursor": 13,
+        "decisions": 3,
+        "hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+        "inbox": 0,
+        "ineligible": false,
+        "initializing": false,
+        "loading": false,
+        "other_owner_states": false,
+        "pending": 0,
+        "point": "A",
+        "previous_empty_predicate": false,
+        "round": 0,
+        "stage": "ACTIVE_E",
+        "workspace_owner": "A"
+      },
+      {
+        "active": false,
+        "auth_owner": "B",
+        "authenticated": true,
+        "control_owner": "B",
+        "counts": {
+          "classes": 1,
+          "terms": 4
+        },
+        "cursor": 0,
+        "decisions": 0,
+        "hash": "7efb46c55adbeb878ec2d18f47357b5fb7ee1e7c38f4979d180ddc69f30a149a",
+        "inbox": 0,
+        "ineligible": true,
+        "initializing": false,
+        "loading": false,
+        "other_owner_states": false,
+        "pending": 0,
+        "point": "B",
+        "previous_empty_predicate": false,
+        "round": 1,
+        "stage": "BOOTSTRAP_E",
+        "workspace_owner": "B"
+      },
+      {
+        "active": true,
+        "auth_owner": "A",
+        "authenticated": true,
+        "control_owner": "A",
+        "counts": {
+          "activities": 2,
+          "class_archives": 1,
+          "classes": 2,
+          "export_rows": 3,
+          "grades": 36,
+          "import_drafts": 1,
+          "lesson_records": 2,
+          "lessons": 3,
+          "marks": 71,
+          "preserved_histories": 1,
+          "recompositions": 1,
+          "relocations": 1,
+          "students": 38,
+          "terms": 8,
+          "weekly_timetables": 2
+        },
+        "cursor": 13,
+        "decisions": 3,
+        "hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+        "inbox": 0,
+        "ineligible": false,
+        "initializing": false,
+        "loading": false,
+        "other_owner_states": false,
+        "pending": 0,
+        "point": "A",
+        "previous_empty_predicate": false,
+        "round": 1,
+        "stage": "ACTIVE_E",
+        "workspace_owner": "A"
+      },
+      {
+        "active": false,
+        "auth_owner": "B",
+        "authenticated": true,
+        "control_owner": "B",
+        "counts": {
+          "classes": 1,
+          "terms": 4
+        },
+        "cursor": 0,
+        "decisions": 0,
+        "hash": "7efb46c55adbeb878ec2d18f47357b5fb7ee1e7c38f4979d180ddc69f30a149a",
+        "inbox": 0,
+        "ineligible": true,
+        "initializing": false,
+        "loading": false,
+        "other_owner_states": false,
+        "pending": 0,
+        "point": "B",
+        "previous_empty_predicate": false,
+        "round": 2,
+        "stage": "BOOTSTRAP_E",
+        "workspace_owner": "B"
+      },
+      {
+        "active": true,
+        "auth_owner": "A",
+        "authenticated": true,
+        "control_owner": "A",
+        "counts": {
+          "activities": 2,
+          "class_archives": 1,
+          "classes": 2,
+          "export_rows": 3,
+          "grades": 36,
+          "import_drafts": 1,
+          "lesson_records": 2,
+          "lessons": 3,
+          "marks": 71,
+          "preserved_histories": 1,
+          "recompositions": 1,
+          "relocations": 1,
+          "students": 38,
+          "terms": 8,
+          "weekly_timetables": 2
+        },
+        "cursor": 13,
+        "decisions": 3,
+        "hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+        "inbox": 0,
+        "ineligible": false,
+        "initializing": false,
+        "loading": false,
+        "other_owner_states": false,
+        "pending": 0,
+        "point": "A",
+        "previous_empty_predicate": false,
+        "round": 2,
+        "stage": "ACTIVE_E",
+        "workspace_owner": "A"
+      }
+    ],
+    "rounds": 3,
+    "server": {
+      "A_decisions": 3,
+      "A_head": 13,
+      "A_receipts": 13,
+      "A_records": 172,
+      "A_unique_receipts": 13,
+      "B_claims": 0,
+      "B_entitlements": 0,
+      "B_protocols": 0,
+      "B_records": 0
+    }
+  },
+  "artifact_zip_sha256": "502ac5018f5810e37fc9c221b1d325b3e8dec6145ddb3e9773b6eaaa72a23d84",
+  "baseline_33_server_ids_revisions_and_hashes_identical": true,
+  "canonical_hash": "dbee2693e1fca7b1688f19d850fc5b9dc1efa6a4732d6475ea585abf593b58cd",
+  "code": "553771d04f210c8cb2f4ff27246148c727ebbc22",
+  "counts": {
+    "activities": 2,
+    "class_archives": 1,
+    "classes": 2,
+    "export_rows": 3,
+    "grades": 36,
+    "import_drafts": 1,
+    "lesson_records": 2,
+    "lessons": 3,
+    "marks": 71,
+    "preserved_histories": 1,
+    "recompositions": 1,
+    "relocations": 1,
+    "students": 38,
+    "terms": 8,
+    "weekly_timetables": 2
+  },
+  "exact_server_ids_and_revisions_match_both_Rooms": true,
+  "hosted_requests": 0,
+  "institutional_provisioning": {
+    "claims": 1,
+    "initialized_entitlement": true,
+    "trusted_roster_binding": true
+  },
+  "launcher": {
+    "actual_icon_tapped": true,
+    "application_id": "br.com.diariodeclasse",
+    "empty_login_screen": true,
+    "hosted_auth_executed": false,
+    "instrumentation": false,
+    "launcher_animation_scale": "1.0",
+    "launcher_intent_resolved": true,
+    "launcher_surface": "DRAWER",
+    "network_disabled": true,
+    "normal_Application": true,
+    "passed": true,
+    "prior_animation_scale": "0.0",
+    "seconds": 11.943
+  },
+  "native_breakdown": [
+    {
+      "file": "e-auto-commercial-init-lost.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-commercial-observe-final.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-commercial-observe-offline.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-commercial-reconnect.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-commercial-recover.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-commercial-seed.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-after-backup-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-backup-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-conflict-local-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-conflict-remote-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-converge-one-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-decision-lost-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-converge-two-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-decision-replay-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-final-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-final-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-isolation-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-login-after-logout-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-logout-pending-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-observe-local-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-observe-push-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-observe-remote-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-offline-one-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-offline-restart-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-peer-observe-one-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-peer-observe-two-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-peer-one-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-peer-two-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-push-lost-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-push-replay-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-reopen-offline-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-resolve-local-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-restore-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-stale-local-primary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "e-auto-final-stale-remote-secondary.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "font16-otp.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    },
+    {
+      "file": "font16.txt",
+      "native_pass_codes": 2,
+      "passed": 2
+    },
+    {
+      "file": "room.txt",
+      "native_pass_codes": 84,
+      "passed": 84
+    },
+    {
+      "file": "ui-transition.txt",
+      "native_pass_codes": 1,
+      "passed": 1
+    }
+  ],
+  "native_failed": 0,
+  "native_passed": 123,
+  "native_skipped": 0,
+  "run_id": 45274547988,
+  "server": {
+    "decisions": 3,
+    "grade_revision": 10,
+    "grade_versions": [
+      null,
+      0.0,
+      1.5,
+      2.5,
+      9.0,
+      4.0,
+      8.0,
+      9.5,
+      7.5,
+      8.5
+    ],
+    "head": 13,
+    "receipts": 13,
+    "records": 172,
+    "unentitled_protocols": 0,
+    "unentitled_records": 0,
+    "unique_receipts": 13
+  }
+}

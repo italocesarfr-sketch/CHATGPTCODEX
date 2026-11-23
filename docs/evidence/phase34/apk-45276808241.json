@@ -1,0 +1,57 @@
+{
+  "JVM": {
+    "testDebugUnitTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 5,
+      "tests": 337
+    },
+    "testHomologacaoUnitTest": {
+      "errors": 0,
+      "failures": 0,
+      "skipped": 5,
+      "tests": 337
+    }
+  },
+  "artifact_id": 14867084367,
+  "code": "553771d04f210c8cb2f4ff27246148c727ebbc22",
+  "hosted_requests": 0,
+  "identity": {
+    "allow_backup": false,
+    "apk_bytes": 13053006,
+    "apk_sha256": "b0eade2b913052a95410f07b8a387073acafb759e8eafe3f48c279ad2f1da757",
+    "apk_verified": true,
+    "application_id": "br.com.diariodeclasse.homologacao",
+    "callback": "br.com.diariodeclasse.homologacao://auth/callback",
+    "certificate_sha256": "64937a78fde546e5f62a10c76734f96cd04a6e8bb2ad10ab29ec4c9006d998d2",
+    "cleartext": false,
+    "commercial_auto": true,
+    "hosted_tests_executed": false,
+    "local_storage": "Android application UID sandbox + existing per-account workspaces",
+    "production_fallback": false,
+    "project_ref": "sscexzxtqdcsqdlcytum",
+    "public_key_configured": true,
+    "shared_user_id": false,
+    "version_code": 45,
+    "version_name": "0.22.0-dev-e2-homologacao"
+  },
+  "launcher": {
+    "actual_icon_tapped": true,
+    "application_id": "br.com.diariodeclasse.homologacao",
+    "empty_login_screen": true,
+    "hosted_auth_executed": false,
+    "instrumentation": false,
+    "launcher_animation_scale": "1.0",
+    "launcher_intent_resolved": true,
+    "launcher_surface": "DRAWER",
+    "network_disabled": true,
+    "normal_Application": true,
+    "passed": true,
+    "prior_animation_scale": "0.0",
+    "seconds": 12.033
+  },
+  "older_homologacao_signature_compatibility_verified": false,
+  "permanent_signing_used": false,
+  "run_id": 45276808241,
+  "zip_sha256": "d43f273ec3925cab379cb4ec7ce91a63efee70f0386100093073d47de08a363a"
+}
