@@ -1,3 +1,21 @@
+> **Retomada em 23/11/2026 — ainda não aprovada.** A execução completa
+> [45078704183](https://github.com/italocesarfr-sketch/CHATGPTCODEX/actions/runs/45078704183)
+> falhou. Seu artefato `commercial-auto-local-evidence` (ZIP SHA-256
+> `94c994574f409dc7fed306a4e9ead67f6561deb9b88876982b25d7de6484d0e7`)
+> mostra o Telefone em primeiro plano após o toque destinado ao NOcTuA e a tela
+> de login visível após B → A, enquanto o executor não encontra `entry-email`.
+> Isso comprova o destino incorreto do toque e a divergência entre captura e
+> consulta de acessibilidade; ainda não comprova a causa de cache/geometria.
+>
+> A retomada preservou a branch, HEAD `d4751cc` e working tree inicialmente limpa.
+> Não foram recuperadas alterações locais pendentes. O diagnóstico novo verifica
+> dois layouts frescos do launcher e atualiza os nós virtuais antes da travessia.
+> Registra apenas geometria, tags conhecidas e estados booleanos, sem valores de
+> campos. Um modo manual `ui_diagnostic_only=true` executa launcher, bootstrap
+> sintético e três trocas A → B → A em AVD novo. Não substitui a regressão completa.
+> Geometria: quatro testes locais aprovados; sintaxe Python/Bash/YAML conferida.
+> Supabase hospedado, contas, dispositivos e assinatura permanente intocados.
+
 # Fase 3.4 — autenticação, onboarding e provisionamento comercial
 
 Branch dedicada `sync/academic-commercial-onboarding-034`, base

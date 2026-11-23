@@ -9,11 +9,15 @@ on:
         description: 'Somente diagnóstico do launcher em AVD vazio; não aprova regressão comercial'
         type: boolean
         default: false
+      ui_diagnostic_only:
+        description: 'Somente launcher e troca A/B/A em AVD novo e backend descartável; não aprova regressão completa'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
   local-proof:
-    if: (github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-final-033' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034') && inputs.launcher_only != true
+    if: (github.ref == 'refs/heads/sync/academic-commercial-auto-031' || github.ref == 'refs/heads/sync/academic-commercial-final-033' || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034') && inputs.launcher_only != true && (inputs.ui_diagnostic_only != true || github.ref == 'refs/heads/sync/academic-commercial-onboarding-034')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     services:
@@ -53,12 +57,14 @@ jobs:
         if: github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
         run: python3 scripts/test-launcher-geometry.py
       - name: JVM com configuração padrão desligada
+        if: inputs.ui_diagnostic_only != true
         run: |
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
           ./gradlew --no-daemon testDebugUnitTest
           mkdir -p build/commercial-tests/default-jvm
           cp app/build/test-results/testDebugUnitTest/TEST-*.xml build/commercial-tests/default-jvm/
       - name: PostgreSQL real — autorização, concorrência e predicados originais
+        if: inputs.ui_diagnostic_only != true
         run: |
           python3 scripts/test-commercial-bootstrap.py > build/commercial-tests/postgres-results.txt 2>&1
           tail -5 build/commercial-tests/postgres-results.txt
@@ -68,6 +74,7 @@ jobs:
       - name: Provisionamento institucional — somente banco descartável
         if: github.ref == 'refs/heads/sync/academic-commercial-onboarding-034'
         run: |
+          mkdir -p build/commercial-tests
           # The previous battery ends at E; this battery tests migrations from an empty fixture.
           # This database exists only inside this job's disposable PostgreSQL service.
           [[ "$GITHUB_ACTIONS" == true && "$CI" == true && "$PGHOST" == 127.0.0.1 && "$PGPORT" == 55431 && "$PGDATABASE" == noctua_phase_e_test && "$NOCTUA_COMMERCIAL_DISPOSABLE" == YES ]]
@@ -79,7 +86,11 @@ jobs:
         run: bash scripts/ci/start-commercial-postgrest.sh
       - name: Opt-in somente neste build debug; nenhuma assinatura oficial
         run: |
-          ./gradlew --no-daemon -PnoctuaAcademicCommercial=true testDebugUnitTest assembleDebug assembleDebugAndroidTest
+          if [[ '${{ inputs.ui_diagnostic_only }}' == true ]]; then
+            ./gradlew --no-daemon -PnoctuaAcademicCommercial=true assembleDebug assembleDebugAndroidTest
+          else
+            ./gradlew --no-daemon -PnoctuaAcademicCommercial=true testDebugUnitTest assembleDebug assembleDebugAndroidTest
+          fi
           python3 scripts/validate-auth-apk.py app/build/outputs/apk/debug/app-debug.apk
       - name: KVM do runner descartável
         run: |
@@ -94,7 +105,7 @@ jobs:
           force-avd-creation: true
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -feature -Vulkan -memory 2048 -cores 2
-          script: bash scripts/ci/test-commercial-android.sh
+          script: bash scripts/ci/${{ inputs.ui_diagnostic_only == true && 'test-commercial-ui-diagnostic.sh' || 'test-commercial-android.sh' }}
       - name: Parar somente servidor descartável deste job
         if: always()
         run: |

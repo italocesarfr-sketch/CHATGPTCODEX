@@ -38,7 +38,12 @@ class CommercialFinalNetworkProbeTest {
     private fun offline(){shell("svc wifi disable");shell("svc data disable");waitFor{(w.context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetwork==null}}
     private fun online(){shell("svc wifi enable");shell("svc data enable");waitFor{(app.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager).activeNetwork!=null}}
     private fun login(other:Boolean=false) {
-        ui.waitUntil(15000){ui.exists("entry-email")&&ui.enabled("entry-email")}
+        try{ui.waitUntil(15000){ui.exists("entry-email")&&ui.enabled("entry-email")}}
+        catch(failure:Throwable){
+            val state=app.auth.state.value
+            file("login-diagnostic.txt").writeText("$phase initializing=${state.initializing} loading=${state.loading} authenticated=${state.user!=null} workspace_locked=${runCatching{w}.isFailure} ${ui.diagnostic()}")
+            throw failure
+        }
         ui.replaceText("entry-email",if(other)CommercialFinalAuthClient.OTHER_EMAIL else fixtureUser.email)
         ui.replaceText("entry-password",CommercialFinalAuthClient.PASSWORD)
         ui.scrollTo("entry-enter");ui.click("entry-enter")
@@ -168,6 +173,23 @@ class CommercialFinalNetworkProbeTest {
             "e-auto-final-push-lost"->{online();waitFor{PhaseBNetworkHarness.droppedCommittedReply()&&store.pending()!=null};assertEquals(file("pending-id").readText(),store.pending()!!.id)}
             "e-auto-final-push-replay"->{synced();assertEquals(7.5,grade()!!,0.0);assertEquals(file("pending-id").readText(),store.dao.applied(store.cursor())!!.operation)}
             "e-auto-final-observe-push"->{waitFor{grade()==7.5};synced()}
+            "e-auto-final-ui-transition"->{
+                // Isolated regression: real password UI, normal lifecycle and Keystore;
+                // no auth shortcut, no manual engine activation or synchronization.
+                synced();val before=snapshot();val cursor=store.cursor()
+                repeat(3){round->
+                    br.com.diariodeclasse.ui.DiaryViewModel(app).logout()
+                    waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
+                    login(true)
+                    waitFor{store.stage()=="BOOTSTRAP_E"&&store.dao.control()?.message=="INELIGIBLE"}
+                    assertTrue(snapshot().classes.isEmpty());assertFalse(store.active())
+                    br.com.diariodeclasse.ui.DiaryViewModel(app).logout()
+                    waitFor{app.auth.state.value.user==null&&runCatching{w}.isFailure}
+                    login();synced();assertEquals(before,snapshot());assertEquals(cursor,store.cursor())
+                    file("transition-$round.txt").writeText("round=$round A_B_A=true hash=${BackupCodec.fingerprint(before)} cursor=$cursor ${ui.diagnostic()}")
+                    shot("login-transition-$round")
+                }
+            }
             "e-auto-final-isolation"->{
                 synced();val before=snapshot();val originalCursor=store.cursor();val other=PhaseBNetworkHarness.token(true)
                 assertFalse(PhaseBNetworkHarness.raw().ensureE(other).eligible)

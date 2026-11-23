@@ -38,10 +38,17 @@ class CommercialNativeUiRule:TestRule {
             SystemClock.sleep(10) // Bounded state polling, not a stabilization delay.
         }
     }
+    var refreshedStructureChanges=0; private set
+    var rejectedStaleNodes=0; private set
     private fun nodes(predicate:(AccessibilityNodeInfo)->Boolean):List<AccessibilityNodeInfo>{
         val result=mutableListOf<AccessibilityNodeInfo>()
         val roots=automation.windows.mapNotNull{it.root}.ifEmpty{listOfNotNull(automation.rootInActiveWindow)}
         fun visit(n:AccessibilityNodeInfo){
+            // Virtual descendants may be re-created after logout. Refresh the child
+            // list before traversing it; cached ancestors can hide the new login tree.
+            val before=n.childCount
+            if(!n.refresh()){rejectedStaleNodes++;n.recycle();return}
+            if(before!=n.childCount)refreshedStructureChanges++
             if(n.packageName==BuildConfig.APPLICATION_ID&&predicate(n))result+=AccessibilityNodeInfo.obtain(n)
             for(i in 0 until n.childCount)n.getChild(i)?.let(::visit)
             n.recycle()
@@ -92,6 +99,12 @@ class CommercialNativeUiRule:TestRule {
             instrument.waitForIdleSync()
             SystemClock.sleep(10)
         }
+    }
+    /** Shape and known tags only: never field values, identities or session contents. */
+    fun diagnostic():String {
+        val known=listOf("entry-email","entry-password","entry-enter","nav-0","grade-conflict-dialog")
+        val present=known.associateWith{exists(it)}
+        return "tags=$present refreshed_structure_changes=$refreshedStructureChanges stale_nodes=$rejectedStaleNodes"
     }
     fun waitForIdle(){instrument.waitForIdleSync()}
 }
